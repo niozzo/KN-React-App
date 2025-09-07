@@ -10,6 +10,9 @@
 # Node modules
 node_modules/
 
+# BMAD framework files
+web-bundles/
+
 # Logs
 *.log
 npm-debug.log*
