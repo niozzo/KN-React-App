@@ -1,0 +1,22 @@
+{
+  "cursor.rules.enabled": true,
+  "cursor.rules.directory": ".cursor/rules",
+  "cursor.agent.shortcuts": {
+    "@analyst": "analyst.mdc",
+    "@pm": "pm.mdc", 
+    "@architect": "architect.mdc",
+    "@dev": "dev.mdc",
+    "@qa": "qa.mdc",
+    "@ux": "ux-expert.mdc",
+    "@po": "po.mdc",
+    "@sm": "sm.mdc",
+    "@bmad": "bmad-master.mdc"
+  },
+  "cursor.bmad.integration": {
+    "enabled": true,
+    "corePath": ".bmad-core",
+    "webBundlesPath": "web-bundles",
+    "docsPath": "docs"
+  }
+}
+

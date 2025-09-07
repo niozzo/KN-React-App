@@ -1,0 +1,30 @@
+{
+  "name": "kn-react-app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "start": "python3 -m http.server 3000",
+    "serve": "python3 -m http.server 3000",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/niozzo/KN-React-App.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/niozzo/KN-React-App/issues"
+  },
+  "homepage": "https://github.com/niozzo/KN-React-App#readme",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.57.2",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  }
+}
