@@ -1,9 +1,11 @@
 # Conference Companion PWA - Epic Plan
 
-**Version:** 1.0  
+**Version:** 1.1  
 **Date:** December 19, 2024  
 **Author:** Sarah (Product Owner)  
-**Status:** Draft for Review  
+**Status:** ✅ **APPROVED** by Stakeholders  
+**Last Updated:** Enhanced broadcast system, restored schedule management, added resource planning  
+**Approval Date:** December 19, 2024  
 
 ## Overview
 
@@ -72,9 +74,11 @@ This document breaks down the Conference Companion PWA project into manageable e
 1. Email OTP/magic link authentication implemented
 2. Optional SMS OTP when phone number is available
 3. Session persistence and secure token storage
-4. Rate limiting on OTP sends
+4. Rate limiting on OTP sends (max 3 attempts per 15 minutes)
 5. Sign-out flows and session management
 6. Privacy consent banner for discoverability and notifications
+7. Account recovery flow for locked accounts
+8. Integration with Supabase Auth for user management
 
 ---
 
@@ -97,6 +101,9 @@ This document breaks down the Conference Companion PWA project into manageable e
 3. Works offline using cached data; revalidates on network
 4. Tapping opens full session detail with quick "Find my seat" if applicable
 5. Handles edge cases: between sessions, last session of day, no assignments
+6. Shows current session if active (Now card) + next session (Next card)
+7. Countdown updates every minute; real-time updates on app focus
+8. Integration with admin broadcast countdown timers
 
 ### Story 2.2: Personalized Schedule View
 **As an** attendee,  
@@ -184,11 +191,13 @@ This document breaks down the Conference Companion PWA project into manageable e
 **so that** I can communicate important updates and timing changes.
 
 **Acceptance Criteria:**
-1. Broadcast composer with title, message, optional link
-2. Target audience: all attendees (cohorting for later)
-3. Web Push to installed users; in-app banners fallback
-4. Delivery logging and impression measurement
-5. Respects user notification consent settings
+1. Broadcast composer with title, message, optional link, optional countdown timer
+2. Countdown timer allows setting specific minutes (5, 10, 15, 30, 60) for break reminders
+3. Target audience: all attendees (cohorting for later)
+4. Web Push to installed users; in-app banners fallback
+5. Delivery logging and impression measurement
+6. Respects user notification consent settings
+7. Countdown broadcasts show live countdown in app until event occurs
 
 ### Story 4.2: Schedule Management & Real-time Updates
 **As an** admin,  
@@ -201,6 +210,7 @@ This document breaks down the Conference Companion PWA project into manageable e
 3. Audit trail of last broadcast and schedule sync timestamps
 4. Integration with Now/Next cards for immediate updates
 5. Graceful handling of schedule conflicts
+6. Bulk update capabilities for multiple sessions
 
 ### Story 4.3: Admin Dashboard & Analytics
 **As an** admin,  
@@ -326,9 +336,17 @@ This document breaks down the Conference Companion PWA project into manageable e
 - **Epic 6** (Polish) can begin final stories while Epic 5 completes
 
 ### Timeline Considerations
-- **Epic 1-2**: Critical path for core functionality
-- **Epic 3-4**: Can develop in parallel after Epic 2 starts
-- **Epic 5-6**: Final integration and polish phase
+- **Epic 1-2**: Critical path for core functionality (Weeks 1-2)
+- **Epic 3-4**: Can develop in parallel after Epic 2 starts (Weeks 2-3)
+- **Epic 5-6**: Final integration and polish phase (Week 4)
+
+### Resource Requirements
+- **Epic 1**: 1 full-stack developer (foundation work)
+- **Epic 2**: 1 frontend developer + 1 backend developer (core UX)
+- **Epic 3**: 1 frontend developer (networking features)
+- **Epic 4**: 1 full-stack developer (admin tools)
+- **Epic 5**: 1 frontend developer + analytics support (sponsor features)
+- **Epic 6**: 1 full-stack developer + QA (polish and testing)
 
 ---
 
@@ -354,7 +372,7 @@ This document breaks down the Conference Companion PWA project into manageable e
 
 ## Next Steps
 
-1. **Review and Approve Epic Plan** - Stakeholder review of epic breakdown and sequencing
+1. ✅ **Review and Approve Epic Plan** - **COMPLETED** - Stakeholder approval received
 2. **Story Refinement** - Detailed story creation with acceptance criteria
 3. **Architecture Planning** - Technical architecture for each epic
 4. **Development Planning** - Sprint planning and resource allocation
@@ -362,6 +380,6 @@ This document breaks down the Conference Companion PWA project into manageable e
 
 ---
 
-**Document Status:** Draft for Review  
-**Next Review Date:** TBD  
-**Approval Required:** Product Owner, Technical Lead, Stakeholders
+**Document Status:** ✅ **APPROVED**  
+**Next Review Date:** As needed during development  
+**Approval Status:** ✅ **COMPLETED** - All stakeholders approved
