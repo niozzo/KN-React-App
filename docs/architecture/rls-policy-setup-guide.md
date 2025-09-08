@@ -325,3 +325,4 @@ The database owner needs to run the SQL script above to create RLS policies that
 ---
 
 *This guide provides the exact steps needed to enable public API access while maintaining RLS security.*
+

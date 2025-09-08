@@ -1,17 +1,16 @@
-# BMAD rituals
-
+# BMAD cheat sheet
 **Version:** 4.0  
 **Date:** Septemeber 8, 2025  
 **Workflow:** Solo Development with AI Agent Support  
 
-## Bug Handling Essential Commands:**
-**When Bugs Are Found During Manual Testing:**
+## Bug Handling Flow**
+**When Bugs Are Found**
 [ ] @dev *rca {story-name} {bug-description}` - Perform root cause analysis for discovered bugs
-[ ] @po *update-story {story-name} {rca-findings}` - Update story scope based on RCA findings
+[ ] @architect validate the findings and recommend the fix
+[ ] @po *correct-course
 [ ] @qa *risk {story-name}` - Reassess risk profile after story updates
 [ ] @qa *design {story-name}` - Update test strategy for new scope and scenarios
 [ ] @dev *develop-story {story-name}` - Resume development with updated story scope
-
 
 # Complete BMAD Flow: From High-Level Goal to Deployment
 ## Phase 0: Preperation 
@@ -34,9 +33,10 @@
 [x] @PM *prd {feature-name}` - Build comprehensive PRD for the feature
 
 ## Phase 2: Epic Planning & Story Creation
-[x] @PO *epic-breakdown {feature-name}` - Decompose feature into manageable epics
-[x] @PO *epic-plan {epic-name}` - Define epic mission and business value  
-[x] @PO *story-breakdown {epic-name}` - Break epic into focused BMAD stories
+[x] @bmad-orchestrator *workflow epic-story-creation. This steps throught this flow for all epics and stories
+    @PO *epic-breakdown {feature-name}` - Decompose feature into manageable epics
+    @PO *epic-plan {epic-name}` - Define epic mission and business value  
+    @PO *story-breakdown {epic-name}` - Break epic into focused BMAD stories
 
 ## Phase 3: Architecture & Design
 [x] @Architect *create-brownfield-architecture` - Plan integration points and components
