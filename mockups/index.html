@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conference Companion - Mockup Index</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Design Tokens from branding.md */
+            --purple-900: #5E35A5;
+            --purple-700: #7C4CC4;
+            --purple-500: #9468CE;
+            --purple-050: #F2ECFB;
+            --ink-900: #0E1821;
+            --ink-700: #2A3745;
+            --ink-500: #5A6A7A;
+            --gray-300: #D9DBDC;
+            --gray-200: #E6E7E8;
+            --gray-100: #F5F6F7;
+            --white: #FFFFFF;
+            --coral: #F85C5D;
+            --lime: #99F094;
+            --magenta: #CF59E0;
+            
+            /* Spacing */
+            --space-xs: 8px;
+            --space-sm: 12px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 32px;
+            --space-xxl: 40px;
+            
+            /* Typography */
+            --font-ui: 'Inter', 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            --font-heading: 'IBM Plex Sans', 'Inter', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-ui);
+            background-color: var(--gray-100);
+            color: var(--ink-900);
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: var(--space-xl);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: var(--space-xxl);
+        }
+
+        .logo {
+            font-family: var(--font-heading);
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--purple-700);
+            margin-bottom: var(--space-md);
+        }
+
+        .subtitle {
+            font-size: 20px;
+            color: var(--ink-700);
+            margin-bottom: var(--space-lg);
+        }
+
+        .description {
+            font-size: 16px;
+            color: var(--ink-500);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .mockup-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--space-lg);
+            margin-bottom: var(--space-xxl);
+        }
+
+        .mockup-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: var(--space-lg);
+            box-shadow: 0 2px 6px rgba(14,24,33,0.08);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .mockup-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 16px rgba(14,24,33,0.10);
+        }
+
+        .card-icon {
+            font-size: 32px;
+            margin-bottom: var(--space-md);
+        }
+
+        .card-title {
+            font-family: var(--font-heading);
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--ink-900);
+            margin-bottom: var(--space-sm);
+        }
+
+        .card-description {
+            font-size: 14px;
+            color: var(--ink-700);
+            margin-bottom: var(--space-md);
+        }
+
+        .card-features {
+            list-style: none;
+        }
+
+        .card-features li {
+            font-size: 12px;
+            color: var(--ink-500);
+            padding: 2px 0;
+        }
+
+        .card-features li::before {
+            content: "✓ ";
+            color: var(--lime);
+            font-weight: bold;
+        }
+
+        .story-badge {
+            display: inline-block;
+            background: var(--purple-050);
+            color: var(--purple-700);
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-bottom: var(--space-sm);
+        }
+
+        .user-flow {
+            background: var(--white);
+            border-radius: 12px;
+            padding: var(--space-lg);
+            box-shadow: 0 2px 6px rgba(14,24,33,0.08);
+            margin-bottom: var(--space-xxl);
+        }
+
+        .flow-title {
+            font-family: var(--font-heading);
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--ink-900);
+            margin-bottom: var(--space-lg);
+            text-align: center;
+        }
+
+        .flow-steps {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: var(--space-md);
+        }
+
+        .flow-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            min-width: 120px;
+        }
+
+        .step-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--purple-700);
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-bottom: var(--space-sm);
+        }
+
+        .step-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--ink-900);
+            margin-bottom: 4px;
+        }
+
+        .step-description {
+            font-size: 12px;
+            color: var(--ink-500);
+        }
+
+        .flow-arrow {
+            color: var(--purple-700);
+            font-size: 20px;
+            align-self: center;
+            margin: 0 var(--space-sm);
+        }
+
+        .tech-specs {
+            background: var(--white);
+            border-radius: 12px;
+            padding: var(--space-lg);
+            box-shadow: 0 2px 6px rgba(14,24,33,0.08);
+        }
+
+        .specs-title {
+            font-family: var(--font-heading);
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--ink-900);
+            margin-bottom: var(--space-lg);
+            text-align: center;
+        }
+
+        .specs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--space-lg);
+        }
+
+        .spec-category {
+            text-align: center;
+        }
+
+        .spec-icon {
+            font-size: 24px;
+            margin-bottom: var(--space-sm);
+        }
+
+        .spec-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--ink-900);
+            margin-bottom: var(--space-sm);
+        }
+
+        .spec-list {
+            list-style: none;
+        }
+
+        .spec-list li {
+            font-size: 14px;
+            color: var(--ink-700);
+            padding: 2px 0;
+        }
+
+        .spec-list li::before {
+            content: "• ";
+            color: var(--purple-700);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: var(--space-lg);
+            }
+            
+            .logo {
+                font-size: 36px;
+            }
+            
+            .subtitle {
+                font-size: 18px;
+            }
+            
+            .mockup-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .flow-steps {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .flow-arrow {
+                transform: rotate(90deg);
+                margin: var(--space-sm) 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="logo">Conference Companion</h1>
+            <p class="subtitle">Interactive Mockups for All User Stories</p>
+            <p class="description">
+                Comprehensive mockups showcasing the complete user experience for the Conference Companion PWA. 
+                Built with realistic data and connected navigation to demonstrate the full application flow.
+            </p>
+        </header>
+
+        <!-- Mockup Grid -->
+        <div class="mockup-grid">
+            <a href="home.html" class="mockup-card">
+                <div class="card-icon">🏠</div>
+                <div class="story-badge">Story 2.1</div>
+                <h2 class="card-title">Home Screen</h2>
+                <p class="card-description">Now/Next glance cards with countdown timers and seat assignments</p>
+                <ul class="card-features">
+                    <li>Current session display</li>
+                    <li>Next session countdown</li>
+                    <li>Seat assignment info</li>
+                    <li>Quick action cards</li>
+                    <li>Bottom navigation</li>
+                </ul>
+            </a>
+
+            <a href="schedule.html" class="mockup-card">
+                <div class="card-icon">📅</div>
+                <div class="story-badge">Story 2.2</div>
+                <h2 class="card-title">Schedule View</h2>
+                <p class="card-description">Personalized agenda with sticky day headers and seat assignments</p>
+                <ul class="card-features">
+                    <li>Combined general + personal agenda</li>
+                    <li>Sticky day headers</li>
+                    <li>Day/track filtering</li>
+                    <li>Seat assignment indicators</li>
+                    <li>Session status indicators</li>
+                </ul>
+            </a>
+
+            <a href="meet.html" class="mockup-card">
+                <div class="card-icon">👥</div>
+                <div class="story-badge">Story 3.1</div>
+                <h2 class="card-title">Meet List</h2>
+                <p class="card-description">Attendee search and discovery with overlap hints</p>
+                <ul class="card-features">
+                    <li>Tabbed interface (All/My List)</li>
+                    <li>Multi-criteria search</li>
+                    <li>Overlap opportunity hints</li>
+                    <li>Add to meet list functionality</li>
+                    <li>Email integration</li>
+                </ul>
+            </a>
+
+            <a href="sponsors.html" class="mockup-card">
+                <div class="card-icon">🏢</div>
+                <div class="story-badge">Story 5.1</div>
+                <h2 class="card-title">Sponsor Directory</h2>
+                <p class="card-description">Sponsor discovery with attendee integration</p>
+                <ul class="card-features">
+                    <li>Alphabetical sponsor listing</li>
+                    <li>Featured sponsor highlighting</li>
+                    <li>Sponsor statistics</li>
+                    <li>Website links</li>
+                    <li>Attendee discovery</li>
+                </ul>
+            </a>
+
+            <a href="settings.html" class="mockup-card">
+                <div class="card-icon">⚙️</div>
+                <div class="story-badge">Privacy & Controls</div>
+                <h2 class="card-title">Settings</h2>
+                <p class="card-description">Privacy controls and account management</p>
+                <ul class="card-features">
+                    <li>Discoverability toggles</li>
+                    <li>Notification preferences</li>
+                    <li>Privacy policy links</li>
+                    <li>Account actions</li>
+                    <li>Data export options</li>
+                </ul>
+            </a>
+
+            <a href="session-detail.html" class="mockup-card">
+                <div class="card-icon">📋</div>
+                <div class="story-badge">Session Details</div>
+                <h2 class="card-title">Session Detail</h2>
+                <p class="card-description">Comprehensive session information with seat maps</p>
+                <ul class="card-features">
+                    <li>Detailed session info</li>
+                    <li>Seat assignment display</li>
+                    <li>Presenter information</li>
+                    <li>Related sessions</li>
+                    <li>Seat map integration</li>
+                </ul>
+            </a>
+
+            <a href="attendee-profile.html" class="mockup-card">
+                <div class="card-icon">👤</div>
+                <div class="story-badge">Attendee Profile</div>
+                <h2 class="card-title">Attendee Profile</h2>
+                <p class="card-description">Detailed attendee information with networking context</p>
+                <ul class="card-features">
+                    <li>Contact information</li>
+                    <li>Bio and background</li>
+                    <li>Overlap opportunities</li>
+                    <li>Shared sessions</li>
+                    <li>Add to meet list</li>
+                </ul>
+            </a>
+        </div>
+
+        <!-- User Flow -->
+        <section class="user-flow">
+            <h2 class="flow-title">Key User Flows</h2>
+            <div class="flow-steps">
+                <div class="flow-step">
+                    <div class="step-number">1</div>
+                    <div class="step-title">Home</div>
+                    <div class="step-description">Check Now/Next</div>
+                </div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step">
+                    <div class="step-number">2</div>
+                    <div class="step-title">Schedule</div>
+                    <div class="step-description">View full agenda</div>
+                </div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step">
+                    <div class="step-number">3</div>
+                    <div class="step-title">Session Detail</div>
+                    <div class="step-description">Find seat & details</div>
+                </div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step">
+                    <div class="step-number">4</div>
+                    <div class="step-title">Meet List</div>
+                    <div class="step-description">Find people to meet</div>
+                </div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-step">
+                    <div class="step-number">5</div>
+                    <div class="step-title">Profile</div>
+                    <div class="step-description">View attendee info</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Technical Specifications -->
+        <section class="tech-specs">
+            <h2 class="specs-title">Technical Implementation</h2>
+            <div class="specs-grid">
+                <div class="spec-category">
+                    <div class="spec-icon">🎨</div>
+                    <h3 class="spec-title">Design System</h3>
+                    <ul class="spec-list">
+                        <li>KnowledgeNow brand colors</li>
+                        <li>Material Design framework</li>
+                        <li>Responsive breakpoints</li>
+                        <li>Accessibility compliance</li>
+                        <li>Design tokens</li>
+                    </ul>
+                </div>
+                <div class="spec-category">
+                    <div class="spec-icon">📱</div>
+                    <h3 class="spec-title">Mobile-First</h3>
+                    <ul class="spec-list">
+                        <li>PWA optimization</li>
+                        <li>Touch-friendly interactions</li>
+                        <li>Bottom tab navigation</li>
+                        <li>Offline capabilities</li>
+                        <li>Performance optimized</li>
+                    </ul>
+                </div>
+                <div class="spec-category">
+                    <div class="spec-icon">🔒</div>
+                    <h3 class="spec-title">Privacy & Security</h3>
+                    <ul class="spec-list">
+                        <li>GDPR compliance</li>
+                        <li>Discoverability controls</li>
+                        <li>Data export options</li>
+                        <li>Privacy policy integration</li>
+                        <li>Secure authentication</li>
+                    </ul>
+                </div>
+                <div class="spec-category">
+                    <div class="spec-icon">⚡</div>
+                    <h3 class="spec-title">Performance</h3>
+                    <ul class="spec-list">
+                        <li>Fast loading times</li>
+                        <li>Efficient caching</li>
+                        <li>Real-time updates</li>
+                        <li>Battery optimization</li>
+                        <li>Network awareness</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </div>
+</body>
+</html>

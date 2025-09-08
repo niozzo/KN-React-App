@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conference Companion - Attendee Profile</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Design Tokens from branding.md */
+            --purple-900: #5E35A5;
+            --purple-700: #7C4CC4;
+            --purple-500: #9468CE;
+            --purple-050: #F2ECFB;
+            --ink-900: #0E1821;
+            --ink-700: #2A3745;
+            --ink-500: #5A6A7A;
+            --gray-300: #D9DBDC;
+            --gray-200: #E6E7E8;
+            --gray-100: #F5F6F7;
+            --white: #FFFFFF;
+            --coral: #F85C5D;
+            --lime: #99F094;
+            --magenta: #CF59E0;
+            
+            /* Spacing */
+            --space-xs: 8px;
+            --space-sm: 12px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 32px;
+            --space-xxl: 40px;
+            
+            /* Typography */
+            --font-ui: 'Inter', 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            --font-heading: 'IBM Plex Sans', 'Inter', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-ui);
+            background-color: var(--gray-100);
+            color: var(--ink-900);
+            line-height: 1.5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            background: var(--white);
+            padding: var(--space-md) var(--space-lg);
+            box-shadow: 0 2px 6px rgba(14,24,33,0.08);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .back-button {
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+            background: none;
+            border: none;
+            color: var(--purple-700);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .back-button:hover {
+            color: var(--purple-900);
+        }
+
+        .logo {
+            font-family: var(--font-heading);
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--purple-700);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--purple-050);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: var(--purple-700);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: var(--space-lg);
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Profile Header */
+        .profile-header {
+            background: var(--white);
+            border-radius: 12px;
+            padding: var(--space-xl);
+            margin-bottom: var(--space-lg);
+            box-shadow: 0 2px 6px rgba(14,24,33,0.08);
+            text-align: center;
+        }
+
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: var(--purple-050);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: var(--purple-700);
+            font-size: 48px;
+            margin: 0 auto var(--space-lg);
+        }
+
+        .profile-name {
+            font-family: var(--font-heading);
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--ink-900);
+            margin-bottom: var(--space-sm);
+        }
+
+        .profile-title {
+            font-size: 18px;
+            color: var(--ink-700);
+            margin-bottom: var(--space-xs);
+        }
+
+        .profile-company {
+            font-size: 16px;
+            color: var(--ink-500);
+            margin-bottom: var(--space-lg);
+        }
+
+        .profile-badges {
+            display: flex;
+            justify-content: center;
+            gap: var(--space-sm);
+            flex-wrap: wrap;
+        }
+
+        .profile-badge {
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 6px 12px;
+            border-radius: 6px;
+        }
+
+        .badge-sponsor {
+            background: var(--magenta);
+            color: var(--white);
+        }
+
+        .badge-speaker {
+            background: var(--purple-700);
+            color: var(--white);
+        }
+
+        .badge-cfo {
+            background: var(--lime);
+            color: var(--ink-900);
+        }
+
+        /* Contact Actions */
+        .contact-actions {
+            display: flex;
+            gap: var(--space-md);
+            justify-content: center;
+            margin-top: var(--space-lg);
+        }
+
+        .contact-button {
+            padding: var(--space-sm) var(--space-lg);
+            border: 1px solid var(--purple-700);
+            border-radius: 8px;
+            background: var(--purple-700);
+            color: var(--white);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-xs);
+        }
+
+        .contact-button:hover {
+            background: var(--purple-900);
+        }
+
+        .contact-button.secondary {
+            background: transparent;
+            color: var(--purple-700);
+        }
+
+        .contact-button.secondary:hover {
+            background: var(--purple-050);
+        }
+
+        .contact-button:disabled {
+            background: var(--gray-200);
+            color: var(--ink-500);
+            border-color: var(--gray-200);
+            cursor: not-allowed;
+        }
+
+        /* Profile Sections */
+        .profile-section {
+            background: var(--white);
+            border-radius: 12px;
+            padding: var(--space-lg);
+            margin-bottom: var(--space-lg);
+            box-shadow: 0 2px 6px rgba(14,24,33,0.08);
+        }
+
+        .section-title {
+            font-family: var(--font-heading);
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--ink-900);
+            margin-bottom: var(--space-md);
+        }
+
+        .section-content {
+            font-size: 16px;
+            color: var(--ink-700);
+            line-height: 1.6;
+        }
+
+        /* Contact Information */
+        .contact-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-md);
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            padding: var(--space-sm);
+            background: var(--gray-100);
+            border-radius: 8px;
+        }
+
+        .contact-icon {
+            width: 20px;
+            height: 20px;
+            opacity: 0.7;
+        }
+
+        .contact-details {
+            flex: 1;
+        }
+
+        .contact-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--ink-500);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+        }
+
+        .contact-value {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--ink-900);
+        }
+
+        .contact-unavailable {
+            font-size: 12px;
+            color: var(--ink-500);
+            font-style: italic;
+        }
+
+        /* Overlap Information */
+        .overlap-info {
+            background: var(--lime);
+            border-radius: 8px;
+            padding: var(--space-md);
+            margin-bottom: var(--space-md);
+        }
+
+        .overlap-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--ink-900);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: var(--space-xs);
+        }
+
+        .overlap-content {
+            font-size: 14px;
+            color: var(--ink-900);
+        }
+
+        .overlap-list {
+            list-style: none;
+            margin-top: var(--space-xs);
+        }
+
+        .overlap-list li {
+            padding: 2px 0;
+            font-size: 14px;
+        }
+
+        .overlap-list li::before {
+            content: "• ";
+            color: var(--ink-900);
+            font-weight: bold;
+        }
+
+        /* Schedule Overlap */
+        .schedule-overlap {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-sm);
+        }
+
+        .overlap-session {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-sm) var(--space-md);
+            background: var(--gray-100);
+            border-radius: 8px;
+        }
+
+        .session-info {
+            flex: 1;
+        }
+
+        .session-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--ink-900);
+            margin-bottom: 2px;
+        }
+
+        .session-time {
+            font-size: 12px;
+            color: var(--ink-500);
+        }
+
+        .session-location {
+            font-size: 12px;
+            color: var(--ink-500);
+        }
+
+        /* Bio Section */
+        .bio-content {
+            font-size: 16px;
+            color: var(--ink-700);
+            line-height: 1.6;
+        }
+
+        /* Company Information */
+        .company-info {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            padding: var(--space-md);
+            background: var(--gray-100);
+            border-radius: 8px;
+        }
+
+        .company-logo {
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            background: var(--purple-050);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: var(--purple-700);
+            font-size: 18px;
+        }
+
+        .company-details {
+            flex: 1;
+        }
+
+        .company-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--ink-900);
+            margin-bottom: 2px;
+        }
+
+        .company-industry {
+            font-size: 14px;
+            color: var(--ink-500);
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            background: var(--white);
+            border-top: 1px solid var(--gray-200);
+            padding: var(--space-sm) 0;
+            position: sticky;
+            bottom: 0;
+            z-index: 100;
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-around;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 var(--space-lg);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: var(--space-sm);
+            text-decoration: none;
+            color: var(--ink-500);
+            transition: color 0.2s ease;
+            min-width: 60px;
+        }
+
+        .nav-item.active {
+            color: var(--purple-700);
+        }
+
+        .nav-item:hover {
+            color: var(--purple-700);
+        }
+
+        .nav-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .nav-label {
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .main-content {
+                padding: var(--space-md);
+            }
+            
+            .profile-header {
+                padding: var(--space-lg);
+            }
+            
+            .profile-name {
+                font-size: 24px;
+            }
+            
+            .contact-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .contact-button {
+                width: 100%;
+                max-width: 200px;
+                justify-content: center;
+            }
+            
+            .contact-info {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header {
+                padding: var(--space-sm) var(--space-md);
+            }
+            
+            .main-content {
+                padding: var(--space-sm);
+            }
+            
+            .profile-header {
+                padding: var(--space-md);
+            }
+            
+            .profile-avatar {
+                width: 80px;
+                height: 80px;
+                font-size: 32px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <a href="meet.html" class="back-button">
+                ← Back to Meet List
+            </a>
+            <div class="logo">KnowledgeNow</div>
+            <div class="user-info">
+                <div class="user-avatar">JD</div>
+                <span>John Doe</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Profile Header -->
+        <section class="profile-header">
+            <div class="profile-avatar">SC</div>
+            <h1 class="profile-name">Sarah Chen</h1>
+            <div class="profile-title">Chief Technology Officer</div>
+            <div class="profile-company">TechCorp</div>
+            
+            <div class="profile-badges">
+                <span class="profile-badge badge-sponsor">Sponsor</span>
+                <span class="profile-badge badge-speaker">Speaker</span>
+            </div>
+
+            <div class="contact-actions">
+                <button class="contact-button" onclick="sendEmail()">
+                    📧 Email
+                </button>
+                <button class="contact-button secondary" onclick="addToMeetList()">
+                    ➕ Add to Meet List
+                </button>
+            </div>
+        </section>
+
+        <!-- Overlap Information -->
+        <section class="profile-section">
+            <h2 class="section-title">Networking Opportunities</h2>
+            <div class="overlap-info">
+                <div class="overlap-title">You'll be together at:</div>
+                <div class="overlap-content">
+                    <ul class="overlap-list">
+                        <li>Dinner Table 8 (Tuesday, 6:00 PM)</li>
+                        <li>Digital Transformation session (Tuesday, 9:00 AM)</li>
+                        <li>Networking Coffee Break (Tuesday, 10:00 AM)</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Information -->
+        <section class="profile-section">
+            <h2 class="section-title">Contact Information</h2>
+            <div class="contact-info">
+                <div class="contact-item">
+                    <span class="contact-icon">📧</span>
+                    <div class="contact-details">
+                        <div class="contact-label">Email</div>
+                        <div class="contact-value">sarah.chen@techcorp.com</div>
+                    </div>
+                </div>
+                <div class="contact-item">
+                    <span class="contact-icon">📱</span>
+                    <div class="contact-details">
+                        <div class="contact-label">Mobile</div>
+                        <div class="contact-value">+1 (555) 123-4567</div>
+                    </div>
+                </div>
+                <div class="contact-item">
+                    <span class="contact-icon">🏢</span>
+                    <div class="contact-details">
+                        <div class="contact-label">Business Phone</div>
+                        <div class="contact-value">+1 (555) 987-6543</div>
+                    </div>
+                </div>
+                <div class="contact-item">
+                    <span class="contact-icon">🌐</span>
+                    <div class="contact-details">
+                        <div class="contact-label">LinkedIn</div>
+                        <div class="contact-value">linkedin.com/in/sarahchen</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bio -->
+        <section class="profile-section">
+            <h2 class="section-title">About</h2>
+            <div class="bio-content">
+                <p>Sarah Chen is a seasoned technology executive with over 15 years of experience leading digital transformation initiatives in manufacturing and industrial sectors. As CTO of TechCorp, she has spearheaded the company's transition to Industry 4.0 technologies, resulting in 40% operational efficiency improvements across their global manufacturing facilities.</p>
+                
+                <p>Sarah holds a Master's degree in Computer Science from Stanford University and an MBA from Wharton. She is a frequent speaker at industry conferences and has published numerous articles on digital transformation in manufacturing. Her expertise spans IoT implementation, predictive analytics, and smart manufacturing solutions.</p>
+                
+                <p>Prior to joining TechCorp, Sarah served as VP of Technology at InnovateCorp, where she led the development of next-generation manufacturing software platforms. She is passionate about helping companies leverage technology to drive sustainable growth and operational excellence.</p>
+            </div>
+        </section>
+
+        <!-- Company Information -->
+        <section class="profile-section">
+            <h2 class="section-title">Company</h2>
+            <div class="company-info">
+                <div class="company-logo">TC</div>
+                <div class="company-details">
+                    <div class="company-name">TechCorp</div>
+                    <div class="company-industry">Technology & Manufacturing Solutions</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Shared Sessions -->
+        <section class="profile-section">
+            <h2 class="section-title">Shared Sessions</h2>
+            <div class="schedule-overlap">
+                <div class="overlap-session">
+                    <div class="session-info">
+                        <div class="session-name">Digital Transformation in Manufacturing</div>
+                        <div class="session-time">Tuesday, 9:00 AM - 10:00 AM</div>
+                        <div class="session-location">Grand Ballroom A</div>
+                    </div>
+                </div>
+                <div class="overlap-session">
+                    <div class="session-info">
+                        <div class="session-name">Networking Coffee Break</div>
+                        <div class="session-time">Tuesday, 10:00 AM - 10:30 AM</div>
+                        <div class="session-location">Foyer & Terrace</div>
+                    </div>
+                </div>
+                <div class="overlap-session">
+                    <div class="session-info">
+                        <div class="session-name">Networking Dinner</div>
+                        <div class="session-time">Tuesday, 6:00 PM - 8:00 PM</div>
+                        <div class="session-location">Grand Ballroom</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <div class="nav-container">
+            <a href="home.html" class="nav-item">
+                <div class="nav-icon">🏠</div>
+                <div class="nav-label">Home</div>
+            </a>
+            <a href="schedule.html" class="nav-item">
+                <div class="nav-icon">📅</div>
+                <div class="nav-label">Schedule</div>
+            </a>
+            <a href="meet.html" class="nav-item active">
+                <div class="nav-icon">👥</div>
+                <div class="nav-label">Meet</div>
+            </a>
+            <a href="sponsors.html" class="nav-item">
+                <div class="nav-icon">🏢</div>
+                <div class="nav-label">Sponsors</div>
+            </a>
+            <a href="settings.html" class="nav-item">
+                <div class="nav-icon">⚙️</div>
+                <div class="nav-label">Settings</div>
+            </a>
+        </div>
+    </nav>
+
+    <script>
+        function sendEmail() {
+            window.location.href = 'mailto:sarah.chen@techcorp.com';
+        }
+
+        function addToMeetList() {
+            alert('Sarah Chen has been added to your meet list!');
+            // In a real app, this would update the backend and UI
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conference Companion - Meet List</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Design Tokens from branding.md */
+            --purple-900: #5E35A5;
+            --purple-700: #7C4CC4;
+            --purple-500: #9468CE;
+            --purple-050: #F2ECFB;
+            --ink-900: #0E1821;
+            --ink-700: #2A3745;
+            --ink-500: #5A6A7A;
+            --gray-300: #D9DBDC;
+            --gray-200: #E6E7E8;
+            --gray-100: #F5F6F7;
+            --white: #FFFFFF;
+            --coral: #F85C5D;
+            --lime: #99F094;
+            --magenta: #CF59E0;
+            
+            /* Spacing */
+            --space-xs: 8px;
+            --space-sm: 12px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 32px;
+            --space-xxl: 40px;
+            
+            /* Typography */
+            --font-ui: 'Inter', 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            --font-heading: 'IBM Plex Sans', 'Inter', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-ui);
+            background-color: var(--gray-100);
+            color: var(--ink-900);
+            line-height: 1.5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            background: var(--white);
+            padding: var(--space-md) var(--space-lg);
+            box-shadow: 0 2px 6px rgba(14,24,33,0.08);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-family: var(--font-heading);
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--purple-700);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--purple-050);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: var(--purple-700);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: var(--space-lg);
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .page-title {
+            font-family: var(--font-heading);
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--ink-900);
+            margin-bottom: var(--space-lg);
+        }
+
+        /* Tab Navigation */
+        .tab-navigation {
+            background: var(--white);
+            border-radius: 12px;
+            padding: var(--space-sm);
+            margin-bottom: var(--space-lg);
+            box-shadow: 0 2px 6px rgba(14,24,33,0.08);
+            display: flex;
+            gap: var(--space-sm);
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: var(--space-sm) var(--space-md);
+            border: none;
+            background: transparent;
+            color: var(--ink-500);
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tab-button.active {
+            background: var(--purple-700);
+            color: var(--white);
+        }
+
+        .tab-button:hover:not(.active) {
+            background: var(--gray-100);
+            color: var(--ink-700);
+        }
+
+        /* Search Section */
+        .search-section {
+            background: var(--white);
+            border-radius: 12px;
+            padding: var(--space-lg);
+            margin-bottom: var(--space-lg);
+            box-shadow: 0 2px 6px rgba(14,24,33,0.08);
+        }
+
+        .search-title {
+            font-family: var(--font-heading);
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--ink-900);
+            margin-bottom: var(--space-md);
+        }
+
+        .search-controls {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md);
+        }
+
+        .search-input {
+            padding: var(--space-sm) var(--space-md);
+            border: 1px solid var(--gray-300);
+            border-radius: 8px;
+            background: var(--white);
+            color: var(--ink-900);
+            font-size: 14px;
+            width: 100%;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--purple-700);
+            box-shadow: 0 0 0 2px rgba(124,76,196,0.2);
+        }
+
+        .search-input::placeholder {
+            color: var(--ink-500);
+        }
+
+        .filter-row {
+            display: flex;
+            gap: var(--space-md);
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            padding: var(--space-sm) var(--space-md);
+            border: 1px solid var(--gray-300);
+            border-radius: 8px;
+            background: var(--white);
+            color: var(--ink-900);
+            font-size: 14px;
+            min-width: 150px;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--purple-700);
+            box-shadow: 0 0 0 2px rgba(124,76,196,0.2);
+        }
+
+        /* Attendee List */
+        .attendee-list {
+            background: var(--white);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(14,24,33,0.08);
+        }
+
+        .attendee-item {
+            padding: var(--space-lg);
+            border-bottom: 1px solid var(--gray-200);
+            transition: background-color 0.2s ease;
+            cursor: pointer;
+        }
+
+        .attendee-item:last-child {
+            border-bottom: none;
+        }
+
+        .attendee-item:hover {
+            background-color: var(--gray-100);
+        }
+
+        .attendee-header {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            margin-bottom: var(--space-sm);
+        }
+
+        .attendee-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--purple-050);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: var(--purple-700);
+            font-size: 18px;
+        }
+
+        .attendee-info {
+            flex: 1;
+        }
+
+        .attendee-name {
+            font-family: var(--font-heading);
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--ink-900);
+            margin-bottom: 2px;
+        }
+
+        .attendee-title {
+            font-size: 14px;
+            color: var(--ink-700);
+            margin-bottom: 2px;
+        }
+
+        .attendee-company {
+            font-size: 14px;
+            color: var(--ink-500);
+        }
+
+        .attendee-actions {
+            display: flex;
+            gap: var(--space-sm);
+        }
+
+        .action-button {
+            padding: var(--space-xs) var(--space-sm);
+            border: 1px solid var(--purple-700);
+            border-radius: 6px;
+            background: transparent;
+            color: var(--purple-700);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .action-button:hover {
+            background: var(--purple-700);
+            color: var(--white);
+        }
+
+        .action-button.primary {
+            background: var(--purple-700);
+            color: var(--white);
+        }
+
+        .action-button.primary:hover {
+            background: var(--purple-900);
+        }
+
+        .overlap-info {
+            background: var(--lime);
+            padding: var(--space-sm);
+            border-radius: 8px;
+            margin-top: var(--space-sm);
+        }
+
+        .overlap-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--ink-900);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .overlap-details {
+            font-size: 14px;
+            color: var(--ink-900);
+        }
+
+        .sponsor-badge {
+            display: inline-block;
+            background: var(--magenta);
+            color: var(--white);
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: var(--space-xs);
+        }
+
+        /* My Meet List */
+        .meet-list-empty {
+            text-align: center;
+            padding: var(--space-xxl);
+            color: var(--ink-500);
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: var(--space-md);
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-family: var(--font-heading);
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--ink-700);
+            margin-bottom: var(--space-sm);
+        }
+
+        .empty-description {
+            font-size: 14px;
+            color: var(--ink-500);
+            margin-bottom: var(--space-lg);
+        }
+
+        .empty-action {
+            display: inline-block;
+            padding: var(--space-sm) var(--space-lg);
+            background: var(--purple-700);
+            color: var(--white);
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: background-color 0.2s ease;
+        }
+
+        .empty-action:hover {
+            background: var(--purple-900);
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            background: var(--white);
+            border-top: 1px solid var(--gray-200);
+            padding: var(--space-sm) 0;
+            position: sticky;
+            bottom: 0;
+            z-index: 100;
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-around;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 var(--space-lg);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: var(--space-sm);
+            text-decoration: none;
+            color: var(--ink-500);
+            transition: color 0.2s ease;
+            min-width: 60px;
+        }
+
+        .nav-item.active {
+            color: var(--purple-700);
+        }
+
+        .nav-item:hover {
+            color: var(--purple-700);
+        }
+
+        .nav-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .nav-label {
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .main-content {
+                padding: var(--space-md);
+            }
+            
+            .page-title {
+                font-size: 24px;
+            }
+            
+            .filter-row {
+                flex-direction: column;
+            }
+            
+            .filter-select {
+                min-width: 100%;
+            }
+            
+            .attendee-item {
+                padding: var(--space-md);
+            }
+            
+            .attendee-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: var(--space-sm);
+            }
+            
+            .attendee-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header {
+                padding: var(--space-sm) var(--space-md);
+            }
+            
+            .main-content {
+                padding: var(--space-sm);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">KnowledgeNow</div>
+            <div class="user-info">
+                <div class="user-avatar">JD</div>
+                <span>John Doe</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <h1 class="page-title">Meet List</h1>
+
+        <!-- Tab Navigation -->
+        <div class="tab-navigation">
+            <button class="tab-button active" onclick="showTab('all-attendees')">All Attendees</button>
+            <button class="tab-button" onclick="showTab('my-meet-list')">My Meet List (3)</button>
+        </div>
+
+        <!-- All Attendees Tab -->
+        <div id="all-attendees" class="tab-content">
+            <!-- Search Section -->
+            <section class="search-section">
+                <h2 class="search-title">Find People to Meet</h2>
+                <div class="search-controls">
+                    <input type="text" class="search-input" placeholder="Search by name, company, or role...">
+                    <div class="filter-row">
+                        <select class="filter-select">
+                            <option value="">All Companies</option>
+                            <option value="techcorp">TechCorp</option>
+                            <option value="accordion">Accordion</option>
+                            <option value="alvarez">Alvarez & Marsal</option>
+                        </select>
+                        <select class="filter-select">
+                            <option value="">All Roles</option>
+                            <option value="ceo">CEO</option>
+                            <option value="cfo">CFO</option>
+                            <option value="cto">CTO</option>
+                        </select>
+                        <select class="filter-select">
+                            <option value="">All Tracks</option>
+                            <option value="revenue">Revenue Growth</option>
+                            <option value="operations">Operational Performance</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Attendee List -->
+            <div class="attendee-list">
+                <div class="attendee-item">
+                    <div class="attendee-header">
+                        <div class="attendee-avatar">SC</div>
+                        <div class="attendee-info">
+                            <div class="attendee-name">Sarah Chen</div>
+                            <div class="attendee-title">Chief Technology Officer</div>
+                            <div class="attendee-company">TechCorp <span class="sponsor-badge">Sponsor</span></div>
+                        </div>
+                        <div class="attendee-actions">
+                            <button class="action-button primary">Add to Meet List</button>
+                            <button class="action-button">Email</button>
+                        </div>
+                    </div>
+                    <div class="overlap-info">
+                        <div class="overlap-label">Overlap Opportunities</div>
+                        <div class="overlap-details">At dinner table together (Table 8) • Shared session: Digital Transformation (9:00 AM)</div>
+                    </div>
+                </div>
+
+                <div class="attendee-item">
+                    <div class="attendee-header">
+                        <div class="attendee-avatar">MR</div>
+                        <div class="attendee-info">
+                            <div class="attendee-name">Michael Rodriguez</div>
+                            <div class="attendee-title">CEO</div>
+                            <div class="attendee-company">InnovateCorp</div>
+                        </div>
+                        <div class="attendee-actions">
+                            <button class="action-button primary">Add to Meet List</button>
+                            <button class="action-button">Email</button>
+                        </div>
+                    </div>
+                    <div class="overlap-info">
+                        <div class="overlap-label">Overlap Opportunities</div>
+                        <div class="overlap-details">Shared session: Revenue Growth Strategies (10:30 AM)</div>
+                    </div>
+                </div>
+
+                <div class="attendee-item">
+                    <div class="attendee-header">
+                        <div class="attendee-avatar">AL</div>
+                        <div class="attendee-info">
+                            <div class="attendee-name">Ayla Queiroga</div>
+                            <div class="attendee-title">Managing Director</div>
+                            <div class="attendee-company">Accordion <span class="sponsor-badge">Sponsor</span></div>
+                        </div>
+                        <div class="attendee-actions">
+                            <button class="action-button primary">Add to Meet List</button>
+                            <button class="action-button">Email</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="attendee-item">
+                    <div class="attendee-header">
+                        <div class="attendee-avatar">ES</div>
+                        <div class="attendee-info">
+                            <div class="attendee-name">Evelina Stromberg</div>
+                            <div class="attendee-title">Private Equity Partnerships</div>
+                            <div class="attendee-company">Vertice <span class="sponsor-badge">Sponsor</span></div>
+                        </div>
+                        <div class="attendee-actions">
+                            <button class="action-button primary">Add to Meet List</button>
+                            <button class="action-button">Email</button>
+                        </div>
+                    </div>
+                    <div class="overlap-info">
+                        <div class="overlap-label">Overlap Opportunities</div>
+                        <div class="overlap-details">Shared session: Operational Performance (10:30 AM)</div>
+                    </div>
+                </div>
+
+                <div class="attendee-item">
+                    <div class="attendee-header">
+                        <div class="attendee-avatar">NL</div>
+                        <div class="attendee-info">
+                            <div class="attendee-name">Nigel Lemmon</div>
+                            <div class="attendee-title">Global CIO</div>
+                            <div class="attendee-company">Tosca Ltd</div>
+                        </div>
+                        <div class="attendee-actions">
+                            <button class="action-button primary">Add to Meet List</button>
+                            <button class="action-button">Email</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- My Meet List Tab -->
+        <div id="my-meet-list" class="tab-content" style="display: none;">
+            <div class="attendee-list">
+                <div class="attendee-item">
+                    <div class="attendee-header">
+                        <div class="attendee-avatar">SC</div>
+                        <div class="attendee-info">
+                            <div class="attendee-name">Sarah Chen</div>
+                            <div class="attendee-title">Chief Technology Officer</div>
+                            <div class="attendee-company">TechCorp <span class="sponsor-badge">Sponsor</span></div>
+                        </div>
+                        <div class="attendee-actions">
+                            <button class="action-button">Email</button>
+                            <button class="action-button" style="color: var(--coral); border-color: var(--coral);">Remove</button>
+                        </div>
+                    </div>
+                    <div class="overlap-info">
+                        <div class="overlap-label">Overlap Opportunities</div>
+                        <div class="overlap-details">At dinner table together (Table 8) • Shared session: Digital Transformation (9:00 AM)</div>
+                    </div>
+                </div>
+
+                <div class="attendee-item">
+                    <div class="attendee-header">
+                        <div class="attendee-avatar">MR</div>
+                        <div class="attendee-info">
+                            <div class="attendee-name">Michael Rodriguez</div>
+                            <div class="attendee-title">CEO</div>
+                            <div class="attendee-company">InnovateCorp</div>
+                        </div>
+                        <div class="attendee-actions">
+                            <button class="action-button">Email</button>
+                            <button class="action-button" style="color: var(--coral); border-color: var(--coral);">Remove</button>
+                        </div>
+                    </div>
+                    <div class="overlap-info">
+                        <div class="overlap-label">Overlap Opportunities</div>
+                        <div class="overlap-details">Shared session: Revenue Growth Strategies (10:30 AM)</div>
+                    </div>
+                </div>
+
+                <div class="attendee-item">
+                    <div class="attendee-header">
+                        <div class="attendee-avatar">ES</div>
+                        <div class="attendee-info">
+                            <div class="attendee-name">Evelina Stromberg</div>
+                            <div class="attendee-title">Private Equity Partnerships</div>
+                            <div class="attendee-company">Vertice <span class="sponsor-badge">Sponsor</span></div>
+                        </div>
+                        <div class="attendee-actions">
+                            <button class="action-button">Email</button>
+                            <button class="action-button" style="color: var(--coral); border-color: var(--coral);">Remove</button>
+                        </div>
+                    </div>
+                    <div class="overlap-info">
+                        <div class="overlap-label">Overlap Opportunities</div>
+                        <div class="overlap-details">Shared session: Operational Performance (10:30 AM)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <div class="nav-container">
+            <a href="home.html" class="nav-item">
+                <div class="nav-icon">🏠</div>
+                <div class="nav-label">Home</div>
+            </a>
+            <a href="schedule.html" class="nav-item">
+                <div class="nav-icon">📅</div>
+                <div class="nav-label">Schedule</div>
+            </a>
+            <a href="meet.html" class="nav-item active">
+                <div class="nav-icon">👥</div>
+                <div class="nav-label">Meet</div>
+            </a>
+            <a href="sponsors.html" class="nav-item">
+                <div class="nav-icon">🏢</div>
+                <div class="nav-label">Sponsors</div>
+            </a>
+            <a href="settings.html" class="nav-item">
+                <div class="nav-icon">⚙️</div>
+                <div class="nav-label">Settings</div>
+            </a>
+        </div>
+    </nav>
+
+    <script>
+        function showTab(tabName) {
+            // Hide all tab contents
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => {
+                content.style.display = 'none';
+            });
+
+            // Remove active class from all tab buttons
+            const tabButtons = document.querySelectorAll('.tab-button');
+            tabButtons.forEach(button => {
+                button.classList.remove('active');
+            });
+
+            // Show selected tab content
+            document.getElementById(tabName).style.display = 'block';
+
+            // Add active class to clicked button
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>
