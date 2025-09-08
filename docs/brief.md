@@ -20,7 +20,7 @@ A glanceable, personalized companion PWA that:
 ## Target Users
 
 - Primary: C‑level executives from portfolio companies.
-- Secondary: Sponsors; Apax investment professionals; event admin staff.
+- Secondary: Sponsors (attendees without booths); Apax investment professionals; event admin staff.
 
 ## Goals & Success Metrics
 
@@ -65,17 +65,16 @@ Out of scope for MVP: rich chat, continuous location/proximity, heavy gamificati
 - Privacy/GDPR: consent for discoverability and notifications; data minimization; opt‑out; DSAR‑ready; link to Apax Privacy Policy: [apax.com/privacy-policy](https://www.apax.com/privacy-policy/).
 - Distribution: pre‑event email + QR signage/seat cards/monitors; A2HS guidance.
 - Device mix: primarily iPhone; intermittent venue Wi‑Fi expected.
+- Timezone: all attendees effectively share the same local timezone (use device current location); align reminders accordingly.
 
 ## Risks & Open Questions
 
 - Adoption risk: A2HS and push opt‑in rates may be lower than targets.
 - Data readiness: accuracy/timeliness of assignments in Supabase.
 - Privacy perception: ensure clear, concise consent and easy opt‑out.
-- Sponsor assets: confirm logos/blurbs/URLs and any tiering requirements.
+- Sponsor assets: confirm logos/blurbs/URLs; no tiers (all sponsors at same level).
 
 Open Questions
-- Sponsor tiers (Gold/Silver/Bronze) and ordering?
-- Event timezone handling and push windows?
 - Any required sponsor pages beyond directory and badges?
 
 ## Appendices
