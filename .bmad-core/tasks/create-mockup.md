@@ -19,7 +19,6 @@ Generate full-page responsive mockups with connected navigation to validate UX b
 
 ### 3. Connected Navigation Flow
 - Link pages together to show user journeys
-- Simple, dumb connections (just href links)
 - No need for state management or dynamic behavior
 - Show the logical flow between screens
 - Connect screens but can be dumb connections - just link to the page that would be next
@@ -40,7 +39,7 @@ Generate full-page responsive mockups with connected navigation to validate UX b
 1. **Read Project Documentation**
    - Discover front-end technology stack from project docs
    - Understand data structure from database/architecture docs
-   - Identify Material Design and PWA requirements
+   - Identify front end technologies to use
 
 2. **Analyze Data Structure**
    - Review database schema and entity relationships
@@ -48,14 +47,13 @@ Generate full-page responsive mockups with connected navigation to validate UX b
    - Create realistic placeholder data that matches actual structure
 
 3. **Design User Flows**
-   - Map out key user journeys
+   - Map out key user journeys based on the front end spec document
    - Identify pages/screens needed
    - Plan navigation connections between screens
 
 4. **Generate Mockups**
-   - Create full-page HTML/CSS mockups
+   - Create full-page HTML/CSS mockups based on the branding document and the design tokens
    - Use discovered tech stack and framework
-   - Implement responsive design for mobile/PWA
    - Add realistic placeholder data based on actual schema
 
 5. **Connect Navigation**
