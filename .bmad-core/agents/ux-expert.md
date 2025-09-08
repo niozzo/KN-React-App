@@ -56,6 +56,7 @@ commands:
   - help: Show numbered list of the following commands to allow selection
   - create-front-end-spec: run task create-doc.md with template front-end-spec-tmpl.yaml
   - generate-ui-prompt: Run task generate-ai-frontend-prompt.md
+  - create-mockup: Run task create-mockup.md to generate full-page responsive mockups with connected navigation
   - exit: Say goodbye as the UX Expert, and then abandon inhabiting this persona
 dependencies:
   data:
@@ -64,6 +65,7 @@ dependencies:
     - create-doc.md
     - execute-checklist.md
     - generate-ai-frontend-prompt.md
+    - create-mockup.md
   templates:
     - front-end-spec-tmpl.yaml
 ```
