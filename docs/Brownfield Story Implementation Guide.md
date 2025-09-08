@@ -55,20 +55,20 @@ This section provides the complete BMAD workflow for implementing major features
 ### Phase 2: Epic Planning & Story Creation
 ```
 [x] @PO *epic-plan {epic-name}` - Define epic mission and business value  
-[x] @PO *story-breakdown {epic-name}` - Break epic into focused BMAD stories
-[x] @SM *story-checklist {story-name}` - Execute story drafting checklist for QA
-[x] @QA *risk {story-name}` - Assess integration risks and dependencies
+[ ] @PO *story-breakdown {epic-name}` - Break epic into focused BMAD stories
+[ ] @SM *story-checklist {story-name}` - Execute story drafting checklist for QA
+[ ] @QA *risk {story-name}` - Assess integration risks and dependencies
 ```
 
 ### Phase 3: Architecture & Design
 ```
-[x] @Architect *create-brownfield-architecture` - Plan integration points and components
-[x] @Architect what spikes do you need to prove this architecture.
-[x] @SM prep the spikes, have QA review it to make sure spike validation foloows TDD stratrgy 
-[x] @QA *design {story-name}` - Create test strategy (unit, integration, E2E)
-[x] @architect work on the spike 
-[x] Have a conversation between the actors to validate the architecture and tests plans post spike research
-[x] @architect prove spike findings are valid
+[ ] @Architect *create-brownfield-architecture` - Plan integration points and components
+[ ] @Architect what spikes do you need to prove this architecture.
+[ ] @SM prep the spikes, have QA review it to make sure spike validation foloows TDD stratrgy 
+[ ] @QA *design {story-name}` - Create test strategy (unit, integration, E2E)
+[ ] @architect work on the spike 
+[ ] Have a conversation between the actors to validate the architecture and tests plans post spike research
+[ ] @architect prove spike findings are valid
 
 ```
 

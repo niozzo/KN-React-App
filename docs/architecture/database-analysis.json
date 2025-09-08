@@ -1,0 +1,793 @@
+{
+  "timestamp": "2025-09-08T04:57:39.108Z",
+  "connection_method": "Supabase API (per ADR-001)",
+  "database_info": {
+    "url": "https://iikcgdhztkrexuuqheli.supabase.co",
+    "tables_discovered": 11,
+    "total_rows": 278
+  },
+  "tables": {
+    "agenda_items": {
+      "name": "agenda_items",
+      "row_count": 0,
+      "columns": [],
+      "relationships": [],
+      "sample_data": [],
+      "analysis_notes": [
+        "Structure analysis error: Table is empty, cannot infer structure"
+      ]
+    },
+    "attendees": {
+      "name": "attendees",
+      "row_count": 222,
+      "columns": [
+        {
+          "column_name": "id",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "salutation",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "first_name",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "last_name",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "email",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "title",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "company",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "bio",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "photo",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "business_phone",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "mobile_phone",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "check_in_date",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "check_out_date",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "hotel_selection",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "custom_hotel",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "registration_id",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "has_spouse",
+          "data_type": "boolean",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "spouse_details",
+          "data_type": "object",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "dining_selections",
+          "data_type": "object",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "selected_breakouts",
+          "data_type": "object",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "registration_status",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "access_code",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "attributes",
+          "data_type": "object",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "dietary_requirements",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "address1",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "address2",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "postal_code",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "city",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "state",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "country",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "country_code",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "room_type",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "assistant_name",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "assistant_email",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "idloom_id",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "last_synced_at",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "created_at",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "updated_at",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "is_cfo",
+          "data_type": "boolean",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "is_apax_ep",
+          "data_type": "boolean",
+          "is_nullable": "NO",
+          "column_default": null
+        }
+      ],
+      "relationships": [],
+      "sample_data": [
+        {
+          "id": "1628d24f-4e7a-444d-82f2-426ad238823a",
+          "salutation": "Dr",
+          "first_name": "Ayla",
+          "last_name": "Queiroga",
+          "email": "aqueiroga@accordion.com",
+          "title": "Managing Director",
+          "company": "Accordion",
+          "bio": "",
+          "photo": "https://logo.clearbit.com/acrdion.com",
+          "business_phone": "6039916049",
+          "mobile_phone": "6039916049",
+          "check_in_date": "2025-10-20",
+          "check_out_date": "2025-10-22",
+          "hotel_selection": "four-seasons",
+          "custom_hotel": "",
+          "registration_id": "2025-07-22T09:35:36-05:00",
+          "has_spouse": false,
+          "spouse_details": {
+            "email": "",
+            "lastName": "",
+            "firstName": "",
+            "salutation": "",
+            "mobilePhone": "",
+            "dietaryRequirements": ""
+          },
+          "dining_selections": {
+            "welcome-reception-monday": {
+              "attending": true
+            },
+            "networking-dinner-tuesday": {
+              "attending": true
+            }
+          },
+          "selected_breakouts": [
+            "track-b-operational-performance"
+          ],
+          "registration_status": "confirmed",
+          "access_code": "729209",
+          "attributes": {
+            "ceo": false,
+            "apaxIP": false,
+            "spouse": false,
+            "apaxOEP": false,
+            "speaker": false,
+            "cLevelExec": true,
+            "sponsorAttendee": true,
+            "otherAttendeeType": false,
+            "portfolioCompanyExecutive": false
+          },
+          "dietary_requirements": "Vegetarian",
+          "address1": "One Vanderbilt",
+          "address2": "Suite 2401",
+          "postal_code": "10017",
+          "city": "New York",
+          "state": "new york",
+          "country": "United States",
+          "country_code": "US",
+          "room_type": "City or Lake-view King",
+          "assistant_name": "",
+          "assistant_email": "",
+          "idloom_id": "",
+          "last_synced_at": "2025-09-05T16:44:17.603855+00:00",
+          "created_at": "2025-09-05T16:44:17.603855+00:00",
+          "updated_at": "2025-09-05T16:44:17.603855+00:00",
+          "is_cfo": false,
+          "is_apax_ep": false
+        },
+        {
+          "id": "a94780e1-1f32-4c96-8359-c07467a3c406",
+          "salutation": "Mr",
+          "first_name": "Nigel",
+          "last_name": "Lemmon",
+          "email": "nlemmon@toscaltd.com",
+          "title": "Global CIO",
+          "company": "Tosca Ltd",
+          "bio": "",
+          "photo": "https://logo.clearbit.com/tosca.com",
+          "business_phone": "+44 (0)7809453555",
+          "mobile_phone": "+44 (0)7809453555",
+          "check_in_date": "2025-03-15",
+          "check_out_date": "2025-03-17",
+          "hotel_selection": "own-arrangements",
+          "custom_hotel": "",
+          "registration_id": "2025-07-22T09:36:47-05:00",
+          "has_spouse": false,
+          "spouse_details": {
+            "email": "",
+            "lastName": "",
+            "firstName": "",
+            "salutation": "",
+            "mobilePhone": "",
+            "dietaryRequirements": ""
+          },
+          "dining_selections": {
+            "welcome-reception-monday": {
+              "attending": true
+            },
+            "networking-dinner-tuesday": {
+              "attending": true
+            }
+          },
+          "selected_breakouts": [
+            "track-a-revenue-growth"
+          ],
+          "registration_status": "confirmed",
+          "access_code": "301014",
+          "attributes": {
+            "ceo": false,
+            "apaxIP": false,
+            "spouse": false,
+            "apaxOEP": false,
+            "speaker": false,
+            "cLevelExec": false,
+            "sponsorAttendee": false,
+            "otherAttendeeType": false,
+            "portfolioCompanyExecutive": true
+          },
+          "dietary_requirements": "No shellfish",
+          "address1": "Suite 1900",
+          "address2": "1175 Peachtree St NE",
+          "postal_code": "30361",
+          "city": "Atlanta",
+          "state": "GA",
+          "country": "United States",
+          "country_code": "US",
+          "room_type": "",
+          "assistant_name": "",
+          "assistant_email": "",
+          "idloom_id": "",
+          "last_synced_at": "2025-09-05T16:44:17.603855+00:00",
+          "created_at": "2025-09-05T16:44:17.603855+00:00",
+          "updated_at": "2025-09-05T16:44:17.603855+00:00",
+          "is_cfo": false,
+          "is_apax_ep": false
+        },
+        {
+          "id": "fb4d4f9d-7448-48d0-b382-e3cd5e070227",
+          "salutation": "Mrs",
+          "first_name": "Evelina",
+          "last_name": "Stromberg",
+          "email": "evelina.stromberg@vertice.one",
+          "title": "Private Equity Partnerships",
+          "company": "Vertice",
+          "bio": "",
+          "photo": "https://logo.clearbit.com/vertice.com",
+          "business_phone": "+44 7593 361 329",
+          "mobile_phone": "+44 7593 361 329",
+          "check_in_date": "2025-10-20",
+          "check_out_date": "2025-10-22",
+          "hotel_selection": "four-seasons",
+          "custom_hotel": "",
+          "registration_id": "2025-07-22T09:37:52-05:00",
+          "has_spouse": false,
+          "spouse_details": {
+            "email": "",
+            "lastName": "",
+            "firstName": "",
+            "salutation": "",
+            "mobilePhone": "",
+            "dietaryRequirements": ""
+          },
+          "dining_selections": {
+            "welcome-reception-monday": {
+              "attending": true
+            },
+            "networking-dinner-tuesday": {
+              "attending": true
+            }
+          },
+          "selected_breakouts": [
+            "track-b-operational-performance"
+          ],
+          "registration_status": "confirmed",
+          "access_code": "450717",
+          "attributes": {
+            "ceo": false,
+            "apaxIP": false,
+            "spouse": false,
+            "apaxOEP": false,
+            "speaker": false,
+            "cLevelExec": false,
+            "sponsorAttendee": true,
+            "otherAttendeeType": false,
+            "portfolioCompanyExecutive": false
+          },
+          "dietary_requirements": "",
+          "address1": "338 Euston Road",
+          "address2": "",
+          "postal_code": "NW1 3BT",
+          "city": "London",
+          "state": "London",
+          "country": "United Kingdom",
+          "country_code": "GB",
+          "room_type": "City or Lake-view King",
+          "assistant_name": "",
+          "assistant_email": "",
+          "idloom_id": "",
+          "last_synced_at": "2025-09-05T16:44:17.603855+00:00",
+          "created_at": "2025-09-05T16:44:17.603855+00:00",
+          "updated_at": "2025-09-05T16:44:17.603855+00:00",
+          "is_cfo": false,
+          "is_apax_ep": false
+        }
+      ],
+      "analysis_notes": []
+    },
+    "breakout_sessions": {
+      "name": "breakout_sessions",
+      "row_count": 0,
+      "columns": [],
+      "relationships": [],
+      "sample_data": [],
+      "analysis_notes": [
+        "Structure analysis error: Table is empty, cannot infer structure"
+      ]
+    },
+    "dining_options": {
+      "name": "dining_options",
+      "row_count": 0,
+      "columns": [],
+      "relationships": [],
+      "sample_data": [],
+      "analysis_notes": [
+        "Structure analysis error: Table is empty, cannot infer structure"
+      ]
+    },
+    "hotels": {
+      "name": "hotels",
+      "row_count": 0,
+      "columns": [],
+      "relationships": [],
+      "sample_data": [],
+      "analysis_notes": [
+        "Structure analysis error: Table is empty, cannot infer structure"
+      ]
+    },
+    "import_history": {
+      "name": "import_history",
+      "row_count": 0,
+      "columns": [],
+      "relationships": [],
+      "sample_data": [],
+      "analysis_notes": [
+        "Structure analysis error: Table is empty, cannot infer structure"
+      ]
+    },
+    "layout_templates": {
+      "name": "layout_templates",
+      "row_count": 0,
+      "columns": [],
+      "relationships": [],
+      "sample_data": [],
+      "analysis_notes": [
+        "Structure analysis error: Table is empty, cannot infer structure"
+      ]
+    },
+    "seat_assignments": {
+      "name": "seat_assignments",
+      "row_count": 29,
+      "columns": [
+        {
+          "column_name": "id",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "seating_configuration_id",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "attendee_id",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "table_name",
+          "data_type": "object",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "seat_number",
+          "data_type": "object",
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "seat_position",
+          "data_type": "object",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "assignment_type",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "assigned_at",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "notes",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "created_at",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "updated_at",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "column_number",
+          "data_type": "number",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "row_number",
+          "data_type": "number",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "attendee_first_name",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "attendee_last_name",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        }
+      ],
+      "relationships": [],
+      "sample_data": [
+        {
+          "id": "fa11e4a7-6a51-417c-b760-12635a731426",
+          "seating_configuration_id": "b890ef94-3cdd-4c30-982d-884a1cec4bd5",
+          "attendee_id": "c0a9aac3-ed44-4ebf-b1e7-08b4eb899fd8",
+          "table_name": null,
+          "seat_number": null,
+          "seat_position": {
+            "x": 0,
+            "y": 0
+          },
+          "assignment_type": "manual",
+          "assigned_at": "2025-09-07T02:19:05.826+00:00",
+          "notes": "",
+          "created_at": "2025-09-07T02:19:06.108597+00:00",
+          "updated_at": "2025-09-07T02:19:06.108597+00:00",
+          "column_number": 5,
+          "row_number": 4,
+          "attendee_first_name": "Jason",
+          "attendee_last_name": "Wright"
+        },
+        {
+          "id": "043221c2-4152-491e-9413-7db543a4d7b5",
+          "seating_configuration_id": "b890ef94-3cdd-4c30-982d-884a1cec4bd5",
+          "attendee_id": "999e6630-70b3-493b-818b-85610d5d1183",
+          "table_name": null,
+          "seat_number": null,
+          "seat_position": {
+            "x": 0,
+            "y": 0
+          },
+          "assignment_type": "manual",
+          "assigned_at": "2025-09-07T02:19:05.826+00:00",
+          "notes": "",
+          "created_at": "2025-09-07T02:19:06.108597+00:00",
+          "updated_at": "2025-09-07T02:19:06.108597+00:00",
+          "column_number": 0,
+          "row_number": 4,
+          "attendee_first_name": "Carlos",
+          "attendee_last_name": "Ramon"
+        },
+        {
+          "id": "43216698-b9ee-4437-920b-5a05103dc211",
+          "seating_configuration_id": "b890ef94-3cdd-4c30-982d-884a1cec4bd5",
+          "attendee_id": "8b81de30-99d8-4a5e-876b-8dc640a28a59",
+          "table_name": null,
+          "seat_number": null,
+          "seat_position": {
+            "x": 0,
+            "y": 0
+          },
+          "assignment_type": "manual",
+          "assigned_at": "2025-09-07T02:19:05.826+00:00",
+          "notes": "",
+          "created_at": "2025-09-07T02:19:06.108597+00:00",
+          "updated_at": "2025-09-07T02:19:06.108597+00:00",
+          "column_number": 3,
+          "row_number": 2,
+          "attendee_first_name": "ROGER",
+          "attendee_last_name": "MCCRACKEN"
+        }
+      ],
+      "analysis_notes": []
+    },
+    "seating_configurations": {
+      "name": "seating_configurations",
+      "row_count": 0,
+      "columns": [],
+      "relationships": [],
+      "sample_data": [],
+      "analysis_notes": [
+        "Structure analysis error: Table is empty, cannot infer structure"
+      ]
+    },
+    "sponsors": {
+      "name": "sponsors",
+      "row_count": 27,
+      "columns": [
+        {
+          "column_name": "id",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "name",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "logo",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "website",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "is_active",
+          "data_type": "boolean",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "display_order",
+          "data_type": "number",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "created_at",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "updated_at",
+          "data_type": "string",
+          "is_nullable": "NO",
+          "column_default": null
+        }
+      ],
+      "relationships": [],
+      "sample_data": [
+        {
+          "id": "b558da1f-51b3-48be-9ee4-75aae1a5d1ab",
+          "name": "Accordion",
+          "logo": "https://logo.clearbit.com/accordion.com",
+          "website": "https://accordion.com",
+          "is_active": true,
+          "display_order": 1,
+          "created_at": "2025-09-05T11:58:52.803725+00:00",
+          "updated_at": "2025-09-05T11:58:52.803725+00:00"
+        },
+        {
+          "id": "2acdbcd7-3ccd-4fa9-a2c3-b805e0f8a8d5",
+          "name": "Alvarez & Marsal",
+          "logo": "https://logo.clearbit.com/alvarezandmarsal.com",
+          "website": "https://alvarezandmarsal.com",
+          "is_active": true,
+          "display_order": 2,
+          "created_at": "2025-09-05T11:58:52.803725+00:00",
+          "updated_at": "2025-09-05T11:58:52.803725+00:00"
+        },
+        {
+          "id": "4dff9022-1a9d-461c-b167-4f5a07c74cdd",
+          "name": "Amazon Web Services",
+          "logo": "https://logo.clearbit.com/aws.amazon.com",
+          "website": "https://aws.amazon.com",
+          "is_active": true,
+          "display_order": 3,
+          "created_at": "2025-09-05T11:58:52.803725+00:00",
+          "updated_at": "2025-09-05T11:58:52.803725+00:00"
+        }
+      ],
+      "analysis_notes": []
+    },
+    "user_profiles": {
+      "name": "user_profiles",
+      "row_count": 0,
+      "columns": [],
+      "relationships": [],
+      "sample_data": [],
+      "analysis_notes": [
+        "Structure analysis error: Table is empty, cannot infer structure"
+      ]
+    }
+  }
+}
