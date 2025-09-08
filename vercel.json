@@ -4,6 +4,10 @@
     {
       "src": "test-public-api.html",
       "use": "@vercel/static"
+    },
+    {
+      "src": "test-api-comparison.html",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
@@ -14,6 +18,10 @@
     {
       "src": "/test",
       "dest": "/test-public-api.html"
+    },
+    {
+      "src": "/comparison",
+      "dest": "/test-api-comparison.html"
     }
   ]
 }
