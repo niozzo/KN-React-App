@@ -1,0 +1,161 @@
+{
+  "meta": {
+    "name": "KnowledgeNow Design Tokens",
+    "version": "0.1.0",
+    "source": "docs/ux/branding.md",
+    "description": "Tokens for colors, typography, spacing, radii, shadows, motion, and semantic roles",
+    "updated": "2025-09-08"
+  },
+  "unit": {
+    "space": "px",
+    "radius": "px",
+    "shadow": "css",
+    "duration": "ms"
+  },
+  "color": {
+    "palette": {
+      "purple": {
+        "900": "#5E35A5",
+        "700": "#7C4CC4",
+        "500": "#9468CE",
+        "050": "#F2ECFB"
+      },
+      "ink": {
+        "900": "#0E1821",
+        "700": "#2A3745",
+        "500": "#5A6A7A"
+      },
+      "gray": {
+        "300": "#D9DBDC",
+        "200": "#E6E7E8",
+        "100": "#F5F6F7"
+      },
+      "white": "#FFFFFF",
+      "coral": "#F85C5D",
+      "lime": "#99F094",
+      "magenta": "#CF59E0"
+    },
+    "roles": {
+      "text.primary": "{color.palette.ink.900}",
+      "text.secondary": "{color.palette.ink.700}",
+      "text.inverse": "{color.palette.white}",
+      "surface.primary": "{color.palette.white}",
+      "surface.subtle": "{color.palette.gray.100}",
+      "border.default": "{color.palette.gray.300}",
+      "brand.primary": "{color.palette.purple.500}",
+      "brand.primaryStrong": "{color.palette.purple.700}",
+      "brand.primaryDark": "{color.palette.purple.900}",
+      "accent.alert": "{color.palette.coral}",
+      "accent.success": "{color.palette.lime}",
+      "accent.highlight": "{color.palette.magenta}"
+    },
+    "component": {
+      "button.primary.bg": "{color.roles.brand.primaryStrong}",
+      "button.primary.text": "{color.palette.white}",
+      "button.primary.hover": "{color.roles.brand.primaryDark}",
+      "button.secondary.text": "{color.roles.brand.primaryStrong}",
+      "button.secondary.border": "{color.roles.brand.primaryStrong}",
+      "button.secondary.hoverBg": "{color.palette.purple.050}",
+      "link.default": "{color.roles.brand.primaryStrong}",
+      "link.hover": "{color.roles.brand.primaryDark}",
+      "input.bg": "{color.roles.surface.primary}",
+      "input.border": "{color.roles.border.default}",
+      "input.text": "{color.roles.text.primary}",
+      "input.focusBorder": "{color.roles.brand.primaryStrong}",
+      "input.errorBorder": "{color.roles.accent.alert}",
+      "card.bg": "{color.roles.surface.primary}",
+      "card.shadowColor": "rgba(14,24,33,0.08)"
+    }
+  },
+  "typography": {
+    "fonts": {
+      "ui": "Inter, \\"IBM Plex Sans\\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, \"Apple Color Emoji\", \"Segoe UI Emoji\"",
+      "serifEditorial": "\"Source Serif Pro\", Georgia, Cambria, \"Times New Roman\", Times, serif",
+      "mono": "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace"
+    },
+    "sizes": {
+      "display": 48,
+      "h1": 36,
+      "h2": 28,
+      "h3": 22,
+      "body": 16,
+      "caption": 14,
+      "small": 12
+    },
+    "lineHeights": {
+      "display": 1.2,
+      "heading": 1.3,
+      "body": 1.5,
+      "caption": 1.4
+    },
+    "weights": {
+      "regular": 400,
+      "medium": 500,
+      "semibold": 600,
+      "bold": 700
+    },
+    "features": {
+      "numerals": "tnum"
+    }
+  },
+  "space": {
+    "scale": {
+      "xxs": 4,
+      "xs": 8,
+      "sm": 12,
+      "md": 16,
+      "lg": 24,
+      "xl": 32,
+      "xxl": 40,
+      "sectionMd": 80,
+      "sectionLg": 120
+    }
+  },
+  "radius": {
+    "sm": 4,
+    "md": 8,
+    "lg": 12
+  },
+  "border": {
+    "width": {
+      "hairline": 1,
+      "focus": 2
+    },
+    "focusRing": {
+      "color": "{color.roles.brand.primaryStrong}",
+      "offset": 2,
+      "width": 2
+    }
+  },
+  "shadow": {
+    "elevation1": "0 2px 6px rgba(14,24,33,0.08)",
+    "elevation2": "0 6px 16px rgba(14,24,33,0.10)",
+    "focusInner": "inset 0 0 0 2px rgba(124,76,196,0.6)"
+  },
+  "motion": {
+    "duration": {
+      "fast": 120,
+      "standard": 200,
+      "slow": 300,
+      "page": 400
+    },
+    "easing": {
+      "standard": "cubic-bezier(0.4, 0, 0.2, 1)",
+      "exit": "cubic-bezier(0.2, 0, 0, 1)"
+    }
+  },
+  "semantic": {
+    "success": {
+      "bg": "{color.palette.lime}",
+      "text": "{color.roles.text.primary}"
+    },
+    "danger": {
+      "bg": "{color.palette.coral}",
+      "text": "{color.palette.white}"
+    },
+    "highlight": {
+      "bg": "{color.palette.magenta}",
+      "text": "{color.palette.white}"
+    }
+  }
+}
