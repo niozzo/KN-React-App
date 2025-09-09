@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Seat Map - Conference Companion</title>
-    <link rel="icon" type="image/x-icon" href="https://apax.com/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="https://www.apax.com/favicon.ico">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -372,9 +372,9 @@
                 const maxTranslateX = 0;
                 const minTranslateX = -(imageWidth - containerWidth + minVisible);
                 
-                // Y boundaries: maxTranslateY = topmost with 50px visible, minTranslateY = 0 (bottommost)
-                const maxTranslateY = -(imageHeight - containerHeight + minVisible);
-                const minTranslateY = 0;
+                // Y boundaries: maxTranslateY = 0 (bottommost), minTranslateY = topmost with 50px visible
+                const maxTranslateY = 0;
+                const minTranslateY = -(imageHeight - containerHeight + minVisible);
                 
                 // DEBUG: Log all values
                 console.log('=== TRANSFORM DEBUG ===');
@@ -414,8 +414,8 @@
             const minVisible = 50;
             const isOutsideRight = translateX > 0;
             const isOutsideLeft = translateX < -(imageWidth - containerWidth + minVisible);
-            const isOutsideTop = translateY < -(imageHeight - containerHeight + minVisible);
             const isOutsideBottom = translateY > 0;
+            const isOutsideTop = translateY < -(imageHeight - containerHeight + minVisible);
             
             return isOutsideLeft || isOutsideRight || isOutsideTop || isOutsideBottom;
         }
