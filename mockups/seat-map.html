@@ -285,12 +285,8 @@
         function handleTouchMove(e) {
             if (e.touches.length === 1 && isDragging) {
                 e.preventDefault();
-                const newTranslateX = e.touches[0].clientX - startX;
-                const newTranslateY = e.touches[0].clientY - startY;
-                console.log('Touch move - clientX:', e.touches[0].clientX, 'clientY:', e.touches[0].clientY, 'startX:', startX, 'startY:', startY);
-                console.log('Calculated translateX:', newTranslateX, 'translateY:', newTranslateY);
-                translateX = newTranslateX;
-                translateY = newTranslateY;
+                translateX = e.touches[0].clientX - startX;
+                translateY = e.touches[0].clientY - startY;
                 updateTransform();
             } else if (e.touches.length === 2) {
                 e.preventDefault();
@@ -322,12 +318,8 @@
 
         function handleMouseMove(e) {
             if (isDragging) {
-                const newTranslateX = e.clientX - startX;
-                const newTranslateY = e.clientY - startY;
-                console.log('Mouse move - clientX:', e.clientX, 'clientY:', e.clientY, 'startX:', startX, 'startY:', startY);
-                console.log('Calculated translateX:', newTranslateX, 'translateY:', newTranslateY);
-                translateX = newTranslateX;
-                translateY = newTranslateY;
+                translateX = e.clientX - startX;
+                translateY = e.clientY - startY;
                 updateTransform();
             }
         }
@@ -366,28 +358,13 @@
                 const maxTranslateX = 0;
                 const minTranslateX = -(imageWidth - containerWidth + minVisible);
                 
-                // Y boundaries: maxTranslateY = 0 (bottommost), minTranslateY = topmost with 50px visible  
-                const maxTranslateY = 0;
-                const minTranslateY = -(imageHeight - containerHeight + minVisible);
-                
-                // DEBUG: Log all values
-                console.log('=== TRANSFORM DEBUG ===');
-                console.log('Container:', containerWidth, 'x', containerHeight);
-                console.log('Image:', imageWidth, 'x', imageHeight);
-                console.log('Scale:', scale);
-                console.log('Before constraint - translateX:', translateX, 'translateY:', translateY);
-                console.log('X bounds:', minTranslateX, 'to', maxTranslateX);
-                console.log('Y bounds:', minTranslateY, 'to', maxTranslateY);
+                // Y boundaries: maxTranslateY = topmost with 50px visible, minTranslateY = 0 (bottommost)
+                const maxTranslateY = -(imageHeight - containerHeight + minVisible);
+                const minTranslateY = 0;
                 
                 // Constrain translation
-                const oldTranslateX = translateX;
-                const oldTranslateY = translateY;
                 translateX = Math.max(minTranslateX, Math.min(maxTranslateX, translateX));
                 translateY = Math.max(minTranslateY, Math.min(maxTranslateY, translateY));
-                
-                console.log('After constraint - translateX:', translateX, 'translateY:', translateY);
-                console.log('X constrained:', oldTranslateX !== translateX, 'Y constrained:', oldTranslateY !== translateY);
-                console.log('========================');
                 
                 mapImage.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
             }
@@ -408,8 +385,8 @@
             const minVisible = 50;
             const isOutsideRight = translateX > 0;
             const isOutsideLeft = translateX < -(imageWidth - containerWidth + minVisible);
-            const isOutsideBottom = translateY > 0;
             const isOutsideTop = translateY < -(imageHeight - containerHeight + minVisible);
+            const isOutsideBottom = translateY > 0;
             
             return isOutsideLeft || isOutsideRight || isOutsideTop || isOutsideBottom;
         }
