@@ -293,19 +293,22 @@
             }
         }
 
-        // Check if point is within image bounds
+        // Check if point is within image bounds (with some tolerance)
         function isWithinImageBounds(x, y) {
             const bounds = JSON.parse(mapImage.dataset.bounds || '{}');
-            if (!bounds.width) return false;
+            if (!bounds.width) return true; // Allow interaction if bounds not calculated yet
             
             const containerRect = mapContainer.getBoundingClientRect();
             const relativeX = x - containerRect.left;
             const relativeY = y - containerRect.top;
             
-            return relativeX >= bounds.x && 
-                   relativeX <= bounds.x + bounds.width &&
-                   relativeY >= bounds.y && 
-                   relativeY <= bounds.y + bounds.height;
+            // Add 20px tolerance around the image for easier interaction
+            const tolerance = 20;
+            
+            return relativeX >= (bounds.x - tolerance) && 
+                   relativeX <= (bounds.x + bounds.width + tolerance) &&
+                   relativeY >= (bounds.y - tolerance) && 
+                   relativeY <= (bounds.y + bounds.height + tolerance);
         }
 
         mapImage.addEventListener('touchstart', handleTouchStart, { passive: false });
