@@ -140,7 +140,7 @@
 
 
         .day-header.sticky {
-            border-radius: 12px 12px 0 0;
+            border-radius: 0 0 0 0; /* Remove top radius when stuck */
             box-shadow: 0 4px 12px rgba(14,24,33,0.12);
         }
 
@@ -683,6 +683,28 @@
                 }
             }
         });
+
+        // Sticky header border radius management
+        function handleStickyHeaders() {
+            const dayHeaders = document.querySelectorAll('.day-header');
+            
+            dayHeaders.forEach(header => {
+                const rect = header.getBoundingClientRect();
+                const isStuck = rect.top <= 0;
+                
+                if (isStuck) {
+                    header.classList.add('sticky');
+                } else {
+                    header.classList.remove('sticky');
+                }
+            });
+        }
+
+        // Listen for scroll events to update sticky state
+        window.addEventListener('scroll', handleStickyHeaders);
+        
+        // Initial check on page load
+        document.addEventListener('DOMContentLoaded', handleStickyHeaders);
     </script>
 </body>
 </html>
