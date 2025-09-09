@@ -158,6 +158,39 @@
             cursor: grabbing;
         }
 
+        .reset-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: var(--white);
+            border: 2px solid var(--purple-700);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 20;
+            box-shadow: 0 2px 8px rgba(14,24,33,0.15);
+            transition: all 0.2s ease;
+        }
+
+        .reset-button:hover {
+            background: var(--purple-050);
+            transform: scale(1.1);
+        }
+
+        .reset-button:active {
+            transform: scale(0.95);
+        }
+
+        .reset-icon {
+            width: 20px;
+            height: 20px;
+            color: var(--purple-700);
+        }
+
 
         .bottom-info {
             position: fixed;
@@ -236,6 +269,14 @@
 
     <div class="map-container" id="mapContainer">
         <img src="assets/maps/locationName_14.jpg" alt="Venue Floor Plan" class="map-image" id="mapImage">
+        <button class="reset-button" id="resetButton" title="Reset view">
+            <svg class="reset-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+                <path d="M21 3v5h-5"/>
+                <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+                <path d="M3 21v-5h5"/>
+            </svg>
+        </button>
     </div>
 
     <div class="bottom-info">
@@ -244,19 +285,25 @@
     </div>
 
     <script>
+        // State management
         let isDragging = false;
         let startX = 0;
         let startY = 0;
         let translateX = 0;
         let translateY = 0;
         let scale = 1;
-        let minScale = 0.5;
-        let maxScale = 3;
+        let isAnimating = false;
 
+        // Constants
+        const minScale = 0.5;
+        const maxScale = 3;
+
+        // DOM elements
         const mapContainer = document.getElementById('mapContainer');
         const mapImage = document.getElementById('mapImage');
+        const resetButton = document.getElementById('resetButton');
 
-
+        // Event listeners
         mapContainer.addEventListener('touchstart', handleTouchStart, { passive: false });
         mapContainer.addEventListener('touchmove', handleTouchMove, { passive: false });
         mapContainer.addEventListener('touchend', handleTouchEnd, { passive: false });
@@ -264,7 +311,9 @@
         mapContainer.addEventListener('mousemove', handleMouseMove);
         mapContainer.addEventListener('mouseup', handleMouseUp);
         mapContainer.addEventListener('wheel', handleWheel, { passive: false });
+        resetButton.addEventListener('click', resetImage);
 
+        // Touch handlers
         function handleTouchStart(e) {
             if (e.touches.length === 1) {
                 isDragging = true;
@@ -286,12 +335,8 @@
         function handleTouchMove(e) {
             if (e.touches.length === 1 && isDragging) {
                 e.preventDefault();
-                const newTranslateX = e.touches[0].clientX - startX;
-                const newTranslateY = e.touches[0].clientY - startY;
-                console.log('Touch move - clientX:', e.touches[0].clientX, 'clientY:', e.touches[0].clientY, 'startX:', startX, 'startY:', startY);
-                console.log('Calculated translateX:', newTranslateX, 'translateY:', newTranslateY);
-                translateX = newTranslateX;
-                translateY = newTranslateY;
+                translateX = e.touches[0].clientX - startX;
+                translateY = e.touches[0].clientY - startY;
                 updateTransform();
             } else if (e.touches.length === 2) {
                 e.preventDefault();
@@ -310,10 +355,9 @@
 
         function handleTouchEnd(e) {
             isDragging = false;
-            // Auto-scroll back if image is outside viewport
-            setTimeout(autoScrollBack, 100); // Small delay to ensure touch end is complete
         }
 
+        // Mouse handlers
         function handleMouseDown(e) {
             isDragging = true;
             startX = e.clientX - translateX;
@@ -323,12 +367,8 @@
 
         function handleMouseMove(e) {
             if (isDragging) {
-                const newTranslateX = e.clientX - startX;
-                const newTranslateY = e.clientY - startY;
-                console.log('Mouse move - clientX:', e.clientX, 'clientY:', e.clientY, 'startX:', startX, 'startY:', startY);
-                console.log('Calculated translateX:', newTranslateX, 'translateY:', newTranslateY);
-                translateX = newTranslateX;
-                translateY = newTranslateY;
+                translateX = e.clientX - startX;
+                translateY = e.clientY - startY;
                 updateTransform();
             }
         }
@@ -336,10 +376,9 @@
         function handleMouseUp(e) {
             isDragging = false;
             mapContainer.style.cursor = 'grab';
-            // Auto-scroll back if image is outside viewport
-            setTimeout(autoScrollBack, 100); // Small delay to ensure mouse up is complete
         }
 
+        // Wheel handler for zoom
         function handleWheel(e) {
             e.preventDefault();
             const delta = e.deltaY > 0 ? 0.9 : 1.1;
@@ -347,143 +386,39 @@
             updateTransform();
         }
 
+        // Simple function to apply transform without constraints
+        function applyTransform(x, y, s) {
+            translateX = x;
+            translateY = y;
+            scale = s;
+            updateTransform();
+        }
+
+        // Apply transform to image
         function updateTransform() {
-            const mapImage = document.getElementById('mapImage');
-            const mapContainer = document.getElementById('mapContainer');
+            if (!mapImage) return;
             
-            if (mapImage && mapContainer) {
-                // Get container dimensions
-                const containerWidth = mapContainer.clientWidth;
-                const containerHeight = mapContainer.clientHeight;
-                
-                // Get image dimensions - wait for image to load
-                if (mapImage.naturalWidth === 0 || mapImage.naturalHeight === 0) {
-                    console.log('Image not loaded yet, skipping transform update');
-                    return;
-                }
-                
-                const imageWidth = mapImage.naturalWidth * scale;
-                const imageHeight = mapImage.naturalHeight * scale;
-                
-                // Calculate boundaries (keep at least 50px visible)
-                const minVisible = 50;
-                
-                // X boundaries: maxTranslateX = 0 (rightmost), minTranslateX = leftmost with 50px visible
-                const maxTranslateX = 0;
-                const minTranslateX = -(imageWidth - containerWidth + minVisible);
-                
-                // Y boundaries: maxTranslateY = topmost with 50px visible, minTranslateY = 0 (bottommost)
-                const maxTranslateY = -(imageHeight - containerHeight + minVisible);
-                const minTranslateY = 0;
-                
-                // DEBUG: Log all values
-                console.log('=== TRANSFORM DEBUG ===');
-                console.log('Container:', containerWidth, 'x', containerHeight);
-                console.log('Image:', imageWidth, 'x', imageHeight);
-                console.log('Scale:', scale);
-                console.log('Before constraint - translateX:', translateX, 'translateY:', translateY);
-                console.log('X bounds:', minTranslateX, 'to', maxTranslateX);
-                console.log('Y bounds:', minTranslateY, 'to', maxTranslateY);
-                
-                // Constrain translation
-                const oldTranslateX = translateX;
-                const oldTranslateY = translateY;
-                translateX = Math.max(minTranslateX, Math.min(maxTranslateX, translateX));
-                translateY = Math.max(minTranslateY, Math.min(maxTranslateY, translateY));
-                
-                console.log('After constraint - translateX:', translateX, 'translateY:', translateY);
-                console.log('X constrained:', oldTranslateX !== translateX, 'Y constrained:', oldTranslateY !== translateY);
-                console.log('========================');
-                
-                mapImage.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
-            }
+            mapImage.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
         }
 
-        function isImageOutsideViewport() {
-            const mapImage = document.getElementById('mapImage');
-            const mapContainer = document.getElementById('mapContainer');
+        // Reset function to return to initial state
+        function resetImage() {
+            if (!mapImage || !mapContainer) return;
             
-            if (!mapImage || !mapContainer) return false;
+            // Reset to initial state: scale 1, position (0,0)
+            scale = 1;
+            translateX = 0;
+            translateY = 0;
             
-            const containerWidth = mapContainer.clientWidth;
-            const containerHeight = mapContainer.clientHeight;
-            const imageWidth = mapImage.naturalWidth * scale;
-            const imageHeight = mapImage.naturalHeight * scale;
-            
-            // Check if image is completely outside viewport (no 50px visible)
-            const minVisible = 50;
-            const isOutsideRight = translateX > 0;
-            const isOutsideLeft = translateX < -(imageWidth - containerWidth + minVisible);
-            const isOutsideTop = translateY < -(imageHeight - containerHeight + minVisible);
-            const isOutsideBottom = translateY > 0;
-            
-            return isOutsideLeft || isOutsideRight || isOutsideTop || isOutsideBottom;
+            updateTransform();
         }
 
-        function autoScrollBack() {
-            if (isImageOutsideViewport()) {
-                const mapImage = document.getElementById('mapImage');
-                const mapContainer = document.getElementById('mapContainer');
-                
-                if (!mapImage || !mapContainer) return;
-                
-                const containerWidth = mapContainer.clientWidth;
-                const containerHeight = mapContainer.clientHeight;
-                const imageWidth = mapImage.naturalWidth * scale;
-                const imageHeight = mapImage.naturalHeight * scale;
-                
-                // Calculate target position to show at least 50px
-                const minVisible = 50;
-                let targetX = translateX;
-                let targetY = translateY;
-                
-                // Adjust X position if needed
-                if (translateX > 0) {
-                    targetX = 0; // Show right edge
-                } else if (translateX < -(imageWidth - containerWidth + minVisible)) {
-                    targetX = -(imageWidth - containerWidth + minVisible); // Show left edge with 50px visible
-                }
-                
-                // Adjust Y position if needed
-                if (translateY > 0) {
-                    targetY = 0; // Show bottom edge
-                } else if (translateY < -(imageHeight - containerHeight + minVisible)) {
-                    targetY = -(imageHeight - containerHeight + minVisible); // Show top edge with 50px visible
-                }
-                
-                // Smooth scroll back to target position
-                const startX = translateX;
-                const startY = translateY;
-                const duration = 300; // 300ms animation
-                const startTime = performance.now();
-                
-                function animateScroll(currentTime) {
-                    const elapsed = currentTime - startTime;
-                    const progress = Math.min(elapsed / duration, 1);
-                    
-                    // Easing function (ease-out)
-                    const easeOut = 1 - Math.pow(1 - progress, 3);
-                    
-                    translateX = startX + (targetX - startX) * easeOut;
-                    translateY = startY + (targetY - startY) * easeOut;
-                    
-                    mapImage.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
-                    
-                    if (progress < 1) {
-                        requestAnimationFrame(animateScroll);
-                    }
-                }
-                
-                requestAnimationFrame(animateScroll);
-            }
-        }
-
-        // Center the image when it loads
+        // Initialize when image loads
         document.addEventListener('DOMContentLoaded', function() {
-            const mapImage = document.getElementById('mapImage');
             if (mapImage) {
                 mapImage.addEventListener('load', function() {
-                    console.log('Image loaded, centering...');
+                    // Set initial state: scale 1, position (0,0)
+                    scale = 1;
                     translateX = 0;
                     translateY = 0;
                     updateTransform();
@@ -491,6 +426,7 @@
             }
         });
 
+        // Initial transform
         updateTransform();
     </script>
 </body>
