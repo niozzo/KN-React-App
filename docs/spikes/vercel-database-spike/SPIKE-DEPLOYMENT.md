@@ -6,13 +6,14 @@ This spike implements server-side API routes for direct PostgreSQL database acce
 
 ### 📁 Files Created
 
-#### API Routes (`/api/`)
+#### API Routes (`api/`)
 - `api/health.js` - Health check endpoint
 - `api/db/test-connection.js` - Test database connectivity
 - `api/db/tables.js` - Get all tables
 - `api/db/table-data.js` - Get table data with pagination
 - `api/db/table-count.js` - Get row counts
 - `api/db/table-structure.js` - Get table schema
+- `api/db/discover-tables.js` - Dynamic table discovery
 
 #### Client
 - `spike-client.html` - Simple client to test the API

@@ -17,6 +17,7 @@ This directory contains the results and documentation from various technical spi
 **Files**:
 - `spike-client.html` - Working client-side interface for testing API endpoints
 - `SPIKE-DEPLOYMENT.md` - Complete deployment guide and troubleshooting steps
+- `api/` - Complete API implementation with all database endpoints
 
 **API Endpoints Created**:
 - `/api/db/test-connection` - Test database connectivity
