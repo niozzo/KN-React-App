@@ -253,14 +253,15 @@
         let maxScale = 3;
 
         const mapContainer = document.getElementById('mapContainer');
+        const mapImage = document.getElementById('mapImage');
 
-        mapContainer.addEventListener('touchstart', handleTouchStart, { passive: false });
-        mapContainer.addEventListener('touchmove', handleTouchMove, { passive: false });
-        mapContainer.addEventListener('touchend', handleTouchEnd, { passive: false });
-        mapContainer.addEventListener('mousedown', handleMouseDown);
-        mapContainer.addEventListener('mousemove', handleMouseMove);
-        mapContainer.addEventListener('mouseup', handleMouseUp);
-        mapContainer.addEventListener('wheel', handleWheel, { passive: false });
+        mapImage.addEventListener('touchstart', handleTouchStart, { passive: false });
+        mapImage.addEventListener('touchmove', handleTouchMove, { passive: false });
+        mapImage.addEventListener('touchend', handleTouchEnd, { passive: false });
+        mapImage.addEventListener('mousedown', handleMouseDown);
+        mapImage.addEventListener('mousemove', handleMouseMove);
+        mapImage.addEventListener('mouseup', handleMouseUp);
+        mapImage.addEventListener('wheel', handleWheel, { passive: false });
 
         function handleTouchStart(e) {
             if (e.touches.length === 1) {
@@ -334,7 +335,28 @@
 
         function updateTransform() {
             const mapImage = document.getElementById('mapImage');
-            if (mapImage) {
+            const mapContainer = document.getElementById('mapContainer');
+            
+            if (mapImage && mapContainer) {
+                // Get container dimensions
+                const containerWidth = mapContainer.clientWidth;
+                const containerHeight = mapContainer.clientHeight;
+                
+                // Get image dimensions
+                const imageWidth = mapImage.naturalWidth * scale;
+                const imageHeight = mapImage.naturalHeight * scale;
+                
+                // Calculate boundaries (keep at least 50px visible)
+                const minVisible = 50;
+                const maxTranslateX = Math.max(0, imageWidth - containerWidth + minVisible);
+                const minTranslateX = Math.min(0, -imageWidth + minVisible);
+                const maxTranslateY = Math.max(0, imageHeight - containerHeight + minVisible);
+                const minTranslateY = Math.min(0, -imageHeight + minVisible);
+                
+                // Constrain translation
+                translateX = Math.max(minTranslateX, Math.min(maxTranslateX, translateX));
+                translateY = Math.max(minTranslateY, Math.min(maxTranslateY, translateY));
+                
                 mapImage.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
             }
         }
