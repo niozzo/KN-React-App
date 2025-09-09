@@ -570,7 +570,7 @@
                     </div>
                 </div>
 
-                <div class="session-item current">
+                <div class="session-item current" id="current">
                     <div class="session-header">
                         <div class="session-time">9:00 AM</div>
                         <div class="session-status status-current">Now</div>
@@ -727,5 +727,28 @@
             </a>
         </div>
     </nav>
+
+    <script>
+        // Scroll to current session when page loads with #current hash
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.location.hash === '#current') {
+                const currentSession = document.getElementById('current');
+                if (currentSession) {
+                    // Add a small delay to ensure page is fully loaded
+                    setTimeout(() => {
+                        currentSession.scrollIntoView({ 
+                            behavior: 'smooth', 
+                            block: 'center' 
+                        });
+                        // Add a subtle highlight effect
+                        currentSession.style.boxShadow = '0 0 0 4px rgba(124, 76, 196, 0.2)';
+                        setTimeout(() => {
+                            currentSession.style.boxShadow = '';
+                        }, 2000);
+                    }, 100);
+                }
+            }
+        });
+    </script>
 </body>
 </html>
