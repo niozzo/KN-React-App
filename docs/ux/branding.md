@@ -16,7 +16,7 @@ Reference: https://www.apax.com/create/operational-excellence/practice-overview/
 - **Tone & voice**: Confident and concise; expert yet accessible; action‑oriented.
 - **Visual language**: Clean, high‑contrast layouts; generous whitespace; subtle geometric structure; authentic photography; editorial metrics as hero elements.
 - **Primary color**: Purple `#9468CE` (dominant). Use Ink/Navy `#0E1821` for body text; White `#FFFFFF` as primary surface; Light Gray `#C7C9CA` for structure.
-- **Accents (sparingly)**: Coral `#F85C5D` (alerts/emphasis), Lime `#99F094` (success/data viz), Magenta `#CF59E0` (data viz highlight). One accent per view.
+- **Accents (sparingly)**: Coral `#D9776F` (alerts/emphasis), Lime `#7FB069` (success/data viz), Magenta `#A67DB8` (data viz highlight). One accent per view.
 - **Typography**: Headlines with authority (Inter/IBM Plex Sans heavy) and body in Inter 400–600; tabular numerals for metrics; clear hierarchy.
 - **Layout & spacing**: 12‑col grid desktop / 4‑col mobile; 4/8px rhythm; generous section spacing.
 - **Iconography**: 24px grid, 2px strokes, minimal fills, rounded joins.
@@ -43,9 +43,9 @@ This document defines the palette, typography, spacing, components, states, icon
 - White (surface): `#FFFFFF` (RGB 255, 255, 255)
 
 ### Accent Colors (sparingly)
-- Coral (emphasis/alerts): `#F85C5D` (RGB 248, 92, 93)
-- Lime (success/data viz): `#99F094` (RGB 153, 240, 148)
-- Magenta (data viz highlight): `#CF59E0` (RGB 207, 89, 224)
+- Coral (emphasis/alerts): `#D9776F` (RGB 217, 119, 111)
+- Lime (success/data viz): `#7FB069` (RGB 127, 176, 105)
+- Magenta (data viz highlight): `#A67DB8` (RGB 166, 125, 184)
 
 ### Shades & Tints (Accessibility‑ready)
 Purpose: ensure ≥ 4.5:1 contrast for body text and UI controls.

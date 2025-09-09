@@ -3,7 +3,11 @@
   "routes": [
     {
       "src": "/",
-      "dest": "/docs/spikes/vercel-database-spike/spike-client.html"
+      "dest": "/mockups/index.html"
+    },
+    {
+      "src": "/mockups/(.*)",
+      "dest": "/mockups/$1"
     }
   ]
 }

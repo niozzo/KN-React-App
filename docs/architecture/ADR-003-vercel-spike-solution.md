@@ -21,7 +21,7 @@ The Knowledge Now React application required a way to replicate the local "Direc
 **Root Cause Discovery**: The local "Direct PostgreSQL" button was actually using the Supabase API, not direct PostgreSQL. The browser had authentication tokens stored in local storage:
 - `sb-iikcgdhztkrexuuqheli-auth-token` (Supabase auth token)
 - `supabase_email`: `ishan.gammampila@apax.com`
-- `supabase_password`: `xx8kRx#tn@R?`
+- `supabase_password`: <password>
 
 **Authentication Gap**: Server-side code was using anonymous key while browser had authenticated session.
 
