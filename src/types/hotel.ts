@@ -1,5 +1,5 @@
-// TypeScript interfaces for Hotels based on UI analysis
-// Generated from admin interface screenshots
+// TypeScript interfaces for Hotels based on actual database schema
+// Generated from real database data via authenticated Supabase API
 
 export interface Hotel {
   // Primary fields (auto-generated)
@@ -7,17 +7,15 @@ export interface Hotel {
   created_at: string
   updated_at: string
   
-  // Hotel Details (Required Fields)
-  hotel_name: string         // Required - Text input
-  phone_number: string       // Required - Text input
-  address: string           // Required - Text input
-  display_order: number     // Required - Numeric input
+  // Hotel Details (Actual database fields)
+  name: string              // Hotel name (actual field name)
+  address: string           // Hotel address
+  phone: string             // Phone number (actual field name)
+  website: string           // Website URL (can be empty)
   
-  // Optional Fields
-  website?: string          // Optional - URL field
-  
-  // Status
-  active: boolean           // Checkbox - "available for selection"
+  // Status and Display
+  is_active: boolean        // Active status (actual field name)
+  display_order: number     // Display order for UI
 }
 
 // Form data interface for creating/editing hotels

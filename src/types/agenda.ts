@@ -1,5 +1,5 @@
-// TypeScript interfaces for Agenda Items based on UI analysis
-// Generated from admin interface screenshots
+// TypeScript interfaces for Agenda Items based on actual database schema
+// Generated from real database data via authenticated Supabase API
 
 export type SessionType = 
   | 'keynote'
@@ -11,8 +11,8 @@ export type SessionType =
   | 'networking'
 
 export type SeatingType = 
-  | 'open-seating'
-  | 'assigned-seating'
+  | 'open'
+  | 'assigned'
 
 export interface AgendaItem {
   // Primary fields (auto-generated)
@@ -20,21 +20,29 @@ export interface AgendaItem {
   created_at: string
   updated_at: string
   
-  // Session Details (Required Fields)
-  session_title: string        // Required - Text input
-  date: string                 // Required - Date picker (MM/DD/YYYY format)
-  session_type: SessionType    // Required - Dropdown selection
-  start_time: string           // Required - Time picker (HH:MM AM/PM)
-  end_time: string             // Required - Time picker (HH:MM AM/PM)
-  location: string             // Required - Text input
+  // Session Details (Actual database fields)
+  title: string                // Actual field name from database
+  description: string          // Actual field name from database
+  date: string                 // Date in YYYY-MM-DD format
+  start_time: string           // Time in HH:MM:SS format
+  end_time: string             // Time in HH:MM:SS format
+  location: string             // Location string
+  type: SessionType            // Session type (executive-presentation, etc.)
+  speaker: string | null       // Speaker name (nullable)
   
-  // Optional Fields
-  capacity?: number            // Optional - Numeric input
-  description?: string         // Optional - Multi-line text area
+  // Capacity and Registration
+  capacity: number             // Maximum capacity
+  registered_count: number     // Current registered count
   
-  // Seating Configuration
-  seating_type: SeatingType    // Required - Dropdown selection
-  seating_capacity?: number    // Optional - Numeric input (separate from capacity)
+  // Attendee Selection
+  attendee_selection: string   // Selection type (e.g., "everyone")
+  selected_attendees: any[]    // Array of selected attendee IDs
+  
+  // Status and Configuration
+  is_active: boolean           // Active status
+  has_seating: boolean         // Whether seating is configured
+  seating_notes: string        // Seating configuration notes
+  seating_type: SeatingType    // Seating type (open/assigned)
 }
 
 // Form data interface for creating/editing agenda items

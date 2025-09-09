@@ -35,49 +35,57 @@ The database follows a well-structured event management pattern with the followi
 ## Data Structure Analysis
 
 ### Attendees Table (Primary Entity)
-**40 columns** - Comprehensive attendee management system
+**35 columns** - Comprehensive attendee management system
 
-**Key Features:**
-- **Personal Information**: Name, title, company, contact details
-- **Event Preferences**: Hotel selection, dining choices, breakout sessions
-- **Registration Management**: Status, access codes, check-in/out dates
-- **Advanced Attributes**: Role-based flags (CEO, CFO, sponsor, etc.)
-- **Spouse Management**: Complete spouse information tracking
-- **Address Management**: Full international address support
+**Key Features (Actual Database Fields):**
+- **Personal Information**: `salutation`, `first_name`, `last_name`, `email`, `title`, `company`, `bio`, `photo`
+- **Contact Information**: `business_phone`, `mobile_phone`
+- **Address Management**: `address1`, `address2`, `postal_code`, `city`, `state`, `country`, `country_code`
+- **Hotel Information**: `check_in_date`, `check_out_date`, `hotel_selection`, `custom_hotel`, `room_type`
+- **Registration Management**: `registration_id`, `registration_status`, `access_code`
+- **Spouse Management**: `has_spouse`, `spouse_details` (JSON object)
+- **Event Preferences**: `dining_selections` (JSON object), `selected_breakouts` (array), `dietary_requirements`
+- **Role Attributes**: `attributes` (JSON object), `is_cfo`, `is_apax_ep`
+- **Assistant Information**: `assistant_name`, `assistant_email`
+- **External Integration**: `idloom_id`, `last_synced_at`
 
 **Architectural Implications:**
 - Rich data model supports complex event management
-- JSON fields for flexible preference storage
+- JSON fields for flexible preference storage (`spouse_details`, `dining_selections`, `attributes`)
 - Role-based access patterns evident
 - International event support built-in
+- Clearbit logo service integration for company photos
 
 ### Seat Assignments Table
 **15 columns** - Sophisticated seating management
 
-**Key Features:**
-- **Spatial Management**: X/Y coordinates, row/column positioning
-- **Configuration Linking**: References seating configurations
-- **Assignment Types**: Manual vs. automatic assignment
-- **Attendee Integration**: Direct attendee linking with name caching
+**Key Features (Actual Database Fields):**
+- **Assignment Management**: `seating_configuration_id`, `attendee_id`, `assignment_type`, `assigned_at`
+- **Seat Information**: `table_name`, `seat_number`, `seat_position` (JSON with x/y coordinates)
+- **Spatial Management**: `column_number`, `row_number` (nullable)
+- **Attendee Integration**: `attendee_first_name`, `attendee_last_name` (cached for performance)
+- **Notes**: `notes` field for assignment comments
 
 **Architectural Implications:**
 - Real-time seating management capability
-- Visual seating chart support
-- Flexible assignment workflows
+- Visual seating chart support with coordinate system
+- Flexible assignment workflows (manual/automatic)
 - Performance optimization through denormalized attendee names
+- Table-based seating system with numbered seats
 
 ### Sponsors Table
-**8 columns** - Clean sponsor management
+**7 columns** - Clean sponsor management
 
-**Key Features:**
-- **Brand Management**: Logo, website, display ordering
-- **Status Control**: Active/inactive sponsor management
-- **External Integration**: Clearbit logo service integration
+**Key Features (Actual Database Fields):**
+- **Brand Management**: `name` (company name), `logo` (logo URL), `website`
+- **Status Control**: `is_active` (active/inactive status)
+- **Display Management**: `display_order` (UI ordering)
 
 **Architectural Implications:**
 - Simple, effective sponsor directory
-- External service integration patterns
+- Clearbit logo service integration (logo URLs use clearbit.com)
 - Display ordering for UI presentation
+- Clean separation of brand and status management
 
 ## Architectural Recommendations
 

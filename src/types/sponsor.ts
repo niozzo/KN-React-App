@@ -1,5 +1,5 @@
-// TypeScript interfaces for Sponsors based on UI analysis
-// Generated from admin interface screenshots
+// TypeScript interfaces for Sponsors based on actual database schema
+// Generated from real database data via authenticated Supabase API
 
 export interface Sponsor {
   // Primary fields (auto-generated)
@@ -7,16 +7,14 @@ export interface Sponsor {
   created_at: string
   updated_at: string
   
-  // Sponsor Details (Required Fields)
-  company_name: string        // Required - Text input
-  logo_url: string           // Required - URL field
-  display_order: number      // Required - Numeric input
+  // Sponsor Details (Actual database fields)
+  name: string               // Company name (actual field name)
+  logo: string              // Logo URL (actual field name)
+  website: string           // Website URL (can be empty)
   
-  // Optional Fields
-  website?: string           // Optional - URL field with logo fetching
-  
-  // Status
-  active: boolean            // Checkbox - "show in carousel"
+  // Status and Display
+  is_active: boolean        // Active status (actual field name)
+  display_order: number     // Display order for UI
 }
 
 // Form data interface for creating/editing sponsors

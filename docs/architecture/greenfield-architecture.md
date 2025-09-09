@@ -89,74 +89,101 @@ Supabase Dashboard - Database Monitoring
 #### 1. **Attendees** - Primary Entity (222 rows)
 ```typescript
 interface Attendee {
-  // Identity & Contact
+  // Primary fields (auto-generated)
   id: string
-  salutation: string
-  first_name: string
-  last_name: string
-  email: string
-  title: string
-  company: string
-  
-  // Contact Information
-  business_phone: string
-  mobile_phone: string
-  address1: string
-  address2: string
-  postal_code: string
-  city: string
-  state: string
-  country: string
-  country_code: string
-  
-  // Event Preferences
-  hotel_selection: string
-  custom_hotel: string
-  room_type: string
-  check_in_date: string
-  check_out_date: string
-  dining_selections: DiningSelections
-  selected_breakouts: string[]
-  dietary_requirements: string
-  
-  // Role Attributes
-  attributes: AttendeeAttributes
-  is_cfo: boolean
-  is_apax_ep: boolean
-  
-  // Spouse Information
-  has_spouse: boolean
-  spouse_details: SpouseDetails
-  
-  // System Fields
-  registration_id: string
-  registration_status: string
-  access_code: string
-  assistant_name: string
-  assistant_email: string
-  idloom_id: string
-  last_synced_at: string
   created_at: string
   updated_at: string
+  
+  // Personal Information (Actual database fields)
+  salutation: string           // Dr, Mr, Ms, etc.
+  first_name: string          // First name
+  last_name: string           // Last name
+  email: string               // Email address
+  title: string               // Job title
+  company: string             // Company name
+  bio: string                 // Biography (can be empty)
+  photo: string               // Photo URL (Clearbit logo service)
+  
+  // Contact Information
+  business_phone: string      // Business phone number
+  mobile_phone: string        // Mobile phone number
+  
+  // Address Information
+  address1: string            // Address line 1
+  address2: string            // Address line 2
+  postal_code: string         // Postal/ZIP code
+  city: string                // City
+  state: string               // State/Province
+  country: string             // Country name
+  country_code: string        // Country code (US, CA, etc.)
+  
+  // Hotel Information
+  check_in_date: string       // Check-in date (YYYY-MM-DD)
+  check_out_date: string      // Check-out date (YYYY-MM-DD)
+  hotel_selection: string     // Selected hotel ID
+  custom_hotel: string        // Custom hotel name (if applicable)
+  room_type: string           // Room type preference
+  
+  // Registration Information
+  registration_id: string     // Registration ID
+  registration_status: string // Registration status (confirmed, etc.)
+  access_code: string         // Access code for event
+  
+  // Spouse Information
+  has_spouse: boolean         // Whether attendee has spouse
+  spouse_details: SpouseDetails // Spouse information object
+  
+  // Event Preferences
+  dining_selections: DiningSelections // Dining event selections
+  selected_breakouts: string[]        // Selected breakout sessions
+  dietary_requirements: string        // Dietary requirements
+  
+  // Role Attributes
+  attributes: AttendeeAttributes // Role-based attributes object
+  is_cfo: boolean              // CFO flag
+  is_apax_ep: boolean          // Apax EP flag
+  
+  // Assistant Information
+  assistant_name: string       // Assistant name
+  assistant_email: string      // Assistant email
+  
+  // External System Integration
+  idloom_id: string           // IDloom system ID
+  last_synced_at: string      // Last sync timestamp
 }
 ```
 
-#### 2. **Agenda Items** - Event Sessions
+#### 2. **Agenda Items** - Event Sessions (10 rows)
 ```typescript
 interface AgendaItem {
+  // Primary fields (auto-generated)
   id: string
-  session_title: string
-  date: string
-  session_type: SessionType
-  start_time: string
-  end_time: string
-  location: string
-  capacity?: number
-  description?: string
-  seating_type: SeatingType
-  seating_capacity?: number
   created_at: string
   updated_at: string
+  
+  // Session Details (Actual database fields)
+  title: string                // Session title (actual field name)
+  description: string          // Session description (actual field name)
+  date: string                 // Date in YYYY-MM-DD format
+  start_time: string           // Time in HH:MM:SS format
+  end_time: string             // Time in HH:MM:SS format
+  location: string             // Location string
+  type: SessionType            // Session type (executive-presentation, etc.)
+  speaker: string | null       // Speaker name (nullable)
+  
+  // Capacity and Registration
+  capacity: number             // Maximum capacity
+  registered_count: number     // Current registered count
+  
+  // Attendee Selection
+  attendee_selection: string   // Selection type (e.g., "everyone")
+  selected_attendees: any[]    // Array of selected attendee IDs
+  
+  // Status and Configuration
+  is_active: boolean           // Active status
+  has_seating: boolean         // Whether seating is configured
+  seating_notes: string        // Seating configuration notes
+  seating_type: SeatingType    // Seating type (open/assigned)
 }
 
 type SessionType = 
@@ -169,66 +196,150 @@ type SessionType =
   | 'networking'
 ```
 
-#### 3. **Dining Options** - Dining Events
+#### 3. **Dining Options** - Dining Events (2 rows)
 ```typescript
 interface DiningOption {
+  // Primary fields (auto-generated)
   id: string
-  event_name: string
-  date: string
-  time: string
-  location: string
-  venue_address: string
-  display_order: number
-  maximum_capacity?: number
-  active: boolean
-  seating_type: SeatingType
   created_at: string
   updated_at: string
+  
+  // Event Details (Actual database fields)
+  name: string                 // Event name (actual field name)
+  date: string                 // Date in YYYY-MM-DD format
+  time: string                 // Time in HH:MM:SS format
+  location: string             // Location string
+  address: string              // Venue address
+  address_validated: boolean   // Whether address has been validated
+  
+  // Capacity and Seating
+  capacity: number             // Maximum capacity
+  has_table_assignments: boolean // Whether table assignments are configured
+  tables: TableConfig[]        // Table configuration array
+  layout_template_id: string | null // Layout template reference
+  seating_notes: string        // Seating configuration notes
+  seating_type: SeatingType    // Seating type (open/assigned)
+  
+  // Status and Display
+  is_active: boolean           // Active status
+  display_order: number        // Display order for UI
 }
 ```
 
-#### 4. **Hotels** - Accommodation
+#### 4. **Hotels** - Accommodation (3 rows)
 ```typescript
 interface Hotel {
+  // Primary fields (auto-generated)
   id: string
-  hotel_name: string
-  phone_number: string
-  address: string
-  display_order: number
-  website?: string
-  active: boolean
   created_at: string
   updated_at: string
+  
+  // Hotel Details (Actual database fields)
+  name: string              // Hotel name (actual field name)
+  address: string           // Hotel address
+  phone: string             // Phone number (actual field name)
+  website: string           // Website URL (can be empty)
+  
+  // Status and Display
+  is_active: boolean        // Active status (actual field name)
+  display_order: number     // Display order for UI
 }
 ```
 
-#### 5. **Sponsors** - Sponsor Management
+#### 5. **Sponsors** - Sponsor Management (27 rows)
 ```typescript
 interface Sponsor {
+  // Primary fields (auto-generated)
   id: string
-  company_name: string
-  logo_url: string
-  display_order: number
-  website?: string
-  active: boolean
   created_at: string
   updated_at: string
+  
+  // Sponsor Details (Actual database fields)
+  name: string               // Company name (actual field name)
+  logo: string              // Logo URL (actual field name)
+  website: string           // Website URL (can be empty)
+  
+  // Status and Display
+  is_active: boolean        // Active status (actual field name)
+  display_order: number     // Display order for UI
 }
 ```
 
-#### 6. **Seat Assignments** - Seating Relationships
+#### 6. **Seat Assignments** - Seating Relationships (34 rows)
 ```typescript
 interface SeatAssignment {
+  // Primary fields (auto-generated)
   id: string
-  attendee_id: string
-  seat_id: string
-  event_id: string
-  event_type: 'agenda' | 'dining'
-  assignment_type: 'manual' | 'automatic'
-  assigned_at: string
-  notes?: string
   created_at: string
   updated_at: string
+  
+  // Assignment Details (Actual database fields)
+  seating_configuration_id: string  // Reference to seating configuration
+  attendee_id: string              // The attendee being assigned
+  table_name: string               // Table name (e.g., "Table 1")
+  seat_number: number              // Seat number within table
+  seat_position: { x: number, y: number }  // Visual position coordinates
+  assignment_type: 'manual' | 'automatic'  // Manual or automatic assignment
+  assigned_at: string             // When assignment was made
+  notes: string                   // Assignment notes (can be empty)
+  column_number: number | null    // Column number (nullable)
+  row_number: number | null       // Row number (nullable)
+  attendee_first_name: string     // Cached attendee first name
+  attendee_last_name: string      // Cached attendee last name
+}
+```
+
+#### 7. **Seating Configurations** - Seating Layout Management (3 rows)
+```typescript
+interface SeatingConfiguration {
+  // Primary fields (auto-generated)
+  id: string
+  created_at: string
+  updated_at: string
+  
+  // Configuration Details (Actual database fields)
+  agenda_item_id: string | null      // Reference to agenda item (nullable)
+  dining_option_id: string | null    // Reference to dining option (nullable)
+  layout_template_id: string | null  // Reference to layout template (nullable)
+  has_seating: boolean               // Whether seating is configured
+  seating_type: 'open' | 'assigned'  // Seating type
+  auto_assignment_rules: any         // Auto-assignment rules object
+  is_active: boolean                 // Active status
+  layout_type: string                // Layout type (e.g., "classroom")
+  layout_config: LayoutConfig        // Layout configuration object
+  configuration_status: string       // Configuration status (e.g., "active")
+}
+
+interface LayoutConfig {
+  rows: number
+  aisles: any[]
+  columns: number
+  seatSpacing: {
+    vertical: number
+    horizontal: number
+  }
+  sectionDivider: number
+  unavailableSeats: any[]
+}
+```
+
+#### 8. **User Profiles** - User Management (1 row)
+```typescript
+interface UserProfile {
+  // Primary fields (auto-generated)
+  id: string
+  created_at: string
+  updated_at: string
+  
+  // User Details (Actual database fields)
+  user_id: string             // Reference to Supabase auth user
+  role: 'admin' | 'user' | 'guest'  // User role
+  email: string               // User email address
+  first_name: string          // First name
+  last_name: string           // Last name
+  
+  // Status
+  is_active: boolean          // Active status
 }
 ```
 

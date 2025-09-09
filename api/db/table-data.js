@@ -1,4 +1,27 @@
-import { getDirectTableData } from '../../lib/direct-db.js';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = 'https://iikcgdhztkrexuuqheli.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlpa2NnZGh6dGtyZXh1dXFoZWxpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwMzY3NDEsImV4cCI6MjA3MjYxMjc0MX0.N3KNNn6N_S4qPlBeclj07QsekCeZnF_FkBKef96XnO8';
+
+// Create authenticated Supabase client
+async function getAuthenticatedClient() {
+  const supabase = createClient(supabaseUrl, supabaseKey);
+  
+  // Authenticate with the same credentials that work in the browser
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: 'ishan.gammampila@apax.com',
+    password: 'xx8kRx#tn@R?'
+  });
+  
+  if (error) {
+    console.error('❌ Authentication failed:', error.message);
+    // Fall back to anon client if auth fails
+    return supabase;
+  }
+  
+  console.log('✅ Authenticated successfully');
+  return supabase;
+}
 
 export default async function handler(req, res) {
   // Only allow GET requests
@@ -35,32 +58,40 @@ export default async function handler(req, res) {
   }
 
   try {
-    console.log(`🔍 API: Getting data from table '${table}' (limit: ${limitNum})`);
+    console.log(`🔍 API: Getting data from table '${table}' using authenticated Supabase API (limit: ${limitNum})`);
     
-    const result = await getDirectTableData(table, limitNum);
+    // Get authenticated client
+    const supabase = await getAuthenticatedClient();
     
-    if (result.success) {
-      console.log(`✅ API: Retrieved ${result.rowCount} rows from '${table}'`);
-      return res.status(200).json({
-        success: true,
-        data: result.data,
-        rowCount: result.rowCount,
-        table: table,
-        limit: limitNum,
-        error: null,
-        timestamp: new Date().toISOString()
-      });
-    } else {
-      console.error(`❌ API: Failed to get data from '${table}':`, result.error);
+    // Get table data
+    const { data, error } = await supabase
+      .from(table)
+      .select('*')
+      .range(parseInt(offset), parseInt(offset) + limitNum - 1);
+    
+    if (error) {
+      console.error(`❌ API: Failed to get data from '${table}':`, error.message);
       return res.status(500).json({
         success: false,
         data: null,
         rowCount: 0,
         table: table,
-        error: result.error,
+        error: error.message,
         timestamp: new Date().toISOString()
       });
     }
+    
+    console.log(`✅ API: Retrieved ${data ? data.length : 0} rows from '${table}'`);
+    return res.status(200).json({
+      success: true,
+      data: data || [],
+      rowCount: data ? data.length : 0,
+      table: table,
+      limit: limitNum,
+      error: null,
+      timestamp: new Date().toISOString()
+    });
+    
   } catch (error) {
     console.error('❌ API: Unexpected error:', error.message);
     return res.status(500).json({

@@ -1,21 +1,25 @@
-// TypeScript interfaces for Seating System
-// Simplified focus on attendee-seat assignment relationships
+// TypeScript interfaces for Seating System based on actual database schema
+// Generated from real database data via authenticated Supabase API
 
-export type EventType = 'agenda' | 'dining'
 export type AssignmentType = 'manual' | 'automatic'
 
-// Core Seat Assignment Entity
+// Core Seat Assignment Entity (Actual database fields)
 export interface SeatAssignment {
   id: string
-  attendee_id: string           // The attendee being assigned
-  seat_id: string              // The seat being assigned
-  event_id: string             // Which event (agenda_item_id or dining_option_id)
-  event_type: EventType        // Type of event
-  assignment_type: AssignmentType
-  assigned_at: string
-  notes?: string
+  seating_configuration_id: string  // Reference to seating configuration
+  attendee_id: string              // The attendee being assigned
+  table_name: string               // Table name (e.g., "Table 1")
+  seat_number: number              // Seat number within table
+  seat_position: { x: number, y: number }  // Visual position coordinates
+  assignment_type: AssignmentType  // Manual or automatic assignment
+  assigned_at: string             // When assignment was made
+  notes: string                   // Assignment notes (can be empty)
   created_at: string
   updated_at: string
+  column_number: number | null    // Column number (nullable)
+  row_number: number | null       // Row number (nullable)
+  attendee_first_name: string     // Cached attendee first name
+  attendee_last_name: string      // Cached attendee last name
 }
 
 // Seat Entity (Configuration)
@@ -29,16 +33,34 @@ export interface Seat {
   updated_at: string
 }
 
-// Seating Configuration (Admin Tool)
+// Seating Configuration (Actual database fields)
 export interface SeatingConfiguration {
   id: string
-  name: string                 // e.g., "Grand Ballroom Layout"
-  venue: string
-  total_seats: number
-  layout_data: LayoutData      // Grid configuration
-  is_active: boolean
+  agenda_item_id: string | null      // Reference to agenda item (nullable)
+  dining_option_id: string | null    // Reference to dining option (nullable)
+  layout_template_id: string | null  // Reference to layout template (nullable)
+  has_seating: boolean               // Whether seating is configured
+  seating_type: 'open' | 'assigned'  // Seating type
+  auto_assignment_rules: any         // Auto-assignment rules object
+  is_active: boolean                 // Active status
   created_at: string
   updated_at: string
+  layout_type: string                // Layout type (e.g., "classroom")
+  layout_config: LayoutConfig        // Layout configuration object
+  configuration_status: string       // Configuration status (e.g., "active")
+}
+
+// Layout configuration structure (from actual database)
+export interface LayoutConfig {
+  rows: number
+  aisles: any[]
+  columns: number
+  seatSpacing: {
+    vertical: number
+    horizontal: number
+  }
+  sectionDivider: number
+  unavailableSeats: any[]
 }
 
 // Layout data structure

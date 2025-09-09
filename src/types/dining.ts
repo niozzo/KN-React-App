@@ -1,9 +1,14 @@
-// TypeScript interfaces for Dining Options based on UI analysis
-// Generated from admin interface screenshots
+// TypeScript interfaces for Dining Options based on actual database schema
+// Generated from real database data via authenticated Supabase API
 
 export type DiningSeatingType = 
-  | 'open-seating'
-  | 'assigned-seating'
+  | 'open'
+  | 'assigned'
+
+export interface TableConfig {
+  name: string
+  capacity: number
+}
 
 export interface DiningOption {
   // Primary fields (auto-generated)
@@ -11,22 +16,25 @@ export interface DiningOption {
   created_at: string
   updated_at: string
   
-  // Event Details (Required Fields)
-  event_name: string           // Required - Text input
-  date: string                 // Required - Date picker (MM/DD/YYYY format)
-  time: string                 // Required - Time picker (HH:MM AM/PM)
-  location: string             // Required - Text input
-  venue_address: string        // Required - Text input
-  display_order: number        // Required - Numeric input
+  // Event Details (Actual database fields)
+  name: string                 // Event name (actual field name)
+  date: string                 // Date in YYYY-MM-DD format
+  time: string                 // Time in HH:MM:SS format
+  location: string             // Location string
+  address: string              // Venue address
+  address_validated: boolean   // Whether address has been validated
   
-  // Optional Fields
-  maximum_capacity?: number    // Optional - Numeric input with helper text
+  // Capacity and Seating
+  capacity: number             // Maximum capacity
+  has_table_assignments: boolean // Whether table assignments are configured
+  tables: TableConfig[]        // Table configuration array
+  layout_template_id: string | null // Layout template reference
+  seating_notes: string        // Seating configuration notes
+  seating_type: DiningSeatingType // Seating type (open/assigned)
   
-  // Status
-  active: boolean              // Checkbox - available for selection
-  
-  // Seating Configuration
-  seating_type: DiningSeatingType  // Required - Radio button group
+  // Status and Display
+  is_active: boolean           // Active status
+  display_order: number        // Display order for UI
 }
 
 // Form data interface for creating/editing dining options
