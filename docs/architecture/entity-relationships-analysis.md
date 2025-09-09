@@ -36,46 +36,70 @@ erDiagram
     
     AGENDA_ITEMS {
         string id PK
-        string session_title
+        string title
+        string description
         date date
-        string session_type
+        string type
         time start_time
         time end_time
         string location
+        string speaker
+        number capacity
+        number registered_count
+        string attendee_selection
+        array selected_attendees
+        boolean is_active
+        boolean has_seating
+        string seating_notes
         string seating_type
-        number seating_capacity
     }
     
     DINING_OPTIONS {
         string id PK
-        string event_name
+        string name
         date date
         time time
         string location
-        string venue_address
+        string address
+        boolean address_validated
+        number capacity
+        boolean has_table_assignments
+        array tables
+        string layout_template_id
+        string seating_notes
         string seating_type
-        number maximum_capacity
-        boolean active
+        boolean is_active
         number display_order
     }
     
     SEAT_ASSIGNMENTS {
         string id PK
-        string attendee_id FK
         string seating_configuration_id FK
-        string agenda_item_id FK
-        string dining_option_id FK
+        string attendee_id FK
+        string table_name
+        number seat_number
         object seat_position
-        number row_number
-        number column_number
         string assignment_type
+        string assigned_at
+        string notes
+        number column_number
+        number row_number
+        string attendee_first_name
+        string attendee_last_name
     }
     
     SEATING_CONFIGURATIONS {
         string id PK
-        string name
-        object layout_data
-        number total_seats
+        string agenda_item_id FK
+        string dining_option_id FK
+        string layout_template_id FK
+        boolean has_seating
+        string seating_type
+        object auto_assignment_rules
+        boolean is_active
+        string layout_type
+        object layout_config
+        string configuration_status
     }
     
     SPONSORS {
@@ -89,12 +113,22 @@ erDiagram
     
     HOTELS {
         string id PK
-        string hotel_name
-        string phone_number
+        string name
         string address
+        string phone
         string website
-        boolean active
+        boolean is_active
         number display_order
+    }
+    
+    USER_PROFILES {
+        string id PK
+        string user_id FK
+        string role
+        string email
+        string first_name
+        string last_name
+        boolean is_active
     }
 ```
 

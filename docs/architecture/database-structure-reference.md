@@ -1,30 +1,53 @@
 # Database Structure Reference Document
 
 **Generated:** 2025-09-08T04:57:48.620Z  
-**Connection Method:** Supabase API (per ADR-001)  
+**Updated:** 2025-09-09  
+**Connection Method:** Authenticated Supabase API (per ADR-003)  
 **Database URL:** https://iikcgdhztkrexuuqheli.supabase.co
 
 ## Overview
 
-This document provides a comprehensive reference for the Knowledge Now React application database structure. The analysis was performed using the Supabase API approach as recommended in ADR-001 to work with Row Level Security (RLS) constraints.
+This document provides a comprehensive reference for the Knowledge Now React application database structure. The analysis was performed using the authenticated Supabase API approach as documented in ADR-003 to work with Row Level Security (RLS) constraints.
 
 ### Database Summary
-- **Total Tables:** 11
-- **Total Rows:** 278
-- **Connection Method:** Supabase API (RLS-compliant)
+- **Total Tables:** 21
+- **Total Rows:** 303 (updated with verified data)
+- **Connection Method:** Authenticated Supabase API (RLS-compliant)
 
 ## Table Analysis
 
 ### agenda_items
 
-**Row Count:** 0  
-**Columns:** 0
+**Row Count:** 10  
+**Columns:** 18
 
 #### Column Structure
-*No column information available (table may be empty)*
+| Column Name | Data Type | Nullable | Default | Notes |
+|-------------|-----------|----------|---------|-------|
+| `id` | `string` | No | - | Primary key |
+| `title` | `string` | No | - | Session title |
+| `description` | `string` | No | - | Session description |
+| `date` | `string` | No | - | Date in YYYY-MM-DD format |
+| `start_time` | `string` | No | - | Time in HH:MM:SS format |
+| `end_time` | `string` | No | - | Time in HH:MM:SS format |
+| `location` | `string` | No | - | Location string |
+| `type` | `string` | No | - | Session type (executive-presentation, etc.) |
+| `speaker` | `string` | Yes | null | Speaker name (nullable) |
+| `capacity` | `number` | No | - | Maximum capacity |
+| `registered_count` | `number` | No | - | Current registered count |
+| `attendee_selection` | `string` | No | - | Selection type (e.g., "everyone") |
+| `selected_attendees` | `array` | No | - | Array of selected attendee IDs |
+| `is_active` | `boolean` | No | - | Active status |
+| `has_seating` | `boolean` | No | - | Whether seating is configured |
+| `seating_notes` | `string` | No | - | Seating configuration notes |
+| `seating_type` | `string` | No | - | Seating type (open/assigned) |
+| `created_at` | `string` | No | - | Creation timestamp |
+| `updated_at` | `string` | No | - | Update timestamp |
 
 #### Analysis Notes
-- Structure analysis error: Table is empty, cannot infer structure
+- ✅ Verified structure with actual data
+- Contains 10 agenda items with complete session information
+- Supports both open and assigned seating types
 
 ---
 

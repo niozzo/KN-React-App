@@ -21,21 +21,29 @@ interface AgendaItem {
   created_at: string
   updated_at: string
   
-  // Session Details (Required Fields)
-  session_title: string        // Required - Text input
-  date: string                 // Required - Date picker (MM/DD/YYYY format)
-  session_type: SessionType    // Required - Dropdown selection
-  start_time: string           // Required - Time picker (HH:MM AM/PM)
-  end_time: string             // Required - Time picker (HH:MM AM/PM)
+  // Session Details (Actual database fields)
+  title: string                // Required - Text input (actual field name)
+  description: string          // Required - Multi-line text area (actual field name)
+  date: string                 // Required - Date picker (YYYY-MM-DD format)
+  type: SessionType            // Required - Dropdown selection (actual field name)
+  start_time: string           // Required - Time picker (HH:MM:SS format)
+  end_time: string             // Required - Time picker (HH:MM:SS format)
   location: string             // Required - Text input
+  speaker: string | null       // Optional - Speaker name (nullable)
   
-  // Optional Fields
-  capacity?: number            // Optional - Numeric input
-  description?: string         // Optional - Multi-line text area
+  // Capacity and Registration
+  capacity: number             // Required - Numeric input
+  registered_count: number     // Current registered count
   
-  // Seating Configuration
+  // Attendee Selection
+  attendee_selection: string   // Selection type (e.g., "everyone")
+  selected_attendees: any[]    // Array of selected attendee IDs
+  
+  // Status and Configuration
+  is_active: boolean           // Active status
+  has_seating: boolean         // Whether seating is configured
+  seating_notes: string        // Seating configuration notes
   seating_type: SeatingType    // Required - Dropdown selection
-  seating_capacity?: number    // Optional - Numeric input (separate from capacity)
 }
 
 // Enumerations derived from UI dropdowns

@@ -1,16 +1,16 @@
 # Final Data Model Clarification
 
 **Generated:** 2025-09-08  
-**Based on:** User Clarification on Table Usage  
+**Updated:** 2025-09-09  
+**Based on:** User Clarification and Verified Database Schema via Authenticated Supabase API  
 **Purpose:** Final simplified data model for the application
 
 ## Key Clarifications
 
 ### **Admin-Only Tables** (Not needed by application)
-- **seating_configurations** - Admin tool only
 - **layout_templates** - Admin tool only  
 - **import_history** - Admin tool only
-- **user_profiles** - Admin tool only
+- **breakout_sessions** - Admin tool only (breakout sessions are agenda items with type='breakout-session')
 
 ### **Breakout Sessions Clarification**
 - **breakout_sessions** - Not a separate entity
@@ -19,7 +19,7 @@
 
 ## Final Application Data Model
 
-### **Core Tables** (6 tables - 100% understood)
+### **Core Tables** (8 tables - 100% understood)
 
 #### 1. **attendees** (222 rows) - PRIMARY ENTITY
 ```typescript
