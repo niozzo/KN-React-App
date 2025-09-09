@@ -87,8 +87,8 @@ KN-React-App/
 │   └── supabase.js                 # Supabase integration
 ├── 📁 docs/                        # Documentation
 │   ├── 📁 architecture/            # Architecture documentation
-│   │   ├── ADR-001-supabase-rls-bypass.md
-│   │   ├── RLS-Solution-Guide.md
+│   │   ├── ADR-003-vercel-spike-solution.md
+│   │   ├── database-schema.md
 │   │   └── File-Structure-Analysis.md
 │   ├── direct-database-connection.md
 │   └── Brownfield Story Implementation Guide.md
@@ -112,8 +112,8 @@ This application implements a **Row Level Security (RLS) bypass strategy** using
 - **Direct PostgreSQL**: For system metadata (bypasses RLS for structure)
 
 ### Key Documentation
-- **[ADR-001: Supabase RLS Bypass Strategy](docs/architecture/ADR-001-supabase-rls-bypass.md)** - Architectural decision record
-- **[RLS Solution Guide](docs/architecture/RLS-Solution-Guide.md)** - Complete technical implementation guide
+- **[ADR-003: Vercel Spike Solution](docs/architecture/ADR-003-vercel-spike-solution.md)** - Working database connection solution
+- **[Database Schema](docs/architecture/database-schema.md)** - Complete database schema reference
 - **[File Structure Analysis](docs/architecture/File-Structure-Analysis.md)** - Cleanup recommendations and final structure
 - **[Deployment Guide](deployment.md)** - Deployment and configuration instructions
 

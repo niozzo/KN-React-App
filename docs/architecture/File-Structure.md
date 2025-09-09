@@ -13,8 +13,8 @@ KN-React-App/
 │   └── database.js                  # Database configuration
 ├── 📁 docs/                         # Documentation
 │   ├── 📁 architecture/             # Architecture documentation
-│   │   ├── ADR-001-supabase-rls-bypass.md  # Architectural decision record
-│   │   ├── RLS-Solution-Guide.md    # Complete RLS solution guide
+│   │   ├── ADR-003-vercel-spike-solution.md  # Working database connection solution
+│   │   ├── database-schema.md    # Complete database schema reference
 │   │   ├── File-Structure-Analysis.md # Cleanup analysis (historical)
 │   │   └── File-Structure.md        # This file - final structure
 │   ├── Brownfield Story Implementation Guide.md  # Project documentation
@@ -68,8 +68,8 @@ KN-React-App/
 ### Documentation
 | File | Purpose | Status |
 |------|---------|--------|
-| `docs/architecture/ADR-001-supabase-rls-bypass.md` | Architectural decision record | ✅ Active |
-| `docs/architecture/RLS-Solution-Guide.md` | Complete RLS solution guide | ✅ Active |
+| `docs/architecture/ADR-003-vercel-spike-solution.md` | Working database connection solution | ✅ Active |
+| `docs/architecture/database-schema.md` | Complete database schema reference | ✅ Active |
 | `docs/architecture/File-Structure-Analysis.md` | Historical cleanup analysis | ✅ Active |
 | `docs/architecture/File-Structure.md` | This file - final structure | ✅ Active |
 | `docs/direct-database-connection.md` | Technical reference | ✅ Active |

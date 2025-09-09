@@ -56,7 +56,7 @@ Negative
 - Platform policy changes: keep ADRs reviewed quarterly.
 
 ## Related Decisions
-- ADR-001: Supabase Row Level Security (RLS) Bypass Strategy
+- ADR-003: Vercel Spike Solution - Authenticated Supabase API via Serverless Functions
 
 ## References
 - Apple Web Push on iOS/iPadOS — search: "Apple Web Push iOS 16.4 developer"

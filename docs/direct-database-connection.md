@@ -110,6 +110,6 @@ The direct connection has access to 11 tables:
 - ✅ `docs/direct-database-connection.md` - This documentation
 
 ## Related Documentation
-- **[ADR-001: Supabase RLS Bypass Strategy](../architecture/ADR-001-supabase-rls-bypass.md)** - Architectural decision record
-- **[RLS Solution Guide](../architecture/RLS-Solution-Guide.md)** - Complete implementation guide
+- **[ADR-003: Vercel Spike Solution](../architecture/ADR-003-vercel-spike-solution.md)** - Working database connection solution
+- **[Database Schema](../architecture/database-schema.md)** - Complete database schema reference
 - **[Final File Structure](../architecture/File-Structure.md)** - Current project structure

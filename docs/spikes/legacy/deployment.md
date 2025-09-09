@@ -115,10 +115,10 @@ The application now successfully handles **Row Level Security (RLS)** constraint
 - ~~`node api-server.js`~~ - Consolidated into main app
 
 ## Architecture Documentation
-- **ADR-001**: [Supabase RLS Bypass Strategy](docs/architecture/ADR-001-supabase-rls-bypass.md)
-- **RLS Guide**: [RLS Solution Guide](docs/architecture/RLS-Solution-Guide.md)
-- **File Structure**: [Final File Structure](docs/architecture/File-Structure.md)
-- **Cleanup Analysis**: [File Structure Analysis](docs/architecture/File-Structure-Analysis.md) (historical)
+- **ADR-003**: [Vercel Spike Solution](../../architecture/ADR-003-vercel-spike-solution.md)
+- **Database Schema**: [Database Schema](../../architecture/database-schema.md)
+- **File Structure**: [Final File Structure](../../architecture/File-Structure.md)
+- **Cleanup Analysis**: [File Structure Analysis](../../architecture/File-Structure-Analysis.md) (historical)
 
 ## Consolidated Architecture
 
