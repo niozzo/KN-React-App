@@ -1,8 +1,9 @@
 # Database-Driven Architecture Analysis
 
 **Generated:** 2025-09-08  
+**Updated:** 2025-09-09  
 **Based on:** Database Structure Analysis (278 rows across 11 tables)  
-**Connection Method:** Supabase API (RLS-compliant per ADR-001)
+**Connection Method:** Authenticated Supabase API via Vercel Serverless Functions (per ADR-003)
 
 ## Executive Summary
 
@@ -19,15 +20,17 @@ The database follows a well-structured event management pattern with the followi
 2. **`seat_assignments`** (29 rows) - Seating management system
 3. **`sponsors`** (27 rows) - Sponsor directory and management
 
-#### Supporting Tables (Empty - Ready for Data)
-4. **`agenda_items`** - Event schedule and agenda management
-5. **`breakout_sessions`** - Breakout session details
-6. **`dining_options`** - Dining and meal preferences
-7. **`hotels`** - Hotel and accommodation management
-8. **`import_history`** - Data import tracking
-9. **`layout_templates`** - Seating layout configurations
-10. **`seating_configurations`** - Seating arrangement templates
-11. **`user_profiles`** - User account management
+#### Supporting Tables (With Data)
+4. **`agenda_items`** (10 rows) - Event schedule and agenda management
+5. **`dining_options`** (2 rows) - Dining and meal preferences  
+6. **`hotels`** (3 rows) - Hotel and accommodation management
+7. **`seating_configurations`** (3 rows) - Seating arrangement templates
+8. **`user_profiles`** (1 row) - User account management
+
+#### Empty Tables (Ready for Data)
+9. **`breakout_sessions`** - Breakout session details
+10. **`import_history`** - Data import tracking
+11. **`layout_templates`** - Seating layout configurations
 
 ## Data Structure Analysis
 
@@ -80,31 +83,33 @@ The database follows a well-structured event management pattern with the followi
 
 ### 1. Data Access Layer Architecture
 
+**✅ IMPLEMENTED**: Authenticated Supabase API via Vercel Serverless Functions
+
 ```typescript
-// Recommended data access pattern
+// Working data access pattern (per ADR-003)
 interface DataAccessLayer {
-  // Attendee management
-  attendees: {
-    getAll(): Promise<Attendee[]>
-    getById(id: string): Promise<Attendee>
-    getByRole(role: AttendeeRole): Promise<Attendee[]>
-    updatePreferences(id: string, preferences: AttendeePreferences): Promise<void>
+  // Serverless API endpoints
+  api: {
+    '/api/db/tables': () => Promise<TableInfo[]>
+    '/api/db/table-count?table=name': (table: string) => Promise<{count: number}>
+    '/api/db/table-data?table=name': (table: string) => Promise<any[]>
+    '/api/db/table-structure?table=name': (table: string) => Promise<ColumnInfo[]>
   }
   
-  // Seating management
-  seating: {
-    getAssignments(configId: string): Promise<SeatAssignment[]>
-    assignSeat(attendeeId: string, position: SeatPosition): Promise<void>
-    getConfiguration(configId: string): Promise<SeatingConfiguration>
-  }
-  
-  // Sponsor management
-  sponsors: {
-    getActive(): Promise<Sponsor[]>
-    getByDisplayOrder(): Promise<Sponsor[]>
+  // Authenticated Supabase client
+  supabase: {
+    getAuthenticatedClient(): Promise<SupabaseClient>
+    getTableCount(table: string): Promise<number>
+    getTableData(table: string): Promise<any[]>
   }
 }
 ```
+
+**Key Implementation Details:**
+- ✅ **Authentication**: Server-side Supabase client with user credentials
+- ✅ **RLS Compliance**: All queries respect Row Level Security policies  
+- ✅ **Vercel Integration**: Serverless functions handle database access
+- ✅ **Data Access**: Successfully retrieves all table data (agenda_items: 10 rows, etc.)
 
 ### 2. State Management Architecture
 
