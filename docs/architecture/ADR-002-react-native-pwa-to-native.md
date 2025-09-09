@@ -9,14 +9,14 @@ We want to ship quickly on the web while keeping a clean path to a high-fidelity
 ## Decision
 Adopt a two-phase mobile strategy:
 
-1) PWA-first using Expo + React Native Web to deliver a fast web app (with A2HS) and Web Push for installed iOS users.
-2) When needed, ship a native iOS app (via Expo/EAS) and add ActivityKit-powered Live Activities/Dynamic Island for true live countdowns and richer notifications, migrating push to APNs.
+1) PWA-first using React + Material-UI to deliver a fast web app (with A2HS) and Web Push for installed iOS users.
+2) When needed, ship a native iOS app (via React Native) and add ActivityKit-powered Live Activities/Dynamic Island for true live countdowns and richer notifications, migrating push to APNs.
 
 ## Rationale
 - Speed to market: ship a functional PWA quickly.
-- Single UI layer: React Native + react-native-web for maximum code reuse.
+- Material Design: Use Material-UI for consistent, professional design.
 - Progressive enhancement: unlock native-only capabilities (Live Activities) later without rewriting core logic.
-- Operational simplicity: one codebase with clear extension points for native modules.
+- Operational simplicity: web-first approach with clear path to native when needed.
 
 ## Scope
 - PWA: Installed iOS PWAs (iOS 16.4+) can receive Web Push; service worker must show a user-visible notification for each push. No scheduled notifications (showTrigger) on iOS web; no Live Activities/Dynamic Island from web.
@@ -25,14 +25,14 @@ Adopt a two-phase mobile strategy:
 
 ## Implementation Plan
 Phase 1 — PWA (Web + iOS A2HS)
-- Expo + React Native Web; optional Next.js + Expo if SSR/SEO needed.
+- React + Material-UI for web-first PWA development.
 - Service worker handles push and replaces notifications by `tag`.
 - Badge remaining minutes with `navigator.setAppBadge()`.
 - Server schedules coarse updates; avoid second-level precision.
 
 Phase 2 — Native iOS (when features/time justify)
-- Build iOS target with EAS from the same codebase.
-- Integrate ActivityKit via a native module/config plugin to render Live Activities.
+- Build iOS target with React Native from shared business logic.
+- Integrate ActivityKit via native modules to render Live Activities.
 - Migrate notifications to APNs; maintain Web Push for PWA users as needed.
 - Keep business logic in shared TypeScript modules to minimize divergence.
 

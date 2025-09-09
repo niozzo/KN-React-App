@@ -18,8 +18,7 @@
   - References: [Spike Deployment Guide](../spikes/vercel-database-spike/SPIKE-DEPLOYMENT.md)
 
 ### System Architecture
-- **`greenfield-architecture.md`** - Complete system architecture
-- **`database-driven-architecture.md`** - Architecture based on database analysis
+- **`greenfield-architecture.md`** - Complete system architecture (single source of truth)
 
 ## 📚 **Supporting Documents**
 
@@ -44,7 +43,6 @@
 ### To Understand System:
 1. Read **`greenfield-architecture.md`** for overall system design
 2. Reference **`database-schema.md`** for data model
-3. Check **`database-driven-architecture.md`** for database-specific architecture
 
 ## ✅ **Verification**
 

@@ -34,7 +34,7 @@ This document presents the complete greenfield architecture for the Knowledge No
 ```typescript
 // Core Framework
 React 18 + TypeScript
-Material-UI (MUI) v5 - Design System
+Material-UI (MUI) v5 - Design System (Material Design)
 React Router v6 - Navigation
 Redux Toolkit + RTK Query - State Management
 
@@ -47,6 +47,12 @@ React Virtual - Large List Performance
 Vite - Build Tool
 ESLint + Prettier - Code Quality
 Storybook - Component Development
+
+// PWA Native Features
+- iOS 16.4+ Web Push support
+- Add to Home Screen (A2HS)
+- Offline caching and service worker
+- Native-like iOS experience with Material Design
 ```
 
 ### **Backend Architecture**
@@ -896,7 +902,7 @@ export const performanceService = {
 **Status**: Database access spike successfully implemented and deployed on Vercel
 
 ### **Spike Results**
-- ✅ **Replicated Local Functionality**: Successfully replicated local "Direct PostgreSQL" button on Vercel
+- ✅ **Replicated Local Functionality**: Successfully replicated local "Supabase API" functionality on Vercel
 - ✅ **Data Access Achieved**: All tables now return correct data:
   - `agenda_items`: 10 rows ✅
   - `attendees`: 222 rows ✅  
