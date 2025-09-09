@@ -56,6 +56,7 @@
             padding: var(--space-xl);
         }
 
+        /* Header */
         .header {
             text-align: center;
             margin-bottom: var(--space-xxl);
@@ -79,88 +80,192 @@
             font-size: 16px;
             color: var(--ink-500);
             max-width: 600px;
-            margin: 0 auto;
+            margin: 0 auto var(--space-xl);
         }
 
-        .mockup-grid {
+        /* Main CTA Section */
+        .main-cta {
+            background: linear-gradient(135deg, var(--purple-700) 0%, var(--purple-500) 100%);
+            border-radius: 16px;
+            padding: var(--space-xxl);
+            text-align: center;
+            margin-bottom: var(--space-xxl);
+            box-shadow: 0 8px 32px rgba(124, 76, 196, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .main-cta::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/><circle cx="10" cy="60" r="0.5" fill="white" opacity="0.1"/><circle cx="90" cy="40" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .cta-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .cta-icon {
+            font-size: 64px;
+            margin-bottom: var(--space-lg);
+            display: block;
+        }
+
+        .cta-title {
+            font-family: var(--font-heading);
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: var(--space-md);
+        }
+
+        .cta-description {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: var(--space-xl);
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: var(--white);
+            color: var(--purple-700);
+            padding: var(--space-lg) var(--space-xxl);
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            background: var(--gray-100);
+        }
+
+        .cta-features {
+            display: flex;
+            justify-content: center;
+            gap: var(--space-xl);
+            margin-top: var(--space-xl);
+            flex-wrap: wrap;
+        }
+
+        .cta-feature {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+        }
+
+        .cta-feature-icon {
+            font-size: 16px;
+        }
+
+        /* Site Map Section */
+        .site-map {
+            background: var(--white);
+            border-radius: 16px;
+            padding: var(--space-xxl);
+            box-shadow: 0 4px 16px rgba(14, 24, 33, 0.08);
+            margin-bottom: var(--space-xxl);
+        }
+
+        .site-map-title {
+            font-family: var(--font-heading);
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--ink-900);
+            margin-bottom: var(--space-lg);
+            text-align: center;
+        }
+
+        .site-map-description {
+            font-size: 16px;
+            color: var(--ink-700);
+            text-align: center;
+            margin-bottom: var(--space-xl);
+        }
+
+        .pages-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: var(--space-lg);
-            margin-bottom: var(--space-xxl);
         }
 
-        .mockup-card {
-            background: var(--white);
+        .page-card {
+            background: var(--gray-100);
             border-radius: 12px;
             padding: var(--space-lg);
-            box-shadow: 0 2px 6px rgba(14,24,33,0.08);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+        }
+
+        .page-card:hover {
+            background: var(--purple-050);
+            border-color: var(--purple-200);
+            transform: translateY(-2px);
+        }
+
+        .page-link {
             text-decoration: none;
             color: inherit;
+            display: block;
         }
 
-        .mockup-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 6px 16px rgba(14,24,33,0.10);
+        .page-icon {
+            font-size: 24px;
+            margin-bottom: var(--space-sm);
         }
 
-        .card-icon {
-            font-size: 32px;
-            margin-bottom: var(--space-md);
-        }
-
-        .card-title {
+        .page-title {
             font-family: var(--font-heading);
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 600;
             color: var(--ink-900);
-            margin-bottom: var(--space-sm);
+            margin-bottom: var(--space-xs);
         }
 
-        .card-description {
+        .page-description {
             font-size: 14px;
             color: var(--ink-700);
-            margin-bottom: var(--space-md);
-        }
-
-        .card-features {
-            list-style: none;
-        }
-
-        .card-features li {
-            font-size: 12px;
-            color: var(--ink-500);
-            padding: 2px 0;
-        }
-
-        .card-features li::before {
-            content: "✓ ";
-            color: var(--purple-700);
-            font-weight: bold;
-        }
-
-        .story-badge {
-            display: inline-block;
-            background: var(--purple-050);
-            color: var(--purple-700);
-            font-size: 10px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            padding: 4px 8px;
-            border-radius: 4px;
             margin-bottom: var(--space-sm);
         }
 
-        .user-flow {
+        .page-url {
+            font-size: 12px;
+            color: var(--purple-700);
+            font-family: monospace;
             background: var(--white);
-            border-radius: 12px;
-            padding: var(--space-lg);
-            box-shadow: 0 2px 6px rgba(14,24,33,0.08);
-            margin-bottom: var(--space-xxl);
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: inline-block;
         }
 
-        .flow-title {
+        .page-url:hover {
+            background: var(--purple-100);
+        }
+
+        /* Quick Links */
+        .quick-links {
+            background: var(--white);
+            border-radius: 16px;
+            padding: var(--space-xxl);
+            box-shadow: 0 4px 16px rgba(14, 24, 33, 0.08);
+        }
+
+        .quick-links-title {
             font-family: var(--font-heading);
             font-size: 24px;
             font-weight: 600;
@@ -169,106 +274,36 @@
             text-align: center;
         }
 
-        .flow-steps {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
+        .links-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: var(--space-md);
         }
 
-        .flow-step {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            min-width: 120px;
-        }
-
-        .step-number {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: var(--ink-700);
-            color: var(--white);
+        .quick-link {
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            margin-bottom: var(--space-sm);
-        }
-
-        .step-title {
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--ink-900);
-            margin-bottom: 4px;
-        }
-
-        .step-description {
-            font-size: 12px;
-            color: var(--ink-500);
-        }
-
-        .flow-arrow {
-            color: var(--ink-500);
-            font-size: 20px;
-            align-self: center;
-            margin: 0 var(--space-sm);
-        }
-
-        .tech-specs {
-            background: var(--white);
-            border-radius: 12px;
-            padding: var(--space-lg);
-            box-shadow: 0 2px 6px rgba(14,24,33,0.08);
-        }
-
-        .specs-title {
-            font-family: var(--font-heading);
-            font-size: 24px;
-            font-weight: 600;
-            color: var(--ink-900);
-            margin-bottom: var(--space-lg);
-            text-align: center;
-        }
-
-        .specs-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: var(--space-lg);
-        }
-
-        .spec-category {
-            text-align: center;
-        }
-
-        .spec-icon {
-            font-size: 24px;
-            margin-bottom: var(--space-sm);
-        }
-
-        .spec-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--ink-900);
-            margin-bottom: var(--space-sm);
-        }
-
-        .spec-list {
-            list-style: none;
-        }
-
-        .spec-list li {
-            font-size: 14px;
+            gap: var(--space-sm);
+            padding: var(--space-md);
+            background: var(--gray-100);
+            border-radius: 8px;
+            text-decoration: none;
             color: var(--ink-700);
-            padding: 2px 0;
+            transition: all 0.2s ease;
+            font-weight: 500;
         }
 
-        .spec-list li::before {
-            content: "• ";
-            color: var(--ink-500);
+        .quick-link:hover {
+            background: var(--purple-050);
+            color: var(--purple-700);
+            transform: translateX(4px);
         }
 
+        .quick-link-icon {
+            font-size: 18px;
+        }
+
+        /* Responsive Design */
         @media (max-width: 768px) {
             .container {
                 padding: var(--space-lg);
@@ -282,18 +317,44 @@
                 font-size: 18px;
             }
             
-            .mockup-grid {
+            .main-cta {
+                padding: var(--space-xl);
+            }
+            
+            .cta-title {
+                font-size: 28px;
+            }
+            
+            .cta-description {
+                font-size: 16px;
+            }
+            
+            .cta-features {
+                flex-direction: column;
+                gap: var(--space-md);
+            }
+            
+            .pages-grid {
                 grid-template-columns: 1fr;
             }
             
-            .flow-steps {
-                flex-direction: column;
-                align-items: center;
+            .links-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .main-cta {
+                padding: var(--space-lg);
             }
             
-            .flow-arrow {
-                transform: rotate(90deg);
-                margin: var(--space-sm) 0;
+            .cta-title {
+                font-size: 24px;
+            }
+            
+            .cta-button {
+                padding: var(--space-md) var(--space-lg);
+                font-size: 16px;
             }
         }
     </style>
@@ -303,198 +364,149 @@
         <!-- Header -->
         <header class="header">
             <h1 class="logo">Conference Companion</h1>
-            <p class="subtitle">Interactive Mockups for All User Stories</p>
+            <p class="subtitle">Interactive Mockups & Prototypes</p>
             <p class="description">
-                Comprehensive mockups showcasing the complete user experience for the Conference Companion PWA. 
-                Built with realistic data and connected navigation to demonstrate the full application flow.
+                Experience the complete Conference Companion PWA through interactive mockups. 
+                Start with the Home screen to see the full user experience in action.
             </p>
         </header>
 
-        <!-- Mockup Grid -->
-        <div class="mockup-grid">
-            <a href="home.html" class="mockup-card">
-                <div class="card-icon">🏠</div>
-                <div class="story-badge">Story 2.1</div>
-                <h2 class="card-title">Home Screen</h2>
-                <p class="card-description">Now/Next glance cards with countdown timers and seat assignments</p>
-                <ul class="card-features">
-                    <li>Current session display</li>
-                    <li>Next session countdown</li>
-                    <li>Seat assignment info</li>
-                    <li>Quick action cards</li>
-                    <li>Bottom navigation</li>
-                </ul>
-            </a>
-
-            <a href="schedule.html" class="mockup-card">
-                <div class="card-icon">📅</div>
-                <div class="story-badge">Story 2.2</div>
-                <h2 class="card-title">Schedule View</h2>
-                <p class="card-description">Personalized agenda with sticky day headers and seat assignments</p>
-                <ul class="card-features">
-                    <li>Combined general + personal agenda</li>
-                    <li>Sticky day headers</li>
-                    <li>Day/track filtering</li>
-                    <li>Seat assignment indicators</li>
-                    <li>Session status indicators</li>
-                </ul>
-            </a>
-
-            <a href="meet.html" class="mockup-card">
-                <div class="card-icon">👥</div>
-                <div class="story-badge">Story 3.1</div>
-                <h2 class="card-title">Meet List</h2>
-                <p class="card-description">Attendee search and discovery with overlap hints</p>
-                <ul class="card-features">
-                    <li>Tabbed interface (All/My List)</li>
-                    <li>Multi-criteria search</li>
-                    <li>Overlap opportunity hints</li>
-                    <li>Add to meet list functionality</li>
-                    <li>Email integration</li>
-                </ul>
-            </a>
-
-            <a href="sponsors.html" class="mockup-card">
-                <div class="card-icon">🏢</div>
-                <div class="story-badge">Story 5.1</div>
-                <h2 class="card-title">Sponsor Directory</h2>
-                <p class="card-description">Sponsor discovery with attendee integration</p>
-                <ul class="card-features">
-                    <li>Alphabetical sponsor listing</li>
-                    <li>Featured sponsor highlighting</li>
-                    <li>Sponsor statistics</li>
-                    <li>Website links</li>
-                    <li>Attendee discovery</li>
-                </ul>
-            </a>
-
-            <a href="settings.html" class="mockup-card">
-                <div class="card-icon">⚙️</div>
-                <div class="story-badge">Privacy & Controls</div>
-                <h2 class="card-title">Settings</h2>
-                <p class="card-description">Privacy controls and account management</p>
-                <ul class="card-features">
-                    <li>Discoverability toggles</li>
-                    <li>Notification preferences</li>
-                    <li>Privacy policy links</li>
-                    <li>Account actions</li>
-                    <li>Data export options</li>
-                </ul>
-            </a>
-
-            <a href="session-detail.html" class="mockup-card">
-                <div class="card-icon">📋</div>
-                <div class="story-badge">Session Details</div>
-                <h2 class="card-title">Session Detail</h2>
-                <p class="card-description">Comprehensive session information with seat maps</p>
-                <ul class="card-features">
-                    <li>Detailed session info</li>
-                    <li>Seat assignment display</li>
-                    <li>Presenter information</li>
-                    <li>Related sessions</li>
-                    <li>Seat map integration</li>
-                </ul>
-            </a>
-
-            <a href="attendee-profile.html" class="mockup-card">
-                <div class="card-icon">👤</div>
-                <div class="story-badge">Attendee Profile</div>
-                <h2 class="card-title">Attendee Profile</h2>
-                <p class="card-description">Detailed attendee information with networking context</p>
-                <ul class="card-features">
-                    <li>Contact information</li>
-                    <li>Bio and background</li>
-                    <li>Overlap opportunities</li>
-                    <li>Shared sessions</li>
-                    <li>Add to meet list</li>
-                </ul>
-            </a>
-        </div>
-
-        <!-- User Flow -->
-        <section class="user-flow">
-            <h2 class="flow-title">Key User Flows</h2>
-            <div class="flow-steps">
-                <div class="flow-step">
-                    <div class="step-number">1</div>
-                    <div class="step-title">Home</div>
-                    <div class="step-description">Check Now/Next</div>
-                </div>
-                <div class="flow-arrow">→</div>
-                <div class="flow-step">
-                    <div class="step-number">2</div>
-                    <div class="step-title">Schedule</div>
-                    <div class="step-description">View full agenda</div>
-                </div>
-                <div class="flow-arrow">→</div>
-                <div class="flow-step">
-                    <div class="step-number">3</div>
-                    <div class="step-title">Session Detail</div>
-                    <div class="step-description">Find seat & details</div>
-                </div>
-                <div class="flow-arrow">→</div>
-                <div class="flow-step">
-                    <div class="step-number">4</div>
-                    <div class="step-title">Meet List</div>
-                    <div class="step-description">Find people to meet</div>
-                </div>
-                <div class="flow-arrow">→</div>
-                <div class="flow-step">
-                    <div class="step-number">5</div>
-                    <div class="step-title">Profile</div>
-                    <div class="step-description">View attendee info</div>
+        <!-- Main CTA Section -->
+        <section class="main-cta">
+            <div class="cta-content">
+                <span class="cta-icon">🏠</span>
+                <h2 class="cta-title">Start Here: Home Screen</h2>
+                <p class="cta-description">
+                    Experience the main dashboard with Now/Next cards, countdown timers, 
+                    seat assignments, and quick actions. This is where attendees begin their journey.
+                </p>
+                <a href="home.html" class="cta-button">Launch Home Screen →</a>
+                <p style="margin-top: var(--space-md); font-size: 14px; color: rgba(255, 255, 255, 0.8); font-style: italic;">
+                    💡 For best results, use a mobile device or resize your browser window
+                </p>
+                
+                <div class="cta-features">
+                    <div class="cta-feature">
+                        <span class="cta-feature-icon">⚡</span>
+                        <span>Real-time countdowns</span>
+                    </div>
+                    <div class="cta-feature">
+                        <span class="cta-feature-icon">📍</span>
+                        <span>Seat assignments</span>
+                    </div>
+                    <div class="cta-feature">
+                        <span class="cta-feature-icon">📱</span>
+                        <span>Mobile responsive</span>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <!-- Technical Specifications -->
-        <section class="tech-specs">
-            <h2 class="specs-title">Technical Implementation</h2>
-            <div class="specs-grid">
-                <div class="spec-category">
-                    <div class="spec-icon">🎨</div>
-                    <h3 class="spec-title">Design System</h3>
-                    <ul class="spec-list">
-                        <li>KnowledgeNow brand colors</li>
-                        <li>Material Design framework</li>
-                        <li>Responsive breakpoints</li>
-                        <li>Accessibility compliance</li>
-                        <li>Design tokens</li>
-                    </ul>
+        <!-- Site Map Section -->
+        <section class="site-map">
+            <h2 class="site-map-title">Complete Site Map</h2>
+            <p class="site-map-description">
+                Navigate to any mockup page directly. All pages are fully interactive with connected navigation.
+            </p>
+            
+            <div class="pages-grid">
+                <div class="page-card">
+                    <a href="home.html" class="page-link">
+                        <div class="page-icon">🏠</div>
+                        <h3 class="page-title">Home Screen</h3>
+                        <p class="page-description">Main dashboard with Now/Next cards and quick actions</p>
+                        <span class="page-url">home.html</span>
+                    </a>
                 </div>
-                <div class="spec-category">
-                    <div class="spec-icon">📱</div>
-                    <h3 class="spec-title">Mobile-First</h3>
-                    <ul class="spec-list">
-                        <li>PWA optimization</li>
-                        <li>Touch-friendly interactions</li>
-                        <li>Bottom tab navigation</li>
-                        <li>Offline capabilities</li>
-                        <li>Performance optimized</li>
-                    </ul>
+
+                <div class="page-card">
+                    <a href="schedule.html" class="page-link">
+                        <div class="page-icon">📅</div>
+                        <h3 class="page-title">Schedule View</h3>
+                        <p class="page-description">Personalized agenda with filtering and seat assignments</p>
+                        <span class="page-url">schedule.html</span>
+                    </a>
                 </div>
-                <div class="spec-category">
-                    <div class="spec-icon">🔒</div>
-                    <h3 class="spec-title">Privacy & Security</h3>
-                    <ul class="spec-list">
-                        <li>GDPR compliance</li>
-                        <li>Discoverability controls</li>
-                        <li>Data export options</li>
-                        <li>Privacy policy integration</li>
-                        <li>Secure authentication</li>
-                    </ul>
+
+                <div class="page-card">
+                    <a href="meet.html" class="page-link">
+                        <div class="page-icon">👥</div>
+                        <h3 class="page-title">Meet List</h3>
+                        <p class="page-description">Attendee search and discovery with networking hints</p>
+                        <span class="page-url">meet.html</span>
+                    </a>
                 </div>
-                <div class="spec-category">
-                    <div class="spec-icon">⚡</div>
-                    <h3 class="spec-title">Performance</h3>
-                    <ul class="spec-list">
-                        <li>Fast loading times</li>
-                        <li>Efficient caching</li>
-                        <li>Real-time updates</li>
-                        <li>Battery optimization</li>
-                        <li>Network awareness</li>
-                    </ul>
+
+                <div class="page-card">
+                    <a href="sponsors.html" class="page-link">
+                        <div class="page-icon">🏢</div>
+                        <h3 class="page-title">Sponsor Directory</h3>
+                        <p class="page-description">Browse sponsors and discover attendees from each company</p>
+                        <span class="page-url">sponsors.html</span>
+                    </a>
                 </div>
+
+                <div class="page-card">
+                    <a href="settings.html" class="page-link">
+                        <div class="page-icon">⚙️</div>
+                        <h3 class="page-title">Settings</h3>
+                        <p class="page-description">Privacy controls, notifications, and account management</p>
+                        <span class="page-url">settings.html</span>
+                    </a>
+                </div>
+
+                <div class="page-card">
+                    <a href="session-detail.html" class="page-link">
+                        <div class="page-icon">📋</div>
+                        <h3 class="page-title">Session Detail</h3>
+                        <p class="page-description">Comprehensive session information with seat maps</p>
+                        <span class="page-url">session-detail.html</span>
+                    </a>
+                </div>
+
+                <div class="page-card">
+                    <a href="attendee-profile.html" class="page-link">
+                        <div class="page-icon">👤</div>
+                        <h3 class="page-title">Attendee Profile</h3>
+                        <p class="page-description">Detailed attendee information and networking context</p>
+                        <span class="page-url">attendee-profile.html</span>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Links -->
+        <section class="quick-links">
+            <h2 class="quick-links-title">Quick Navigation</h2>
+            <div class="links-grid">
+                <a href="home.html" class="quick-link">
+                    <span class="quick-link-icon">🏠</span>
+                    <span>Home</span>
+                </a>
+                <a href="schedule.html" class="quick-link">
+                    <span class="quick-link-icon">📅</span>
+                    <span>Schedule</span>
+                </a>
+                <a href="meet.html" class="quick-link">
+                    <span class="quick-link-icon">👥</span>
+                    <span>Meet List</span>
+                </a>
+                <a href="sponsors.html" class="quick-link">
+                    <span class="quick-link-icon">🏢</span>
+                    <span>Sponsors</span>
+                </a>
+                <a href="settings.html" class="quick-link">
+                    <span class="quick-link-icon">⚙️</span>
+                    <span>Settings</span>
+                </a>
+                <a href="session-detail.html" class="quick-link">
+                    <span class="quick-link-icon">📋</span>
+                    <span>Session Detail</span>
+                </a>
+                <a href="attendee-profile.html" class="quick-link">
+                    <span class="quick-link-icon">👤</span>
+                    <span>Attendee Profile</span>
+                </a>
             </div>
         </section>
     </div>

@@ -1,16 +1,26 @@
 {
   "version": 2,
+  "builds": [
+    {
+      "src": "mockups/**/*",
+      "use": "@vercel/static"
+    }
+  ],
   "routes": [
     {
       "src": "/",
       "dest": "/mockups/index.html"
     },
     {
+      "src": "/mockups/(.*)",
+      "dest": "/mockups/$1"
+    },
+    {
       "src": "/(.*\\.html)",
       "dest": "/mockups/$1"
     },
     {
-      "src": "/mockups/(.*)",
+      "src": "/(.*)",
       "dest": "/mockups/$1"
     }
   ]

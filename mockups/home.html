@@ -99,6 +99,7 @@
         .main-content {
             flex: 1;
             padding: var(--space-lg);
+            padding-bottom: calc(var(--space-lg) + 80px); /* Account for fixed bottom nav */
             max-width: 1200px;
             margin: 0 auto;
             width: 100%;
@@ -300,9 +301,12 @@
             background: var(--white);
             border-top: 1px solid var(--gray-200);
             padding: var(--space-sm) 0;
-            position: sticky;
+            position: fixed;
             bottom: 0;
+            left: 0;
+            right: 0;
             z-index: 100;
+            width: 100%;
         }
 
         .nav-container {
@@ -311,6 +315,7 @@
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 var(--space-lg);
+            min-width: 320px;
         }
 
         .nav-item {
@@ -323,6 +328,7 @@
             color: var(--ink-500);
             transition: color 0.2s ease;
             min-width: 60px;
+            flex: 1;
         }
 
         .nav-item.active {
@@ -373,10 +379,36 @@
             
             .main-content {
                 padding: var(--space-sm);
+                padding-bottom: calc(var(--space-sm) + 80px); /* Account for fixed bottom nav */
             }
             
             .quick-actions {
                 grid-template-columns: 1fr;
+            }
+            
+            .nav-container {
+                padding: 0 var(--space-sm);
+            }
+        }
+
+        /* Very narrow screens - ensure navigation is always visible */
+        @media (max-width: 360px) {
+            .nav-container {
+                padding: 0 var(--space-xs);
+                min-width: 280px;
+            }
+            
+            .nav-item {
+                min-width: 50px;
+                padding: var(--space-xs);
+            }
+            
+            .nav-label {
+                font-size: 10px;
+            }
+            
+            .nav-icon {
+                font-size: 16px;
             }
         }
     </style>

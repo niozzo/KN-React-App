@@ -31,6 +31,9 @@ This document breaks down the Conference Companion PWA project into manageable e
 ### Epic 6: Polish, Privacy & Performance Optimization
 *Finalize privacy controls, performance optimization, and A2HS onboarding*
 
+### Epic 7: Conference Information & Support
+*Provide essential conference information, feedback systems, and post-conference content access*
+
 ---
 
 ## Epic 1: Foundation & Core Infrastructure
@@ -320,6 +323,58 @@ This document breaks down the Conference Companion PWA project into manageable e
 
 ---
 
+## Epic 7: Conference Information & Support
+
+**Goal:** Provide essential conference information, feedback systems, and post-conference content access to enhance the overall conference experience.
+
+**Business Value:** Ensures attendees have access to critical information during the event, enables continuous improvement through feedback, and extends conference value beyond the live event.
+
+**Stories:**
+
+### Story 7.1: Basic Conference Information Hub
+**As a** conference attendee,  
+**I want** to access essential conference information like WiFi credentials, venue details, and emergency contacts,  
+**so that** I can stay connected and informed throughout the event.
+
+**Acceptance Criteria:**
+1. WiFi information displayed with connection instructions
+2. Venue floor plans and room locations accessible
+3. Emergency contact information prominently displayed
+4. Information accessible from main navigation menu
+5. Basic information works offline
+6. Push notification system for updates
+
+### Story 7.2: Session Feedback System
+**As a** conference attendee,  
+**I want** to provide feedback on each session I attend,  
+**so that** organizers can improve future events and I can help other attendees make informed choices.
+
+**Acceptance Criteria:**
+1. 1-5 star rating system for each session
+2. Optional text field for detailed comments
+3. Clear session identification
+4. Anonymous feedback option
+5. Feedback history accessible to users
+6. Real-time submission with confirmation
+7. Session context available during feedback
+
+### Story 7.3: Post-Conference Content Hub
+**As a** conference attendee,  
+**I want** to access a centralized content hub after the conference,  
+**so that** I can review session recordings, download presentations, access networking contacts, and continue learning from the conference content.
+
+**Acceptance Criteria:**
+1. Session recordings and slides accessible
+2. Attendee directory with privacy controls
+3. Resource library with sponsor materials
+4. Search and filter functionality
+5. Mobile responsive design
+6. Offline download capability
+7. Personal bookmarks system
+8. Feedback system for future conferences
+
+---
+
 ## Epic Dependencies & Sequencing
 
 ### Critical Dependencies
@@ -329,11 +384,13 @@ This document breaks down the Conference Companion PWA project into manageable e
 - **Epic 4** can start after Epic 1 (admin tools independent)
 - **Epic 5** depends on Epic 3 (sponsor integration with networking)
 - **Epic 6** depends on all previous epics (final polish)
+- **Epic 7** can start after Epic 1 (basic info independent), but feedback system depends on Epic 2 (session data)
 
 ### Parallel Development Opportunities
 - **Epic 4** (Admin Tools) can develop in parallel with Epic 2-3
 - **Epic 5** (Sponsor Integration) can start after Epic 3 begins
 - **Epic 6** (Polish) can begin final stories while Epic 5 completes
+- **Epic 7** (Conference Info) can start after Epic 1, with basic info independent of other epics
 
 ### Timeline Considerations
 - **Epic 1-2**: Critical path for core functionality (Weeks 1-2)
@@ -359,6 +416,7 @@ This document breaks down the Conference Companion PWA project into manageable e
 - **Epic 4**: Admin broadcasts working, real-time updates functional
 - **Epic 5**: Sponsor visibility, analytics tracking, performance targets met
 - **Epic 6**: Production ready, privacy compliant, A2HS optimized
+- **Epic 7**: Conference info accessible, feedback system functional, post-conference content available
 
 ### Overall Project KPIs (from PRD)
 - **Adoption**: ≥50% of non-Apax attendees use app >1×/day on both event days
