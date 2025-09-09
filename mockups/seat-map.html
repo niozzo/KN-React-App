@@ -132,29 +132,6 @@
             cursor: grabbing;
         }
 
-        .table-highlight {
-            position: absolute;
-            background: var(--purple-700);
-            border: 3px solid var(--white);
-            border-radius: 8px;
-            width: 60px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--white);
-            font-weight: 600;
-            font-size: 14px;
-            box-shadow: 0 4px 12px rgba(124, 76, 196, 0.3);
-            animation: pulse 2s infinite;
-            z-index: 10;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
 
         .bottom-info {
             position: fixed;
@@ -227,10 +204,7 @@
     </header>
 
     <div class="map-container" id="mapContainer">
-        <img src="assets/maps/restaurant-floor-plan.jpg" alt="Restaurant Floor Plan" class="map-image" id="mapImage">
-        <div class="table-highlight" id="tableHighlight" style="top: 25%; left: 15%;">
-            12
-        </div>
+        <img src="assets/maps/locationName_14.jpg" alt="Venue Floor Plan" class="map-image" id="mapImage">
     </div>
 
     <div class="bottom-info">
@@ -249,7 +223,6 @@
         let maxScale = 3;
 
         const mapContainer = document.getElementById('mapContainer');
-        const tableHighlight = document.getElementById('tableHighlight');
 
         mapContainer.addEventListener('touchstart', handleTouchStart, { passive: false });
         mapContainer.addEventListener('touchmove', handleTouchMove, { passive: false });
@@ -334,7 +307,6 @@
             if (mapImage) {
                 mapImage.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
             }
-            tableHighlight.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
         }
 
         updateTransform();
