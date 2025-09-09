@@ -78,12 +78,12 @@
             flex: 1;
         }
 
-        .location-name {
+        .location-info {
             font-family: var(--font-heading);
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 600;
             color: var(--ink-900);
-            margin-bottom: 2px;
+            margin-bottom: 4px;
         }
 
         .table-assignment {
@@ -93,8 +93,9 @@
 
         .user-info {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: var(--space-sm);
+            gap: 4px;
         }
 
         .user-avatar {
@@ -108,6 +109,12 @@
             justify-content: center;
             font-size: 14px;
             font-weight: 600;
+        }
+
+        .user-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--ink-900);
         }
 
         .map-container {
@@ -188,6 +195,36 @@
             border-color: var(--purple-500);
             color: var(--purple-700);
         }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header {
+                padding: var(--space-sm) var(--space-md);
+            }
+            
+            .location-info {
+                font-size: 14px;
+            }
+            
+            .user-name {
+                font-size: 14px;
+            }
+            
+            .map-container {
+                top: 70px;
+            }
+            
+            .map-controls {
+                bottom: var(--space-md);
+                right: var(--space-md);
+            }
+            
+            .control-button {
+                width: 44px;
+                height: 44px;
+                font-size: 18px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -198,8 +235,7 @@
         </a>
         
         <div class="header-center">
-            <div class="location-name">Grand Ballroom A</div>
-            <div class="table-assignment">Your Table: 12, Seat 3</div>
+            <div class="location-info">Grand Ballroom A • Your Table: 12, Seat 3</div>
         </div>
         
         <div class="user-info">
