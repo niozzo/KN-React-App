@@ -355,7 +355,12 @@
                 const containerWidth = mapContainer.clientWidth;
                 const containerHeight = mapContainer.clientHeight;
                 
-                // Get image dimensions
+                // Get image dimensions - wait for image to load
+                if (mapImage.naturalWidth === 0 || mapImage.naturalHeight === 0) {
+                    console.log('Image not loaded yet, skipping transform update');
+                    return;
+                }
+                
                 const imageWidth = mapImage.naturalWidth * scale;
                 const imageHeight = mapImage.naturalHeight * scale;
                 
@@ -471,6 +476,19 @@
                 requestAnimationFrame(animateScroll);
             }
         }
+
+        // Center the image when it loads
+        document.addEventListener('DOMContentLoaded', function() {
+            const mapImage = document.getElementById('mapImage');
+            if (mapImage) {
+                mapImage.addEventListener('load', function() {
+                    console.log('Image loaded, centering...');
+                    translateX = 0;
+                    translateY = 0;
+                    updateTransform();
+                });
+            }
+        });
 
         updateTransform();
     </script>
