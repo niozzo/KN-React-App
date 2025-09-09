@@ -353,10 +353,14 @@
                 
                 // Calculate boundaries (keep at least 50px visible)
                 const minVisible = 50;
-                const maxTranslateX = Math.max(0, imageWidth - containerWidth + minVisible);
-                const minTranslateX = Math.min(0, -imageWidth + minVisible);
-                const maxTranslateY = Math.max(0, imageHeight - containerHeight + minVisible);
-                const minTranslateY = Math.min(0, -imageHeight + minVisible);
+                
+                // X boundaries: maxTranslateX = 0 (rightmost), minTranslateX = leftmost with 50px visible
+                const maxTranslateX = 0;
+                const minTranslateX = -(imageWidth - containerWidth + minVisible);
+                
+                // Y boundaries: maxTranslateY = 0 (bottommost), minTranslateY = topmost with 50px visible  
+                const maxTranslateY = 0;
+                const minTranslateY = -(imageHeight - containerHeight + minVisible);
                 
                 // Constrain translation
                 translateX = Math.max(minTranslateX, Math.min(maxTranslateX, translateX));
@@ -378,10 +382,11 @@
             const imageHeight = mapImage.naturalHeight * scale;
             
             // Check if image is completely outside viewport (no 50px visible)
-            const isOutsideLeft = translateX > 0;
-            const isOutsideRight = translateX < -(imageWidth - containerWidth);
-            const isOutsideTop = translateY > 0;
-            const isOutsideBottom = translateY < -(imageHeight - containerHeight);
+            const minVisible = 50;
+            const isOutsideRight = translateX > 0;
+            const isOutsideLeft = translateX < -(imageWidth - containerWidth + minVisible);
+            const isOutsideBottom = translateY > 0;
+            const isOutsideTop = translateY < -(imageHeight - containerHeight + minVisible);
             
             return isOutsideLeft || isOutsideRight || isOutsideTop || isOutsideBottom;
         }
@@ -405,16 +410,16 @@
                 
                 // Adjust X position if needed
                 if (translateX > 0) {
-                    targetX = 0; // Show left edge
-                } else if (translateX < -(imageWidth - containerWidth)) {
-                    targetX = -(imageWidth - containerWidth); // Show right edge
+                    targetX = 0; // Show right edge
+                } else if (translateX < -(imageWidth - containerWidth + minVisible)) {
+                    targetX = -(imageWidth - containerWidth + minVisible); // Show left edge with 50px visible
                 }
                 
                 // Adjust Y position if needed
                 if (translateY > 0) {
-                    targetY = 0; // Show top edge
-                } else if (translateY < -(imageHeight - containerHeight)) {
-                    targetY = -(imageHeight - containerHeight); // Show bottom edge
+                    targetY = 0; // Show bottom edge
+                } else if (translateY < -(imageHeight - containerHeight + minVisible)) {
+                    targetY = -(imageHeight - containerHeight + minVisible); // Show top edge with 50px visible
                 }
                 
                 // Smooth scroll back to target position
