@@ -137,6 +137,22 @@
             box-shadow: 0 4px 12px rgba(14,24,33,0.12);
         }
 
+        /* Mask for smooth scrolling above day headers */
+        .day-header::before {
+            content: '';
+            position: absolute;
+            top: -80px;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: var(--purple-700);
+            z-index: -1;
+        }
+
+        .day-header.sticky::before {
+            background: var(--purple-700);
+        }
+
         .day-title {
             font-family: var(--font-heading);
             font-size: 20px;
