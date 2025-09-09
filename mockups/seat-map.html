@@ -305,6 +305,8 @@
 
         function handleTouchEnd(e) {
             isDragging = false;
+            // Auto-scroll back if image is outside viewport
+            setTimeout(autoScrollBack, 100); // Small delay to ensure touch end is complete
         }
 
         function handleMouseDown(e) {
@@ -325,6 +327,8 @@
         function handleMouseUp(e) {
             isDragging = false;
             mapContainer.style.cursor = 'grab';
+            // Auto-scroll back if image is outside viewport
+            setTimeout(autoScrollBack, 100); // Small delay to ensure mouse up is complete
         }
 
         function handleWheel(e) {
@@ -359,6 +363,84 @@
                 translateY = Math.max(minTranslateY, Math.min(maxTranslateY, translateY));
                 
                 mapImage.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+            }
+        }
+
+        function isImageOutsideViewport() {
+            const mapImage = document.getElementById('mapImage');
+            const mapContainer = document.getElementById('mapContainer');
+            
+            if (!mapImage || !mapContainer) return false;
+            
+            const containerWidth = mapContainer.clientWidth;
+            const containerHeight = mapContainer.clientHeight;
+            const imageWidth = mapImage.naturalWidth * scale;
+            const imageHeight = mapImage.naturalHeight * scale;
+            
+            // Check if image is completely outside viewport (no 50px visible)
+            const isOutsideLeft = translateX > 0;
+            const isOutsideRight = translateX < -(imageWidth - containerWidth);
+            const isOutsideTop = translateY > 0;
+            const isOutsideBottom = translateY < -(imageHeight - containerHeight);
+            
+            return isOutsideLeft || isOutsideRight || isOutsideTop || isOutsideBottom;
+        }
+
+        function autoScrollBack() {
+            if (isImageOutsideViewport()) {
+                const mapImage = document.getElementById('mapImage');
+                const mapContainer = document.getElementById('mapContainer');
+                
+                if (!mapImage || !mapContainer) return;
+                
+                const containerWidth = mapContainer.clientWidth;
+                const containerHeight = mapContainer.clientHeight;
+                const imageWidth = mapImage.naturalWidth * scale;
+                const imageHeight = mapImage.naturalHeight * scale;
+                
+                // Calculate target position to show at least 50px
+                const minVisible = 50;
+                let targetX = translateX;
+                let targetY = translateY;
+                
+                // Adjust X position if needed
+                if (translateX > 0) {
+                    targetX = 0; // Show left edge
+                } else if (translateX < -(imageWidth - containerWidth)) {
+                    targetX = -(imageWidth - containerWidth); // Show right edge
+                }
+                
+                // Adjust Y position if needed
+                if (translateY > 0) {
+                    targetY = 0; // Show top edge
+                } else if (translateY < -(imageHeight - containerHeight)) {
+                    targetY = -(imageHeight - containerHeight); // Show bottom edge
+                }
+                
+                // Smooth scroll back to target position
+                const startX = translateX;
+                const startY = translateY;
+                const duration = 300; // 300ms animation
+                const startTime = performance.now();
+                
+                function animateScroll(currentTime) {
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    
+                    // Easing function (ease-out)
+                    const easeOut = 1 - Math.pow(1 - progress, 3);
+                    
+                    translateX = startX + (targetX - startX) * easeOut;
+                    translateY = startY + (targetY - startY) * easeOut;
+                    
+                    mapImage.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+                    
+                    if (progress < 1) {
+                        requestAnimationFrame(animateScroll);
+                    }
+                }
+                
+                requestAnimationFrame(animateScroll);
             }
         }
 
