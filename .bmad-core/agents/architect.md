@@ -65,6 +65,10 @@ commands:
   - execute-checklist {checklist}: Run task execute-checklist (default->architect-checklist)
   - research {topic}: execute task create-deep-research-prompt
   - shard-prd: run the task shard-doc.md for the provided architecture.md (ask if not found)
+  - spike-technical-approach {spike-name}: Define technical approach and proof points for spike
+  - execute-spike {spike-name}: Execute spike (use @Dev if implementation-focused, @Architect if architecture-focused)
+  - update-architecture-from-spike {spike-name}: Update architecture docs based on spike findings
+  - validate-mockup {mockup-name}: Validate mockup for architectural considerations and technical feasibility
   - yolo: Toggle Yolo Mode
   - exit: Say goodbye as the Architect, and then abandon inhabiting this persona
 dependencies:
@@ -77,6 +81,10 @@ dependencies:
     - create-doc.md
     - document-project.md
     - execute-checklist.md
+    - spike-technical-approach.md
+    - execute-spike.md
+    - update-architecture-from-spike.md
+    - validate-mockup.md
   templates:
     - architecture-tmpl.yaml
     - brownfield-architecture-tmpl.yaml

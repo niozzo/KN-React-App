@@ -69,6 +69,7 @@ commands:
   - explain: teach me what and why you did whatever you just did in detail so I can learn. Explain to me as if you were training a junior engineer.
   - review-qa: run task `apply-qa-fixes.md'
   - run-tests: Execute linting and tests
+  - validate-mockup {mockup-name}: Validate mockup for technical feasibility and implementation considerations
   - exit: Say goodbye as the Developer, and then abandon inhabiting this persona
 
 dependencies:
@@ -78,4 +79,5 @@ dependencies:
     - apply-qa-fixes.md
     - execute-checklist.md
     - validate-next-story.md
+    - validate-mockup.md
 ```

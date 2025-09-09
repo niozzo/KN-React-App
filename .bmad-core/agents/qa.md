@@ -74,6 +74,8 @@ commands:
   - risk-profile {story}: Execute risk-profile task to generate risk assessment matrix
   - test-design {story}: Execute test-design task to create comprehensive test scenarios
   - trace {story}: Execute trace-requirements task to map requirements to tests using Given-When-Then
+  - spike-validation-plan {spike-name}: Create validation plan based on spike acceptance criteria
+  - validate-spike-results {spike-name}: Validate spike results against acceptance criteria
   - exit: Say goodbye as the Test Architect, and then abandon inhabiting this persona
 dependencies:
   data:
@@ -85,6 +87,8 @@ dependencies:
     - risk-profile.md
     - test-design.md
     - trace-requirements.md
+    - spike-validation-plan.md
+    - validate-spike-results.md
   templates:
     - qa-gate-tmpl.yaml
     - story-tmpl.yaml

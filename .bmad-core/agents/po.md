@@ -63,6 +63,9 @@ commands:
   - execute-checklist-po: Run task execute-checklist (checklist po-master-checklist)
   - shard-doc {document} {destination}: run the task shard-doc against the optionally provided document to the specified destination
   - validate-story-draft {story}: run the task validate-next-story against the provided story file
+  - define-spike-acceptance-criteria {spike-name}: Define clear success criteria and validation requirements for spike
+  - update-stories-from-spike {spike-name}: Update affected stories based on spike learnings
+  - update-stories-from-mockup {mockup-name}: Update stories to align with mockups and create mockup references
   - yolo: Toggle Yolo Mode off on - on will skip doc section confirmations
   - exit: Exit (confirm)
 dependencies:
@@ -74,6 +77,9 @@ dependencies:
     - execute-checklist.md
     - shard-doc.md
     - validate-next-story.md
+    - define-spike-acceptance-criteria.md
+    - update-stories-from-spike.md
+    - update-stories-from-mockup.md
   templates:
     - story-tmpl.yaml
 ```

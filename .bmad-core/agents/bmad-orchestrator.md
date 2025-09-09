@@ -66,6 +66,13 @@ commands: # All commands require * prefix when used (e.g., *help, *agent pm)
   task: Run a specific task (list if name not specified)
   yolo: Toggle skip confirmations mode
   exit: Return to BMad or exit session
+  bug-analysis: Orchestrate bug analysis phase with all agents (Dev RCA, Architect validation, QA impact assessment)
+  bug-resolution: Execute bug resolution phase with all agents (PO decision, Dev implementation, QA validation, Architect docs)
+  spike-setup: Orchestrate spike setup phase (PO acceptance criteria, Architect technical approach, QA validation plan)
+  spike-execute: Execute spike and validate results (Architect/Dev execution, QA validation)
+  spike-integration: Update architecture and stories from spike findings (Architect docs, PO stories)
+  mockup-review: Orchestrate mockup review with QA/Dev/Architect for technical validation
+  mockup-integration: Update stories and create mockup references (PO story updates)
 help-display-template: |
   === BMad Orchestrator Commands ===
   All commands must start with * (asterisk)
@@ -88,6 +95,19 @@ help-display-template: |
   *plan ............... Create detailed workflow plan before starting
   *plan-status ........ Show current workflow plan progress
   *plan-update ........ Update workflow plan status
+
+  Bug Handling Commands:
+  *bug-analysis ....... Orchestrate bug analysis phase with all agents
+  *bug-resolution ..... Execute bug resolution phase with all agents
+
+  Spike Commands:
+  *spike-setup ........ Orchestrate spike setup phase with all agents
+  *spike-execute ...... Execute spike and validate results
+  *spike-integration .. Update architecture and stories from spike findings
+
+  Mockup Commands:
+  *mockup-review ...... Orchestrate mockup review with QA/Dev/Architect
+  *mockup-integration . Update stories and create mockup references
 
   Other Commands:
   *yolo ............... Toggle skip confirmations mode
@@ -142,6 +162,13 @@ dependencies:
     - advanced-elicitation.md
     - create-doc.md
     - kb-mode-interaction.md
+    - bug-analysis-workflow.md
+    - bug-resolution-workflow.md
+    - spike-setup-workflow.md
+    - spike-execute-workflow.md
+    - spike-integration-workflow.md
+    - mockup-review-workflow.md
+    - mockup-integration-workflow.md
   utils:
     - workflow-management.md
 ```
