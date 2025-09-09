@@ -113,77 +113,28 @@
             margin-bottom: var(--space-lg);
         }
 
-        /* Filter Controls */
-        .filter-section {
-            background: var(--white);
-            border-radius: 12px;
-            padding: var(--space-lg);
-            margin-bottom: var(--space-lg);
-            box-shadow: 0 2px 6px rgba(14,24,33,0.08);
-        }
-
-        .filter-title {
-            font-family: var(--font-heading);
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--ink-900);
-            margin-bottom: var(--space-md);
-        }
-
-        .filter-controls {
-            display: flex;
-            gap: var(--space-md);
-            flex-wrap: wrap;
-        }
-
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-            gap: var(--space-xs);
-        }
-
-        .filter-label {
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--ink-700);
-        }
-
-        .filter-select {
-            padding: var(--space-sm) var(--space-md);
-            border: 1px solid var(--gray-300);
-            border-radius: 8px;
-            background: var(--white);
-            color: var(--ink-900);
-            font-size: 14px;
-            min-width: 150px;
-        }
-
-        .filter-select:focus {
-            outline: none;
-            border-color: var(--purple-700);
-            box-shadow: 0 0 0 2px rgba(124,76,196,0.2);
-        }
 
         /* Schedule Content */
         .schedule-content {
             position: relative;
         }
 
-        /* Sticky Day Headers */
+        /* Day Headers - Continuation Style */
         .day-header {
             background: var(--purple-700);
             color: var(--white);
             padding: var(--space-md) var(--space-lg);
-            border-radius: 12px 12px 0 0;
+            border-radius: 12px;
+            margin-bottom: var(--space-md);
             position: sticky;
             top: 80px;
             z-index: 10;
-            margin-bottom: 0;
+            box-shadow: 0 2px 6px rgba(14,24,33,0.08);
         }
 
         .day-header.sticky {
-            border-radius: 0;
-            box-shadow: 0 2px 6px rgba(14,24,33,0.08);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(14,24,33,0.12);
         }
 
         .day-title {
@@ -198,40 +149,42 @@
             opacity: 0.9;
         }
 
-        /* Session List */
+        /* Session Cards - Continuation Style */
         .session-list {
-            background: var(--white);
-            border-radius: 0 0 12px 12px;
-            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md);
             margin-bottom: var(--space-lg);
         }
 
         .session-item {
+            background: var(--white);
+            border-radius: 12px;
             padding: var(--space-lg);
-            border-bottom: 1px solid var(--gray-200);
-            transition: background-color 0.2s ease;
+            box-shadow: 0 2px 6px rgba(14,24,33,0.08);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
             cursor: pointer;
-        }
-
-        .session-item:last-child {
-            border-bottom: none;
+            border-left: 4px solid transparent;
         }
 
         .session-item:hover {
-            background-color: var(--gray-100);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(14,24,33,0.10);
         }
 
         .session-item.current {
             background-color: var(--purple-050);
-            border-left: 4px solid var(--purple-700);
+            border-left-color: var(--purple-700);
+            box-shadow: 0 4px 12px rgba(124, 76, 196, 0.15);
         }
 
         .session-item.upcoming {
-            border-left: 4px solid var(--purple-500);
+            border-left-color: var(--purple-500);
         }
 
         .session-item.past {
             opacity: 0.7;
+            border-left-color: var(--gray-300);
         }
 
         .session-header {
@@ -245,7 +198,7 @@
             font-family: var(--font-heading);
             font-size: 16px;
             font-weight: 600;
-            color: var(--ink-900);
+            color: var(--ink-700);
             min-width: 80px;
         }
 
@@ -275,7 +228,7 @@
 
         .session-title {
             font-family: var(--font-heading);
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 600;
             color: var(--ink-900);
             margin-bottom: var(--space-xs);
@@ -413,13 +366,6 @@
                 font-size: 24px;
             }
             
-            .filter-controls {
-                flex-direction: column;
-            }
-            
-            .filter-select {
-                min-width: 100%;
-            }
             
             .session-item {
                 padding: var(--space-md);
@@ -488,30 +434,6 @@
     <main class="main-content">
         <h1 class="page-title">My Schedule</h1>
 
-        <!-- Filter Controls -->
-        <section class="filter-section">
-            <h2 class="filter-title">Filter Schedule</h2>
-            <div class="filter-controls">
-                <div class="filter-group">
-                    <label class="filter-label">Day</label>
-                    <select class="filter-select">
-                        <option value="all">All Days</option>
-                        <option value="monday">Monday, Oct 20</option>
-                        <option value="tuesday">Tuesday, Oct 21</option>
-                        <option value="wednesday">Wednesday, Oct 22</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label class="filter-label">Track</label>
-                    <select class="filter-select">
-                        <option value="all">All Tracks</option>
-                        <option value="revenue">Revenue Growth</option>
-                        <option value="operations">Operational Performance</option>
-                        <option value="networking">Networking</option>
-                    </select>
-                </div>
-            </div>
-        </section>
 
         <!-- Schedule Content -->
         <div class="schedule-content">
