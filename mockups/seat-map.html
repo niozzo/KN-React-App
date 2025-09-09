@@ -285,8 +285,12 @@
         function handleTouchMove(e) {
             if (e.touches.length === 1 && isDragging) {
                 e.preventDefault();
-                translateX = e.touches[0].clientX - startX;
-                translateY = e.touches[0].clientY - startY;
+                const newTranslateX = e.touches[0].clientX - startX;
+                const newTranslateY = e.touches[0].clientY - startY;
+                console.log('Touch move - clientX:', e.touches[0].clientX, 'clientY:', e.touches[0].clientY, 'startX:', startX, 'startY:', startY);
+                console.log('Calculated translateX:', newTranslateX, 'translateY:', newTranslateY);
+                translateX = newTranslateX;
+                translateY = newTranslateY;
                 updateTransform();
             } else if (e.touches.length === 2) {
                 e.preventDefault();
@@ -318,8 +322,12 @@
 
         function handleMouseMove(e) {
             if (isDragging) {
-                translateX = e.clientX - startX;
-                translateY = e.clientY - startY;
+                const newTranslateX = e.clientX - startX;
+                const newTranslateY = e.clientY - startY;
+                console.log('Mouse move - clientX:', e.clientX, 'clientY:', e.clientY, 'startX:', startX, 'startY:', startY);
+                console.log('Calculated translateX:', newTranslateX, 'translateY:', newTranslateY);
+                translateX = newTranslateX;
+                translateY = newTranslateY;
                 updateTransform();
             }
         }
@@ -362,9 +370,24 @@
                 const maxTranslateY = 0;
                 const minTranslateY = -(imageHeight - containerHeight + minVisible);
                 
+                // DEBUG: Log all values
+                console.log('=== TRANSFORM DEBUG ===');
+                console.log('Container:', containerWidth, 'x', containerHeight);
+                console.log('Image:', imageWidth, 'x', imageHeight);
+                console.log('Scale:', scale);
+                console.log('Before constraint - translateX:', translateX, 'translateY:', translateY);
+                console.log('X bounds:', minTranslateX, 'to', maxTranslateX);
+                console.log('Y bounds:', minTranslateY, 'to', maxTranslateY);
+                
                 // Constrain translation
+                const oldTranslateX = translateX;
+                const oldTranslateY = translateY;
                 translateX = Math.max(minTranslateX, Math.min(maxTranslateX, translateX));
                 translateY = Math.max(minTranslateY, Math.min(maxTranslateY, translateY));
+                
+                console.log('After constraint - translateX:', translateX, 'translateY:', translateY);
+                console.log('X constrained:', oldTranslateX !== translateX, 'Y constrained:', oldTranslateY !== translateY);
+                console.log('========================');
                 
                 mapImage.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
             }
