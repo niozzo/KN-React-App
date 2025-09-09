@@ -258,6 +258,18 @@
             padding: var(--space-sm);
             border-radius: 8px;
             margin-top: var(--space-sm);
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .seat-assignment:hover {
+            background: var(--purple-500);
+            transform: translateY(-1px);
+            text-decoration: none;
+            color: inherit;
         }
 
         .session-item.current .seat-assignment {
@@ -441,18 +453,18 @@
                     <div class="session-header">
                         <div class="session-status status-past">Past</div>
                         <div class="session-time">6:00 PM - 8:00 PM</div>
-                    </div>
+                    </a>
                     <h3 class="session-title">Opening Reception & Networking</h3>
                     <div class="session-details">
                         <div class="session-detail">
                             <span class="detail-icon">📍</span>
                             <span>Grand Ballroom Foyer</span>
-                        </div>
-                    </div>
-                    <div class="seat-assignment">
+                        </a>
+                    </a>
+                    <a href="seat-map.html" class="seat-assignment">
                         <div class="seat-label">Your Table</div>
                         <div class="seat-details">Table 8</div>
-                    </div>
+                    </a>
                 </div>
             </div>
 
@@ -466,88 +478,86 @@
                     <div class="session-header">
                         <div class="session-status status-past">Past</div>
                         <div class="session-time">8:00 AM - 9:00 AM</div>
-                    </div>
+                    </a>
                     <h3 class="session-title">Continental Breakfast</h3>
                     <div class="session-details">
                         <div class="session-detail">
                             <span class="detail-icon">📍</span>
                             <span>Terrace Restaurant</span>
-                        </div>
-                    </div>
+                        </a>
+                    </a>
                 </div>
 
                 <div class="session-item current" id="current">
                     <div class="session-header">
                         <div class="session-status status-current">Now</div>
                         <div class="session-time">9:00 AM - 10:00 AM</div>
-                    </div>
+                    </a>
                     <h3 class="session-title">Digital Transformation in Manufacturing</h3>
                     <div class="session-details">
                         <div class="session-detail">
                             <span class="detail-icon">📍</span>
                             <span>Grand Ballroom A</span>
-                        </div>
+                        </a>
                         <div class="session-detail">
                             <span class="detail-icon">👤</span>
                             <span>Sarah Chen, CTO at TechCorp</span>
-                        </div>
-                    </div>
-                    <div class="seat-assignment">
+                        </a>
+                    </a>
+                    <a href="seat-map.html" class="seat-assignment">
                         <div class="seat-label">Your Seat</div>
                         <div class="seat-details">Table 12, Seat 3</div>
-                        <a href="seat-map.html" class="seat-action">View seat map →</a>
-                    </div>
+                    </a>
                 </div>
 
                 <div class="session-item upcoming">
                     <div class="session-header">
                         <div class="session-status status-upcoming">Next</div>
                         <div class="session-time">10:00 AM - 10:30 AM</div>
-                    </div>
+                    </a>
                     <h3 class="session-title">Coffee & Networking Break</h3>
                     <div class="session-details">
                         <div class="session-detail">
                             <span class="detail-icon">📍</span>
                             <span>Foyer & Terrace</span>
-                        </div>
-                    </div>
+                        </a>
+                    </a>
                 </div>
 
                 <div class="session-item upcoming">
                     <div class="session-header">
                         <div class="session-status status-upcoming">Upcoming</div>
                         <div class="session-time">10:30 AM - 12:00 PM</div>
-                    </div>
+                    </a>
                     <h3 class="session-title">Track A: Revenue Growth Strategies</h3>
                     <div class="session-details">
                         <div class="session-detail">
                             <span class="detail-icon">📍</span>
                             <span>Conference Room B</span>
-                        </div>
-                    </div>
-                    <div class="seat-assignment">
+                        </a>
+                    </a>
+                    <a href="seat-map.html" class="seat-assignment">
                         <div class="seat-label">Your Seat</div>
                         <div class="seat-details">Table 5, Seat 1</div>
-                        <a href="seat-map.html" class="seat-action">View seat map →</a>
-                    </div>
+                    </a>
                 </div>
 
                 <div class="session-item upcoming">
                     <div class="session-header">
                         <div class="session-status status-upcoming">Upcoming</div>
                         <div class="session-time">12:00 PM - 1:30 PM</div>
-                    </div>
+                    </a>
                     <h3 class="session-title">Networking Lunch</h3>
                     <div class="session-details">
                         <div class="session-detail">
                             <span class="detail-icon">📍</span>
                             <span>Grand Ballroom</span>
-                        </div>
-                    </div>
-                    <div class="seat-assignment">
+                        </a>
+                    </a>
+                    <a href="seat-map.html" class="seat-assignment">
                         <div class="seat-label">Your Table</div>
                         <div class="seat-details">Table 8</div>
-                    </div>
+                    </a>
                 </div>
             </div>
 
@@ -561,23 +571,22 @@
                     <div class="session-header">
                         <div class="session-status status-upcoming">Upcoming</div>
                         <div class="session-time">9:00 AM - 10:00 AM</div>
-                    </div>
+                    </a>
                     <h3 class="session-title">Apax Closing Address</h3>
                     <div class="session-details">
                         <div class="session-detail">
                             <span class="detail-icon">📍</span>
                             <span>Grand Ballroom A</span>
-                        </div>
+                        </a>
                         <div class="session-detail">
                             <span class="detail-icon">👤</span>
                             <span>Michael Smith, Managing Partner</span>
-                        </div>
-                    </div>
-                    <div class="seat-assignment">
+                        </a>
+                    </a>
+                    <a href="seat-map.html" class="seat-assignment">
                         <div class="seat-label">Your Seat</div>
                         <div class="seat-details">Table 12, Seat 3</div>
-                        <a href="seat-map.html" class="seat-action">View seat map →</a>
-                    </div>
+                    </a>
                 </div>
             </div>
         </div>
