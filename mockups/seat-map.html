@@ -37,9 +37,10 @@
             background-color: var(--gray-100);
             color: var(--ink-900);
             line-height: 1.5;
-            min-height: 100vh;
+            height: 100vh;
             margin: 0;
             padding: 0;
+            overflow: hidden;
         }
 
         .header {
@@ -91,7 +92,7 @@
 
         .back-link-container {
             position: fixed;
-            top: 80px;
+            top: 70px;
             left: var(--space-lg);
             z-index: 20;
         }
@@ -114,10 +115,10 @@
 
         .map-container {
             position: fixed;
-            top: 120px;
+            top: 100px;
             left: var(--space-md);
             right: var(--space-md);
-            bottom: 120px;
+            bottom: 100px;
             background: var(--gray-200);
             background-image: 
                 linear-gradient(rgba(14,24,33,0.05) 1px, transparent 1px),
@@ -177,7 +178,7 @@
             left: 0;
             right: 0;
             background: var(--white);
-            padding: var(--space-lg);
+            padding: var(--space-md) var(--space-lg);
             box-shadow: 0 -2px 8px rgba(14,24,33,0.1);
             z-index: 100;
         }
@@ -202,15 +203,15 @@
             }
             
             .back-link-container {
-                top: 70px;
+                top: 60px;
                 left: var(--space-md);
             }
             
             .map-container {
-                top: 110px;
+                top: 90px;
                 left: var(--space-sm);
                 right: var(--space-sm);
-                bottom: 100px;
+                bottom: 80px;
             }
             
             .bottom-info {
