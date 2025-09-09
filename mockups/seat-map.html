@@ -150,11 +150,6 @@
             cursor: grab;
             user-select: none;
             transform-origin: center center;
-            pointer-events: none;
-        }
-
-        .map-image.interactive {
-            pointer-events: auto;
         }
 
 
@@ -261,13 +256,13 @@
         const mapImage = document.getElementById('mapImage');
 
 
-        mapImage.addEventListener('touchstart', handleTouchStart, { passive: false });
-        mapImage.addEventListener('touchmove', handleTouchMove, { passive: false });
-        mapImage.addEventListener('touchend', handleTouchEnd, { passive: false });
-        mapImage.addEventListener('mousedown', handleMouseDown);
-        mapImage.addEventListener('mousemove', handleMouseMove);
-        mapImage.addEventListener('mouseup', handleMouseUp);
-        mapImage.addEventListener('wheel', handleWheel, { passive: false });
+        mapContainer.addEventListener('touchstart', handleTouchStart, { passive: false });
+        mapContainer.addEventListener('touchmove', handleTouchMove, { passive: false });
+        mapContainer.addEventListener('touchend', handleTouchEnd, { passive: false });
+        mapContainer.addEventListener('mousedown', handleMouseDown);
+        mapContainer.addEventListener('mousemove', handleMouseMove);
+        mapContainer.addEventListener('mouseup', handleMouseUp);
+        mapContainer.addEventListener('wheel', handleWheel, { passive: false });
 
         function handleTouchStart(e) {
             if (e.touches.length === 1) {
