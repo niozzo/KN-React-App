@@ -6,6 +6,10 @@
       "dest": "/mockups/index.html"
     },
     {
+      "src": "/(.*\\.html)",
+      "dest": "/mockups/$1"
+    },
+    {
       "src": "/mockups/(.*)",
       "dest": "/mockups/$1"
     }
