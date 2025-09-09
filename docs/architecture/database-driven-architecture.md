@@ -2,12 +2,15 @@
 
 **Generated:** 2025-09-08  
 **Updated:** 2025-09-09  
-**Based on:** Database Structure Analysis (278 rows across 11 tables)  
-**Connection Method:** Authenticated Supabase API via Vercel Serverless Functions (per ADR-003)
+**Based on:** Verified Database Schema (303 rows across 21 tables)  
+**Connection Method:** Authenticated Supabase API via Vercel Serverless Functions (per ADR-003)  
+**Schema Reference:** See `database-schema.md` for authoritative table structures and field definitions
 
 ## Executive Summary
 
-This document provides architectural guidance based on the comprehensive analysis of the Knowledge Now React application database. The analysis reveals a sophisticated event management system with 278 active records across 11 tables, designed for conference/event management with advanced features like seating assignments, sponsor management, and attendee tracking.
+This document provides architectural guidance based on the comprehensive analysis of the Knowledge Now React application database. The analysis reveals a sophisticated event management system with 303 active records across 21 tables, designed for conference/event management with advanced features like seating assignments, sponsor management, and attendee tracking.
+
+**Note**: For detailed table structures, field definitions, and TypeScript interfaces, refer to the authoritative `database-schema.md` document.
 
 ## Database Architecture Overview
 

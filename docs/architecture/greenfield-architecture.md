@@ -4,7 +4,8 @@
 **Generated:** 2025-09-08  
 **Updated:** 2025-09-09  
 **Status:** Complete Greenfield Architecture with Working Database Access  
-**Based on:** Comprehensive UI-driven analysis, data model understanding, and successful Vercel spike implementation
+**Based on:** Comprehensive UI-driven analysis, data model understanding, and successful Vercel spike implementation  
+**Schema Reference:** See `database-schema.md` for authoritative table structures and field definitions
 
 ## Executive Summary
 
