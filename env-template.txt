@@ -1,0 +1,17 @@
+# Supabase Public API (for client-side operations)
+NEXT_PUBLIC_SUPABASE_URL=https://iikcgdhztkrexuuqheli.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlpa2NnZGh6dGtyZXh1dXFoZWxpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwMzY3NDEsImV4cCI6MjA3MjYxMjc0MX0.N3KNNn6N_S4qPlBeclj07QsekCeZnF_FkBKef96XnO8
+
+# Direct Database Connection (for server-side operations)
+DB_HOST=db.iikcgdhztkrexuuqheli.supabase.co
+DB_PORT=5432
+DB_NAME=postgres
+DB_USER=your_actual_username_here
+DB_PASSWORD=your_actual_password_here
+
+# Auto-Login Credentials (for automatic authentication)
+SUPABASE_USER_EMAIL=your_supabase_user_email@example.com
+SUPABASE_USER_PASSWORD=your_supabase_user_password
+
+# Server Configuration
+PORT=3000

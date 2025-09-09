@@ -10,6 +10,7 @@
   "scripts": {
     "start": "python3 -m http.server 3000",
     "serve": "python3 -m http.server 3000",
+    "server": "node server-with-auth.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "test-connection": "node test-direct-connection.js",
     "show-counts": "node show-table-counts.js",
@@ -34,5 +35,8 @@
     "pg": "^8.11.3",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
