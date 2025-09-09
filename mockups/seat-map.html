@@ -29,6 +29,7 @@
             /* Navigation dimensions */
             --nav-height: 91px; /* Actual measured navigation bar height */
             --nav-gutter: var(--space-lg); /* Semantic gutter size between content and nav */
+            --location-info-height: 88px; /* Height of the location info component */
             
             /* Typography */
             --font-ui: 'Inter', 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -136,7 +137,7 @@
 
         .map-container {
             position: fixed;
-            top: 240px; /* More space above the map */
+            top: 203px; /* 91px nav + ~88px location info + 24px gutter - using fixed value for now */
             left: var(--space-md);
             right: var(--space-md);
             bottom: calc(var(--nav-height) + var(--space-lg)); /* Nav height + larger gutter = 91px + 24px = 115px */
@@ -145,7 +146,7 @@
                 linear-gradient(rgba(124, 76, 196, 0.1) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(124, 76, 196, 0.1) 1px, transparent 1px);
             background-size: 20px 20px;
-            border-radius: 16px;
+            border-radius: 16px; /* Full border radius with proper gutter */
             box-shadow: 
                 inset 0 2px 8px rgba(14,24,33,0.1),
                 0 4px 16px rgba(14,24,33,0.15);
@@ -203,7 +204,7 @@
 
         .bottom-info {
             position: fixed;
-            top: 80px; /* Position above the map viewport */
+            top: 55px; /* Adjusted to close the visible gap */
             left: 0;
             right: 0;
             background: var(--white);
@@ -236,7 +237,7 @@
             
             
             .map-container {
-                top: 220px; /* More space above the map on mobile */
+                top: 187px; /* 91px nav + ~80px location info + 16px smaller mobile gutter */
                 left: var(--space-sm);
                 right: var(--space-sm);
                 bottom: calc(var(--nav-height) + var(--space-lg)); /* Nav height + same gutter as desktop = 91px + 24px = 115px */
