@@ -119,13 +119,13 @@
             position: relative;
         }
 
-        /* Day Headers - Continuation Style */
+        /* Day Headers - Attached to Cards */
         .day-header {
             background: var(--purple-700);
             color: var(--white);
             padding: var(--space-md) var(--space-lg);
-            border-radius: 12px;
-            margin-bottom: var(--space-md);
+            border-radius: 12px 12px 0 0;
+            margin-bottom: 0;
             position: sticky;
             top: 80px;
             z-index: 10;
@@ -133,7 +133,7 @@
         }
 
         .day-header.sticky {
-            border-radius: 12px;
+            border-radius: 12px 12px 0 0;
             box-shadow: 0 4px 12px rgba(14,24,33,0.12);
         }
 
@@ -149,42 +149,40 @@
             opacity: 0.9;
         }
 
-        /* Session Cards - Continuation Style */
+        /* Session Cards - Grouped with Day Header */
         .session-list {
-            display: flex;
-            flex-direction: column;
-            gap: var(--space-md);
+            background: var(--white);
+            border-radius: 0 0 12px 12px;
+            overflow: hidden;
             margin-bottom: var(--space-lg);
+            box-shadow: 0 2px 6px rgba(14,24,33,0.08);
         }
 
         .session-item {
-            background: var(--white);
-            border-radius: 12px;
             padding: var(--space-lg);
-            box-shadow: 0 2px 6px rgba(14,24,33,0.08);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border-bottom: 1px solid var(--gray-200);
+            transition: background-color 0.2s ease;
             cursor: pointer;
-            border-left: 4px solid transparent;
+        }
+
+        .session-item:last-child {
+            border-bottom: none;
         }
 
         .session-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(14,24,33,0.10);
+            background-color: var(--gray-100);
         }
 
         .session-item.current {
             background-color: var(--purple-050);
-            border-left-color: var(--purple-700);
-            box-shadow: 0 4px 12px rgba(124, 76, 196, 0.15);
         }
 
         .session-item.upcoming {
-            border-left-color: var(--purple-500);
+            /* No special styling needed */
         }
 
         .session-item.past {
             opacity: 0.7;
-            border-left-color: var(--gray-300);
         }
 
         .session-header {
