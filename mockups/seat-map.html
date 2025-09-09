@@ -97,6 +97,9 @@
             right: var(--space-lg);
             z-index: 20;
             padding: var(--space-sm) 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .back-link {
@@ -113,6 +116,12 @@
         .back-link:hover {
             color: var(--purple-900);
             text-decoration: underline;
+        }
+
+        .zoom-instruction {
+            color: var(--ink-500);
+            font-size: 14px;
+            font-weight: 500;
         }
 
         .map-container {
@@ -217,6 +226,7 @@
         <a href="schedule.html" class="back-link">
             ← Back
         </a>
+        <span class="zoom-instruction">Pinch to zoom</span>
     </div>
 
     <div class="map-container" id="mapContainer">
@@ -225,7 +235,7 @@
 
     <div class="bottom-info">
         <div class="location-info">Grand Ballroom A</div>
-        <div class="table-assignment">Your Table: 12, Seat 3</div>
+        <div class="table-assignment">Your Table: 12</div>
     </div>
 
     <script>
