@@ -209,7 +209,9 @@
             right: 0;
             background: var(--white);
             padding: var(--space-md) var(--space-lg);
-            box-shadow: 0 2px 8px rgba(14,24,33,0.1);
+            box-shadow: 
+                inset 0 4px 8px rgba(14,24,33,0.08), /* Inset shadow on top edge */
+                0 2px 8px rgba(14,24,33,0.1);        /* Original bottom shadow */
             z-index: 100;
         }
 
