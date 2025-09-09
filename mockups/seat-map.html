@@ -260,56 +260,6 @@
         const mapContainer = document.getElementById('mapContainer');
         const mapImage = document.getElementById('mapImage');
 
-        // Calculate image bounds and enable interaction only within those bounds
-        function updateImageInteraction() {
-            if (mapImage.naturalWidth && mapImage.naturalHeight) {
-                const containerRect = mapContainer.getBoundingClientRect();
-                const imageAspect = mapImage.naturalWidth / mapImage.naturalHeight;
-                const containerAspect = containerRect.width / containerRect.height;
-                
-                let imageWidth, imageHeight, offsetX, offsetY;
-                
-                if (imageAspect > containerAspect) {
-                    // Image is wider - fit to width
-                    imageWidth = containerRect.width;
-                    imageHeight = containerRect.width / imageAspect;
-                    offsetX = 0;
-                    offsetY = (containerRect.height - imageHeight) / 2;
-                } else {
-                    // Image is taller - fit to height
-                    imageHeight = containerRect.height;
-                    imageWidth = containerRect.height * imageAspect;
-                    offsetX = (containerRect.width - imageWidth) / 2;
-                    offsetY = 0;
-                }
-                
-                // Store bounds for interaction checking
-                mapImage.dataset.bounds = JSON.stringify({
-                    x: offsetX,
-                    y: offsetY,
-                    width: imageWidth,
-                    height: imageHeight
-                });
-            }
-        }
-
-        // Check if point is within image bounds (with some tolerance)
-        function isWithinImageBounds(x, y) {
-            const bounds = JSON.parse(mapImage.dataset.bounds || '{}');
-            if (!bounds.width) return true; // Allow interaction if bounds not calculated yet
-            
-            const containerRect = mapContainer.getBoundingClientRect();
-            const relativeX = x - containerRect.left;
-            const relativeY = y - containerRect.top;
-            
-            // Add 20px tolerance around the image for easier interaction
-            const tolerance = 20;
-            
-            return relativeX >= (bounds.x - tolerance) && 
-                   relativeX <= (bounds.x + bounds.width + tolerance) &&
-                   relativeY >= (bounds.y - tolerance) && 
-                   relativeY <= (bounds.y + bounds.height + tolerance);
-        }
 
         mapImage.addEventListener('touchstart', handleTouchStart, { passive: false });
         mapImage.addEventListener('touchmove', handleTouchMove, { passive: false });
@@ -321,24 +271,19 @@
 
         function handleTouchStart(e) {
             if (e.touches.length === 1) {
-                if (isWithinImageBounds(e.touches[0].clientX, e.touches[0].clientY)) {
-                    isDragging = true;
-                    startX = e.touches[0].clientX - translateX;
-                    startY = e.touches[0].clientY - translateY;
-                }
+                isDragging = true;
+                startX = e.touches[0].clientX - translateX;
+                startY = e.touches[0].clientY - translateY;
             } else if (e.touches.length === 2) {
-                if (isWithinImageBounds(e.touches[0].clientX, e.touches[0].clientY) ||
-                    isWithinImageBounds(e.touches[1].clientX, e.touches[1].clientY)) {
-                    e.preventDefault();
-                    const touch1 = e.touches[0];
-                    const touch2 = e.touches[1];
-                    const distance = Math.sqrt(
-                        Math.pow(touch2.clientX - touch1.clientX, 2) + 
-                        Math.pow(touch2.clientY - touch1.clientY, 2)
-                    );
-                    mapContainer.dataset.initialDistance = distance;
-                    mapContainer.dataset.initialScale = scale;
-                }
+                e.preventDefault();
+                const touch1 = e.touches[0];
+                const touch2 = e.touches[1];
+                const distance = Math.sqrt(
+                    Math.pow(touch2.clientX - touch1.clientX, 2) + 
+                    Math.pow(touch2.clientY - touch1.clientY, 2)
+                );
+                mapContainer.dataset.initialDistance = distance;
+                mapContainer.dataset.initialScale = scale;
             }
         }
 
@@ -368,12 +313,10 @@
         }
 
         function handleMouseDown(e) {
-            if (isWithinImageBounds(e.clientX, e.clientY)) {
-                isDragging = true;
-                startX = e.clientX - translateX;
-                startY = e.clientY - translateY;
-                mapContainer.style.cursor = 'grabbing';
-            }
+            isDragging = true;
+            startX = e.clientX - translateX;
+            startY = e.clientY - translateY;
+            mapContainer.style.cursor = 'grabbing';
         }
 
         function handleMouseMove(e) {
@@ -390,12 +333,10 @@
         }
 
         function handleWheel(e) {
-            if (isWithinImageBounds(e.clientX, e.clientY)) {
-                e.preventDefault();
-                const delta = e.deltaY > 0 ? 0.9 : 1.1;
-                scale = Math.max(minScale, Math.min(maxScale, scale * delta));
-                updateTransform();
-            }
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? 0.9 : 1.1;
+            scale = Math.max(minScale, Math.min(maxScale, scale * delta));
+            updateTransform();
         }
 
         function updateTransform() {
@@ -425,14 +366,6 @@
                 mapImage.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
             }
         }
-
-        // Initialize image interaction bounds when image loads
-        mapImage.addEventListener('load', () => {
-            updateImageInteraction();
-        });
-
-        // Update bounds on window resize
-        window.addEventListener('resize', updateImageInteraction);
 
         updateTransform();
     </script>
