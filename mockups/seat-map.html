@@ -100,22 +100,16 @@
             display: inline-flex;
             align-items: center;
             gap: var(--space-xs);
-            background: var(--white);
             color: var(--purple-700);
             font-size: 14px;
             font-weight: 500;
             text-decoration: none;
-            padding: var(--space-sm) var(--space-md);
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(14,24,33,0.1);
-            transition: all 0.2s ease;
+            transition: color 0.2s ease;
         }
 
         .back-link:hover {
             color: var(--purple-900);
-            background: var(--purple-050);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(14,24,33,0.15);
+            text-decoration: underline;
         }
 
         .map-container {
@@ -216,7 +210,7 @@
 
     <div class="back-link-container">
         <a href="schedule.html" class="back-link">
-            ← Back to Schedule
+            ← Back
         </a>
     </div>
 
