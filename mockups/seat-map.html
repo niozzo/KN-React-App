@@ -23,6 +23,14 @@
             --space-sm: 12px;
             --space-md: 16px;
             --space-lg: 24px;
+            --space-xl: 32px;
+            --space-xxl: 40px;
+            
+            /* Navigation dimensions */
+            --nav-height: 91px; /* Actual measured navigation bar height */
+            --nav-gutter: var(--space-lg); /* Semantic gutter size between content and nav */
+            
+            /* Typography */
             --font-ui: 'Inter', 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             --font-heading: 'IBM Plex Sans', 'Inter', sans-serif;
         }
@@ -98,15 +106,10 @@
         }
 
         .back-link-container {
-            position: fixed;
-            top: 80px;
-            left: var(--space-lg);
-            right: var(--space-lg);
-            z-index: 20;
-            padding: var(--space-sm) 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: var(--space-sm);
         }
 
         .back-link {
@@ -133,10 +136,10 @@
 
         .map-container {
             position: fixed;
-            top: 120px;
+            top: 240px; /* More space above the map */
             left: var(--space-md);
             right: var(--space-md);
-            bottom: 120px;
+            bottom: calc(var(--nav-height) + var(--space-lg)); /* Nav height + larger gutter = 91px + 24px = 115px */
             background: var(--white);
             background-image: 
                 linear-gradient(rgba(124, 76, 196, 0.1) 1px, transparent 1px),
@@ -200,12 +203,12 @@
 
         .bottom-info {
             position: fixed;
-            bottom: 0;
+            top: 80px; /* Position above the map viewport */
             left: 0;
             right: 0;
             background: var(--white);
             padding: var(--space-md) var(--space-lg);
-            box-shadow: 0 -2px 8px rgba(14,24,33,0.1);
+            box-shadow: 0 2px 8px rgba(14,24,33,0.1);
             z-index: 100;
         }
 
@@ -220,6 +223,9 @@
         .table-assignment {
             font-size: 18px;
             color: var(--ink-500);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         /* Responsive */
@@ -228,17 +234,12 @@
                 padding: var(--space-sm) var(--space-md);
             }
             
-            .back-link-container {
-                top: 70px;
-                left: var(--space-md);
-                right: var(--space-md);
-            }
             
             .map-container {
-                top: 110px;
+                top: 220px; /* More space above the map on mobile */
                 left: var(--space-sm);
                 right: var(--space-sm);
-                bottom: 100px;
+                bottom: calc(var(--nav-height) + var(--space-lg)); /* Nav height + same gutter as desktop = 91px + 24px = 115px */
             }
             
             .bottom-info {
@@ -251,6 +252,91 @@
             
             .table-assignment {
                 font-size: 16px;
+            }
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            background: var(--white);
+            border-top: 1px solid var(--gray-200);
+            padding: var(--space-sm) 0;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            width: 100%;
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-around;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 var(--space-lg);
+            min-width: 320px;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: var(--space-sm);
+            text-decoration: none;
+            color: var(--ink-500);
+            transition: color 0.2s ease;
+            min-width: 60px;
+            flex: 1;
+        }
+
+        .nav-item.active {
+            color: var(--purple-700);
+        }
+
+        .nav-item:hover {
+            color: var(--purple-700);
+        }
+
+        .nav-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .nav-label {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* Responsive Design for Bottom Nav */
+        @media (max-width: 480px) {
+            .nav-container {
+                padding: 0 var(--space-sm);
+            }
+        }
+
+        /* Very narrow screens - ensure navigation is always visible */
+        @media (max-width: 360px) {
+            .nav-container {
+                padding: 0 var(--space-xs);
+                min-width: 280px;
+            }
+            
+            .nav-item {
+                min-width: 50px;
+                padding: var(--space-xs);
+            }
+            
+            .nav-label {
+                font-size: 12px;
+            }
+            
+            .nav-icon {
+                font-size: 18px;
             }
         }
     </style>
@@ -266,11 +352,17 @@
         </div>
     </header>
 
-    <div class="back-link-container">
-        <a href="schedule.html" class="back-link">
-            ← Back
-        </a>
-        <span class="zoom-instruction">Pinch to zoom</span>
+    <div class="bottom-info">
+        <div class="back-link-container">
+            <a href="schedule.html" class="back-link">
+                ← Back
+            </a>
+        </div>
+        <div class="location-info">Grand Ballroom A</div>
+        <div class="table-assignment">
+            <span>Your Table: 12</span>
+            <span class="zoom-instruction">Pinch to zoom</span>
+        </div>
     </div>
 
     <div class="map-container" id="mapContainer">
@@ -283,11 +375,6 @@
                 <path d="M3 21v-5h5"/>
             </svg>
         </button>
-    </div>
-
-    <div class="bottom-info">
-        <div class="location-info">Grand Ballroom A</div>
-        <div class="table-assignment">Your Table: 12</div>
     </div>
 
     <script>
@@ -435,5 +522,31 @@
         // Initial transform
         updateTransform();
     </script>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <div class="nav-container">
+            <a href="home.html" class="nav-item">
+                <div class="nav-icon">🏠</div>
+                <div class="nav-label">Home</div>
+            </a>
+            <a href="schedule.html" class="nav-item">
+                <div class="nav-icon">📅</div>
+                <div class="nav-label">Schedule</div>
+            </a>
+            <a href="meet.html" class="nav-item">
+                <div class="nav-icon">👥</div>
+                <div class="nav-label">Meet</div>
+            </a>
+            <a href="sponsors.html" class="nav-item">
+                <div class="nav-icon">🏢</div>
+                <div class="nav-label">Sponsors</div>
+            </a>
+            <a href="settings.html" class="nav-item">
+                <div class="nav-icon">⚙️</div>
+                <div class="nav-label">Settings</div>
+            </a>
+        </div>
+    </nav>
 </body>
 </html>
