@@ -45,15 +45,27 @@
         .header {
             background: var(--white);
             padding: var(--space-md) var(--space-lg);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
             box-shadow: 0 2px 4px rgba(14,24,33,0.08);
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-family: var(--font-heading);
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--purple-700);
         }
 
         .back-button {
@@ -74,15 +86,11 @@
             color: var(--purple-900);
         }
 
-        .header-center {
-            flex: 1;
-        }
 
         .user-info {
             display: flex;
-            flex-direction: column;
             align-items: center;
-            gap: 4px;
+            gap: var(--space-sm);
         }
 
         .user-avatar {
@@ -96,12 +104,6 @@
             justify-content: center;
             font-size: 14px;
             font-weight: 600;
-        }
-
-        .user-name {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--ink-900);
         }
 
         .map-container {
@@ -163,9 +165,6 @@
                 padding: var(--space-sm) var(--space-md);
             }
             
-            .user-name {
-                font-size: 14px;
-            }
             
             .map-container {
                 top: 70px;
@@ -190,16 +189,15 @@
 </head>
 <body>
     <header class="header">
-        <a href="schedule.html" class="back-button">
-            <span>←</span>
-            <span>Back</span>
-        </a>
-        
-        <div class="header-center"></div>
-        
-        <div class="user-info">
-            <div class="user-avatar">JD</div>
-            <span class="user-name">John Doe</span>
+        <div class="header-content">
+            <a href="schedule.html" class="back-button">
+                ← Back
+            </a>
+            <div class="logo">KnowledgeNow</div>
+            <div class="user-info">
+                <div class="user-avatar">JD</div>
+                <span>John Doe</span>
+            </div>
         </div>
     </header>
 
