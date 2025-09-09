@@ -89,9 +89,38 @@
             font-weight: 600;
         }
 
-        .map-container {
+        .back-link-container {
             position: fixed;
             top: 80px;
+            left: var(--space-lg);
+            z-index: 20;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-xs);
+            background: var(--white);
+            color: var(--purple-700);
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            padding: var(--space-sm) var(--space-md);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(14,24,33,0.1);
+            transition: all 0.2s ease;
+        }
+
+        .back-link:hover {
+            color: var(--purple-900);
+            background: var(--purple-050);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(14,24,33,0.15);
+        }
+
+        .map-container {
+            position: fixed;
+            top: 120px;
             left: var(--space-md);
             right: var(--space-md);
             bottom: 120px;
@@ -148,9 +177,13 @@
                 padding: var(--space-sm) var(--space-md);
             }
             
+            .back-link-container {
+                top: 70px;
+                left: var(--space-md);
+            }
             
             .map-container {
-                top: 70px;
+                top: 110px;
                 left: var(--space-sm);
                 right: var(--space-sm);
                 bottom: 100px;
@@ -180,6 +213,12 @@
             </div>
         </div>
     </header>
+
+    <div class="back-link-container">
+        <a href="schedule.html" class="back-link">
+            ← Back to Schedule
+        </a>
+    </div>
 
     <div class="map-container" id="mapContainer">
         <img src="assets/maps/locationName_14.jpg" alt="Venue Floor Plan" class="map-image" id="mapImage">
