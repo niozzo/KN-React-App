@@ -181,7 +181,7 @@ export default async function handler(req, res) {
 - [Vercel Serverless Functions](https://vercel.com/docs/functions)
 - [Supabase Authentication](https://supabase.com/docs/guides/auth)
 - [Supabase Row Level Security](https://supabase.com/docs/guides/auth/row-level-security)
-- [Spike Deployment Guide](./SPIKE-DEPLOYMENT.md)
+- [Spike Deployment Guide](../spikes/vercel-database-spike/SPIKE-DEPLOYMENT.md)
 
 ## Review Date
 **Next Review**: December 2025 (Quarterly)
