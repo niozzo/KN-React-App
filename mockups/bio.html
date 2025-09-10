@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Attendee Bio - Conference App</title>
-    <link rel="icon" type="image/x-icon" href="../assets/brand/icons/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="assets/brand/icons/favicon.ico">
     <style>
         :root {
             --purple-50: #faf5ff;
@@ -424,8 +424,8 @@
 
     <div class="container">
         <div class="back-link-container">
-            <a href="meet.html" class="back-link">
-                ← Back to Meet List
+            <a href="#" class="back-link" onclick="history.back(); return false;">
+                ← Back
             </a>
         </div>
         
@@ -433,9 +433,9 @@
             <div class="profile-info-section">
                 <div class="avatar">👤</div>
                 <div class="profile-info">
-                    <h1 id="attendee-name">Attendee Name</h1>
-                    <div class="title" id="attendee-title">Job Title</div>
-                    <div class="company" id="attendee-company">Company Name</div>
+                    <h1>Sarah Chen</h1>
+                    <div class="title">Chief Technology Officer</div>
+                    <div class="company">TechCorp</div>
                 </div>
             </div>
             
@@ -448,8 +448,10 @@
         <div class="content">
             <div class="section">
                 <h2>About</h2>
-                <div class="bio-text" id="attendee-bio">
-                    This is a placeholder bio page. In a real implementation, this would display the attendee's detailed biography from the database.
+                <div class="bio-text">
+                    Sarah Chen is a visionary technology leader with over 15 years of experience driving digital transformation across Fortune 500 companies. As CTO of TechCorp, she has spearheaded the development of cutting-edge AI and machine learning platforms that have revolutionized how businesses approach data analytics and customer engagement. Her innovative approach to technology strategy has resulted in a 300% increase in operational efficiency and positioned TechCorp as a market leader in enterprise software solutions.
+
+Sarah holds a Ph.D. in Computer Science from Stanford University and has been recognized as one of the "Top 50 Women in Tech" by Forbes. She is passionate about mentoring the next generation of technology leaders and frequently speaks at industry conferences about the future of artificial intelligence and its impact on business transformation. Her leadership philosophy centers on fostering a culture of innovation, collaboration, and continuous learning within her teams.
                 </div>
             </div>
         </div>
@@ -486,80 +488,6 @@
     </nav>
 
     <script>
-        // Get attendee info from URL parameters
-        const urlParams = new URLSearchParams(window.location.search);
-        const attendeeId = urlParams.get('id');
-        
-        // Sample attendee data based on database schema
-        const attendees = {
-            'sarah': {
-                salutation: 'Ms.',
-                first_name: 'Sarah',
-                last_name: 'Chen',
-                email: 'example@example.com',
-                title: 'Chief Technology Officer',
-                company: 'TechCorp',
-                bio: 'Sarah Chen is a visionary technology leader with over 15 years of experience driving digital transformation across Fortune 500 companies. As CTO of TechCorp, she has spearheaded the development of cutting-edge AI and machine learning platforms that have revolutionized how businesses approach data analytics and customer engagement. Her innovative approach to technology strategy has resulted in a 300% increase in operational efficiency and positioned TechCorp as a market leader in enterprise software solutions.\n\nSarah holds a Ph.D. in Computer Science from Stanford University and has been recognized as one of the "Top 50 Women in Tech" by Forbes. She is passionate about mentoring the next generation of technology leaders and frequently speaks at industry conferences about the future of artificial intelligence and its impact on business transformation. Her leadership philosophy centers on fostering a culture of innovation, collaboration, and continuous learning within her teams.'
-            },
-            'nigel': {
-                salutation: 'Mr.',
-                first_name: 'Nigel',
-                last_name: 'Lemmon',
-                email: 'example@example.com',
-                title: 'Global CIO',
-                company: 'Tosca Ltd',
-                bio: 'Nigel Lemmon serves as Global Chief Information Officer for Tosca Ltd, where he oversees technology strategy across 40+ countries and manages a global team of over 2,000 IT professionals. With more than 20 years of experience in international technology leadership, Nigel has successfully led digital transformation initiatives that have modernized legacy systems and implemented cloud-first architectures across diverse markets. His expertise in cybersecurity, data governance, and regulatory compliance has been instrumental in navigating complex international business environments.\n\nPrior to joining Tosca Ltd, Nigel held senior technology positions at several multinational corporations, including a stint as Regional IT Director for Asia-Pacific operations. He holds an MBA from London Business School and multiple certifications in cloud architecture and cybersecurity. Nigel is known for his ability to bridge the gap between business strategy and technology execution, consistently delivering projects that drive measurable business value while maintaining the highest standards of security and compliance.'
-            },
-            'ayla': {
-                salutation: 'Ms.',
-                first_name: 'Ayla',
-                last_name: 'Queiroga',
-                email: 'example@example.com',
-                title: 'Managing Director',
-                company: 'Accordion',
-                bio: 'Ayla Queiroga is a Managing Director at Accordion, where she leads the firm\'s technology and operations practice, focusing on value creation initiatives for portfolio companies. With over 12 years of experience in private equity and operational consulting, Ayla has successfully guided more than 50 companies through digital transformation and operational improvement programs. Her expertise spans across multiple industries, with particular strength in technology-enabled business model optimization and process automation.\n\nAyla\'s approach combines deep operational expertise with strategic vision, helping portfolio companies achieve sustainable growth through technology adoption and process improvement. She holds an MBA from Wharton and began her career as a management consultant at McKinsey & Company. Ayla is passionate about building high-performing teams and has been instrumental in developing Accordion\'s proprietary frameworks for operational value creation. Her work has resulted in over $500M in value creation across her portfolio companies.'
-            },
-            'michael': {
-                salutation: 'Mr.',
-                first_name: 'Michael',
-                last_name: 'Rodriguez',
-                email: 'example@example.com',
-                title: 'CEO',
-                company: 'InnovateCorp',
-                bio: 'Michael Rodriguez is the Founder and CEO of InnovateCorp, a rapidly growing technology company that has revolutionized the way businesses approach customer relationship management through AI-powered solutions. Under his leadership, InnovateCorp has grown from a startup of 5 employees to a thriving organization of over 200 professionals, serving clients across North America and Europe. Michael\'s entrepreneurial journey began with a vision to democratize advanced analytics for small and medium-sized businesses, and today, his platform serves over 10,000 companies worldwide.\n\nWith a background in computer science and business administration, Michael has successfully raised over $50M in venture capital funding and has been recognized as "Entrepreneur of the Year" by the Austin Business Journal. His leadership style emphasizes innovation, customer-centricity, and building a culture where employees can thrive and grow. Michael is also an active angel investor and mentor to other entrepreneurs, frequently speaking at startup events and business schools about the challenges and opportunities of building technology companies in today\'s competitive landscape.'
-            },
-            'evelina': {
-                salutation: 'Ms.',
-                first_name: 'Evelina',
-                last_name: 'Stromberg',
-                email: 'example@example.com',
-                title: 'Private Equity Partnerships',
-                company: 'Vertice',
-                bio: 'Evelina Stromberg leads the Private Equity Partnerships division at Vertice, where she manages strategic relationships with over 100 private equity firms across Europe and North America. With 14 years of experience in private equity and investment banking, Evelina has been instrumental in developing Vertice\'s innovative approach to portfolio company value creation through technology partnerships and operational excellence programs. Her deep understanding of both the private equity landscape and technology trends has made her a sought-after advisor for fund managers and portfolio company executives.\n\nEvelina\'s expertise lies in identifying and executing strategic partnerships that drive value creation across diverse industry verticals. She has successfully facilitated over $2B in strategic transactions and partnerships, helping portfolio companies accelerate growth and improve operational efficiency. A native of Sweden, Evelina brings a unique international perspective to her work, having managed cross-border transactions and partnerships across multiple continents. She holds an MSc in Finance from Stockholm School of Economics and is fluent in five languages, which has been invaluable in building relationships with international private equity firms and their portfolio companies.'
-            }
-        };
-        
-        // Update page content based on attendee ID
-        if (attendeeId && attendees[attendeeId]) {
-            const attendee = attendees[attendeeId];
-            const fullName = `${attendee.first_name} ${attendee.last_name}`;
-            
-            // Basic info
-            document.getElementById('attendee-name').textContent = fullName;
-            document.getElementById('attendee-title').textContent = attendee.title;
-            document.getElementById('attendee-company').textContent = attendee.company;
-            document.title = `${fullName} - Conference App`;
-            
-            // Bio section
-            document.getElementById('attendee-bio').textContent = attendee.bio;
-        } else {
-            // Default values for unknown attendee
-            document.getElementById('attendee-name').textContent = 'Conference Attendee';
-            document.getElementById('attendee-title').textContent = 'Professional';
-            document.getElementById('attendee-company').textContent = 'Company';
-            document.getElementById('attendee-bio').textContent = 'Bio information not available.';
-        }
-
         // Toggle meet list functionality
         function toggleMeetList(button) {
             if (button.textContent === 'Add to Meet List') {
