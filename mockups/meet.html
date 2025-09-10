@@ -474,7 +474,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            background: var(--lime);
+            background: var(--white) !important;
             color: var(--ink-900);
             font-size: 14px;
             font-weight: 500;
@@ -483,15 +483,15 @@
             margin-top: var(--space-xs);
             cursor: pointer;
             transition: all 0.2s ease;
-            border: 1px solid transparent;
+            border: 1px solid var(--green-700) !important;
             position: relative;
             min-width: 140px;
             box-sizing: border-box;
         }
 
         .shared-events-widget:hover {
-            background: var(--lime);
-            border-color: var(--ink-500);
+            background: var(--green-50);
+            border: 1px solid var(--green-700);
             box-shadow: 0 2px 4px rgba(14,24,33,0.1);
         }
 
@@ -499,17 +499,19 @@
         .shared-events-widget.expanded {
             border-bottom-left-radius: 0;
             border-bottom-right-radius: 0;
-            border-bottom: 1px solid var(--lime);
+            border-bottom: 1px solid var(--green-700);
         }
 
         .shared-events-text {
             font-weight: 600;
+            color: var(--green-700);
         }
 
         .shared-events-arrow {
             transition: transform 0.2s ease;
             font-size: 12px;
             margin-left: var(--space-xs);
+            color: var(--green-700);
         }
 
         .shared-events-arrow.rotated {
@@ -520,7 +522,7 @@
             margin-top: 0;
             padding: var(--space-sm);
             background: var(--white);
-            border: 1px solid var(--lime);
+            border: 1px solid var(--green-700);
             border-top: none;
             border-bottom-left-radius: 6px;
             border-bottom-right-radius: 6px;
