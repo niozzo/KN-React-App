@@ -768,6 +768,27 @@
             transition: all 0.3s ease-out;
         }
 
+        /* Bio Link Styling */
+        .title-actions {
+            display: flex;
+            gap: var(--space-sm);
+            align-items: center;
+        }
+
+        .bio-link {
+            color: var(--purple-700);
+            text-decoration: underline;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .bio-link:hover {
+            color: var(--purple-900);
+            text-decoration: none;
+        }
+
         /* Responsive Design */
         @media (max-width: 768px) {
             .main-content {
@@ -911,7 +932,10 @@
                         <div class="attendee-info">
                             <div class="attendee-title-row">
                                 <div class="attendee-title">Chief Technology Officer</div>
-                                <a href="mailto:sarah@techcorp.com" class="email-link">Email</a>
+                                <div class="title-actions">
+                                    <a href="bio.html?id=sarah" class="bio-link">View Bio</a>
+                                    <a href="mailto:sarah@techcorp.com" class="email-link">Email</a>
+                                </div>
                             </div>
                             <div class="attendee-company">TechCorp</div>
                             <div class="shared-events-widget" onclick="toggleSharedEvents(this)">
@@ -935,7 +959,10 @@
                         <div class="attendee-info">
                             <div class="attendee-title-row">
                                 <div class="attendee-title">Global CIO</div>
-                                <a href="mailto:nigel@tosca.com" class="email-link">Email</a>
+                                <div class="title-actions">
+                                    <a href="bio.html?id=nigel" class="bio-link">View Bio</a>
+                                    <a href="mailto:nigel@tosca.com" class="email-link">Email</a>
+                                </div>
                             </div>
                             <div class="attendee-company">Tosca Ltd</div>
                         </div>
@@ -951,7 +978,10 @@
                         <div class="attendee-info">
                             <div class="attendee-title-row">
                                 <div class="attendee-title">Managing Director</div>
-                                <a href="mailto:ayla@accordion.com" class="email-link">Email</a>
+                                <div class="title-actions">
+                                    <a href="bio.html?id=ayla" class="bio-link">View Bio</a>
+                                    <a href="mailto:ayla@accordion.com" class="email-link">Email</a>
+                                </div>
                             </div>
                             <div class="attendee-company">Accordion <span class="sponsor-badge">Sponsor</span></div>
                             <div class="shared-events-widget" onclick="toggleSharedEvents(this)">
@@ -974,7 +1004,10 @@
                         <div class="attendee-info">
                             <div class="attendee-title-row">
                                 <div class="attendee-title">CEO</div>
-                                <a href="mailto:michael@innovatecorp.com" class="email-link">Email</a>
+                                <div class="title-actions">
+                                    <a href="bio.html?id=michael" class="bio-link">View Bio</a>
+                                    <a href="mailto:michael@innovatecorp.com" class="email-link">Email</a>
+                                </div>
                             </div>
                             <div class="attendee-company">InnovateCorp</div>
                         </div>
@@ -990,7 +1023,10 @@
                         <div class="attendee-info">
                             <div class="attendee-title-row">
                                 <div class="attendee-title">Private Equity Partnerships</div>
-                                <a href="mailto:evelina@vertice.com" class="email-link">Email</a>
+                                <div class="title-actions">
+                                    <a href="bio.html?id=evelina" class="bio-link">View Bio</a>
+                                    <a href="mailto:evelina@vertice.com" class="email-link">Email</a>
+                                </div>
                             </div>
                             <div class="attendee-company">Vertice <span class="sponsor-badge">Sponsor</span></div>
                             <div class="shared-events-widget" onclick="toggleSharedEvents(this)">
@@ -1018,7 +1054,10 @@
                         <div class="attendee-info">
                             <div class="attendee-title-row">
                                 <div class="attendee-title">Chief Technology Officer</div>
-                                <a href="mailto:sarah@techcorp.com" class="email-link">Email</a>
+                                <div class="title-actions">
+                                    <a href="bio.html?id=sarah" class="bio-link">View Bio</a>
+                                    <a href="mailto:sarah@techcorp.com" class="email-link">Email</a>
+                                </div>
                             </div>
                             <div class="attendee-company">TechCorp</div>
                             <div class="shared-events-widget" onclick="toggleSharedEvents(this)">
@@ -1042,7 +1081,10 @@
                         <div class="attendee-info">
                             <div class="attendee-title-row">
                                 <div class="attendee-title">CEO</div>
-                                <a href="mailto:michael@innovatecorp.com" class="email-link">Email</a>
+                                <div class="title-actions">
+                                    <a href="bio.html?id=michael" class="bio-link">View Bio</a>
+                                    <a href="mailto:michael@innovatecorp.com" class="email-link">Email</a>
+                                </div>
                             </div>
                             <div class="attendee-company">InnovateCorp</div>
                         </div>
@@ -1058,7 +1100,10 @@
                         <div class="attendee-info">
                             <div class="attendee-title-row">
                                 <div class="attendee-title">Private Equity Partnerships</div>
-                                <a href="mailto:evelina@vertice.com" class="email-link">Email</a>
+                                <div class="title-actions">
+                                    <a href="bio.html?id=evelina" class="bio-link">View Bio</a>
+                                    <a href="mailto:evelina@vertice.com" class="email-link">Email</a>
+                                </div>
                             </div>
                             <div class="attendee-company">Vertice <span class="sponsor-badge">Sponsor</span></div>
                             <div class="shared-events-widget" onclick="toggleSharedEvents(this)">
