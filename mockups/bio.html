@@ -72,15 +72,66 @@
             background: var(--ink-50);
             color: var(--ink-900);
             line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            background: var(--white);
+            padding: var(--space-md) var(--space-lg);
+            box-shadow: 0 2px 6px rgba(14,24,33,0.08);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-family: 'IBM Plex Sans', 'Inter', sans-serif;
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--purple-700);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .logo:hover {
+            color: var(--purple-500);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--purple-050);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: var(--purple-700);
         }
 
         .container {
             max-width: 800px;
             margin: 0 auto;
             padding: var(--space-lg);
+            padding-bottom: calc(var(--space-xl) + 80px); /* Account for fixed bottom nav */
+            flex: 1;
         }
 
-        .header {
+        .profile-header {
             background: var(--white);
             border-radius: 12px;
             padding: var(--space-xl);
@@ -88,19 +139,34 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
+        .profile-info-section {
+            display: flex;
+            align-items: center;
+            gap: var(--space-lg);
+            margin-bottom: var(--space-lg);
+        }
+
+        .back-link-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-sm);
+        }
+
         .back-link {
             display: inline-flex;
             align-items: center;
-            gap: var(--space-sm);
+            gap: var(--space-xs);
             color: var(--purple-700);
-            text-decoration: none;
+            font-size: 16px;
             font-weight: 500;
-            margin-bottom: var(--space-lg);
+            text-decoration: none;
             transition: color 0.2s ease;
         }
 
         .back-link:hover {
             color: var(--purple-900);
+            text-decoration: underline;
         }
 
         .profile-header {
@@ -192,6 +258,13 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
+        .profile-section {
+            display: flex;
+            align-items: center;
+            gap: var(--space-lg);
+            margin-bottom: var(--space-lg);
+        }
+
         .section {
             margin-bottom: var(--space-xl);
         }
@@ -243,6 +316,63 @@
             font-size: 14px;
         }
 
+        /* Bottom Navigation */
+        .bottom-nav {
+            background: var(--white);
+            border-top: 1px solid var(--gray-200);
+            padding: var(--space-sm) 0;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            width: 100%;
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-around;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 var(--space-lg);
+            min-width: 320px;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: var(--space-sm);
+            text-decoration: none;
+            color: var(--ink-500);
+            transition: color 0.2s ease;
+            min-width: 60px;
+            flex: 1;
+        }
+
+        .nav-item.active {
+            color: var(--purple-700);
+        }
+
+        .nav-item:hover {
+            color: var(--purple-700);
+        }
+
+        .nav-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .nav-label {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
         .in-meet-list-tag {
             background: var(--green-100);
             color: var(--green-700);
@@ -281,13 +411,26 @@
     </style>
 </head>
 <body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <a href="home.html" class="logo">KnowledgeNow</a>
+            <div class="user-info">
+                <div class="user-avatar">JD</div>
+                <span>John Doe</span>
+            </div>
+        </div>
+    </header>
+
     <div class="container">
-        <div class="header">
+        <div class="back-link-container">
             <a href="meet.html" class="back-link">
                 ← Back to Meet List
             </a>
-            
-            <div class="profile-header">
+        </div>
+        
+        <div class="profile-header">
+            <div class="profile-info-section">
                 <div class="avatar">👤</div>
                 <div class="profile-info">
                     <h1 id="attendee-name">Attendee Name</h1>
@@ -315,6 +458,32 @@
             <p>Conference Networking App - Demo Version</p>
         </div>
     </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <div class="nav-container">
+            <a href="home.html" class="nav-item">
+                <div class="nav-icon">🏠</div>
+                <div class="nav-label">Home</div>
+            </a>
+            <a href="schedule.html" class="nav-item">
+                <div class="nav-icon">📅</div>
+                <div class="nav-label">Schedule</div>
+            </a>
+            <a href="meet.html" class="nav-item active">
+                <div class="nav-icon">👥</div>
+                <div class="nav-label">Meet</div>
+            </a>
+            <a href="sponsors.html" class="nav-item">
+                <div class="nav-icon">🏢</div>
+                <div class="nav-label">Sponsors</div>
+            </a>
+            <a href="settings.html" class="nav-item">
+                <div class="nav-icon">⚙️</div>
+                <div class="nav-label">Settings</div>
+            </a>
+        </div>
+    </nav>
 
     <script>
         // Get attendee info from URL parameters
