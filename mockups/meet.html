@@ -24,6 +24,11 @@
             --lime: #7FB069;
             --magenta: #A67DB8;
             
+            /* Green colors for meet list tag */
+            --green-100: #dcfce7;
+            --green-300: #86efac;
+            --green-700: #15803d;
+            
             /* Spacing */
             --space-xs: 8px;
             --space-sm: 12px;
@@ -438,6 +443,17 @@
             font-weight: 500;
             cursor: pointer;
             transition: all 0.2s ease;
+            height: 32px;
+            min-height: 32px;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-xs);
+        }
+
+        .action-button::before {
+            content: "+";
+            font-weight: bold;
+            font-size: 16px;
         }
 
         .action-button:hover {
@@ -728,11 +744,14 @@
             display: inline-flex;
             align-items: center;
             gap: var(--space-xs);
+            height: 32px;
+            min-height: 32px;
         }
 
         .in-meet-list-tag::before {
             content: "✓";
             font-weight: bold;
+            font-size: 16px;
         }
 
         /* Remove Animation */
@@ -934,7 +953,7 @@
                                 <div class="attendee-title">Chief Technology Officer</div>
                                 <div class="title-actions">
                                     <a href="bio.html?id=sarah" class="bio-link">View Bio</a>
-                                    <a href="mailto:sarah@techcorp.com" class="email-link">Email</a>
+                                    <a href="mailto:example@example.com" class="email-link">Email</a>
                                 </div>
                             </div>
                             <div class="attendee-company">TechCorp</div>
@@ -961,7 +980,7 @@
                                 <div class="attendee-title">Global CIO</div>
                                 <div class="title-actions">
                                     <a href="bio.html?id=nigel" class="bio-link">View Bio</a>
-                                    <a href="mailto:nigel@tosca.com" class="email-link">Email</a>
+                                    <a href="mailto:example@example.com" class="email-link">Email</a>
                                 </div>
                             </div>
                             <div class="attendee-company">Tosca Ltd</div>
@@ -980,7 +999,7 @@
                                 <div class="attendee-title">Managing Director</div>
                                 <div class="title-actions">
                                     <a href="bio.html?id=ayla" class="bio-link">View Bio</a>
-                                    <a href="mailto:ayla@accordion.com" class="email-link">Email</a>
+                                    <a href="mailto:example@example.com" class="email-link">Email</a>
                                 </div>
                             </div>
                             <div class="attendee-company">Accordion <span class="sponsor-badge">Sponsor</span></div>
@@ -1006,7 +1025,7 @@
                                 <div class="attendee-title">CEO</div>
                                 <div class="title-actions">
                                     <a href="bio.html?id=michael" class="bio-link">View Bio</a>
-                                    <a href="mailto:michael@innovatecorp.com" class="email-link">Email</a>
+                                    <a href="mailto:example@example.com" class="email-link">Email</a>
                                 </div>
                             </div>
                             <div class="attendee-company">InnovateCorp</div>
@@ -1025,7 +1044,7 @@
                                 <div class="attendee-title">Private Equity Partnerships</div>
                                 <div class="title-actions">
                                     <a href="bio.html?id=evelina" class="bio-link">View Bio</a>
-                                    <a href="mailto:evelina@vertice.com" class="email-link">Email</a>
+                                    <a href="mailto:example@example.com" class="email-link">Email</a>
                                 </div>
                             </div>
                             <div class="attendee-company">Vertice <span class="sponsor-badge">Sponsor</span></div>
@@ -1056,7 +1075,7 @@
                                 <div class="attendee-title">Chief Technology Officer</div>
                                 <div class="title-actions">
                                     <a href="bio.html?id=sarah" class="bio-link">View Bio</a>
-                                    <a href="mailto:sarah@techcorp.com" class="email-link">Email</a>
+                                    <a href="mailto:example@example.com" class="email-link">Email</a>
                                 </div>
                             </div>
                             <div class="attendee-company">TechCorp</div>
@@ -1083,7 +1102,7 @@
                                 <div class="attendee-title">CEO</div>
                                 <div class="title-actions">
                                     <a href="bio.html?id=michael" class="bio-link">View Bio</a>
-                                    <a href="mailto:michael@innovatecorp.com" class="email-link">Email</a>
+                                    <a href="mailto:example@example.com" class="email-link">Email</a>
                                 </div>
                             </div>
                             <div class="attendee-company">InnovateCorp</div>
@@ -1102,7 +1121,7 @@
                                 <div class="attendee-title">Private Equity Partnerships</div>
                                 <div class="title-actions">
                                     <a href="bio.html?id=evelina" class="bio-link">View Bio</a>
-                                    <a href="mailto:evelina@vertice.com" class="email-link">Email</a>
+                                    <a href="mailto:example@example.com" class="email-link">Email</a>
                                 </div>
                             </div>
                             <div class="attendee-company">Vertice <span class="sponsor-badge">Sponsor</span></div>

@@ -29,7 +29,32 @@ This directory contains the results and documentation from various technical spi
 
 **Architecture Decision**: Documented in `docs/architecture/ADR-003-vercel-spike-solution.md`
 
-### 2. Legacy Spikes (`legacy/`)
+### 2. Application Data Storage Spike (`application-data-storage-spike.md`)
+
+**Objective**: Determine the optimal approach for storing user-specific application data that cannot be stored in the read-only conference database.
+
+**Key Findings**:
+- ✅ **Problem Identified**: Need separate storage for meet lists, user preferences, and personal data
+- ✅ **Approaches Evaluated**: Separate Supabase project, local storage, Vercel KV, hybrid approach
+- ✅ **Recommendation**: Hybrid approach with local storage + cloud sync
+- ✅ **Privacy Considerations**: GDPR compliance and data minimization requirements
+- ✅ **Schema Design**: Complete database schema for user data tables
+
+**Files**:
+- `application-data-storage-spike.md` - Comprehensive analysis and recommendations
+
+**Key Requirements**:
+- Meet lists persistence (Story 3.2)
+- User preferences and privacy settings (Story 6.1)
+- Session feedback storage (Story 7.2)
+- Personal bookmarks (Story 7.3)
+- Offline-first functionality
+- Cross-device synchronization
+- GDPR compliance
+
+**Architecture Decision**: Pending implementation and validation
+
+### 3. Legacy Spikes (`legacy/`)
 
 **Files**:
 - `index.html` - Original local test page with "Direct PostgreSQL" button
