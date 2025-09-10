@@ -636,6 +636,138 @@
             font-weight: 500;
         }
 
+        /* Business Card Animation */
+        @keyframes flyToMeetList {
+            0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+            70% {
+                transform: translate(var(--delta-x), var(--delta-y)) scale(0.8);
+                opacity: 0.8;
+            }
+            85% {
+                transform: translate(var(--delta-x), var(--delta-y)) scale(0.8);
+                opacity: 0.8;
+            }
+            100% {
+                transform: translate(var(--delta-x), var(--delta-y)) scale(0.6);
+                opacity: 0;
+            }
+        }
+
+        @keyframes counterPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes tabFlash {
+            0% { 
+                background: var(--white);
+                box-shadow: 0 2px 6px rgba(14,24,33,0.08);
+                transform: scale(1);
+            }
+            15% { 
+                background: var(--green-300);
+                box-shadow: 0 8px 20px rgba(34, 197, 94, 0.6);
+                transform: scale(1.05);
+            }
+            30% { 
+                background: var(--green-500);
+                box-shadow: 0 12px 28px rgba(34, 197, 94, 0.8);
+                transform: scale(1.08);
+            }
+            45% { 
+                background: var(--green-400);
+                box-shadow: 0 10px 24px rgba(34, 197, 94, 0.7);
+                transform: scale(1.05);
+            }
+            60% { 
+                background: var(--green-200);
+                box-shadow: 0 6px 16px rgba(34, 197, 94, 0.5);
+                transform: scale(1.02);
+            }
+            80% { 
+                background: var(--green-100);
+                box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+                transform: scale(1.01);
+            }
+            100% { 
+                background: var(--white);
+                box-shadow: 0 2px 6px rgba(14,24,33,0.08);
+                transform: scale(1);
+            }
+        }
+
+        .business-card-icon {
+            position: fixed;
+            font-size: 24px;
+            z-index: 1000;
+            pointer-events: none;
+            animation: flyToMeetList 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+
+        .counter-pulse {
+            animation: counterPulse 0.6s ease-out;
+        }
+
+        .tab-flash {
+            animation: tabFlash 1.2s ease-out;
+        }
+
+        .in-meet-list-tag {
+            background: var(--green-100);
+            color: var(--green-700);
+            border: 1px solid var(--green-300);
+            padding: var(--space-xs) var(--space-sm);
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-xs);
+        }
+
+        .in-meet-list-tag::before {
+            content: "✓";
+            font-weight: bold;
+        }
+
+        /* Remove Animation */
+        @keyframes fadeOutAndRemove {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+                max-height: 200px;
+                margin-bottom: var(--space-md);
+            }
+            50% {
+                opacity: 0;
+                transform: scale(0.95);
+                max-height: 200px;
+                margin-bottom: var(--space-md);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.9);
+                max-height: 0;
+                margin-bottom: 0;
+                padding-top: 0;
+                padding-bottom: 0;
+            }
+        }
+
+        .attendee-item.removing {
+            animation: fadeOutAndRemove 0.6s ease-out forwards;
+            overflow: hidden;
+        }
+
+        .attendee-list.smooth-scroll {
+            transition: all 0.3s ease-out;
+        }
+
         /* Responsive Design */
         @media (max-width: 768px) {
             .main-content {
@@ -774,7 +906,7 @@
                     <div class="attendee-header">
                         <div class="attendee-name-row">
                             <div class="attendee-name">Sarah Qwertyuioplkjhgfdsazxcvbnmasdfghjklpoiuytrewqmnbvcxzasdfg</div>
-                            <button class="action-button">Add to Meet List</button>
+                            <button class="action-button" onclick="addToMeetList(this, 'Sarah Chen')">Add to Meet List</button>
                         </div>
                         <div class="attendee-info">
                             <div class="attendee-title-row">
@@ -798,7 +930,7 @@
                     <div class="attendee-header">
                         <div class="attendee-name-row">
                             <div class="attendee-name">Nigel Lemmon</div>
-                            <button class="action-button">Add to Meet List</button>
+                            <button class="action-button" onclick="addToMeetList(this, 'Nigel Lemmon')">Add to Meet List</button>
                         </div>
                         <div class="attendee-info">
                             <div class="attendee-title-row">
@@ -814,7 +946,7 @@
                     <div class="attendee-header">
                         <div class="attendee-name-row">
                             <div class="attendee-name">Ayla Queiroga</div>
-                            <button class="action-button">Add to Meet List</button>
+                            <button class="action-button" onclick="addToMeetList(this, 'Ayla Queiroga')">Add to Meet List</button>
                         </div>
                         <div class="attendee-info">
                             <div class="attendee-title-row">
@@ -837,7 +969,7 @@
                     <div class="attendee-header">
                         <div class="attendee-name-row">
                             <div class="attendee-name">Michael Rodriguez</div>
-                            <button class="action-button">Add to Meet List</button>
+                            <button class="action-button" onclick="addToMeetList(this, 'Michael Rodriguez')">Add to Meet List</button>
                         </div>
                         <div class="attendee-info">
                             <div class="attendee-title-row">
@@ -853,7 +985,7 @@
                     <div class="attendee-header">
                         <div class="attendee-name-row">
                             <div class="attendee-name">Evelina Stromberg</div>
-                            <button class="action-button">Add to Meet List</button>
+                            <button class="action-button" onclick="addToMeetList(this, 'Evelina Stromberg')">Add to Meet List</button>
                         </div>
                         <div class="attendee-info">
                             <div class="attendee-title-row">
@@ -881,7 +1013,7 @@
                     <div class="attendee-header">
                         <div class="attendee-name-row">
                             <div class="attendee-name">Sarah Qwertyuioplkjhgfdsazxcvbnmasdfghjklpoiuytrewqmnbvcxzasdfg</div>
-                            <button class="action-button" style="color: var(--coral); border-color: var(--coral);">Remove</button>
+                            <button class="action-button" style="color: var(--coral); border-color: var(--coral);" onclick="removeFromMeetList(this, 'Sarah Chen')">Remove</button>
                         </div>
                         <div class="attendee-info">
                             <div class="attendee-title-row">
@@ -905,7 +1037,7 @@
                     <div class="attendee-header">
                         <div class="attendee-name-row">
                             <div class="attendee-name">Michael Rodriguez</div>
-                            <button class="action-button" style="color: var(--coral); border-color: var(--coral);">Remove</button>
+                            <button class="action-button" style="color: var(--coral); border-color: var(--coral);" onclick="removeFromMeetList(this, 'Michael Rodriguez')">Remove</button>
                         </div>
                         <div class="attendee-info">
                             <div class="attendee-title-row">
@@ -921,7 +1053,7 @@
                     <div class="attendee-header">
                         <div class="attendee-name-row">
                             <div class="attendee-name">Evelina Stromberg</div>
-                            <button class="action-button" style="color: var(--coral); border-color: var(--coral);">Remove</button>
+                            <button class="action-button" style="color: var(--coral); border-color: var(--coral);" onclick="removeFromMeetList(this, 'Evelina Stromberg')">Remove</button>
                         </div>
                         <div class="attendee-info">
                             <div class="attendee-title-row">
@@ -1072,6 +1204,117 @@
                     item.style.display = 'block';
                 }
             });
+        }
+
+        // Track meet list count
+        let meetListCount = 3; // Initial count from the HTML
+
+        // Add to meet list with business card animation
+        function addToMeetList(button, attendeeName) {
+            // Get button position for animation start point
+            const buttonRect = button.getBoundingClientRect();
+            const startX = buttonRect.left + buttonRect.width / 2;
+            const startY = buttonRect.top + buttonRect.height / 2;
+            
+            // Get My Meet List tab position for animation end point
+            const meetListTab = document.querySelector('.tab-button:nth-child(2)');
+            const tabRect = meetListTab.getBoundingClientRect();
+            const endX = tabRect.left + tabRect.width / 2;
+            const endY = tabRect.top + tabRect.height / 2;
+            
+            // Calculate distance to travel
+            const deltaX = endX - startX;
+            const deltaY = endY - startY;
+            
+            // Create business card icon
+            const businessCard = document.createElement('div');
+            businessCard.className = 'business-card-icon';
+            businessCard.innerHTML = '📇';
+            businessCard.style.left = startX + 'px';
+            businessCard.style.top = startY + 'px';
+            
+            // Set CSS custom properties for animation
+            businessCard.style.setProperty('--delta-x', deltaX + 'px');
+            businessCard.style.setProperty('--delta-y', deltaY + 'px');
+            
+            document.body.appendChild(businessCard);
+            
+            // Update counter
+            updateMeetListCounter();
+            
+            // Change button to "In my meet list" tag
+            setTimeout(() => {
+                button.outerHTML = '<span class="in-meet-list-tag">In my meet list</span>';
+            }, 400); // Change button after animation starts
+            
+            // Remove business card after animation
+            setTimeout(() => {
+                if (businessCard.parentNode) {
+                    businessCard.parentNode.removeChild(businessCard);
+                }
+            }, 800);
+        }
+
+        // Update meet list counter with pulse and flash animation
+        function updateMeetListCounter() {
+            meetListCount++;
+            const meetListButton = document.querySelector('.tab-button:nth-child(2)');
+            
+            // Add pulse and flash animations
+            meetListButton.classList.add('counter-pulse');
+            meetListButton.classList.add('tab-flash');
+            
+            // Update the text
+            meetListButton.textContent = `My Meet List (${meetListCount})`;
+            
+            // Remove animation classes after animations complete
+            setTimeout(() => {
+                meetListButton.classList.remove('counter-pulse');
+                meetListButton.classList.remove('tab-flash');
+            }, 1200);
+        }
+
+        // Remove from meet list with fade animation
+        function removeFromMeetList(button, attendeeName) {
+            // Get the attendee card
+            const attendeeCard = button.closest('.attendee-item');
+            const attendeeList = attendeeCard.closest('.attendee-list');
+            
+            // Add smooth scroll class to the list
+            attendeeList.classList.add('smooth-scroll');
+            
+            // Add removing animation class
+            attendeeCard.classList.add('removing');
+            
+            // Update counter immediately
+            updateMeetListCounterRemove();
+            
+            // Remove the card from DOM after animation
+            setTimeout(() => {
+                if (attendeeCard.parentNode) {
+                    attendeeCard.parentNode.removeChild(attendeeCard);
+                }
+                
+                // Remove smooth scroll class
+                attendeeList.classList.remove('smooth-scroll');
+            }, 600);
+        }
+
+        // Update meet list counter for removal
+        function updateMeetListCounterRemove() {
+            meetListCount--;
+            const meetListButton = document.querySelector('.tab-button:nth-child(2)');
+            
+            // Add pulse animation
+            meetListButton.classList.add('counter-pulse');
+            
+            // Update the text
+            meetListButton.textContent = `My Meet List (${meetListCount})`;
+            
+            // Remove animation class after animation completes
+            setTimeout(() => {
+                meetListButton.classList.remove('counter-pulse');
+            }, 600);
         }
 
         // Initialize sorting on page load (default to last name)
