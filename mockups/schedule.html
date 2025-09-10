@@ -24,6 +24,11 @@
             --lime: #7FB069;
             --magenta: #A67DB8;
             
+            /* Green colors for status tags */
+            --green-100: #dcfce7;
+            --green-300: #86efac;
+            --green-700: #15803d;
+            
             /* Spacing */
             --space-xs: 8px;
             --space-sm: 12px;
@@ -222,8 +227,11 @@
         }
 
         .status-upcoming {
-            background: var(--purple-050);
-            color: var(--purple-700);
+            background: var(--green-100);
+            color: var(--green-700);
+            border: 1px solid var(--green-300);
+            border-radius: 6px;
+            font-weight: 500;
         }
 
         .status-past {
