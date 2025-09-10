@@ -103,7 +103,7 @@
         .main-content {
             flex: 1;
             padding: var(--space-lg);
-            padding-bottom: calc(var(--space-lg) + 80px); /* Account for fixed bottom nav */
+            padding-bottom: calc(var(--space-xl) + 300px); /* Account for fixed bottom nav + full card height */
             max-width: 1200px;
             margin: 0 auto;
             width: 100%;
@@ -152,7 +152,7 @@
         }
 
         /* Search Section */
-        .search-section {
+        .search-section-header {
             background: var(--white);
             border-radius: 12px;
             padding: var(--space-lg);
@@ -160,12 +160,53 @@
             box-shadow: 0 2px 6px rgba(14,24,33,0.08);
         }
 
-        .search-title {
+        .search-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            padding: 0;
+            border: none;
+            background: transparent;
+            color: var(--ink-900);
             font-family: var(--font-heading);
             font-size: 20px;
             font-weight: 600;
-            color: var(--ink-900);
-            margin-bottom: var(--space-md);
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .search-toggle:hover {
+            color: var(--purple-700);
+        }
+
+        /* When expanded, modify the header styling */
+        .search-section-header.expanded {
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+            margin-bottom: 0;
+        }
+
+        .search-arrow {
+            transition: transform 0.2s ease;
+            color: var(--ink-500);
+            font-size: 16px;
+        }
+
+        .search-arrow.rotated {
+            transform: rotate(180deg);
+        }
+
+        .search-section {
+            background: var(--white);
+            border-radius: 12px;
+            padding: var(--space-lg);
+            margin-bottom: var(--space-lg);
+            box-shadow: 0 2px 6px rgba(14,24,33,0.08);
+            border-top: none;
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
+            margin-top: 0;
         }
 
         .search-controls {
@@ -194,73 +235,136 @@
             color: var(--ink-500);
         }
 
-        .filter-row {
+        /* Sort Section */
+        .sort-section {
             display: flex;
-            gap: var(--space-md);
+            align-items: center;
+            gap: var(--space-sm);
             flex-wrap: wrap;
         }
 
-        .filter-select {
+        .sort-label {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--ink-700);
+            white-space: nowrap;
+        }
+
+        .sort-select {
             padding: var(--space-sm) var(--space-md);
             border: 1px solid var(--gray-300);
             border-radius: 8px;
             background: var(--white);
             color: var(--ink-900);
             font-size: 16px;
-            min-width: 150px;
+            min-width: 200px;
+            cursor: pointer;
         }
 
-        .filter-select:focus {
+        .sort-select:focus {
             outline: none;
             border-color: var(--purple-700);
             box-shadow: 0 0 0 2px rgba(124,76,196,0.2);
         }
 
+        .sort-select:hover {
+            border-color: var(--purple-700);
+        }
+
+        /* Filter Section */
+        .filter-section {
+            margin-top: var(--space-md);
+        }
+
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .toggle-container input[type="checkbox"] {
+            display: none;
+        }
+
+        .toggle-slider {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+            background-color: var(--gray-300);
+            border-radius: 12px;
+            transition: background-color 0.3s ease;
+        }
+
+        .toggle-slider:before {
+            content: "";
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background-color: var(--white);
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-container input[type="checkbox"]:checked + .toggle-slider {
+            background-color: var(--purple-700);
+        }
+
+        .toggle-container input[type="checkbox"]:checked + .toggle-slider:before {
+            transform: translateX(20px);
+        }
+
+        .toggle-label {
+            font-size: 16px;
+            color: var(--ink-700);
+            font-weight: 500;
+        }
+
         /* Attendee List */
         .attendee-list {
-            background: var(--white);
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 2px 6px rgba(14,24,33,0.08);
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md);
+            margin-bottom: 200px; /* Extra space to ensure last card is visible */
         }
 
         .attendee-item {
+            background: var(--white);
+            border-radius: 12px;
             padding: var(--space-lg);
-            border-bottom: 1px solid var(--gray-200);
-            transition: background-color 0.2s ease;
+            box-shadow: 0 2px 6px rgba(14,24,33,0.08);
+            transition: all 0.2s ease;
             cursor: pointer;
-        }
-
-        .attendee-item:last-child {
-            border-bottom: none;
         }
 
         .attendee-item:hover {
             background-color: var(--gray-100);
+            box-shadow: 0 4px 12px rgba(14,24,33,0.12);
+            transform: translateY(-1px);
         }
 
         .attendee-header {
             display: flex;
-            align-items: center;
-            gap: var(--space-md);
+            flex-direction: column;
+            gap: var(--space-sm);
             margin-bottom: var(--space-sm);
-        }
-
-        .attendee-avatar {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background: var(--purple-050);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            color: var(--purple-700);
-            font-size: 20px;
         }
 
         .attendee-info {
             flex: 1;
+        }
+
+        .attendee-name-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 2px;
+            width: 100%;
         }
 
         .attendee-name {
@@ -268,13 +372,51 @@
             font-size: 18px;
             font-weight: 600;
             color: var(--ink-900);
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .attendee-name-row .action-button {
+            font-size: 14px;
+            padding: 4px 12px;
+            white-space: nowrap;
+            margin-left: var(--space-sm);
+            flex-shrink: 0;
+        }
+
+        .attendee-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
             margin-bottom: 2px;
+            width: 100%;
         }
 
         .attendee-title {
             font-size: 16px;
             color: var(--ink-700);
-            margin-bottom: 2px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .email-link {
+            font-size: 14px;
+            color: var(--purple-700);
+            text-decoration: underline;
+            margin-left: var(--space-sm);
+            flex-shrink: 0;
+            transition: color 0.2s ease;
+        }
+
+        .email-link:hover {
+            color: var(--purple-900);
+            text-decoration: underline;
         }
 
         .attendee-company {
@@ -282,10 +424,6 @@
             color: var(--ink-500);
         }
 
-        .attendee-actions {
-            display: flex;
-            gap: var(--space-sm);
-        }
 
         .action-button {
             padding: var(--space-xs) var(--space-sm);
@@ -313,25 +451,74 @@
             background: var(--purple-900);
         }
 
-        .overlap-info {
+        .shared-events-widget {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             background: var(--lime);
-            padding: var(--space-sm);
-            border-radius: 8px;
-            margin-top: var(--space-sm);
-        }
-
-        .overlap-label {
+            color: var(--ink-900);
             font-size: 14px;
-            font-weight: 600;
-            color: var(--ink-900);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 4px;
+            font-weight: 500;
+            padding: var(--space-xs) var(--space-sm);
+            border-radius: 6px;
+            margin-top: var(--space-xs);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+            position: relative;
+            min-width: 140px;
+            box-sizing: border-box;
         }
 
-        .overlap-details {
-            font-size: 16px;
-            color: var(--ink-900);
+        .shared-events-widget:hover {
+            background: var(--lime);
+            border-color: var(--ink-500);
+            box-shadow: 0 2px 4px rgba(14,24,33,0.1);
+        }
+
+        /* When expanded, modify the widget styling */
+        .shared-events-widget.expanded {
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+            border-bottom: 1px solid var(--lime);
+        }
+
+        .shared-events-text {
+            font-weight: 600;
+        }
+
+        .shared-events-arrow {
+            transition: transform 0.2s ease;
+            font-size: 12px;
+            margin-left: var(--space-xs);
+        }
+
+        .shared-events-arrow.rotated {
+            transform: rotate(180deg);
+        }
+
+        .shared-events-details {
+            margin-top: 0;
+            padding: var(--space-sm);
+            background: var(--white);
+            border: 1px solid var(--lime);
+            border-top: none;
+            border-bottom-left-radius: 6px;
+            border-bottom-right-radius: 6px;
+            box-shadow: 0 2px 4px rgba(14,24,33,0.1);
+            min-width: 140px;
+            box-sizing: border-box;
+        }
+
+        .shared-event-item {
+            font-size: 14px;
+            color: var(--ink-700);
+            padding: var(--space-xs) 0;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .shared-event-item:last-child {
+            border-bottom: none;
         }
 
         .sponsor-badge {
@@ -456,11 +643,13 @@
                 font-size: 26px;
             }
             
-            .filter-row {
+            .sort-section {
                 flex-direction: column;
+                align-items: flex-start;
+                gap: var(--space-xs);
             }
             
-            .filter-select {
+            .sort-select {
                 min-width: 100%;
             }
             
@@ -470,14 +659,21 @@
             
             .attendee-header {
                 flex-direction: column;
-                align-items: flex-start;
                 gap: var(--space-sm);
             }
             
-            .attendee-actions {
-                width: 100%;
-                justify-content: flex-end;
+            .attendee-name-row {
+                flex-direction: row;
+                align-items: baseline;
+                gap: var(--space-sm);
             }
+            
+            .attendee-title-row {
+                flex-direction: row;
+                align-items: baseline;
+                gap: var(--space-sm);
+            }
+            
         }
 
         @media (max-width: 480px) {
@@ -487,7 +683,7 @@
             
             .main-content {
                 padding: var(--space-sm);
-                padding-bottom: calc(var(--space-sm) + 80px); /* Account for fixed bottom nav */
+                padding-bottom: calc(var(--space-lg) + 300px); /* Account for fixed bottom nav + full card height */
             }
             
             .nav-container {
@@ -542,117 +738,133 @@
         <!-- All Attendees Tab -->
         <div id="all-attendees" class="tab-content">
             <!-- Search Section -->
-            <section class="search-section">
-                <h2 class="search-title">Find People to Meet</h2>
+            <section class="search-section-header">
+                <button class="search-toggle" id="searchToggle" onclick="toggleSearchSection()">
+                    <span>Find People to Meet</span>
+                    <span class="search-arrow" id="searchArrow">▼</span>
+                </button>
+            </section>
+            
+            <section class="search-section" id="searchSection" style="display: none;">
                 <div class="search-controls">
                     <input type="text" class="search-input" placeholder="Search by name, company, or role...">
-                    <div class="filter-row">
-                        <select class="filter-select">
-                            <option value="">All Companies</option>
-                            <option value="techcorp">TechCorp</option>
-                            <option value="accordion">Accordion</option>
-                            <option value="alvarez">Alvarez & Marsal</option>
-                        </select>
-                        <select class="filter-select">
-                            <option value="">All Roles</option>
-                            <option value="ceo">CEO</option>
-                            <option value="cfo">CFO</option>
-                            <option value="cto">CTO</option>
-                        </select>
-                        <select class="filter-select">
-                            <option value="">All Tracks</option>
-                            <option value="revenue">Revenue Growth</option>
-                            <option value="operations">Operational Performance</option>
+                    <div class="filter-section">
+                        <label class="toggle-container">
+                            <input type="checkbox" id="sharedEventsFilter" onchange="handleSharedEventsFilter(this.checked)">
+                            <span class="toggle-slider"></span>
+                            <span class="toggle-label">Show only people with shared events</span>
+                        </label>
+                    </div>
+                    <div class="sort-section">
+                        <select class="sort-select" id="sortSelect" onchange="handleSortChange(this.value)">
+                            <option value="lastname">Sort by Last Name</option>
+                            <option value="firstname">Sort by First Name</option>
+                            <option value="company">Sort by Company Name</option>
                         </select>
                     </div>
                 </div>
             </section>
 
             <!-- Attendee List -->
-            <div class="attendee-list">
-                <div class="attendee-item">
+            <div class="attendee-list" id="attendeeList">
+                <div class="attendee-item" data-firstname="Sarah" data-lastname="Chen" data-company="TechCorp">
                     <div class="attendee-header">
-                        <div class="attendee-avatar">SC</div>
+                        <div class="attendee-name-row">
+                            <div class="attendee-name">Sarah Qwertyuioplkjhgfdsazxcvbnmasdfghjklpoiuytrewqmnbvcxzasdfg</div>
+                            <button class="action-button">Add to Meet List</button>
+                        </div>
                         <div class="attendee-info">
-                            <div class="attendee-name">Sarah Chen</div>
-                            <div class="attendee-title">Chief Technology Officer</div>
-                            <div class="attendee-company">TechCorp <span class="sponsor-badge">Sponsor</span></div>
-                        </div>
-                        <div class="attendee-actions">
-                            <button class="action-button primary">Add to Meet List</button>
-                            <button class="action-button">Email</button>
-                        </div>
-                    </div>
-                    <div class="overlap-info">
-                        <div class="overlap-label">Overlap Opportunities</div>
-                        <div class="overlap-details">At dinner table together (Table 8) • Shared session: Digital Transformation (9:00 AM)</div>
-                    </div>
-                </div>
-
-                <div class="attendee-item">
-                    <div class="attendee-header">
-                        <div class="attendee-avatar">MR</div>
-                        <div class="attendee-info">
-                            <div class="attendee-name">Michael Rodriguez</div>
-                            <div class="attendee-title">CEO</div>
-                            <div class="attendee-company">InnovateCorp</div>
-                        </div>
-                        <div class="attendee-actions">
-                            <button class="action-button primary">Add to Meet List</button>
-                            <button class="action-button">Email</button>
-                        </div>
-                    </div>
-                    <div class="overlap-info">
-                        <div class="overlap-label">Overlap Opportunities</div>
-                        <div class="overlap-details">Shared session: Revenue Growth Strategies (10:30 AM)</div>
-                    </div>
-                </div>
-
-                <div class="attendee-item">
-                    <div class="attendee-header">
-                        <div class="attendee-avatar">AL</div>
-                        <div class="attendee-info">
-                            <div class="attendee-name">Ayla Queiroga</div>
-                            <div class="attendee-title">Managing Director</div>
-                            <div class="attendee-company">Accordion <span class="sponsor-badge">Sponsor</span></div>
-                        </div>
-                        <div class="attendee-actions">
-                            <button class="action-button primary">Add to Meet List</button>
-                            <button class="action-button">Email</button>
+                            <div class="attendee-title-row">
+                                <div class="attendee-title">Chief Technology Officer</div>
+                                <a href="mailto:sarah@techcorp.com" class="email-link">Email</a>
+                            </div>
+                            <div class="attendee-company">TechCorp</div>
+                            <div class="shared-events-widget" onclick="toggleSharedEvents(this)">
+                                <span class="shared-events-text">2 Shared Events</span>
+                                <span class="shared-events-arrow">▼</span>
+                            </div>
+                            <div class="shared-events-details" style="display: none;">
+                                <div class="shared-event-item">📅 Digital Transformation session (9:00 AM)</div>
+                                <div class="shared-event-item">🍽️ Table 8 dinner</div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="attendee-item">
+                <div class="attendee-item" data-firstname="Nigel" data-lastname="Lemmon" data-company="Tosca Ltd">
                     <div class="attendee-header">
-                        <div class="attendee-avatar">ES</div>
-                        <div class="attendee-info">
-                            <div class="attendee-name">Evelina Stromberg</div>
-                            <div class="attendee-title">Private Equity Partnerships</div>
-                            <div class="attendee-company">Vertice <span class="sponsor-badge">Sponsor</span></div>
-                        </div>
-                        <div class="attendee-actions">
-                            <button class="action-button primary">Add to Meet List</button>
-                            <button class="action-button">Email</button>
-                        </div>
-                    </div>
-                    <div class="overlap-info">
-                        <div class="overlap-label">Overlap Opportunities</div>
-                        <div class="overlap-details">Shared session: Operational Performance (10:30 AM)</div>
-                    </div>
-                </div>
-
-                <div class="attendee-item">
-                    <div class="attendee-header">
-                        <div class="attendee-avatar">NL</div>
-                        <div class="attendee-info">
+                        <div class="attendee-name-row">
                             <div class="attendee-name">Nigel Lemmon</div>
-                            <div class="attendee-title">Global CIO</div>
+                            <button class="action-button">Add to Meet List</button>
+                        </div>
+                        <div class="attendee-info">
+                            <div class="attendee-title-row">
+                                <div class="attendee-title">Global CIO</div>
+                                <a href="mailto:nigel@tosca.com" class="email-link">Email</a>
+                            </div>
                             <div class="attendee-company">Tosca Ltd</div>
                         </div>
-                        <div class="attendee-actions">
-                            <button class="action-button primary">Add to Meet List</button>
-                            <button class="action-button">Email</button>
+                    </div>
+                </div>
+
+                <div class="attendee-item" data-firstname="Ayla" data-lastname="Queiroga" data-company="Accordion">
+                    <div class="attendee-header">
+                        <div class="attendee-name-row">
+                            <div class="attendee-name">Ayla Queiroga</div>
+                            <button class="action-button">Add to Meet List</button>
+                        </div>
+                        <div class="attendee-info">
+                            <div class="attendee-title-row">
+                                <div class="attendee-title">Managing Director</div>
+                                <a href="mailto:ayla@accordion.com" class="email-link">Email</a>
+                            </div>
+                            <div class="attendee-company">Accordion <span class="sponsor-badge">Sponsor</span></div>
+                            <div class="shared-events-widget" onclick="toggleSharedEvents(this)">
+                                <span class="shared-events-text">1 Shared Event</span>
+                                <span class="shared-events-arrow">▼</span>
+                            </div>
+                            <div class="shared-events-details" style="display: none;">
+                                <div class="shared-event-item">📅 Revenue Growth Strategies session (10:30 AM)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="attendee-item" data-firstname="Michael" data-lastname="Rodriguez" data-company="InnovateCorp">
+                    <div class="attendee-header">
+                        <div class="attendee-name-row">
+                            <div class="attendee-name">Michael Rodriguez</div>
+                            <button class="action-button">Add to Meet List</button>
+                        </div>
+                        <div class="attendee-info">
+                            <div class="attendee-title-row">
+                                <div class="attendee-title">CEO</div>
+                                <a href="mailto:michael@innovatecorp.com" class="email-link">Email</a>
+                            </div>
+                            <div class="attendee-company">InnovateCorp</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="attendee-item" data-firstname="Evelina" data-lastname="Stromberg" data-company="Vertice">
+                    <div class="attendee-header">
+                        <div class="attendee-name-row">
+                            <div class="attendee-name">Evelina Stromberg</div>
+                            <button class="action-button">Add to Meet List</button>
+                        </div>
+                        <div class="attendee-info">
+                            <div class="attendee-title-row">
+                                <div class="attendee-title">Private Equity Partnerships</div>
+                                <a href="mailto:evelina@vertice.com" class="email-link">Email</a>
+                            </div>
+                            <div class="attendee-company">Vertice <span class="sponsor-badge">Sponsor</span></div>
+                            <div class="shared-events-widget" onclick="toggleSharedEvents(this)">
+                                <span class="shared-events-text">1 Shared Event</span>
+                                <span class="shared-events-arrow">▼</span>
+                            </div>
+                            <div class="shared-events-details" style="display: none;">
+                                <div class="shared-event-item">📅 Operational Performance session (10:30 AM)</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -664,58 +876,64 @@
             <div class="attendee-list">
                 <div class="attendee-item">
                     <div class="attendee-header">
-                        <div class="attendee-avatar">SC</div>
-                        <div class="attendee-info">
-                            <div class="attendee-name">Sarah Chen</div>
-                            <div class="attendee-title">Chief Technology Officer</div>
-                            <div class="attendee-company">TechCorp <span class="sponsor-badge">Sponsor</span></div>
-                        </div>
-                        <div class="attendee-actions">
-                            <button class="action-button">Email</button>
+                        <div class="attendee-name-row">
+                            <div class="attendee-name">Sarah Qwertyuioplkjhgfdsazxcvbnmasdfghjklpoiuytrewqmnbvcxzasdfg</div>
                             <button class="action-button" style="color: var(--coral); border-color: var(--coral);">Remove</button>
                         </div>
-                    </div>
-                    <div class="overlap-info">
-                        <div class="overlap-label">Overlap Opportunities</div>
-                        <div class="overlap-details">At dinner table together (Table 8) • Shared session: Digital Transformation (9:00 AM)</div>
+                        <div class="attendee-info">
+                            <div class="attendee-title-row">
+                                <div class="attendee-title">Chief Technology Officer</div>
+                                <a href="mailto:sarah@techcorp.com" class="email-link">Email</a>
+                            </div>
+                            <div class="attendee-company">TechCorp</div>
+                            <div class="shared-events-widget" onclick="toggleSharedEvents(this)">
+                                <span class="shared-events-text">2 Shared Events</span>
+                                <span class="shared-events-arrow">▼</span>
+                            </div>
+                            <div class="shared-events-details" style="display: none;">
+                                <div class="shared-event-item">📅 Digital Transformation session (9:00 AM)</div>
+                                <div class="shared-event-item">🍽️ Table 8 dinner</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <div class="attendee-item">
                     <div class="attendee-header">
-                        <div class="attendee-avatar">MR</div>
-                        <div class="attendee-info">
+                        <div class="attendee-name-row">
                             <div class="attendee-name">Michael Rodriguez</div>
-                            <div class="attendee-title">CEO</div>
+                            <button class="action-button" style="color: var(--coral); border-color: var(--coral);">Remove</button>
+                        </div>
+                        <div class="attendee-info">
+                            <div class="attendee-title-row">
+                                <div class="attendee-title">CEO</div>
+                                <a href="mailto:michael@innovatecorp.com" class="email-link">Email</a>
+                            </div>
                             <div class="attendee-company">InnovateCorp</div>
                         </div>
-                        <div class="attendee-actions">
-                            <button class="action-button">Email</button>
-                            <button class="action-button" style="color: var(--coral); border-color: var(--coral);">Remove</button>
-                        </div>
-                    </div>
-                    <div class="overlap-info">
-                        <div class="overlap-label">Overlap Opportunities</div>
-                        <div class="overlap-details">Shared session: Revenue Growth Strategies (10:30 AM)</div>
                     </div>
                 </div>
 
                 <div class="attendee-item">
                     <div class="attendee-header">
-                        <div class="attendee-avatar">ES</div>
-                        <div class="attendee-info">
+                        <div class="attendee-name-row">
                             <div class="attendee-name">Evelina Stromberg</div>
-                            <div class="attendee-title">Private Equity Partnerships</div>
-                            <div class="attendee-company">Vertice <span class="sponsor-badge">Sponsor</span></div>
-                        </div>
-                        <div class="attendee-actions">
-                            <button class="action-button">Email</button>
                             <button class="action-button" style="color: var(--coral); border-color: var(--coral);">Remove</button>
                         </div>
-                    </div>
-                    <div class="overlap-info">
-                        <div class="overlap-label">Overlap Opportunities</div>
-                        <div class="overlap-details">Shared session: Operational Performance (10:30 AM)</div>
+                        <div class="attendee-info">
+                            <div class="attendee-title-row">
+                                <div class="attendee-title">Private Equity Partnerships</div>
+                                <a href="mailto:evelina@vertice.com" class="email-link">Email</a>
+                            </div>
+                            <div class="attendee-company">Vertice <span class="sponsor-badge">Sponsor</span></div>
+                            <div class="shared-events-widget" onclick="toggleSharedEvents(this)">
+                                <span class="shared-events-text">1 Shared Event</span>
+                                <span class="shared-events-arrow">▼</span>
+                            </div>
+                            <div class="shared-events-details" style="display: none;">
+                                <div class="shared-event-item">📅 Operational Performance session (10:30 AM)</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -768,6 +986,95 @@
             // Add active class to clicked button
             event.target.classList.add('active');
         }
+
+        function toggleSearchSection() {
+            const searchSection = document.getElementById('searchSection');
+            const searchArrow = document.getElementById('searchArrow');
+            const searchHeader = document.querySelector('.search-section-header');
+            
+            if (searchSection.style.display === 'none' || searchSection.style.display === '') {
+                searchSection.style.display = 'block';
+                searchArrow.classList.add('rotated');
+                searchHeader.classList.add('expanded');
+            } else {
+                searchSection.style.display = 'none';
+                searchArrow.classList.remove('rotated');
+                searchHeader.classList.remove('expanded');
+            }
+        }
+
+        function handleSortChange(sortType) {
+            const attendeeList = document.getElementById('attendeeList');
+            const attendeeItems = Array.from(attendeeList.children);
+            
+            attendeeItems.sort((a, b) => {
+                let aValue, bValue;
+                
+                switch(sortType) {
+                    case 'firstname':
+                        aValue = a.dataset.firstname.toLowerCase();
+                        bValue = b.dataset.firstname.toLowerCase();
+                        break;
+                    case 'company':
+                        aValue = a.dataset.company.toLowerCase();
+                        bValue = b.dataset.company.toLowerCase();
+                        break;
+                    case 'lastname':
+                    default:
+                        aValue = a.dataset.lastname.toLowerCase();
+                        bValue = b.dataset.lastname.toLowerCase();
+                        break;
+                }
+                
+                return aValue.localeCompare(bValue);
+            });
+            
+            // Clear the list and re-append sorted items
+            attendeeList.innerHTML = '';
+            attendeeItems.forEach(item => {
+                attendeeList.appendChild(item);
+            });
+        }
+
+        function toggleSharedEvents(widget) {
+            const details = widget.nextElementSibling;
+            const arrow = widget.querySelector('.shared-events-arrow');
+            
+            if (details.style.display === 'none' || details.style.display === '') {
+                details.style.display = 'block';
+                arrow.classList.add('rotated');
+                widget.classList.add('expanded');
+            } else {
+                details.style.display = 'none';
+                arrow.classList.remove('rotated');
+                widget.classList.remove('expanded');
+            }
+        }
+
+        function handleSharedEventsFilter(isChecked) {
+            const attendeeItems = document.querySelectorAll('.attendee-item');
+            
+            attendeeItems.forEach(item => {
+                const hasSharedEvents = item.querySelector('.shared-events-widget');
+                
+                if (isChecked) {
+                    // Show only items that have shared events
+                    if (hasSharedEvents) {
+                        item.style.display = 'block';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                } else {
+                    // Show all items
+                    item.style.display = 'block';
+                }
+            });
+        }
+
+        // Initialize sorting on page load (default to last name)
+        document.addEventListener('DOMContentLoaded', function() {
+            handleSortChange('lastname');
+        });
     </script>
 </body>
 </html>
