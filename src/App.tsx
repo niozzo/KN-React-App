@@ -5,7 +5,6 @@ import MeetPage from './pages/MeetPage'
 import SchedulePage from './pages/SchedulePage'
 import SponsorsPage from './pages/SponsorsPage'
 import SettingsPage from './pages/SettingsPage'
-import AttendeeProfilePage from './pages/AttendeeProfilePage'
 
 function App() {
   return (
@@ -16,7 +15,6 @@ function App() {
       <Route path="/schedule" element={<SchedulePage />} />
       <Route path="/sponsors" element={<SponsorsPage />} />
       <Route path="/settings" element={<SettingsPage />} />
-      <Route path="/attendee/:id" element={<AttendeeProfilePage />} />
       {/* Add more routes as we migrate pages */}
     </Routes>
   )
