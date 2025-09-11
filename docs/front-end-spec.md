@@ -519,25 +519,29 @@ graph TD
 
 ### Motion Principles
 
-**Motion Principles:** Understated, purposeful animations using Tailwind CSS transitions and transforms
+**Motion Principles:** Understated, purposeful animations using Custom CSS with Design Tokens for consistent timing and performance
 
 **Core Guidelines:**
 - **Purposeful Motion:** Every animation serves a functional purpose (feedback, hierarchy, continuity)
 - **Professional Restraint:** Subtle, refined animations that match the executive conference context
-- **Performance First:** Optimize for mobile devices and battery life using Tailwind's optimized transitions
-- **Accessibility Respect:** Honor reduced motion preferences with Tailwind's motion-safe utilities
+- **Performance First:** Optimize for mobile devices and battery life using Custom CSS with efficient keyframes
+- **Accessibility Respect:** Honor reduced motion preferences with CSS media queries
+- **React-DOM Safety:** All animations coordinate safely with React's virtual DOM management
 
 ### Key Animations
 
-- **Page Transitions:** Tailwind `transition-opacity duration-300 ease-out` for smooth fade transitions
-- **Card Interactions:** Tailwind `hover:scale-105 hover:shadow-lg transition-all duration-200` for subtle interactions
-- **Sticky Headers:** Tailwind `transition-transform duration-250 ease-out` for smooth slide animations
-- **Loading States:** Tailwind `animate-pulse` for gentle loading indicators
-- **Form Feedback:** Tailwind `transition-colors duration-150` for quick validation state changes
-- **Navigation Active States:** Tailwind `transition-all duration-200` for smooth underline transitions
-- **Countdown Timers:** Tailwind `transition-all duration-500 ease-out` for smooth number updates
-- **Progressive Disclosure:** Tailwind `transition-all duration-300 ease-out` for expand/collapse animations
-- **Error States:** Tailwind `animate-shake` custom animation for form errors
+- **Page Transitions:** Custom CSS `transition-opacity duration-300 ease-out` for smooth fade transitions
+- **Card Interactions:** Custom CSS `hover:scale-105 hover:shadow-lg transition-all duration-200` for subtle interactions
+- **Sticky Headers:** Custom CSS `transition-transform duration-250 ease-out` for smooth slide animations
+- **Loading States:** Custom CSS `animate-pulse` for gentle loading indicators
+- **Form Feedback:** Custom CSS `transition-colors duration-150` for quick validation state changes
+- **Navigation Active States:** Custom CSS `transition-all duration-200` for smooth underline transitions
+- **Countdown Timers:** Custom CSS `transition-all duration-500 ease-out` for smooth number updates
+- **Progressive Disclosure:** Custom CSS `transition-all duration-300 ease-out` for expand/collapse animations
+- **Error States:** Custom CSS `animate-shake` custom animation for form errors
+- **Business Card Fly:** Custom CSS `flyToMeetList 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)` for add animations
+- **Remove Animation:** Custom CSS `fadeOutAndRemove 0.6s ease-out` for remove animations
+- **Counter Pulse:** Custom CSS `counterPulse 0.6s ease-out` for state changes
 
 ## Performance Considerations
 
