@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conference Companion - Design System Preview</title>
+    <link rel="icon" type="image/x-icon" href="assets/brand/icons/favicon.ico">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="src/styles/design-tokens.css">
+    <link rel="stylesheet" href="src/styles/components.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <a href="#" class="logo">KnowledgeNow</a>
+            <div class="user-info">
+                <div class="user-avatar">JD</div>
+                <span>John Doe</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <h1 class="page-title">Design System Preview</h1>
+        
+        <!-- Buttons -->
+        <section style="margin-bottom: var(--space-xl);">
+            <h2 class="section-title">Buttons</h2>
+            <div style="display: flex; gap: var(--space-md); flex-wrap: wrap;">
+                <button class="btn btn-primary">Primary Button</button>
+                <button class="btn btn-secondary">Secondary Button</button>
+                <button class="btn btn-danger">Danger Button</button>
+                <button class="btn btn-primary btn-sm">Small Button</button>
+                <button class="btn btn-primary btn-lg">Large Button</button>
+            </div>
+        </section>
+
+        <!-- Cards -->
+        <section style="margin-bottom: var(--space-xl);">
+            <h2 class="section-title">Cards</h2>
+            <div style="display: flex; flex-direction: column; gap: var(--space-md);">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="status-tag status-next">Next</span>
+                        <div style="font-family: var(--font-heading); font-size: var(--text-lg); font-weight: var(--font-semibold); color: var(--ink-700);">
+                            1:30 PM - 3:00 PM
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3 style="font-family: var(--font-heading); font-size: var(--text-2xl); font-weight: var(--font-semibold); color: var(--ink-900); margin-bottom: var(--space-xs);">
+                            Track A: Revenue Growth Strategies
+                        </h3>
+                        <div style="display: flex; flex-direction: column; gap: var(--space-xs); margin-bottom: var(--space-sm);">
+                            <div style="display: flex; align-items: center; gap: var(--space-sm); font-size: var(--text-base); color: var(--ink-700);">
+                                <span style="opacity: 0.7;">📍</span>
+                                <span>Conference Room B</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: var(--space-sm); font-size: var(--text-base); color: var(--ink-700);">
+                                <span style="opacity: 0.7;">👤</span>
+                                <span>Michael Rodriguez, CEO at InnovateCorp</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card card-now">
+                    <div class="card-header">
+                        <span class="status-tag status-now">23 minutes left</span>
+                        <div style="font-family: var(--font-heading); font-size: var(--text-lg); font-weight: var(--font-semibold); color: var(--ink-700);">
+                            10:00 AM - 10:30 AM
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3 style="font-family: var(--font-heading); font-size: var(--text-2xl); font-weight: var(--font-semibold); color: var(--ink-900); margin-bottom: var(--space-xs);">
+                            Networking Coffee Break
+                        </h3>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Form Elements -->
+        <section style="margin-bottom: var(--space-xl);">
+            <h2 class="section-title">Form Elements</h2>
+            <div style="display: flex; flex-direction: column; gap: var(--space-md); max-width: 400px;">
+                <input type="text" class="form-input" placeholder="Search by name, company, or role...">
+                <select class="form-select">
+                    <option>Sort by Last Name</option>
+                    <option>Sort by First Name</option>
+                    <option>Sort by Company Name</option>
+                </select>
+                <label class="toggle-container">
+                    <input type="checkbox">
+                    <span class="toggle-slider"></span>
+                    <span class="toggle-label">Show only people with shared events</span>
+                </label>
+            </div>
+        </section>
+
+        <!-- Status Tags -->
+        <section style="margin-bottom: var(--space-xl);">
+            <h2 class="section-title">Status Tags</h2>
+            <div style="display: flex; gap: var(--space-md); flex-wrap: wrap;">
+                <span class="status-tag status-now">Now</span>
+                <span class="status-tag status-next">Next</span>
+                <span class="status-tag status-sponsor">Sponsor</span>
+            </div>
+        </section>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <div class="nav-container">
+            <a href="#" class="nav-item active">
+                <div class="nav-icon">🏠</div>
+                <div class="nav-label">Home</div>
+            </a>
+            <a href="#" class="nav-item">
+                <div class="nav-icon">📅</div>
+                <div class="nav-label">Schedule</div>
+            </a>
+            <a href="#" class="nav-item">
+                <div class="nav-icon">👥</div>
+                <div class="nav-label">Meet</div>
+            </a>
+            <a href="#" class="nav-item">
+                <div class="nav-icon">🏢</div>
+                <div class="nav-label">Sponsors</div>
+            </a>
+            <a href="#" class="nav-item">
+                <div class="nav-icon">⚙️</div>
+                <div class="nav-label">Settings</div>
+            </a>
+        </div>
+    </nav>
+</body>
+</html>

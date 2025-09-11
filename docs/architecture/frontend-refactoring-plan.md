@@ -20,68 +20,16 @@ This document outlines the comprehensive refactoring plan to transform the curre
 
 ## Refactoring Strategy
 
-### Phase 1: Foundation (COMPLETED)
-- ✅ Created centralized design system (`src/styles/design-tokens.css`)
-- ✅ Built component library (`src/components/`)
-- ✅ Established reusable hooks (`src/hooks/`)
-- ✅ Set up proper file structure
+The refactoring follows a systematic approach to transform monolithic HTML mockup files into a clean, maintainable React component architecture while preserving exact visual fidelity. The strategy focuses on:
 
-### Phase 2: Component Migration
-1. **Extract Common Components**
-   - Header, BottomNav, Button, Card, StatusTag
-   - SessionCard, AttendeeCard
-   - Form components (Input, Select, Toggle)
+1. **Foundation**: Design system, component library, and file structure
+2. **Component Migration**: Reusable components and state management
+3. **Animation System**: Consistent animations and transitions
+4. **Documentation**: Update existing docs and create new guides
+5. **Integration**: React Router, data fetching, and error handling
+6. **Testing**: Component testing and performance optimization
 
-2. **Create Page Components**
-   - HomePage, SchedulePage, MeetPage, etc.
-   - Use PageLayout for consistent structure
-
-3. **Implement State Management**
-   - useMeetList for meet list functionality
-   - useSearch for filtering and search
-   - useSort for list sorting
-
-### Phase 3: Animation System
-1. **Business Card Animation**
-   - Extract fly-to-meet-list animation
-   - Create reusable animation utilities
-
-2. **Counter Updates**
-   - Standardize pulse and flash animations
-   - Implement smooth transitions
-
-3. **Page Transitions**
-   - Add smooth navigation between pages
-   - Loading states and micro-interactions
-
-### Phase 4: Documentation Review & Cleanup
-1. **Update Existing Documentation**
-   - Review and update `front-end-spec.md` to reflect new architecture (see `frontend-spec-updates.md`)
-   - Update `greenfield-architecture.md` with component architecture details
-   - Revise user stories in `docs/stories/` to reference new components
-   - Update `DOCUMENTATION-NAVIGATION.md` with new file structure
-
-2. **Remove Outdated Files**
-   - Keep mockup HTML files as historical reference (no cleanup needed)
-   - Remove outdated architecture documents
-   - Clean up legacy analysis files that are no longer relevant
-   - Update or remove conflicting documentation
-
-3. **Create New Documentation**
-   - Component API documentation
-   - Migration guide for developers
-   - Updated deployment instructions
-   - Comprehensive cleanup plan (see `documentation-cleanup-plan.md`)
-
-### Phase 5: Integration & Testing
-1. **Replace Mockup Files**
-   - Migrate each HTML file to React components
-   - Maintain exact visual fidelity
-
-2. **Performance Optimization**
-   - Reduce bundle size through shared components
-   - Optimize JavaScript execution
-   - Implement lazy loading
+See the **Implementation Checklist** below for detailed progress tracking.
 
 ## Component Architecture
 
@@ -208,11 +156,30 @@ const HomePage = () => {
 - [x] Establish hooks system
 - [x] Set up file structure
 
+### Phase 1.5: React Environment Setup
+- [ ] Set up React development environment (Vite/Webpack)
+- [ ] Configure build system and entry point
+- [ ] Set up React Router for navigation
+- [ ] Test that React components can render
+- [ ] Create working React app to view pages
+
 ### Phase 2: Component Migration ✅
 - [x] Create page components (HomePage.jsx, MeetPage.jsx)
 - [x] Implement state management (useMeetList, useSearch, useSort hooks)
 - [x] Add form components (Button, Card, StatusTag)
 - [x] Create list components (AttendeeCard, SessionCard)
+
+### Phase 2.5: Complete Page Migration with Approval
+- [ ] Migrate HomePage.jsx (show for approval)
+- [ ] Migrate MeetPage.jsx (show for approval)
+- [ ] Migrate SchedulePage.jsx (from mockups/schedule.html)
+- [ ] Migrate SponsorsPage.jsx (from mockups/sponsors.html)
+- [ ] Migrate SettingsPage.jsx (from mockups/settings.html)
+- [ ] Migrate SessionDetailPage.jsx (from mockups/session-detail.html)
+- [ ] Migrate AttendeeProfilePage.jsx (from mockups/attendee-profile.html)
+- [ ] Migrate BioPage.jsx (from mockups/bio.html)
+- [ ] Migrate SeatMapPage.jsx (from mockups/seat-map.html)
+- [ ] Migrate IndexPage.jsx (from mockups/index.html)
 
 ### Phase 3: Animation System ✅
 - [x] Extract business card animation (useMeetList hook)
@@ -250,10 +217,10 @@ const HomePage = () => {
 
 ## Next Steps
 
-1. **Begin Phase 4** documentation review and cleanup
-2. **Update existing documentation** to reflect new architecture
-3. **Create component API documentation**
-4. **Move to Phase 5** integration (React Router, data fetching)
+1. **Complete Phase 1.5** - Set up React environment so pages can be viewed
+2. **Complete Phase 2.5** - Migrate remaining mockup pages with approval process
+3. **Begin Phase 4** documentation review and cleanup
+4. **Move to Phase 5** integration (data fetching, error handling)
 5. **Complete Phase 6** testing and optimization
 
 This refactoring will transform the codebase from a collection of monolithic HTML files into a modern, maintainable React application while preserving the exact user experience and visual design.
