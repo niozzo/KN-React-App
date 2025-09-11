@@ -172,9 +172,9 @@ const HomePage = () => {
 ### Phase 2.5: Complete Page Migration with Approval
 - [x] Migrate HomePage.jsx (show for approval) ✅ **APPROVED**
 - [x] Migrate MeetPage.jsx (show for approval) ✅ **APPROVED**
-- [ ] Migrate SchedulePage.jsx (from mockups/schedule.html)
-- [ ] Migrate SponsorsPage.jsx (from mockups/sponsors.html)
-- [ ] Migrate SettingsPage.jsx (from mockups/settings.html)
+- [x] Migrate SchedulePage.jsx (from mockups/schedule.html) ✅ **READY FOR REVIEW**
+- [x] Migrate SponsorsPage.jsx (from mockups/sponsors.html) ✅ **READY FOR REVIEW**
+- [x] Migrate SettingsPage.jsx (from mockups/settings.html) ✅ **READY FOR REVIEW**
 - [ ] Migrate SessionDetailPage.jsx (from mockups/session-detail.html)
 - [ ] Migrate AttendeeProfilePage.jsx (from mockups/attendee-profile.html)
 - [ ] Migrate BioPage.jsx (from mockups/bio.html)
@@ -226,9 +226,10 @@ const HomePage = () => {
 ## Next Steps
 
 1. ✅ **Phase 1.5 COMPLETED** - React environment is set up and running at http://localhost:3001
-2. **Complete Phase 2.5** - Migrate remaining mockup pages with approval process
-3. **Begin Phase 4** documentation review and cleanup
-4. **Move to Phase 5** integration (data fetching, error handling)
-5. **Complete Phase 6** testing and optimization
+2. **Phase 2.5 IN PROGRESS** - 5/9 pages migrated (3 ready for review: SchedulePage, SponsorsPage, SettingsPage)
+3. **Complete remaining 4 pages** - SessionDetailPage, AttendeeProfilePage, BioPage, SeatMapPage
+4. **Begin Phase 4** documentation review and cleanup
+5. **Move to Phase 5** integration (data fetching, error handling)
+6. **Complete Phase 6** testing and optimization
 
 This refactoring will transform the codebase from a collection of monolithic HTML files into a modern, maintainable React application while preserving the exact user experience and visual design.
