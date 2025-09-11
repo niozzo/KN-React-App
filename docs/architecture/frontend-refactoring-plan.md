@@ -175,7 +175,6 @@ const HomePage = () => {
 - [x] Migrate SchedulePage.jsx (from mockups/schedule.html) ✅ **READY FOR REVIEW**
 - [x] Migrate SponsorsPage.jsx (from mockups/sponsors.html) ✅ **READY FOR REVIEW**
 - [x] Migrate SettingsPage.jsx (from mockups/settings.html) ✅ **READY FOR REVIEW**
-- [ ] Migrate SessionDetailPage.jsx (from mockups/session-detail.html)
 - [ ] Migrate AttendeeProfilePage.jsx (from mockups/attendee-profile.html)
 - [ ] Migrate BioPage.jsx (from mockups/bio.html)
 - [ ] Migrate SeatMapPage.jsx (from mockups/seat-map.html)

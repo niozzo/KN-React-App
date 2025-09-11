@@ -53,9 +53,8 @@ graph TD
     A --> D[Sponsors - Directory]
     A --> E[Settings - Privacy/Auth]
     
-    B --> B1[Session Details]
-    B --> B2[Filter by Day/Track]
-    B --> B3[Seat Assignment - Contextual]
+    B --> B1[Filter by Day/Track]
+    B --> B2[Seat Assignment - Contextual]
     
     C --> C1[Search/Filter Attendees]
     C --> C2[Add to Meet List]
@@ -84,13 +83,12 @@ graph TD
 - Settings (privacy controls and authentication)
 
 **Secondary Navigation:** Contextual within sections
-- Schedule: Day/Track filters, session details with seat assignments
+- Schedule: Day/Track filters with seat assignments
 - Meet: Search/filter controls, attendee profiles
 - Sponsors: Directory grid/list view, sponsor details
 - Settings: Privacy toggles, notification preferences, account management
 
 **Breadcrumb Strategy:** Minimal breadcrumbs for deep navigation
-- Session Details: "Schedule > [Session Name]"
 - Sponsor Details: "Sponsors > [Company Name]"
 - Meet List Profile: "Meet > [Person Name]"
 
@@ -112,11 +110,11 @@ graph TD
     D -->|Yes| E[Display Next Card Only]
     D -->|No| F[Show "Conference Complete"]
     C --> G[User Taps Now Card]
-    G --> H[Current Session Details + Seat Info]
+    G --> H[Current Session Info + Seat Info]
     C --> I[User Taps Next Card]
-    I --> J[Next Session Details + Seat Info]
+    I --> J[Next Session Info + Seat Info]
     E --> K[User Taps Next Card]
-    K --> L[Next Session Details + Seat Info]
+    K --> L[Next Session Info + Seat Info]
 ```
 
 **Edge Cases & Error Handling:**
@@ -131,7 +129,7 @@ graph TD
 
 **User Goal:** Build a private list of people to meet with overlap hints
 
-**Entry Points:** Meet tab, session details, sponsor directory
+**Entry Points:** Meet tab, sponsor directory
 
 **Success Criteria:** User can search, add contacts, and see overlap opportunities including dinner table assignments
 
