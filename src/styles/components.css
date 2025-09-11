@@ -874,3 +874,211 @@ body {
 .mt-md { margin-top: var(--space-md); }
 .mt-lg { margin-top: var(--space-lg); }
 .mt-xl { margin-top: var(--space-xl); }
+
+/* Schedule Page Styles */
+.schedule-content {
+  position: relative;
+  margin-bottom: 200px;
+}
+
+/* Day Headers - Attached to Cards */
+.day-header {
+  background: var(--purple-700);
+  color: var(--white);
+  padding: var(--space-md) var(--space-lg);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  margin-bottom: 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: var(--shadow-sm);
+  border: 0.5px solid var(--purple-500);
+  box-sizing: border-box;
+  border-bottom: none;
+}
+
+.day-header.sticky {
+  border-radius: 0 0 0 0; /* Remove top radius when stuck */
+  box-shadow: 0 4px 12px rgba(14,24,33,0.12);
+}
+
+.day-title {
+  font-family: var(--font-heading);
+  font-size: var(--text-2xl);
+  font-weight: var(--font-semibold);
+  margin-bottom: 4px;
+}
+
+.day-subtitle {
+  font-size: var(--text-base);
+  opacity: 0.9;
+}
+
+/* Session Cards - Grouped with Day Header */
+.session-list {
+  background: var(--white);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: var(--space-lg);
+  box-shadow: var(--shadow-sm);
+  border: 0.5px solid var(--purple-500);
+  box-sizing: border-box;
+}
+
+.session-item {
+  padding: var(--space-lg);
+  border-bottom: 1px solid var(--gray-200);
+  transition: background-color var(--transition-normal);
+  cursor: pointer;
+}
+
+.session-item:last-child {
+  border-bottom: none;
+}
+
+.session-item:hover {
+  background-color: var(--gray-100);
+}
+
+.session-item.current {
+  background-color: var(--purple-050);
+  border-top: 0.5px solid var(--purple-500);
+  border-bottom: 0.5px solid var(--purple-500);
+}
+
+.session-item.upcoming {
+  /* No special styling needed */
+}
+
+.session-item.past {
+  opacity: 0.7;
+}
+
+.session-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--space-sm);
+}
+
+.session-time {
+  font-family: var(--font-heading);
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--ink-700);
+}
+
+.session-title {
+  font-family: var(--font-heading);
+  font-size: var(--text-2xl);
+  font-weight: var(--font-semibold);
+  color: var(--ink-900);
+  margin-bottom: var(--space-xs);
+}
+
+.session-details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-sm);
+}
+
+.session-detail {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: var(--text-base);
+  color: var(--ink-700);
+}
+
+.detail-icon {
+  width: 16px;
+  height: 16px;
+  opacity: 0.7;
+}
+
+.seat-assignment {
+  background: var(--white);
+  border: 1px solid var(--purple-500);
+  padding: var(--space-sm);
+  border-radius: var(--radius-lg);
+  margin-top: var(--space-sm);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.seat-assignment:hover {
+  background: var(--purple-050);
+  border-color: var(--purple-700);
+  transform: translateY(-1px);
+  text-decoration: none;
+  color: inherit;
+}
+
+.session-item.current .seat-assignment {
+  background: var(--white);
+  border: 1px solid var(--purple-500);
+}
+
+.seat-label {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--purple-700);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.seat-details {
+  font-size: var(--text-base);
+  color: var(--ink-900);
+  font-weight: var(--font-medium);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+.seat-map-link {
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--purple-700);
+  text-decoration: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.seat-action {
+  color: var(--purple-700);
+  text-decoration: none;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  margin-top: 4px;
+  display: inline-block;
+}
+
+.seat-action:hover {
+  text-decoration: underline;
+}
+
+/* Responsive Design for Schedule */
+@media (max-width: 768px) {
+  .session-item {
+    padding: var(--space-md);
+  }
+  
+  .session-header {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 480px) {
+  .day-header {
+    padding: var(--space-sm) var(--space-md);
+  }
+}
