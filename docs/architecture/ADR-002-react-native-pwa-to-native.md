@@ -9,12 +9,12 @@ We want to ship quickly on the web while keeping a clean path to a high-fidelity
 ## Decision
 Adopt a two-phase mobile strategy:
 
-1) PWA-first using React + Material-UI to deliver a fast web app (with A2HS) and Web Push for installed iOS users.
+1) PWA-first using React + Tailwind CSS to deliver a fast web app (with A2HS) and Web Push for installed iOS users.
 2) When needed, ship a native iOS app (via React Native) and add ActivityKit-powered Live Activities/Dynamic Island for true live countdowns and richer notifications, migrating push to APNs.
 
 ## Rationale
 - Speed to market: ship a functional PWA quickly.
-- Material Design: Use Material-UI for consistent, professional design.
+- Utility-first CSS: Use Tailwind CSS for rapid, consistent design system.
 - Progressive enhancement: unlock native-only capabilities (Live Activities) later without rewriting core logic.
 - Operational simplicity: web-first approach with clear path to native when needed.
 
@@ -25,7 +25,7 @@ Adopt a two-phase mobile strategy:
 
 ## Implementation Plan
 Phase 1 — PWA (Web + iOS A2HS)
-- React + Material-UI for web-first PWA development.
+- React + Tailwind CSS for web-first PWA development.
 - Service worker handles push and replaces notifications by `tag`.
 - Badge remaining minutes with `navigator.setAppBadge()`.
 - Server schedules coarse updates; avoid second-level precision.

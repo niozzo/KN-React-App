@@ -34,7 +34,7 @@ This document presents the complete greenfield architecture for the Knowledge No
 ```typescript
 // Core Framework
 React 18 + TypeScript
-Material-UI (MUI) v5 - Design System (Material Design)
+Tailwind CSS - Utility-first CSS framework
 React Router v6 - Navigation
 Redux Toolkit + RTK Query - State Management
 
@@ -52,7 +52,7 @@ Storybook - Component Development
 - iOS 16.4+ Web Push support
 - Add to Home Screen (A2HS)
 - Offline caching and service worker
-- Native-like iOS experience with Material Design
+- Native-like iOS experience with Tailwind CSS
 ```
 
 ### **Backend Architecture**
@@ -849,7 +849,7 @@ export const performanceService = {
 ### **Phase 1: Foundation (Weeks 1-2)**
 1. **Project Setup**
    - Vite + React + TypeScript configuration
-   - Material-UI theme and component library
+   - Tailwind CSS setup and configuration
    - Redux Toolkit + RTK Query setup
    - Supabase client configuration
 

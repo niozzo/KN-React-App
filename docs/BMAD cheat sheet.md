@@ -42,6 +42,10 @@
 [x] @Architect *create-brownfield-architecture` - Plan integration points and components
 [x] @Architect what spikes do you need to prove this architecture.
 [x] @ux to do mocks ups (assumes we have the new capabilty) 
+[x] @architect to analysis and recommend fixes
+[x] @BMAD orchextration to have arch update docs, dev, build new reference, and UX to validate 
+
+
 
 ### Do this one at a time per spike
 [ ] @SM *story-checklist {story-name}` - Execute story drafting checklist for QA

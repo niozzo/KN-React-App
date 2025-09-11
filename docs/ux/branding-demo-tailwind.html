@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KnowledgeNow Branding Demo (Tailwind CSS)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50: '#F2ECFB',
+              500: '#7C4CC4',
+              600: '#7C4CC4',
+              700: '#5E35A5',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Ensure Tailwind is working */
+    .test-tailwind {
+      @apply bg-blue-500 text-white p-4 rounded;
+    }
+  </style>
+</head>
+<body class="bg-white font-sans">
+  <div class="min-h-screen">
+    <!-- Navigation -->
+    <nav class="sticky top-0 bg-white border-b border-gray-200 shadow-sm">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-18">
+          <h1 class="text-xl font-bold text-gray-900">KnowledgeNow</h1>
+          <div class="flex items-center space-x-4">
+            <button class="p-2 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500">
+              <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM4 19h6v-6H4v6zM4 5h6V1H4v4zM15 1h5l-5 5V1z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="bg-white py-20">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div>
+            <h2 class="text-4xl font-bold text-gray-900 leading-tight mb-6">
+              Trusted, execution‑oriented transformation.
+            </h2>
+            <p class="text-lg text-gray-600 mb-8">
+              Expert yet accessible. Clean, high‑contrast layouts with generous whitespace and clear hierarchy.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4">
+              <button class="bg-primary-600 hover:bg-primary-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
+                Get Started
+              </button>
+              <button class="border border-primary-600 text-primary-600 hover:bg-primary-50 font-medium py-3 px-6 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
+                Learn More
+              </button>
+            </div>
+          </div>
+          <div class="bg-primary-50 p-8 rounded-xl">
+            <div class="bg-white p-6 rounded-lg shadow-sm">
+              <div class="text-sm font-medium text-primary-600 uppercase tracking-wide mb-4">
+                Editorial Metric
+              </div>
+              <div class="flex items-baseline space-x-4 mb-4">
+                <span class="text-4xl font-bold text-primary-600">98%</span>
+                <span class="text-lg text-gray-600">Exec adoption NPS</span>
+              </div>
+              <div class="border-t border-gray-200 pt-4">
+                <p class="text-sm text-gray-600">
+                  Real teams, authentic outcomes. Metrics as hero elements.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Components Section -->
+    <section class="py-20 bg-gray-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h3 class="text-2xl font-bold text-gray-900 mb-12">Component Examples</h3>
+        
+        <!-- Buttons -->
+        <div class="mb-16">
+          <h4 class="text-lg font-semibold text-gray-900 mb-6">Buttons</h4>
+          <div class="flex flex-wrap gap-4">
+            <button class="bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
+              Primary
+            </button>
+            <button class="border border-primary-600 text-primary-600 hover:bg-primary-50 font-medium py-2 px-4 rounded-lg transition-colors duration-200">
+              Secondary
+            </button>
+            <button class="text-primary-600 hover:text-primary-700 font-medium py-2 px-4 transition-colors duration-200">
+              Tertiary Link
+            </button>
+            <button class="bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
+              Destructive
+            </button>
+            <button class="bg-gray-300 text-gray-500 font-medium py-2 px-4 rounded-lg cursor-not-allowed" disabled>
+              Disabled
+            </button>
+          </div>
+        </div>
+
+        <!-- Inputs -->
+        <div class="mb-16">
+          <h4 class="text-lg font-semibold text-gray-900 mb-6">Inputs</h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Default</label>
+              <input type="text" placeholder="Type here" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Focused</label>
+              <input type="text" placeholder="Autofocus" autofocus class="w-full px-3 py-2 border border-primary-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Error</label>
+              <input type="text" class="w-full px-3 py-2 border border-red-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
+              <p class="text-sm text-red-500 mt-1">Helper text in red</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Disabled</label>
+              <input type="text" value="Can't edit" disabled class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed">
+            </div>
+          </div>
+        </div>
+
+        <!-- Cards -->
+        <div class="mb-16">
+          <h4 class="text-lg font-semibold text-gray-900 mb-6">Cards</h4>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+              <div class="bg-primary-50 px-6 py-4">
+                <h5 class="text-sm font-medium text-primary-600 uppercase tracking-wide">Card with Header Band</h5>
+              </div>
+              <div class="p-6">
+                <h6 class="text-lg font-semibold text-gray-900 mb-2">Title</h6>
+                <p class="text-sm text-gray-600">
+                  Background white; 12px radius; subtle shadow. Optional Purple‑050 header band.
+                </p>
+              </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+              <div class="px-6 py-4 border-b border-gray-200">
+                <h5 class="text-lg font-semibold text-gray-900">Card 2</h5>
+              </div>
+              <div class="p-6">
+                <h6 class="text-lg font-semibold text-gray-900 mb-2">Title</h6>
+                <p class="text-sm text-gray-600">
+                  Standard card layout with consistent spacing and typography.
+                </p>
+              </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+              <div class="px-6 py-4 border-b border-gray-200">
+                <h5 class="text-lg font-semibold text-gray-900">Card 3</h5>
+              </div>
+              <div class="p-6">
+                <h6 class="text-lg font-semibold text-gray-900 mb-2">Title</h6>
+                <p class="text-sm text-gray-600">
+                  Clean, professional design with proper visual hierarchy.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 py-12">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <p class="text-sm text-gray-600">
+          This demo uses Tailwind CSS utility classes styled to the KnowledgeNow brand system. Colors, typography, spacing, and component styles match the approved design tokens using Tailwind's utility-first approach.
+        </p>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>

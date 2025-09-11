@@ -1,0 +1,199 @@
+/* Conference Companion Design System - Design Tokens */
+/* Single source of truth for all design values */
+
+:root {
+  /* Brand Colors */
+  --purple-900: #5E35A5;
+  --purple-700: #7C4CC4;
+  --purple-500: #9468CE;
+  --purple-200: #C4A8E8;
+  --purple-100: #E1D4F0;
+  --purple-050: #F2ECFB;
+  
+  /* Neutral Colors */
+  --ink-900: #0E1821;
+  --ink-700: #2A3745;
+  --ink-500: #5A6A7A;
+  --ink-300: #8B9AAB;
+  --ink-100: #C7D2DB;
+  
+  /* Gray Scale */
+  --gray-300: #D9DBDC;
+  --gray-200: #E6E7E8;
+  --gray-100: #F5F6F7;
+  --white: #FFFFFF;
+  
+  /* Accent Colors */
+  --coral: #D9776F;
+  --lime: #7FB069;
+  --magenta: #A67DB8;
+  
+  /* Status Colors */
+  --green-100: #dcfce7;
+  --green-300: #86efac;
+  --green-500: #22c55e;
+  --green-700: #15803d;
+  
+  --red-100: #fee2e2;
+  --red-300: #fca5a5;
+  --red-500: #ef4444;
+  --red-700: #b91c1c;
+  
+  --yellow-100: #fef3c7;
+  --yellow-300: #fcd34d;
+  --yellow-500: #f59e0b;
+  --yellow-700: #b45309;
+  
+  /* Spacing Scale */
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-xxl: 40px;
+  --space-xxxl: 48px;
+  
+  /* Typography */
+  --font-ui: 'Inter', 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-heading: 'IBM Plex Sans', 'Inter', sans-serif;
+  --font-mono: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Courier New', monospace;
+  
+  /* Font Sizes */
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 18px;
+  --text-xl: 20px;
+  --text-2xl: 22px;
+  --text-3xl: 26px;
+  --text-4xl: 30px;
+  --text-5xl: 36px;
+  --text-6xl: 48px;
+  
+  /* Font Weights */
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+  
+  /* Line Heights */
+  --leading-tight: 1.25;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.75;
+  
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-full: 50%;
+  
+  /* Shadows */
+  --shadow-sm: 0 2px 4px rgba(14, 24, 33, 0.08);
+  --shadow-md: 0 2px 6px rgba(14, 24, 33, 0.08);
+  --shadow-lg: 0 4px 12px rgba(14, 24, 33, 0.10);
+  --shadow-xl: 0 4px 16px rgba(14, 24, 33, 0.08);
+  --shadow-2xl: 0 8px 24px rgba(14, 24, 33, 0.12);
+  --shadow-purple: 0 4px 12px rgba(124, 76, 196, 0.15);
+  --shadow-green: 0 8px 20px rgba(34, 197, 94, 0.6);
+  
+  /* Transitions */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.2s ease;
+  --transition-slow: 0.3s ease;
+  
+  /* Z-Index Scale */
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-fixed: 300;
+  --z-modal: 400;
+  --z-popover: 500;
+  --z-tooltip: 600;
+  
+  /* Breakpoints (for reference in JS) */
+  --breakpoint-sm: 480px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1200px;
+  
+  /* Container Max Widths */
+  --container-sm: 640px;
+  --container-md: 768px;
+  --container-lg: 1024px;
+  --container-xl: 1200px;
+  --container-2xl: 1400px;
+}
+
+/* CSS Custom Properties for Component Variants */
+:root {
+  /* Button Variants */
+  --button-primary-bg: var(--purple-700);
+  --button-primary-color: var(--white);
+  --button-primary-hover-bg: var(--purple-900);
+  
+  --button-secondary-bg: transparent;
+  --button-secondary-color: var(--purple-700);
+  --button-secondary-border: var(--purple-700);
+  --button-secondary-hover-bg: var(--purple-700);
+  --button-secondary-hover-color: var(--white);
+  
+  --button-danger-bg: transparent;
+  --button-danger-color: var(--coral);
+  --button-danger-border: var(--coral);
+  --button-danger-hover-bg: var(--coral);
+  --button-danger-hover-color: var(--white);
+  
+  /* Card Variants */
+  --card-bg: var(--white);
+  --card-border: transparent;
+  --card-shadow: var(--shadow-md);
+  --card-hover-shadow: var(--shadow-lg);
+  
+  --card-now-bg: var(--purple-050);
+  --card-now-border: var(--purple-500);
+  --card-now-shadow: var(--shadow-purple);
+  
+  /* Status Variants */
+  --status-now-bg: var(--purple-700);
+  --status-now-color: var(--white);
+  
+  --status-next-bg: var(--green-100);
+  --status-next-color: var(--green-700);
+  --status-next-border: var(--green-300);
+  
+  --status-sponsor-bg: var(--magenta);
+  --status-sponsor-color: var(--white);
+  
+  /* Navigation */
+  --nav-bg: var(--white);
+  --nav-border: var(--gray-200);
+  --nav-item-color: var(--ink-500);
+  --nav-item-active-color: var(--purple-700);
+  --nav-item-hover-color: var(--purple-700);
+}
+
+/* Dark mode support (for future implementation) */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Dark mode tokens would go here */
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition-fast: 0s;
+    --transition-normal: 0s;
+    --transition-slow: 0s;
+  }
+}

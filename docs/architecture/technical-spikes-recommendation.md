@@ -127,31 +127,31 @@ const testOfflineFunctionality = async () => {
 - Conflict resolution handles edge cases
 - Service worker updates work smoothly
 
-### 5. **Material-UI + Custom Theme Integration Spike**
+### 5. **Tailwind CSS + Custom Design System Integration Spike**
 **Risk Level:** MEDIUM  
-**Why Spike Needed:** Complex theming requirements and component customization
+**Why Spike Needed:** Custom design tokens and component system validation
 
 **Spike Goals:**
-- Test Material-UI v5 with custom theme
-- Validate component customization capabilities
+- Test Tailwind CSS with custom design tokens
+- Validate component system with utility classes
 - Test responsive design across devices
 - Understand bundle size impact
 - Test accessibility compliance
 
 **Spike Scope:**
 ```typescript
-// Test Material-UI integration with custom requirements
-const testMUIIntegration = async () => {
-  // 1. Create custom theme
-  // 2. Test component customization
-  // 3. Test responsive design
+// Test Tailwind CSS integration with custom requirements
+const testTailwindIntegration = async () => {
+  // 1. Configure custom design tokens
+  // 2. Test component system with utilities
+  // 3. Test responsive design patterns
   // 4. Measure bundle size impact
   // 5. Test accessibility features
 }
 ```
 
 **Success Criteria:**
-- Custom theme works across all components
+- Custom design tokens work across all components
 - Responsive design works on all devices
 - Bundle size impact acceptable
 - Accessibility compliance maintained
@@ -191,7 +191,7 @@ const testMUIIntegration = async () => {
 4. **PWA Offline Functionality** (2 days)
 
 ### **Week 3: Integration Testing**
-5. **Material-UI Integration** (2 days)
+5. **Tailwind CSS Integration** (2 days)
 6. **Advanced Caching** (2 days)
 7. **Analytics Integration** (1 day)
 
@@ -224,14 +224,14 @@ Each spike should produce:
 2. **Logo Fetching Problems**: Implement more robust fallback strategies
 3. **Performance Issues**: Optimize data loading and caching strategies
 4. **PWA Limitations**: Simplify offline functionality or remove features
-5. **MUI Integration Problems**: Consider alternative UI libraries
+5. **Tailwind CSS Integration Problems**: Consider alternative CSS frameworks
 
 ### **Contingency Plans:**
 - **Alternative Real-time**: Socket.io or custom WebSocket implementation
 - **Alternative Logo Service**: Manual logo upload or different API providers
 - **Performance Optimization**: Data pagination, lazy loading, or server-side filtering
 - **Simplified PWA**: Basic offline support or remove PWA features
-- **Alternative UI**: Chakra UI or custom component library
+- **Alternative CSS**: Styled Components, CSS Modules, or custom CSS framework
 
 ## Conclusion
 

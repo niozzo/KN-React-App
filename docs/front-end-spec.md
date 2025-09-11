@@ -339,13 +339,13 @@ graph TD
 
 ### Design System Approach
 
-**Design System Approach:** Build upon existing KnowledgeNow brand guidelines with conference-specific adaptations
+**Design System Approach:** Build upon existing KnowledgeNow brand guidelines with Tailwind CSS utility-first framework
 
 **Rationale:**
 - Leverage established KnowledgeNow visual identity (purple primary, professional typography, clean layouts)
-- Adapt existing design tokens for mobile-first PWA context
+- Use Tailwind CSS for rapid, consistent UI development with utility classes
 - Maintain brand consistency while optimizing for conference use case
-- Use existing color palette, typography, and spacing systems as foundation
+- Use existing color palette, typography, and spacing systems as Tailwind design tokens
 
 ### Core Components
 
@@ -427,13 +427,13 @@ graph TD
 
 ### Spacing & Layout
 
-**Grid System:** 12-column desktop / 4-column mobile
+**Grid System:** Tailwind CSS responsive grid system with 12-column desktop / 4-column mobile
 
-**Spacing Scale:** 4px base unit; preferred 8px steps for layout blocks (4, 8, 12, 16, 20, 24, 32, 40, 48, 64, 80px)
+**Spacing Scale:** Tailwind's default 4px base unit with 8px steps (4, 8, 12, 16, 20, 24, 32, 40, 48, 64, 80px)
 
-**Container Gutters:** 24-32px mobile, 40-64px desktop
+**Container Gutters:** Tailwind responsive padding classes (px-6 md:px-8 lg:px-16)
 
-**Section Rhythm:** 80-120px between major sections on desktop; halve on mobile
+**Section Rhythm:** Tailwind spacing utilities (py-20 md:py-32) between major sections
 
 ## Accessibility Requirements
 
@@ -517,25 +517,25 @@ graph TD
 
 ### Motion Principles
 
-**Motion Principles:** Understated, purposeful animations that reinforce hierarchy and provide feedback without distraction
+**Motion Principles:** Understated, purposeful animations using Tailwind CSS transitions and transforms
 
 **Core Guidelines:**
 - **Purposeful Motion:** Every animation serves a functional purpose (feedback, hierarchy, continuity)
 - **Professional Restraint:** Subtle, refined animations that match the executive conference context
-- **Performance First:** Optimize for mobile devices and battery life
-- **Accessibility Respect:** Honor reduced motion preferences and provide alternatives
+- **Performance First:** Optimize for mobile devices and battery life using Tailwind's optimized transitions
+- **Accessibility Respect:** Honor reduced motion preferences with Tailwind's motion-safe utilities
 
 ### Key Animations
 
-- **Page Transitions:** Smooth fade transitions between main sections (Duration: 300ms, Easing: cubic-bezier(0.4, 0, 0.2, 1))
-- **Card Interactions:** Subtle scale and shadow changes on touch/click (Duration: 200ms, Easing: cubic-bezier(0.2, 0, 0, 1))
-- **Sticky Headers:** Smooth slide-in/out for day headers (Duration: 250ms, Easing: cubic-bezier(0.4, 0, 0.2, 1))
-- **Loading States:** Gentle pulse animation for loading indicators (Duration: 1000ms, Easing: ease-in-out)
-- **Form Feedback:** Quick color transitions for validation states (Duration: 150ms, Easing: ease-out)
-- **Navigation Active States:** Smooth underline/indicator transitions (Duration: 200ms, Easing: cubic-bezier(0.4, 0, 0.2, 1))
-- **Countdown Timers:** Smooth number transitions for time updates (Duration: 500ms, Easing: ease-out)
-- **Progressive Disclosure:** Gentle expand/collapse for seat maps and details (Duration: 300ms, Easing: cubic-bezier(0.4, 0, 0.2, 1))
-- **Error States:** Subtle shake animation for form errors (Duration: 400ms, Easing: ease-in-out)
+- **Page Transitions:** Tailwind `transition-opacity duration-300 ease-out` for smooth fade transitions
+- **Card Interactions:** Tailwind `hover:scale-105 hover:shadow-lg transition-all duration-200` for subtle interactions
+- **Sticky Headers:** Tailwind `transition-transform duration-250 ease-out` for smooth slide animations
+- **Loading States:** Tailwind `animate-pulse` for gentle loading indicators
+- **Form Feedback:** Tailwind `transition-colors duration-150` for quick validation state changes
+- **Navigation Active States:** Tailwind `transition-all duration-200` for smooth underline transitions
+- **Countdown Timers:** Tailwind `transition-all duration-500 ease-out` for smooth number updates
+- **Progressive Disclosure:** Tailwind `transition-all duration-300 ease-out` for expand/collapse animations
+- **Error States:** Tailwind `animate-shake` custom animation for form errors
 
 ## Performance Considerations
 
@@ -550,7 +550,7 @@ graph TD
 **Performance-First Design Decisions:**
 - **Optimized Images:** Use WebP format with fallbacks, efficient image sizing
 - **Efficient Caching:** Service worker caching for offline functionality, smart cache invalidation
-- **Minimal Dependencies:** Lightweight component library, tree-shaking for unused code
+- **Minimal Dependencies:** Tailwind CSS utility-first approach, tree-shaking for unused styles
 - **Progressive Enhancement:** Core functionality works without JavaScript, enhanced with JS
 - **Battery Optimization:** Schedule-driven updates only, no continuous background processing
 - **Network Awareness:** Graceful degradation for poor connections, offline-first approach
