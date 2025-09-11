@@ -99,7 +99,7 @@ const HomePage = () => {
           >
             📅
           </div>
-          <div className="cta-content" style={{ flex: 1 }}>
+          <div className="cta-content" style={{ flex: 1, minWidth: 0 }}>
             <h3 
               className="cta-title"
               style={{
@@ -119,7 +119,7 @@ const HomePage = () => {
                 color: 'var(--ink-700)'
               }}
             >
-              See your complete agenda with all sessions and details
+              See your complete agenda
             </p>
           </div>
           <div 

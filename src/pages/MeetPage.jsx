@@ -82,7 +82,13 @@ const MeetPage = () => {
     }
   ];
 
-  const { meetList, addToMeetList, removeFromMeetList, isInMeetList } = useMeetList([
+  const { 
+    meetList, 
+    addToMeetList, 
+    removeFromMeetList, 
+    isInMeetList,
+    meetListButtonRef
+  } = useMeetList([
     allAttendees[0], // Sarah Chen
     allAttendees[3], // Michael Rodriguez
     allAttendees[4]  // Evelina Stromberg
@@ -106,12 +112,67 @@ const MeetPage = () => {
     setSearchExpanded(!searchExpanded);
   };
 
-  const handleAttendeeAction = (attendee) => {
+  const handleAttendeeAction = (attendee, event) => {
     if (isInMeetList(attendee)) {
       removeFromMeetList(attendee);
     } else {
+      // Trigger business card fly animation
+      triggerBusinessCardFlyAnimation(event.currentTarget);
       addToMeetList(attendee);
     }
+  };
+
+  const triggerBusinessCardFlyAnimation = (button) => {
+    // Get button position for animation start point
+    const buttonRect = button.getBoundingClientRect();
+    const startX = buttonRect.left + buttonRect.width / 2;
+    const startY = buttonRect.top + buttonRect.height / 2;
+    
+    // Get My Meet List tab position for animation end point
+    const meetListTab = meetListButtonRef.current;
+    if (!meetListTab) {
+      console.log('Meet list tab not found');
+      return;
+    }
+    
+    const tabRect = meetListTab.getBoundingClientRect();
+    const endX = tabRect.left + tabRect.width / 2;
+    const endY = tabRect.top + tabRect.height / 2;
+    
+    console.log('Animation target:', {
+      startX, startY,
+      endX, endY,
+      deltaX: endX - startX,
+      deltaY: endY - startY
+    });
+    
+    // Calculate distance to travel
+    const deltaX = endX - startX;
+    const deltaY = endY - startY;
+    
+    // Create business card icon
+    const businessCard = document.createElement('div');
+    businessCard.className = 'business-card-icon';
+    businessCard.innerHTML = '📇';
+    businessCard.style.position = 'fixed';
+    businessCard.style.fontSize = '24px';
+    businessCard.style.zIndex = '1000';
+    businessCard.style.pointerEvents = 'none';
+    businessCard.style.left = startX + 'px';
+    businessCard.style.top = startY + 'px';
+    
+    // Set CSS custom properties for animation
+    businessCard.style.setProperty('--delta-x', deltaX + 'px');
+    businessCard.style.setProperty('--delta-y', deltaY + 'px');
+    
+    document.body.appendChild(businessCard);
+    
+    // Remove business card after animation
+    setTimeout(() => {
+      if (businessCard.parentNode) {
+        businessCard.parentNode.removeChild(businessCard);
+      }
+    }, 800);
   };
 
   const handleViewBio = (attendee) => {
@@ -138,6 +199,7 @@ const MeetPage = () => {
           All Attendees
         </Button>
         <Button
+          ref={meetListButtonRef}
           variant={activeTab === 'my-meet-list' ? 'primary' : 'secondary'}
           onClick={() => handleTabChange('my-meet-list')}
           style={{ flex: 1 }}
@@ -251,7 +313,7 @@ const MeetPage = () => {
       )}
 
       {/* Attendee List */}
-      <div className="attendee-list" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)', marginBottom: '200px' }}>
+      <div className="attendee-list cards-container" style={{ marginBottom: '200px' }}>
         {currentAttendees.length > 0 ? (
           currentAttendees.map((attendee) => (
             <AttendeeCard
@@ -262,6 +324,7 @@ const MeetPage = () => {
               onRemoveFromMeetList={handleAttendeeAction}
               onViewBio={handleViewBio}
               onEmail={handleEmail}
+              currentTab={activeTab}
             />
           ))
         ) : (

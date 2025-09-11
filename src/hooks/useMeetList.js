@@ -1,32 +1,38 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 
 /**
  * useMeetList Hook
- * Manages meet list state and animations
+ * Manages meet list state and animations using React refs
  */
 export const useMeetList = (initialMeetList = []) => {
   const [meetList, setMeetList] = useState(initialMeetList);
   const [isAnimating, setIsAnimating] = useState(false);
+  const meetListButtonRef = useRef(null);
 
-  const addToMeetList = useCallback((attendee) => {
+  const addToMeetList = useCallback((attendee, event) => {
     // Check if already in meet list
     if (meetList.some(person => person.id === attendee.id)) {
       return;
     }
+
+    // Prevent multiple animations
+    if (isAnimating) return;
 
     setIsAnimating(true);
     
     // Add to meet list
     setMeetList(prev => [...prev, { ...attendee, addedAt: Date.now() }]);
     
-    // Trigger business card animation
-    triggerBusinessCardAnimation();
+    // Trigger counter animation after state update
+    setTimeout(() => {
+      updateMeetListCounter();
+    }, 50); // Small delay to ensure DOM is updated
     
     // Reset animation state
-    setTimeout(() => setIsAnimating(false), 800);
-  }, [meetList]);
+    setTimeout(() => setIsAnimating(false), 1000);
+  }, [meetList, isAnimating]);
 
-  const removeFromMeetList = useCallback((attendee) => {
+  const removeFromMeetList = useCallback((attendee, event) => {
     setMeetList(prev => prev.filter(person => person.id !== attendee.id));
   }, []);
 
@@ -34,21 +40,19 @@ export const useMeetList = (initialMeetList = []) => {
     return meetList.some(person => person.id === attendee.id);
   }, [meetList]);
 
-  const triggerBusinessCardAnimation = () => {
-    // This would trigger the business card fly animation
-    // For now, we'll just update the counter
-    updateMeetListCounter();
-  };
 
-  const updateMeetListCounter = () => {
-    const meetListButton = document.querySelector('.tab-button:nth-child(2)');
-    if (meetListButton) {
-      meetListButton.classList.add('counter-pulse', 'tab-flash');
+  const updateMeetListCounter = useCallback(() => {
+    // Use ref if available, fallback to DOM selector
+    const targetButton = meetListButtonRef.current || 
+      document.querySelector('.nav-item:nth-child(3)'); // Meet is 3rd tab
+    
+    if (targetButton) {
+      targetButton.classList.add('counter-pulse', 'tab-flash');
       setTimeout(() => {
-        meetListButton.classList.remove('counter-pulse', 'tab-flash');
+        targetButton.classList.remove('counter-pulse', 'tab-flash');
       }, 1200);
     }
-  };
+  }, []);
 
   return {
     meetList,
@@ -56,6 +60,7 @@ export const useMeetList = (initialMeetList = []) => {
     removeFromMeetList,
     isInMeetList,
     isAnimating,
-    meetListCount: meetList.length
+    meetListCount: meetList.length,
+    meetListButtonRef
   };
 };

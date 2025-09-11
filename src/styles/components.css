@@ -31,9 +31,7 @@ body {
   background: var(--white);
   padding: var(--space-md) var(--space-lg);
   box-shadow: var(--shadow-sm);
-  position: sticky;
-  top: 0;
-  z-index: var(--z-sticky);
+  position: relative;
 }
 
 .header-content {
@@ -136,7 +134,7 @@ body {
 /* Main Content */
 .main-content {
   flex: 1;
-  padding: var(--space-lg);
+  padding: var(--space-sm) var(--space-md);
   padding-bottom: calc(var(--space-lg) + 80px); /* Account for fixed bottom nav */
   max-width: var(--container-xl);
   margin: 0 auto;
@@ -235,6 +233,22 @@ body {
   padding: var(--space-lg);
   box-shadow: var(--card-shadow);
   transition: all var(--transition-normal);
+  margin-bottom: var(--space-lg);
+}
+
+.card:last-child {
+  margin-bottom: 0;
+}
+
+/* Cards Container */
+.cards-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.cards-container .card {
+  margin-bottom: 0;
 }
 
 .card:hover {
@@ -252,11 +266,19 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
   margin-bottom: var(--space-sm);
 }
 
 .card-content {
   flex: 1;
+}
+
+/* Session Time Constraints */
+.session-time {
+  min-width: 0;
+  flex-shrink: 0;
 }
 
 /* Status Tags */
@@ -493,6 +515,20 @@ body {
   .container {
     padding: 0 var(--space-md);
   }
+  
+  /* Tablet Card Header Enhancement */
+  .card-header {
+    gap: var(--space-sm);
+  }
+  
+  /* Tablet Schedule CTA Enhancement */
+  .schedule-button {
+    gap: var(--space-lg) !important;
+  }
+  
+  .cta-title {
+    font-size: var(--text-2xl) !important;
+  }
 }
 
 @media (max-width: 480px) {
@@ -503,6 +539,45 @@ body {
   .main-content {
     padding: var(--space-sm);
     padding-bottom: calc(var(--space-sm) + 80px);
+  }
+  
+  /* Mobile Card Header Fix */
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-xs);
+  }
+  
+  .status-tag {
+    font-size: var(--text-xs);
+    padding: 2px var(--space-xs);
+    white-space: nowrap;
+  }
+  
+  /* Mobile Schedule CTA Fix */
+  .schedule-button {
+    gap: var(--space-md) !important;
+    padding: var(--space-lg) !important;
+  }
+  
+  .cta-icon {
+    width: 40px !important;
+    height: 40px !important;
+    font-size: var(--text-2xl) !important;
+  }
+  
+  .cta-content {
+    flex: 1 !important;
+    min-width: 0 !important;
+  }
+  
+  .cta-title {
+    font-size: var(--text-xl) !important;
+    line-height: 1.2 !important;
+  }
+  
+  .cta-arrow {
+    font-size: var(--text-2xl) !important;
   }
   
   .nav-container {
@@ -549,6 +624,59 @@ body {
   }
 }
 
+/* Meet List Animations */
+.counter-pulse {
+  animation: counterPulse 0.6s ease-in-out;
+}
+
+.tab-flash {
+  animation: tabFlash 0.8s ease-in-out;
+}
+
+@keyframes counterPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+@keyframes tabFlash {
+  0%, 100% { 
+    background-color: var(--purple-100);
+    color: var(--purple-700);
+  }
+  50% { 
+    background-color: var(--purple-200);
+    color: var(--purple-800);
+  }
+}
+
+/* Business Card Fly Animation */
+.business-card-icon {
+  position: fixed;
+  font-size: 24px;
+  z-index: 1000;
+  pointer-events: none;
+  animation: flyToMeetList 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+@keyframes flyToMeetList {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  70% {
+    transform: translate(var(--delta-x), var(--delta-y)) scale(0.8);
+    opacity: 0.8;
+  }
+  85% {
+    transform: translate(var(--delta-x), var(--delta-y)) scale(0.8);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(var(--delta-x), var(--delta-y)) scale(0.6);
+    opacity: 0;
+  }
+}
+
 /* Utility Classes */
 .sr-only {
   position: absolute;
@@ -583,6 +711,22 @@ body {
 .mb-md { margin-bottom: var(--space-md); }
 .mb-lg { margin-bottom: var(--space-lg); }
 .mb-xl { margin-bottom: var(--space-xl); }
+
+/* Page Sections */
+.welcome-section,
+.now-next-section,
+.schedule-cta,
+.meet-list-section {
+  margin-bottom: var(--space-xl);
+  padding: 0 var(--space-sm);
+}
+
+.welcome-section:last-child,
+.now-next-section:last-child,
+.schedule-cta:last-child,
+.meet-list-section:last-child {
+  margin-bottom: 0;
+}
 
 .mt-xs { margin-top: var(--space-xs); }
 .mt-sm { margin-top: var(--space-sm); }

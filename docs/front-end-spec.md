@@ -427,13 +427,15 @@ graph TD
 
 ### Spacing & Layout
 
-**Grid System:** Tailwind CSS responsive grid system with 12-column desktop / 4-column mobile
+**Grid System:** Custom CSS with design token-based responsive layout system
 
-**Spacing Scale:** Tailwind's default 4px base unit with 8px steps (4, 8, 12, 16, 20, 24, 32, 40, 48, 64, 80px)
+**Spacing Scale:** CSS Custom Properties design tokens with consistent spacing values (--space-xs, --space-sm, --space-md, --space-lg, --space-xl)
 
-**Container Gutters:** Tailwind responsive padding classes (px-6 md:px-8 lg:px-16)
+**Container Gutters:** Responsive padding using design tokens (--space-sm, --space-md, --space-lg)
 
-**Section Rhythm:** Tailwind spacing utilities (py-20 md:py-32) between major sections
+**Section Rhythm:** Design token-based spacing utilities for consistent vertical rhythm
+
+**Card Spacing:** Vertical gutters between cards using --space-lg, horizontal padding using --space-md
 
 ## Accessibility Requirements
 

@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 
 /**
  * Button Component
  * Reusable button with multiple variants and sizes
  */
-const Button = ({
+const Button = forwardRef(({
   children,
   variant = 'primary',
   size = 'md',
@@ -13,7 +13,7 @@ const Button = ({
   type = 'button',
   className = '',
   ...props
-}) => {
+}, ref) => {
   const baseClasses = 'btn';
   const variantClasses = {
     primary: 'btn-primary',
@@ -35,6 +35,7 @@ const Button = ({
 
   return (
     <button
+      ref={ref}
       type={type}
       className={classes}
       disabled={disabled}
@@ -44,6 +45,8 @@ const Button = ({
       {children}
     </button>
   );
-};
+});
+
+Button.displayName = 'Button';
 
 export default Button;

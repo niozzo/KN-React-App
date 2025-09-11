@@ -34,9 +34,9 @@ This document presents the complete greenfield architecture for the Knowledge No
 ```typescript
 // Core Framework
 React 18 + TypeScript
-Tailwind CSS - Utility-first CSS framework
+Custom CSS with Design Tokens - Component-based styling system
 React Router v6 - Navigation
-Redux Toolkit + RTK Query - State Management
+Custom Hooks - State Management (useMeetList, useSearch, useSort)
 
 // PWA & Performance
 Workbox - Service Worker
@@ -47,6 +47,13 @@ React Virtual - Large List Performance
 Vite - Build Tool
 ESLint + Prettier - Code Quality
 Storybook - Component Development
+
+// Design System
+Design Tokens - CSS Custom Properties for consistent spacing, colors, typography
+Component Library - Reusable UI components with responsive design
+Mobile-First Layout - Progressive enhancement from mobile to desktop
+Responsive Spacing - Vertical gutters, horizontal padding, card spacing
+Mobile-First Breakpoints - 480px (mobile), 768px (tablet), 1024px+ (desktop)
 
 // PWA Native Features
 - iOS 16.4+ Web Push support

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, forwardRef } from 'react';
 import Card, { CardHeader, CardContent } from '../common/Card';
 import Button from '../common/Button';
 import StatusTag from '../common/StatusTag';
@@ -7,15 +7,16 @@ import StatusTag from '../common/StatusTag';
  * Attendee Card Component
  * Displays attendee information with actions and shared events
  */
-const AttendeeCard = ({
+const AttendeeCard = forwardRef(({
   attendee,
   isInMeetList = false,
   onAddToMeetList,
   onRemoveFromMeetList,
   onViewBio,
   onEmail,
-  className = ''
-}) => {
+  className = '',
+  currentTab = 'all-attendees' // 'all-attendees' or 'my-meet-list'
+}, ref) => {
   const [sharedEventsExpanded, setSharedEventsExpanded] = useState(false);
   
   const {
@@ -27,11 +28,39 @@ const AttendeeCard = ({
     sharedEvents = []
   } = attendee;
 
-  const handleActionClick = () => {
-    if (isInMeetList) {
-      onRemoveFromMeetList?.(attendee);
+  const handleActionClick = (event) => {
+    if (currentTab === 'my-meet-list') {
+      // On My Meet List page, always remove
+      onRemoveFromMeetList?.(attendee, event);
     } else {
-      onAddToMeetList?.(attendee);
+      // On All Attendees page, add to meet list
+      onAddToMeetList?.(attendee, event);
+    }
+  };
+
+  const shouldShowButton = () => {
+    if (currentTab === 'my-meet-list') {
+      // On My Meet List page, always show remove button
+      return true;
+    } else {
+      // On All Attendees page, only show button if not in meet list
+      return !isInMeetList;
+    }
+  };
+
+  const getButtonText = () => {
+    if (currentTab === 'my-meet-list') {
+      return 'Remove';
+    } else {
+      return '+ Add to Meet List';
+    }
+  };
+
+  const getButtonVariant = () => {
+    if (currentTab === 'my-meet-list') {
+      return 'danger';
+    } else {
+      return 'secondary';
     }
   };
 
@@ -40,7 +69,7 @@ const AttendeeCard = ({
   };
 
   return (
-    <Card className={className}>
+    <Card ref={ref} className={`attendee-card ${className}`}>
       <CardHeader>
         <div style={{
           display: 'flex',
@@ -69,19 +98,25 @@ const AttendeeCard = ({
             }}>
               {name}
             </div>
-            <Button
-              variant={isInMeetList ? 'danger' : 'secondary'}
-              size="sm"
-              onClick={handleActionClick}
-              style={{
-                fontSize: 'var(--text-sm)',
-                whiteSpace: 'nowrap',
-                marginLeft: 'var(--space-sm)',
-                flexShrink: 0
-              }}
-            >
-              {isInMeetList ? 'Remove' : 'Add to Meet List'}
-            </Button>
+            {shouldShowButton() ? (
+              <Button
+                variant={getButtonVariant()}
+                size="sm"
+                onClick={handleActionClick}
+                style={{
+                  fontSize: 'var(--text-sm)',
+                  whiteSpace: 'nowrap',
+                  marginLeft: 'var(--space-sm)',
+                  flexShrink: 0
+                }}
+              >
+                {getButtonText()}
+              </Button>
+            ) : (
+              <StatusTag variant="success" style={{ marginLeft: 'var(--space-sm)', flexShrink: 0 }}>
+                ✓ In My List
+              </StatusTag>
+            )}
           </div>
           
           <div style={{
@@ -166,7 +201,7 @@ const AttendeeCard = ({
                 fontSize: 'var(--text-sm)',
                 fontWeight: 'var(--font-medium)',
                 padding: 'var(--space-xs) var(--space-sm)',
-                borderRadius: 'var(--radius-md)',
+                borderRadius: sharedEventsExpanded ? 'var(--radius-md) var(--radius-md) 0 0' : 'var(--radius-md)',
                 marginTop: 'var(--space-xs)',
                 cursor: 'pointer',
                 transition: 'all var(--transition-normal)',
@@ -230,6 +265,8 @@ const AttendeeCard = ({
       </CardHeader>
     </Card>
   );
-};
+});
+
+AttendeeCard.displayName = 'AttendeeCard';
 
 export default AttendeeCard;
