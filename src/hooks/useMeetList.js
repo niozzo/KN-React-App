@@ -32,7 +32,7 @@ export const useMeetList = (initialMeetList = []) => {
     setTimeout(() => setIsAnimating(false), 1000);
   }, [meetList, isAnimating]);
 
-  const removeFromMeetList = useCallback((attendee, event) => {
+  const removeFromMeetList = useCallback((attendee) => {
     setMeetList(prev => prev.filter(person => person.id !== attendee.id));
   }, []);
 

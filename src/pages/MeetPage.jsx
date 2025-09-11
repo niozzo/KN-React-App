@@ -114,7 +114,8 @@ const MeetPage = () => {
 
   const handleAttendeeAction = (attendee, event) => {
     if (isInMeetList(attendee)) {
-      removeFromMeetList(attendee);
+      // Trigger remove animation
+      triggerRemoveAnimation(event.currentTarget, attendee);
     } else {
       // Trigger business card fly animation
       triggerBusinessCardFlyAnimation(event.currentTarget);
@@ -173,6 +174,62 @@ const MeetPage = () => {
         businessCard.parentNode.removeChild(businessCard);
       }
     }, 800);
+  };
+
+  const triggerRemoveAnimation = (button, attendee) => {
+    try {
+      // Get the attendee card
+      const attendeeCard = button.closest('.attendee-card');
+      const attendeeList = attendeeCard?.closest('.attendee-list');
+      
+      if (!attendeeCard || !attendeeList) {
+        console.log('Card or list not found for remove animation');
+        return;
+      }
+      
+      // Reset button state to prevent pressed state
+      button.blur();
+      
+      // Add smooth scroll class to the list
+      attendeeList.classList.add('smooth-scroll');
+      
+      // Add removing animation class
+      attendeeCard.classList.add('removing');
+      
+      // Update counter immediately (like in mockup)
+      updateMeetListCounterRemove();
+      
+      // Remove from meet list after animation completes
+      setTimeout(() => {
+        try {
+          removeFromMeetList(attendee);
+          
+          // Remove smooth scroll class after state update
+          setTimeout(() => {
+            if (attendeeList && attendeeList.classList) {
+              attendeeList.classList.remove('smooth-scroll');
+            }
+          }, 100);
+        } catch (error) {
+          console.error('Error during remove animation:', error);
+        }
+      }, 600);
+    } catch (error) {
+      console.error('Error in triggerRemoveAnimation:', error);
+    }
+  };
+
+  const updateMeetListCounterRemove = () => {
+    // Use ref if available, fallback to DOM selector
+    const targetButton = meetListButtonRef.current || 
+      document.querySelector('.nav-item:nth-child(3)'); // Meet is 3rd tab
+    
+    if (targetButton) {
+      targetButton.classList.add('counter-pulse');
+      setTimeout(() => {
+        targetButton.classList.remove('counter-pulse');
+      }, 600);
+    }
   };
 
   const handleViewBio = (attendee) => {
