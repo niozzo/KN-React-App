@@ -8,8 +8,6 @@ import BottomNav from '../common/BottomNav';
  */
 const PageLayout = ({
   children,
-  activeTab = "home",
-  onTabChange,
   user = { name: "John Doe", initials: "JD" },
   onLogoClick,
   onUserClick,
@@ -27,10 +25,7 @@ const PageLayout = ({
         {children}
       </main>
       
-      <BottomNav 
-        activeTab={activeTab}
-        onTabChange={onTabChange}
-      />
+      <BottomNav />
     </div>
   );
 };

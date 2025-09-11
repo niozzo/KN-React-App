@@ -39,7 +39,7 @@ const HomePage = () => {
   };
 
   return (
-    <PageLayout activeTab="home">
+    <PageLayout>
       {/* Welcome Section */}
       <section className="welcome-section">
         <h1 className="welcome-title">Good morning, John</h1>

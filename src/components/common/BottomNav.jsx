@@ -1,43 +1,33 @@
 import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
 
 /**
  * Bottom Navigation Component
  * Fixed bottom navigation with tab-based navigation
  */
 const BottomNav = ({ 
-  activeTab = "home",
-  onTabChange,
   tabs = [
-    { id: "home", label: "Home", icon: "🏠", href: "home.html" },
-    { id: "schedule", label: "Schedule", icon: "📅", href: "schedule.html" },
-    { id: "meet", label: "Meet", icon: "👥", href: "meet.html" },
-    { id: "sponsors", label: "Sponsors", icon: "🏢", href: "sponsors.html" },
-    { id: "settings", label: "Settings", icon: "⚙️", href: "settings.html" }
+    { id: "home", label: "Home", icon: "🏠", path: "/home" },
+    { id: "schedule", label: "Schedule", icon: "📅", path: "/schedule" },
+    { id: "meet", label: "Meet", icon: "👥", path: "/meet" },
+    { id: "sponsors", label: "Sponsors", icon: "🏢", path: "/sponsors" },
+    { id: "settings", label: "Settings", icon: "⚙️", path: "/settings" }
   ]
 }) => {
-  const handleTabClick = (tab, e) => {
-    e.preventDefault();
-    onTabChange?.(tab.id);
-    
-    // For now, navigate to the href (will be replaced with React Router later)
-    if (tab.href) {
-      window.location.href = tab.href;
-    }
-  };
+  const location = useLocation();
 
   return (
     <nav className="bottom-nav">
       <div className="nav-container">
         {tabs.map((tab) => (
-          <a
+          <Link
             key={tab.id}
-            href={tab.href}
-            className={`nav-item ${activeTab === tab.id ? 'active' : ''}`}
-            onClick={(e) => handleTabClick(tab, e)}
+            to={tab.path}
+            className={`nav-item ${location.pathname === tab.path ? 'active' : ''}`}
           >
             <div className="nav-icon">{tab.icon}</div>
             <div className="nav-label">{tab.label}</div>
-          </a>
+          </Link>
         ))}
       </div>
     </nav>

@@ -125,7 +125,7 @@ const MeetPage = () => {
   const currentAttendees = activeTab === 'all-attendees' ? sortedItems : meetList;
 
   return (
-    <PageLayout activeTab="meet">
+    <PageLayout>
       <h1 className="page-title">Meet List</h1>
 
       {/* Tab Navigation */}

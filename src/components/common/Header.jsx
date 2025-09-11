@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 /**
  * Header Component
@@ -13,16 +14,13 @@ const Header = ({
   return (
     <header className="header">
       <div className="header-content">
-        <a 
-          href="#" 
+        <Link 
+          to="/home" 
           className="logo"
-          onClick={(e) => {
-            e.preventDefault();
-            onLogoClick?.();
-          }}
+          onClick={onLogoClick}
         >
           {logoText}
-        </a>
+        </Link>
         <div 
           className="user-info"
           onClick={onUserClick}
