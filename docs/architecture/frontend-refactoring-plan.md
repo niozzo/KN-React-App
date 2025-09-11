@@ -210,6 +210,11 @@ const HomePage = () => {
 - [ ] Accessibility audit
 - [ ] Cross-browser testing
 
+### Phase 7: Bug Fixes & Polish
+- [ ] Fix shared events dropdown attachment (Story 2.4)
+- [ ] Address any remaining UI/UX issues
+- [ ] Final visual polish and consistency checks
+
 ## Success Metrics
 
 - **Visual Fidelity**: 100% match with current mockups

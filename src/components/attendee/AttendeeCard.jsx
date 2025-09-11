@@ -13,7 +13,6 @@ const AttendeeCard = forwardRef(({
   onAddToMeetList,
   onRemoveFromMeetList,
   onViewBio,
-  onEmail,
   className = '',
   currentTab = 'all-attendees' // 'all-attendees' or 'my-meet-list'
 }, ref) => {
@@ -23,7 +22,6 @@ const AttendeeCard = forwardRef(({
     name,
     title,
     company,
-    email,
     isSponsor = false,
     sharedEvents = []
   } = attendee;
@@ -159,23 +157,6 @@ const AttendeeCard = forwardRef(({
               >
                 View Bio
               </a>
-              <a
-                href={`mailto:${email}`}
-                style={{
-                  fontSize: 'var(--text-sm)',
-                  color: 'var(--purple-700)',
-                  textDecoration: 'underline',
-                  marginLeft: 'var(--space-sm)',
-                  flexShrink: 0,
-                  transition: 'color var(--transition-normal)'
-                }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEmail?.(attendee);
-                }}
-              >
-                Email
-              </a>
             </div>
           </div>
           
@@ -192,6 +173,7 @@ const AttendeeCard = forwardRef(({
           
           {sharedEvents.length > 0 && (
             <div
+              className={`shared-events-widget ${sharedEventsExpanded ? 'expanded' : ''}`}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -206,6 +188,7 @@ const AttendeeCard = forwardRef(({
                 cursor: 'pointer',
                 transition: 'all var(--transition-normal)',
                 border: '1px solid var(--green-700)',
+                borderBottom: sharedEventsExpanded ? '1px solid var(--green-700)' : '1px solid var(--green-700)',
                 position: 'relative',
                 minWidth: '140px',
                 boxSizing: 'border-box'
@@ -231,18 +214,20 @@ const AttendeeCard = forwardRef(({
           )}
           
           {sharedEventsExpanded && sharedEvents.length > 0 && (
-            <div style={{
-              marginTop: 0,
-              padding: 'var(--space-sm)',
-              background: 'var(--white)',
-              border: '1px solid var(--green-700)',
-              borderTop: 'none',
-              borderBottomLeftRadius: 'var(--radius-md)',
-              borderBottomRightRadius: 'var(--radius-md)',
-              boxShadow: 'var(--shadow-sm)',
-              minWidth: '140px',
-              boxSizing: 'border-box'
-            }}>
+            <div 
+              className="shared-events-details"
+              style={{
+                padding: 'var(--space-sm)',
+                background: 'var(--white)',
+                border: '1px solid var(--green-700)',
+                borderTop: 'none',
+                boxShadow: '0 -1px 0 0 var(--white), var(--shadow-sm)',
+                position: 'relative',
+                zIndex: 1,
+                marginTop: 0,
+                minWidth: '140px',
+                boxSizing: 'border-box'
+              }}>
               {sharedEvents.map((event, index) => (
                 <div
                   key={index}

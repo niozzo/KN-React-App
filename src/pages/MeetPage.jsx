@@ -22,7 +22,6 @@ const MeetPage = () => {
       name: 'Sarah Chen',
       title: 'Chief Technology Officer',
       company: 'TechCorp',
-      email: 'sarah@techcorp.com',
       sharedEvents: [
         {
           dateTime: 'Monday October 20 - 9:00 AM',
@@ -40,15 +39,13 @@ const MeetPage = () => {
       id: 'nigel-lemmon',
       name: 'Nigel Lemmon',
       title: 'Global CIO',
-      company: 'Tosca Ltd',
-      email: 'nigel@tosca.com'
+      company: 'Tosca Ltd'
     },
     {
       id: 'ayla-queiroga',
       name: 'Ayla Queiroga',
       title: 'Managing Director',
       company: 'Accordion',
-      email: 'ayla@accordion.com',
       isSponsor: true,
       sharedEvents: [
         {
@@ -62,15 +59,13 @@ const MeetPage = () => {
       id: 'michael-rodriguez',
       name: 'Michael Rodriguez',
       title: 'CEO',
-      company: 'InnovateCorp',
-      email: 'michael@innovatecorp.com'
+      company: 'InnovateCorp'
     },
     {
       id: 'evelina-stromberg',
       name: 'Evelina Stromberg',
       title: 'Private Equity Partnerships',
       company: 'Vertice',
-      email: 'evelina@vertice.com',
       isSponsor: true,
       sharedEvents: [
         {
@@ -236,9 +231,6 @@ const MeetPage = () => {
     window.location.href = `bio.html?id=${attendee.id}`;
   };
 
-  const handleEmail = (attendee) => {
-    window.location.href = `mailto:${attendee.email}`;
-  };
 
   const currentAttendees = activeTab === 'all-attendees' ? sortedItems : meetList;
 
@@ -270,7 +262,7 @@ const MeetPage = () => {
         <>
           {/* Search Section */}
           <section 
-            className="search-section-header"
+            className={`search-section-header ${searchExpanded ? 'expanded' : ''}`}
             style={{
               background: 'var(--white)',
               borderRadius: 'var(--radius-xl)',
@@ -314,17 +306,13 @@ const MeetPage = () => {
 
           {searchExpanded && (
             <section 
-              className="search-section"
+              className="search-section search-section-overlap"
               style={{
                 background: 'var(--white)',
                 borderRadius: 'var(--radius-xl)',
                 padding: 'var(--space-lg)',
                 marginBottom: 'var(--space-lg)',
-                boxShadow: 'var(--shadow-md)',
-                borderTop: 'none',
-                borderTopLeftRadius: 0,
-                borderTopRightRadius: 0,
-                marginTop: 0
+                boxShadow: 'var(--shadow-md)'
               }}
             >
               <div className="search-controls" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
@@ -380,7 +368,6 @@ const MeetPage = () => {
               onAddToMeetList={handleAttendeeAction}
               onRemoveFromMeetList={handleAttendeeAction}
               onViewBio={handleViewBio}
-              onEmail={handleEmail}
               currentTab={activeTab}
             />
           ))
