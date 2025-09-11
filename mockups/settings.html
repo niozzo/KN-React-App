@@ -177,6 +177,19 @@
             color: var(--ink-700);
         }
 
+        .setting-title-link {
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--purple-700);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .setting-title-link:hover {
+            color: var(--purple-900);
+            text-decoration: underline;
+        }
+
         /* Toggle Switch */
         .toggle-switch {
             position: relative;
@@ -405,6 +418,7 @@
         @media (max-width: 768px) {
             .main-content {
                 padding: var(--space-md);
+                padding-bottom: calc(var(--space-md) + 80px); /* Account for fixed bottom nav */
             }
             
             .page-title {
@@ -549,13 +563,6 @@
                 </div>
                 <div class="setting-item">
                     <div class="setting-info">
-                        <div class="setting-title">Networking Alerts</div>
-                        <div class="setting-description">Notifications about networking opportunities</div>
-                    </div>
-                    <div class="toggle-switch" onclick="toggleSwitch(this)"></div>
-                </div>
-                <div class="setting-item">
-                    <div class="setting-info">
                         <div class="setting-title">Email Notifications</div>
                         <div class="setting-description">Receive notifications via email</div>
                     </div>
@@ -635,36 +642,25 @@
             <div class="section-content">
                 <div class="setting-item">
                     <div class="setting-info">
-                        <div class="setting-title">Privacy Policy</div>
+                        <a href="#" class="setting-title-link">Privacy Policy</a>
                         <div class="setting-description">Read our privacy policy and data practices</div>
                     </div>
-                    <a href="#" class="action-button">View</a>
                 </div>
                 <div class="setting-item">
                     <div class="setting-info">
-                        <div class="setting-title">Terms of Service</div>
+                        <a href="#" class="setting-title-link">Terms of Service</a>
                         <div class="setting-description">Review the terms and conditions</div>
                     </div>
-                    <a href="#" class="action-button">View</a>
                 </div>
                 <div class="setting-item">
                     <div class="setting-info">
-                        <div class="setting-title">Contact Support</div>
+                        <a href="#" class="setting-title-link">Contact Support</a>
                         <div class="setting-description">Get help with your account or the app</div>
                     </div>
-                    <a href="#" class="action-button">Contact</a>
                 </div>
             </div>
         </section>
 
-        <!-- Privacy Notice -->
-        <div class="privacy-notice">
-            <div class="privacy-title">Your Privacy Matters</div>
-            <div class="privacy-text">
-                We respect your privacy and give you control over your data. All settings are saved locally and can be changed at any time. 
-                <a href="#" class="privacy-link">Learn more about our privacy practices</a>.
-            </div>
-        </div>
     </main>
 
     <!-- Bottom Navigation -->
