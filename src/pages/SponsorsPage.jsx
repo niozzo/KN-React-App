@@ -78,12 +78,6 @@ const SponsorsPage = () => {
     window.open(url, '_blank');
   };
 
-  const handleViewSponsor = (sponsor) => {
-    // Navigate to meet page or sponsor detail
-    console.log('View sponsor:', sponsor);
-    // Could navigate to a sponsor detail page or meet page with sponsor filter
-  };
-
   return (
     <PageLayout>
       <h1 className="page-title">Sponsor Directory</h1>
@@ -118,15 +112,8 @@ const SponsorsPage = () => {
             <div className="sponsor-actions">
               <Button 
                 variant="primary"
-                onClick={() => handleViewSponsor(sponsor)}
-                className="sponsor-button primary"
-              >
-                Learn more
-              </Button>
-              <Button 
-                variant="secondary"
                 onClick={() => handleVisitWebsite(sponsor.website)}
-                className="sponsor-button secondary"
+                className="sponsor-button primary"
               >
                 Visit Website
               </Button>

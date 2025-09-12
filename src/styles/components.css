@@ -580,6 +580,10 @@ body {
     white-space: nowrap;
   }
   
+  .session-countdown {
+    color: var(--coral);
+  }
+  
   
   
   /* Mobile Schedule CTA Fix */
@@ -1025,6 +1029,10 @@ body {
   color: var(--ink-900);
 }
 
+.session-countdown {
+  color: var(--coral);
+}
+
 
 .session-title {
   font-family: var(--font-heading);
@@ -1182,8 +1190,10 @@ body {
 .sponsor-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-  gap: var(--space-lg);
+  gap: var(--space-sm);
   margin-bottom: var(--space-xl);
+  /* DEBUG: Uncomment to see actual gap */
+  /* background: rgba(255,0,0,0.1); */
 }
 
 .sponsor-card {

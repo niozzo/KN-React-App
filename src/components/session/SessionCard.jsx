@@ -36,7 +36,7 @@ const SessionCard = ({
       <CardHeader className="session-header">
         <div className="session-time-container">
           {isNow && countdown ? (
-            <div className="session-time">{countdown}</div>
+            <div className="session-time session-countdown">{countdown}</div>
           ) : !isCoffeeBreak && time ? (
             <div className="session-time">{time}</div>
           ) : null}
