@@ -305,6 +305,11 @@ body {
   font-weight: var(--font-medium);
 }
 
+.status-past {
+  background: var(--gray-200);
+  color: var(--ink-500);
+}
+
 .status-sponsor {
   background: var(--status-sponsor-bg);
   color: var(--status-sponsor-color);
@@ -1001,10 +1006,10 @@ body {
   background: var(--white);
   border: 1px solid var(--purple-500);
   padding: var(--space-sm);
-  border-radius: var(--radius-lg);
+  border-radius: 8px;
   margin-top: var(--space-sm);
   cursor: pointer;
-  transition: all var(--transition-normal);
+  transition: background-color 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
   text-decoration: none;
   color: inherit;
   display: block;
@@ -1024,8 +1029,8 @@ body {
 }
 
 .seat-label {
-  font-size: var(--text-sm);
-  font-weight: var(--font-semibold);
+  font-size: 14px;
+  font-weight: 600;
   color: var(--purple-700);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -1033,9 +1038,9 @@ body {
 }
 
 .seat-details {
-  font-size: var(--text-base);
+  font-size: 16px;
   color: var(--ink-900);
-  font-weight: var(--font-medium);
+  font-weight: 500;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1044,8 +1049,8 @@ body {
 }
 
 .seat-map-link {
-  font-size: var(--text-base);
-  font-weight: var(--font-semibold);
+  font-size: 16px;
+  font-weight: 600;
   color: var(--purple-700);
   text-decoration: none;
   white-space: nowrap;

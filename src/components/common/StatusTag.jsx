@@ -15,6 +15,7 @@ const StatusTag = ({
     default: '',
     now: 'status-now',
     next: 'status-next',
+    past: 'status-past',
     sponsor: 'status-sponsor'
   };
 
