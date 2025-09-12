@@ -506,6 +506,23 @@ body {
   margin-bottom: var(--space-lg);
 }
 
+/* Desktop-only elements */
+.desktop-only {
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .desktop-only {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .desktop-only {
+    display: none;
+  }
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .main-content {

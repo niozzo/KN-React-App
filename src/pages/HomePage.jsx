@@ -103,7 +103,7 @@ const HomePage = () => {
               View Full Schedule
             </h3>
             <p 
-              className="cta-description"
+              className="cta-description desktop-only"
               style={{
                 fontSize: 'var(--text-base)',
                 color: 'var(--ink-700)'
