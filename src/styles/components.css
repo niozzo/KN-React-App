@@ -956,7 +956,7 @@ body {
 }
 
 .session-item.past {
-  opacity: 0.7;
+  /* No special styling needed - only the status tag indicates past status */
 }
 
 .session-header {
@@ -966,18 +966,31 @@ body {
   margin-bottom: var(--space-sm);
 }
 
+.session-time-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0px;
+}
+
+.session-location {
+  font-size: var(--text-base);
+  color: var(--ink-600);
+  font-weight: var(--font-medium);
+  margin-top: -2px;
+}
+
 .session-time {
   font-family: var(--font-heading);
-  font-size: var(--text-lg);
-  font-weight: var(--font-semibold);
-  color: var(--ink-700);
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  color: var(--ink-900);
 }
 
 .session-title {
   font-family: var(--font-heading);
-  font-size: var(--text-2xl);
+  font-size: var(--text-xl);
   font-weight: var(--font-semibold);
-  color: var(--ink-900);
+  color: var(--ink-800);
   margin-bottom: var(--space-xs);
 }
 

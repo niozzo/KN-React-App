@@ -31,25 +31,25 @@ const SessionCard = ({
       className={className}
     >
       <CardHeader>
-        <StatusTag variant={isNow ? 'now' : 'next'}>
-          {statusText}
-        </StatusTag>
         <div className="session-time" style={{ 
           fontFamily: 'var(--font-heading)',
-          fontSize: 'var(--text-lg)',
-          fontWeight: 'var(--font-semibold)',
-          color: 'var(--ink-700)'
+          fontSize: 'var(--text-xl)',
+          fontWeight: 'var(--font-bold)',
+          color: 'var(--ink-900)'
         }}>
           {time}
         </div>
+        <StatusTag variant={isNow ? 'now' : 'next'}>
+          {statusText}
+        </StatusTag>
       </CardHeader>
       
       <CardContent>
         <h3 style={{
           fontFamily: 'var(--font-heading)',
-          fontSize: 'var(--text-2xl)',
+          fontSize: 'var(--text-xl)',
           fontWeight: 'var(--font-semibold)',
-          color: 'var(--ink-900)',
+          color: 'var(--ink-800)',
           marginBottom: 'var(--space-xs)'
         }}>
           {title}

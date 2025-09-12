@@ -218,21 +218,20 @@ const SchedulePage = () => {
                   className={`session-item ${session.status}`}
                 >
                   <div className="session-header">
+                    <div className="session-time-container">
+                      <div className="session-time">{session.time}</div>
+                      {session.location && (
+                        <div className="session-location">{session.location}</div>
+                      )}
+                    </div>
                     <StatusTag variant={getStatusVariant(session.status)}>
                       {getStatusText(session.status)}
                     </StatusTag>
-                    <div className="session-time">{session.time}</div>
                   </div>
                   
                   <h3 className="session-title">{session.title}</h3>
                   
                   <div className="session-details">
-                    {session.location && (
-                      <div className="session-detail">
-                        <span className="detail-icon">📍</span>
-                        <span>{session.location}</span>
-                      </div>
-                    )}
                     {session.speaker && (
                       <div className="session-detail">
                         <span className="detail-icon">👤</span>
