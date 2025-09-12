@@ -30,14 +30,12 @@ const SessionCard = ({
       onClick={onClick}
       className={className}
     >
-      <CardHeader>
-        <div className="session-time" style={{ 
-          fontFamily: 'var(--font-heading)',
-          fontSize: 'var(--text-xl)',
-          fontWeight: 'var(--font-bold)',
-          color: 'var(--ink-900)'
-        }}>
-          {time}
+      <CardHeader className="session-header">
+        <div className="session-time-container">
+          <div className="session-time">{time}</div>
+          {location && (
+            <div className="session-location">{location}</div>
+          )}
         </div>
         <StatusTag variant={isNow ? 'now' : 'next'}>
           {statusText}
@@ -45,102 +43,39 @@ const SessionCard = ({
       </CardHeader>
       
       <CardContent>
-        <h3 style={{
-          fontFamily: 'var(--font-heading)',
-          fontSize: 'var(--text-xl)',
-          fontWeight: 'var(--font-semibold)',
-          color: 'var(--ink-800)',
-          marginBottom: 'var(--space-xs)'
-        }}>
-          {title}
-        </h3>
+        <h3 className="session-title">{title}</h3>
         
-        {(location || speaker) && (
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 'var(--space-xs)',
-            marginBottom: 'var(--space-sm)'
-          }}>
-            {location && (
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 'var(--space-sm)',
-                fontSize: 'var(--text-base)',
-                color: 'var(--ink-700)'
-              }}>
-                <span style={{ opacity: 0.7 }}>📍</span>
-                <span>{location}</span>
-              </div>
-            )}
-            {speaker && (
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 'var(--space-sm)',
-                fontSize: 'var(--text-base)',
-                color: 'var(--ink-700)'
-              }}>
-                <span style={{ opacity: 0.7 }}>👤</span>
-                <span>{speaker}</span>
-              </div>
-            )}
+        {speaker && (
+          <div className="session-details">
+            <div className="session-detail">
+              <a 
+                href={`/bio?speaker=${encodeURIComponent(speaker)}`}
+                className="speaker-link"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  // Handle navigation to bio page
+                  console.log('Navigate to speaker bio:', speaker);
+                }}
+              >
+                {speaker}
+              </a>
+            </div>
           </div>
         )}
         
         {seatInfo && (
           <a 
             href={seatInfo.href || '#'}
-            className="seat-info"
-            style={{
-              background: 'var(--white)',
-              border: '1px solid var(--purple-500)',
-              padding: 'var(--space-sm)',
-              borderRadius: 'var(--radius-lg)',
-              marginTop: 'var(--space-sm)',
-              cursor: 'pointer',
-              transition: 'all var(--transition-normal)',
-              textDecoration: 'none',
-              color: 'inherit',
-              display: 'block'
-            }}
+            className="seat-assignment"
             onClick={(e) => {
               e.stopPropagation();
               seatInfo.onClick?.(e);
             }}
           >
-            <div style={{
-              fontSize: 'var(--text-sm)',
-              fontWeight: 'var(--font-semibold)',
-              color: 'var(--purple-700)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px',
-              marginBottom: '4px'
-            }}>
-              Your Table
-            </div>
-            <div style={{
-              fontSize: 'var(--text-base)',
-              color: 'var(--ink-900)',
-              fontWeight: 'var(--font-medium)',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexWrap: 'nowrap',
-              minWidth: 0
-            }}>
+            <div className="seat-label">Your Table</div>
+            <div className="seat-details">
               <span>{seatInfo.table}</span>
-              <span style={{
-                fontSize: 'var(--text-base)',
-                fontWeight: 'var(--font-semibold)',
-                color: 'var(--purple-700)',
-                textDecoration: 'none',
-                whiteSpace: 'nowrap',
-                flexShrink: 0
-              }}>
-                View table map
-              </span>
+              <span className="seat-map-link">View table map</span>
             </div>
           </a>
         )}

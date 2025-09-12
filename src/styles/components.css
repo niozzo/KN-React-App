@@ -1009,6 +1009,18 @@ body {
   color: var(--ink-700);
 }
 
+.speaker-link {
+  color: var(--coral);
+  text-decoration: none;
+  font-weight: var(--font-medium);
+  transition: color var(--transition-fast);
+}
+
+.speaker-link:hover {
+  color: var(--purple-700);
+  text-decoration: underline;
+}
+
 .detail-icon {
   width: 16px;
   height: 16px;
@@ -1064,14 +1076,14 @@ body {
 .seat-map-link {
   font-size: 16px;
   font-weight: 600;
-  color: var(--purple-700);
+  color: var(--coral);
   text-decoration: none;
   white-space: nowrap;
   flex-shrink: 0;
 }
 
 .seat-action {
-  color: var(--purple-700);
+  color: var(--coral);
   text-decoration: none;
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
@@ -1491,7 +1503,7 @@ body {
 }
 
 .privacy-link {
-  color: var(--purple-700);
+  color: var(--coral);
   text-decoration: none;
 }
 

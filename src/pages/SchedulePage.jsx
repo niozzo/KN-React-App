@@ -234,8 +234,16 @@ const SchedulePage = () => {
                   <div className="session-details">
                     {session.speaker && (
                       <div className="session-detail">
-                        <span className="detail-icon">👤</span>
-                        <span>{session.speaker}</span>
+                        <a 
+                          href={`/bio?speaker=${encodeURIComponent(session.speaker)}`}
+                          className="speaker-link"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            console.log('Navigate to speaker bio:', session.speaker);
+                          }}
+                        >
+                          {session.speaker}
+                        </a>
                       </div>
                     )}
                   </div>
