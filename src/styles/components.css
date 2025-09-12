@@ -974,7 +974,7 @@ body {
 
 .session-location {
   font-size: var(--text-base);
-  color: var(--ink-600);
+  color: var(--purple-500);
   font-weight: var(--font-medium);
   margin-top: -2px;
 }
