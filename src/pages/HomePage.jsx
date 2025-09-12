@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import PageLayout from '../components/layout/PageLayout';
 import SessionCard from '../components/session/SessionCard';
 import Card from '../components/common/Card';
@@ -10,6 +11,8 @@ import Button from '../components/common/Button';
  * Refactored from home.html (587 lines) to ~80 lines
  */
 const HomePage = () => {
+  const navigate = useNavigate();
+  
   // Mock data - would come from props or API in real implementation
   const currentSession = {
     title: "Networking Coffee Break",
@@ -22,19 +25,13 @@ const HomePage = () => {
     location: "Conference Room B",
     speaker: "Michael Rodriguez, CEO at InnovateCorp",
     seatInfo: {
-      table: "Table 5",
-      href: "seat-map.html",
-      onClick: (e) => {
-        e.preventDefault();
-        // Handle seat map navigation
-        console.log('Navigate to seat map');
-      }
+      table: "Table 5"
     }
   };
 
   const handleScheduleClick = () => {
     // Navigate to schedule page
-    window.location.href = 'schedule.html#current';
+    navigate('/schedule#current');
   };
 
   return (

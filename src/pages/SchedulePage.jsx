@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import PageLayout from '../components/layout/PageLayout';
 import SessionCard from '../components/session/SessionCard';
 import StatusTag from '../components/common/StatusTag';
@@ -10,6 +11,7 @@ import Card from '../components/common/Card';
  * Refactored from schedule.html (720 lines) to React component
  */
 const SchedulePage = () => {
+  const navigate = useNavigate();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [stickyHeaders, setStickyHeaders] = useState({});
 
@@ -249,17 +251,20 @@ const SchedulePage = () => {
                   </div>
                   
                   {session.seatInfo && (
-                    <a 
-                      href={session.seatInfo.href}
+                    <div 
                       className="seat-assignment"
-                      onClick={session.seatInfo.onClick}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        navigate('/seat-map');
+                      }}
+                      style={{ cursor: 'pointer' }}
                     >
                       <div className="seat-label">Your Table</div>
                       <div className="seat-details">
                         <span>{session.seatInfo.table}</span>
                         <span className="seat-map-link">View table map</span>
                       </div>
-                    </a>
+                    </div>
                   )}
                 </div>
               ))}

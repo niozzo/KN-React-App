@@ -1138,17 +1138,10 @@ body {
   background: var(--white);
   padding: var(--space-lg);
   border-radius: var(--radius-lg);
-  margin-bottom: var(--space-lg);
+  margin-bottom: var(--space-md);
   box-shadow: var(--shadow-sm);
 }
 
-.search-title {
-  font-family: var(--font-heading);
-  font-size: var(--text-xl);
-  font-weight: var(--font-semibold);
-  color: var(--ink-900);
-  margin-bottom: var(--space-md);
-}
 
 .search-input {
   width: 100%;

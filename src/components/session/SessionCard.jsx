@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import Card, { CardHeader, CardContent } from '../common/Card';
 import StatusTag from '../common/StatusTag';
 
@@ -12,6 +13,7 @@ const SessionCard = ({
   onClick,
   className = ''
 }) => {
+  const navigate = useNavigate();
   const {
     title,
     time,
@@ -67,20 +69,20 @@ const SessionCard = ({
         )}
         
         {seatInfo && (
-          <a 
-            href={seatInfo.href || '#'}
+          <div 
             className="seat-assignment"
             onClick={(e) => {
               e.stopPropagation();
-              seatInfo.onClick?.(e);
+              navigate('/seat-map');
             }}
+            style={{ cursor: 'pointer' }}
           >
             <div className="seat-label">Your Table</div>
             <div className="seat-details">
               <span>{seatInfo.table}</span>
               <span className="seat-map-link">View table map</span>
             </div>
-          </a>
+          </div>
         )}
       </CardContent>
     </Card>

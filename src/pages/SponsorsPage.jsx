@@ -87,11 +87,9 @@ const SponsorsPage = () => {
   return (
     <PageLayout>
       <h1 className="page-title">Sponsor Directory</h1>
-      <p className="page-subtitle">Discover our conference sponsors and learn about their services</p>
 
       {/* Search Section */}
       <section className="search-section">
-        <h2 className="search-title">Search Sponsors</h2>
         <input 
           type="text" 
           className="search-input" 
