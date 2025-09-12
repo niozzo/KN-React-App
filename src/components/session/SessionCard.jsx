@@ -22,6 +22,7 @@ const SessionCard = ({
   } = session;
 
   const isNow = variant === 'now';
+  const isCoffeeBreak = title.toLowerCase().includes('coffee') || title.toLowerCase().includes('break');
   const statusText = isNow ? countdown : 'Next';
 
   return (
@@ -32,8 +33,10 @@ const SessionCard = ({
     >
       <CardHeader className="session-header">
         <div className="session-time-container">
-          <div className="session-time">{time}</div>
-          {location && (
+          {!isCoffeeBreak && (
+            <div className="session-time">{time}</div>
+          )}
+          {location && !isCoffeeBreak && (
             <div className="session-location">{location}</div>
           )}
         </div>

@@ -155,8 +155,9 @@
   --card-now-shadow: var(--shadow-purple);
   
   /* Status Variants */
-  --status-now-bg: var(--purple-700);
+  --status-now-bg: var(--green-500);
   --status-now-color: var(--white);
+  --status-now-border: var(--green-700);
   
   --status-next-bg: var(--green-100);
   --status-next-color: var(--green-700);

@@ -13,7 +13,6 @@ const HomePage = () => {
   // Mock data - would come from props or API in real implementation
   const currentSession = {
     title: "Networking Coffee Break",
-    time: "10:00 AM - 10:30 AM",
     countdown: "23 minutes left"
   };
 
@@ -40,12 +39,6 @@ const HomePage = () => {
 
   return (
     <PageLayout>
-      {/* Welcome Section */}
-      <section className="welcome-section">
-        <h1 className="welcome-title">Good morning, John</h1>
-        <p className="welcome-subtitle">Here's what's happening at the conference today</p>
-      </section>
-
       {/* Now/Next Section */}
       <section className="now-next-section">
         <h2 className="section-title">Now & Next</h2>

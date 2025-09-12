@@ -295,6 +295,9 @@ body {
 .status-now {
   background: var(--status-now-bg);
   color: var(--status-now-color);
+  border: 1px solid var(--status-now-border);
+  border-radius: var(--radius-md);
+  font-weight: var(--font-bold);
 }
 
 .status-next {
@@ -345,13 +348,14 @@ body {
 }
 
 .form-select {
-  padding: var(--space-sm) var(--space-md);
+  padding: var(--space-md);
   border: 1px solid var(--gray-300);
   border-radius: var(--radius-lg);
   background: var(--white);
   color: var(--ink-900);
   font-size: var(--text-base);
-  min-width: 200px;
+  width: 100%;
+  min-height: 44px;
   cursor: pointer;
   transition: border-color var(--transition-normal), box-shadow var(--transition-normal);
 }
@@ -896,7 +900,7 @@ body {
   position: sticky;
   top: 0;
   z-index: 10;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-sm), 0 4px 12px rgba(0, 0, 0, 0.15);
   border: 0.5px solid var(--purple-500);
   box-sizing: border-box;
   border-bottom: none;
@@ -935,6 +939,18 @@ body {
   border-bottom: 1px solid var(--gray-200);
   transition: background-color var(--transition-normal);
   cursor: pointer;
+  position: relative;
+}
+
+.session-item:not(:first-child)::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.02), transparent);
+  pointer-events: none;
 }
 
 .session-item:last-child {
@@ -970,6 +986,10 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0px;
+}
+
+.session-time-container:empty {
+  display: none;
 }
 
 .session-location {

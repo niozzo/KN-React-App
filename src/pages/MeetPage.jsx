@@ -270,7 +270,7 @@ const MeetPage = () => {
               borderRadius: 'var(--radius-xl)',
               padding: 'var(--space-lg)',
               marginBottom: 'var(--space-lg)',
-              boxShadow: 'var(--shadow-md)'
+              boxShadow: 'var(--shadow-lg)'
             }}
           >
             <button 
@@ -314,7 +314,7 @@ const MeetPage = () => {
                 borderRadius: 'var(--radius-xl)',
                 padding: 'var(--space-lg)',
                 marginBottom: 'var(--space-lg)',
-                boxShadow: 'var(--shadow-md)'
+                boxShadow: 'var(--shadow-lg)'
               }}
             >
               <div className="search-controls" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
@@ -334,14 +334,11 @@ const MeetPage = () => {
                       onChange={(e) => handleSharedEventsFilterChange(e.target.checked)}
                     />
                     <span className="toggle-slider"></span>
-                    <span className="toggle-label">Show only people with shared events</span>
+                    <span className="toggle-label">Shared events only</span>
                   </label>
                 </div>
                 
                 <div className="sort-section" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)', flexWrap: 'wrap' }}>
-                  <span className="sort-label" style={{ fontSize: 'var(--text-base)', fontWeight: 'var(--font-medium)', color: 'var(--ink-700)', whiteSpace: 'nowrap' }}>
-                    Sort by:
-                  </span>
                   <select 
                     className="form-select"
                     onChange={(e) => handleSortChange(e.target.value)}
