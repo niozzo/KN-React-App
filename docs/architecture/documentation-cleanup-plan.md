@@ -56,7 +56,6 @@ This document outlines the comprehensive plan to review, update, and clean up al
 - `mockups/sponsors.html` - Historical reference for sponsors design
 - `mockups/settings.html` - Historical reference for settings design
 - `mockups/session-detail.html` - Historical reference for session detail design
-- `mockups/attendee-profile.html` - Historical reference for attendee profile design
 - `mockups/bio.html` - Historical reference for bio page design
 - `mockups/seat-map.html` - Historical reference for seat map design
 

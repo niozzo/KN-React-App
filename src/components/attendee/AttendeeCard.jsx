@@ -1,4 +1,5 @@
 import React, { useState, forwardRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Card, { CardHeader, CardContent } from '../common/Card';
 import Button from '../common/Button';
 import StatusTag from '../common/StatusTag';
@@ -16,6 +17,7 @@ const AttendeeCard = forwardRef(({
   className = '',
   currentTab = 'all-attendees' // 'all-attendees' or 'my-meet-list'
 }, ref) => {
+  const navigate = useNavigate();
   const [sharedEventsExpanded, setSharedEventsExpanded] = useState(false);
   
   const {
@@ -140,23 +142,27 @@ const AttendeeCard = forwardRef(({
               gap: 'var(--space-sm)',
               alignItems: 'center'
             }}>
-              <a
-                href={`bio.html?id=${name.toLowerCase().replace(/\s+/g, '')}`}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/bio?id=${attendee.id}`);
+                  onViewBio?.(attendee);
+                }}
                 style={{
                   color: 'var(--purple-700)',
                   textDecoration: 'underline',
                   fontSize: 'var(--text-sm)',
                   fontWeight: 'var(--font-medium)',
                   transition: 'color var(--transition-normal)',
-                  whiteSpace: 'nowrap'
-                }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onViewBio?.(attendee);
+                  whiteSpace: 'nowrap',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: 0
                 }}
               >
                 View Bio
-              </a>
+              </button>
             </div>
           </div>
           

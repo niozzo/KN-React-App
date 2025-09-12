@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import PageLayout from '../components/layout/PageLayout';
 import AttendeeCard from '../components/attendee/AttendeeCard';
 import Button from '../components/common/Button';
@@ -12,6 +13,7 @@ import { useSort } from '../hooks/useSort';
  * Refactored from meet.html (1422 lines) to ~150 lines
  */
 const MeetPage = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('all-attendees');
   const [searchExpanded, setSearchExpanded] = useState(false);
 
@@ -228,7 +230,7 @@ const MeetPage = () => {
   };
 
   const handleViewBio = (attendee) => {
-    window.location.href = `bio.html?id=${attendee.id}`;
+    navigate(`/bio?id=${attendee.id}`);
   };
 
 

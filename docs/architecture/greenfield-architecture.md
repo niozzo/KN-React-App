@@ -373,7 +373,6 @@ src/
 │   ├── attendees/
 │   │   ├── AttendeeList.tsx
 │   │   ├── AttendeeCard.tsx
-│   │   ├── AttendeeProfile.tsx
 │   │   ├── AttendeeFilters.tsx
 │   │   └── AttendeeSearch.tsx
 │   ├── events/

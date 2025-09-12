@@ -5,17 +5,22 @@ import MeetPage from './pages/MeetPage'
 import SchedulePage from './pages/SchedulePage'
 import SponsorsPage from './pages/SponsorsPage'
 import SettingsPage from './pages/SettingsPage'
+import BioPage from './pages/BioPage'
+import SeatMapPage from './pages/SeatMapPage'
+import IndexPage from './pages/IndexPage'
 
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<HomePage />} />
+      <Route path="/" element={<IndexPage />} />
       <Route path="/home" element={<HomePage />} />
       <Route path="/meet" element={<MeetPage />} />
       <Route path="/schedule" element={<SchedulePage />} />
       <Route path="/sponsors" element={<SponsorsPage />} />
       <Route path="/settings" element={<SettingsPage />} />
-      {/* Add more routes as we migrate pages */}
+      <Route path="/bio" element={<BioPage />} />
+      <Route path="/seat-map" element={<SeatMapPage />} />
+      <Route path="/index" element={<IndexPage />} />
     </Routes>
   )
 }
