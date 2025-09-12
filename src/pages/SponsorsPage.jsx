@@ -103,8 +103,8 @@ const SponsorsPage = () => {
       <div className="sponsor-grid">
         {filteredSponsors.map((sponsor) => (
           <Card key={sponsor.id} className="sponsor-card">
+            <div className="sponsor-logo">{sponsor.logo}</div>
             <div className="sponsor-header">
-              <div className="sponsor-logo">{sponsor.logo}</div>
               <div className="sponsor-info">
                 <div className="sponsor-name">{sponsor.name}</div>
                 <div className="sponsor-category">{sponsor.category}</div>
@@ -118,17 +118,17 @@ const SponsorsPage = () => {
             <div className="sponsor-actions">
               <Button 
                 variant="primary"
-                onClick={() => handleVisitWebsite(sponsor.website)}
+                onClick={() => handleViewSponsor(sponsor)}
                 className="sponsor-button primary"
               >
-                Visit Website
+                Learn more
               </Button>
               <Button 
                 variant="secondary"
-                onClick={() => handleViewSponsor(sponsor)}
+                onClick={() => handleVisitWebsite(sponsor.website)}
                 className="sponsor-button secondary"
               >
-                View
+                Visit Website
               </Button>
             </div>
           </Card>
