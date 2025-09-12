@@ -25,7 +25,7 @@ const SessionCard = ({
 
   const isNow = variant === 'now';
   const isCoffeeBreak = title.toLowerCase().includes('coffee') || title.toLowerCase().includes('break');
-  const statusText = isNow ? countdown : 'Next';
+  const statusText = isNow ? 'NOW' : 'Next';
 
   return (
     <Card 
@@ -35,9 +35,11 @@ const SessionCard = ({
     >
       <CardHeader className="session-header">
         <div className="session-time-container">
-          {!isCoffeeBreak && (
+          {isNow && countdown ? (
+            <div className="session-time">{countdown}</div>
+          ) : !isCoffeeBreak && time ? (
             <div className="session-time">{time}</div>
-          )}
+          ) : null}
           {location && !isCoffeeBreak && (
             <div className="session-location">{location}</div>
           )}

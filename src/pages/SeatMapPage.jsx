@@ -239,14 +239,14 @@ const SeatMapPage = () => {
       {/* Interactive Map Container */}
       <div
         ref={mapContainerRef}
-        className="map-container"
+        className="map-container seat-map-container"
         id="mapContainer"
         style={{
           position: 'fixed',
           top: '203px', // 91px nav + ~88px location info + 24px gutter
           left: 'var(--space-md)',
           right: 'var(--space-md)',
-          bottom: 'calc(91px + var(--space-lg))', // Nav height + gutter
+          bottom: 'calc(80px + var(--space-lg))', // Bottom nav height + gutter
           background: 'var(--white)',
           backgroundImage: `
             linear-gradient(rgba(124, 76, 196, 0.1) 1px, transparent 1px),

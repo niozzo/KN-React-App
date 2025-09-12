@@ -563,6 +563,8 @@ body {
     white-space: nowrap;
   }
   
+  
+  
   /* Mobile Schedule CTA Fix */
   .schedule-button {
     gap: var(--space-md) !important;
@@ -1006,6 +1008,7 @@ body {
   color: var(--ink-900);
 }
 
+
 .session-title {
   font-family: var(--font-heading);
   font-size: var(--text-xl);
@@ -1317,6 +1320,23 @@ body {
 @media (max-width: 480px) {
   .search-section {
     padding: var(--space-md);
+  }
+}
+
+/* Seat Map Page Styles */
+.seat-map-container {
+  /* Responsive bottom spacing to match main-content */
+}
+
+@media (max-width: 768px) {
+  .seat-map-container {
+    bottom: calc(80px + var(--space-md)) !important; /* Tablet: 80px nav + 16px gutter */
+  }
+}
+
+@media (max-width: 480px) {
+  .seat-map-container {
+    bottom: calc(80px + var(--space-sm)) !important; /* Mobile: 80px nav + 12px gutter */
   }
 }
 
