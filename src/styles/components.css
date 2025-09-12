@@ -974,7 +974,7 @@ body {
 
 .session-location {
   font-size: var(--text-base);
-  color: var(--purple-500);
+  color: var(--coral);
   font-weight: var(--font-medium);
   margin-top: -2px;
 }
@@ -1010,14 +1010,14 @@ body {
 }
 
 .speaker-link {
-  color: var(--coral);
+  color: var(--purple-700);
   text-decoration: none;
   font-weight: var(--font-medium);
   transition: color var(--transition-fast);
 }
 
 .speaker-link:hover {
-  color: var(--purple-700);
+  color: var(--purple-900);
   text-decoration: underline;
 }
 
@@ -1076,14 +1076,14 @@ body {
 .seat-map-link {
   font-size: 16px;
   font-weight: 600;
-  color: var(--coral);
+  color: var(--purple-700);
   text-decoration: none;
   white-space: nowrap;
   flex-shrink: 0;
 }
 
 .seat-action {
-  color: var(--coral);
+  color: var(--purple-700);
   text-decoration: none;
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
@@ -1503,7 +1503,7 @@ body {
 }
 
 .privacy-link {
-  color: var(--coral);
+  color: var(--purple-700);
   text-decoration: none;
 }
 
