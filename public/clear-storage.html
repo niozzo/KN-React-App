@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear Storage</title>
+</head>
+<body>
+    <h1>Clear Conference App Storage</h1>
+    <button onclick="clearStorage()">Clear localStorage</button>
+    <button onclick="clearAll()">Clear All Storage</button>
+    <div id="result"></div>
+    
+    <script>
+        function clearStorage() {
+            localStorage.removeItem('conference_auth');
+            document.getElementById('result').innerHTML = 'localStorage cleared!';
+        }
+        
+        function clearAll() {
+            localStorage.clear();
+            sessionStorage.clear();
+            document.getElementById('result').innerHTML = 'All storage cleared!';
+        }
+    </script>
+</body>
+</html>

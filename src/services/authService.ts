@@ -16,20 +16,25 @@ let isAuthenticated = false
 
 // Initialize authentication state from localStorage if available
 const initializeAuthState = () => {
-  try {
-    const storedAuth = localStorage.getItem('conference_auth')
-    if (storedAuth) {
-      const authData = JSON.parse(storedAuth)
-      if (authData.attendee && authData.isAuthenticated) {
-        currentAttendee = authData.attendee
-        isAuthenticated = true
-        console.log('🔄 Restored authentication state from localStorage')
+  // Skip auto-restore in development to always show login screen
+  if (import.meta.env.PROD) {
+    try {
+      const storedAuth = localStorage.getItem('conference_auth')
+      if (storedAuth) {
+        const authData = JSON.parse(storedAuth)
+        if (authData.attendee && authData.isAuthenticated) {
+          currentAttendee = authData.attendee
+          isAuthenticated = true
+          console.log('🔄 Restored authentication state from localStorage')
+        }
       }
+    } catch (error) {
+      console.warn('⚠️ Failed to restore auth state from localStorage:', error)
+      // Clear invalid data
+      localStorage.removeItem('conference_auth')
     }
-  } catch (error) {
-    console.warn('⚠️ Failed to restore auth state from localStorage:', error)
-    // Clear invalid data
-    localStorage.removeItem('conference_auth')
+  } else {
+    console.log('🔧 Development mode: Skipping auth state restoration')
   }
 }
 
