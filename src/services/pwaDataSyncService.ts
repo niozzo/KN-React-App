@@ -79,6 +79,9 @@ export class PWADataSyncService {
     // Load sync status from storage
     this.loadSyncStatus();
     
+    // Register background sync
+    this.registerBackgroundSync();
+    
     // Start periodic sync if online
     if (this.syncStatus.isOnline) {
       this.startPeriodicSync();
@@ -123,6 +126,21 @@ export class PWADataSyncService {
         this.syncAllData();
       }
     }, this.cacheConfig.syncInterval);
+  }
+
+  /**
+   * Register background sync with service worker
+   */
+  private async registerBackgroundSync(): Promise<void> {
+    if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        await registration.sync.register('data-sync');
+        console.log('🔄 Background sync registered');
+      } catch (error) {
+        console.warn('⚠️ Background sync registration failed:', error);
+      }
+    }
   }
 
   /**
@@ -249,9 +267,33 @@ export class PWADataSyncService {
       // Update cache size tracking
       this.updateCacheSize();
       
+      // Also cache in service worker for faster access
+      this.cacheInServiceWorker(tableName, data);
+      
     } catch (error) {
       console.error(`❌ Failed to cache ${tableName}:`, error);
       throw error;
+    }
+  }
+
+  /**
+   * Cache data in service worker
+   */
+  private async cacheInServiceWorker(tableName: string, data: any[]): Promise<void> {
+    if ('serviceWorker' in navigator) {
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        const endpoint = this.tableToEndpoint[tableName];
+        
+        if (endpoint) {
+          registration.active?.postMessage({
+            type: 'CACHE_DATA',
+            data: { [endpoint]: data }
+          });
+        }
+      } catch (error) {
+        console.warn('⚠️ Failed to cache data in service worker:', error);
+      }
     }
   }
 

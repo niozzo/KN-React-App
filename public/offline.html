@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline - Apax KnowledgeNow 2025</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #F5F6F7 0%, #F2ECFB 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .offline-container {
+            text-align: center;
+            max-width: 500px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(124, 76, 196, 0.1);
+            border: 1px solid rgba(124, 76, 196, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .offline-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 24px;
+            background: linear-gradient(135deg, #7C4CC4, #9468CE);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: white;
+        }
+        
+        h1 {
+            color: #0E1821;
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        
+        .subtitle {
+            color: #5A6A7A;
+            font-size: 18px;
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+        
+        .message {
+            color: #5A6A7A;
+            font-size: 16px;
+            margin-bottom: 32px;
+            line-height: 1.6;
+        }
+        
+        .retry-button {
+            background: linear-gradient(135deg, #7C4CC4, #9468CE);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-right: 12px;
+        }
+        
+        .retry-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(124, 76, 196, 0.3);
+        }
+        
+        .back-button {
+            background: transparent;
+            color: #7C4CC4;
+            border: 2px solid #7C4CC4;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .back-button:hover {
+            background: #7C4CC4;
+            color: white;
+        }
+        
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            margin-top: 24px;
+            padding: 8px 16px;
+            background: rgba(124, 76, 196, 0.1);
+            border-radius: 20px;
+            font-size: 14px;
+            color: #7C4CC4;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #7C4CC4;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .cached-data-info {
+            margin-top: 24px;
+            padding: 16px;
+            background: rgba(124, 76, 196, 0.05);
+            border-radius: 8px;
+            font-size: 14px;
+            color: #5A6A7A;
+        }
+        
+        @media (max-width: 480px) {
+            .offline-container {
+                padding: 24px;
+                margin: 0 16px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            .subtitle {
+                font-size: 16px;
+            }
+            
+            .retry-button, .back-button {
+                display: block;
+                width: 100%;
+                margin: 8px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-container">
+        <div class="offline-icon">📱</div>
+        
+        <h1>You're Offline</h1>
+        <p class="subtitle">Apax KnowledgeNow 2025</p>
+        
+        <p class="message">
+            It looks like you're not connected to the internet. Don't worry - you can still access your cached conference data and continue using the app.
+        </p>
+        
+        <div>
+            <button class="retry-button" onclick="retryConnection()">
+                Try Again
+            </button>
+            <button class="back-button" onclick="goBack()">
+                Go Back
+            </button>
+        </div>
+        
+        <div class="status-indicator">
+            <div class="status-dot"></div>
+            Checking connection...
+        </div>
+        
+        <div class="cached-data-info">
+            <strong>Available Offline:</strong><br>
+            • Attendee information<br>
+            • Conference agenda<br>
+            • Sponsor details<br>
+            • Seat assignments<br>
+            • Dining options
+        </div>
+    </div>
+
+    <script>
+        // Check connection status
+        function updateConnectionStatus() {
+            const statusIndicator = document.querySelector('.status-indicator');
+            const statusDot = document.querySelector('.status-dot');
+            
+            if (navigator.onLine) {
+                statusIndicator.innerHTML = `
+                    <div class="status-dot" style="background: #10B981;"></div>
+                    Connected! Redirecting...
+                `;
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 1000);
+            } else {
+                statusIndicator.innerHTML = `
+                    <div class="status-dot"></div>
+                    Still offline - using cached data
+                `;
+            }
+        }
+        
+        // Retry connection
+        function retryConnection() {
+            updateConnectionStatus();
+            if (navigator.onLine) {
+                window.location.reload();
+            }
+        }
+        
+        // Go back to previous page
+        function goBack() {
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = '/';
+            }
+        }
+        
+        // Listen for online/offline events
+        window.addEventListener('online', () => {
+            updateConnectionStatus();
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        });
+        
+        window.addEventListener('offline', updateConnectionStatus);
+        
+        // Initial status check
+        updateConnectionStatus();
+        
+        // Periodic connection check
+        setInterval(updateConnectionStatus, 5000);
+    </script>
+</body>
+</html>
