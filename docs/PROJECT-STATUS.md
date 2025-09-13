@@ -90,7 +90,7 @@
 
 ### **Migration Guides**
 - `MIGRATION-GUIDE-1.2.md` - Complete migration guide
-- `docs/stories/1.2.supabase-integration-schema-setup.md` - Story details
+- `docs/stories/1.2.supabase-integration-schema-setup-COMPLETE.md` - Story details
 
 ### **Development Resources**
 - `docs/spikes/` - Technical spikes and experiments
