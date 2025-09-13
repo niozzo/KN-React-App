@@ -14,7 +14,7 @@ This document breaks down the Conference Companion PWA project into manageable e
 ## Epic List (Logical Sequencing)
 
 ### Epic 1: Foundation & Core Infrastructure
-*Establish project setup, authentication, and basic PWA infrastructure*
+*Establish project setup and basic PWA infrastructure*
 
 ### Epic 2: Core User Experience - Now/Next & Schedule  
 *Deliver the primary glanceable interface and personalized schedule functionality*
@@ -34,11 +34,14 @@ This document breaks down the Conference Companion PWA project into manageable e
 ### Epic 7: Conference Information & Support
 *Provide essential conference information, feedback systems, and post-conference content access*
 
+### Epic 8: Authentication System
+*Implement secure authentication for sensitive operations when needed*
+
 ---
 
 ## Epic 1: Foundation & Core Infrastructure
 
-**Goal:** Establish the foundational PWA infrastructure, authentication system, and basic project setup to support all subsequent features.
+**Goal:** Establish the foundational PWA infrastructure and basic project setup to support all subsequent features.
 
 **Business Value:** Creates the technical foundation that enables all other features and ensures the application can be installed and work offline from day one.
 
@@ -67,21 +70,6 @@ This document breaks down the Conference Companion PWA project into manageable e
 3. Authentication tables and user management setup
 4. Database connection and basic CRUD operations working
 5. Environment configuration for development/production
-
-### Story 1.3: Authentication System
-**As an** attendee,  
-**I want** to sign in securely with minimal friction using email OTP,  
-**so that** I can access personalized conference information.
-
-**Acceptance Criteria:**
-1. Email OTP/magic link authentication implemented
-2. Optional SMS OTP when phone number is available
-3. Session persistence and secure token storage
-4. Rate limiting on OTP sends (max 3 attempts per 15 minutes)
-5. Sign-out flows and session management
-6. Privacy consent banner for discoverability and notifications
-7. Account recovery flow for locked accounts
-8. Integration with Supabase Auth for user management
 
 ---
 
@@ -375,27 +363,56 @@ This document breaks down the Conference Companion PWA project into manageable e
 
 ---
 
+## Epic 8: Authentication System
+
+**Goal:** Implement secure authentication system for sensitive operations when user authentication is required.
+
+**Business Value:** Provides secure access control for sensitive features and user-specific data when needed, ensuring privacy and security for conference attendees.
+
+**Stories:**
+
+### Story 8.1: Authentication System
+**As an** attendee,  
+**I want** to sign in securely with minimal friction using email OTP,  
+**so that** I can access personalized conference information when authentication is required.
+
+**Acceptance Criteria:**
+1. Email OTP/magic link authentication implemented
+2. Optional SMS OTP when phone number is available
+3. Session persistence and secure token storage
+4. Rate limiting on OTP sends (max 3 attempts per 15 minutes)
+5. Sign-out flows and session management
+6. Privacy consent banner for discoverability and notifications
+7. Account recovery flow for locked accounts
+8. Integration with Supabase Auth for user management
+
+---
+
 ## Epic Dependencies & Sequencing
 
 ### Critical Dependencies
 - **Epic 1** must complete before any other epic (foundation)
-- **Epic 2** depends on Epic 1 (authentication and data)
+- **Epic 2** depends on Epic 1 (data infrastructure)
 - **Epic 3** depends on Epic 2 (schedule data for overlaps)
 - **Epic 4** can start after Epic 1 (admin tools independent)
 - **Epic 5** depends on Epic 3 (sponsor integration with networking)
 - **Epic 6** depends on all previous epics (final polish)
 - **Epic 7** can start after Epic 1 (basic info independent), but feedback system depends on Epic 2 (session data)
+- **Epic 8** can be implemented independently when authentication is needed for sensitive operations
 
 ### Parallel Development Opportunities
 - **Epic 4** (Admin Tools) can develop in parallel with Epic 2-3
 - **Epic 5** (Sponsor Integration) can start after Epic 3 begins
 - **Epic 6** (Polish) can begin final stories while Epic 5 completes
 - **Epic 7** (Conference Info) can start after Epic 1, with basic info independent of other epics
+- **Epic 8** (Authentication) can be implemented independently when needed for sensitive operations
 
 ### Timeline Considerations
 - **Epic 1-2**: Critical path for core functionality (Weeks 1-2)
 - **Epic 3-4**: Can develop in parallel after Epic 2 starts (Weeks 2-3)
 - **Epic 5-6**: Final integration and polish phase (Week 4)
+- **Epic 7**: Can develop in parallel with other epics (Weeks 1-4)
+- **Epic 8**: Can be implemented independently when authentication is needed
 
 ### Resource Requirements
 - **Epic 1**: 1 full-stack developer (foundation work)
@@ -404,19 +421,22 @@ This document breaks down the Conference Companion PWA project into manageable e
 - **Epic 4**: 1 full-stack developer (admin tools)
 - **Epic 5**: 1 frontend developer + analytics support (sponsor features)
 - **Epic 6**: 1 full-stack developer + QA (polish and testing)
+- **Epic 7**: 1 frontend developer (conference information features)
+- **Epic 8**: 1 full-stack developer (authentication system)
 
 ---
 
 ## Success Metrics & KPIs
 
 ### Epic-Level Success Criteria
-- **Epic 1**: PWA installable, authentication working, offline capable
+- **Epic 1**: PWA installable, offline capable, basic infrastructure ready
 - **Epic 2**: Now/Next card functional, personalized schedule working
 - **Epic 3**: Meet list creation, attendee discovery, overlap hints
 - **Epic 4**: Admin broadcasts working, real-time updates functional
 - **Epic 5**: Sponsor visibility, analytics tracking, performance targets met
 - **Epic 6**: Production ready, privacy compliant, A2HS optimized
 - **Epic 7**: Conference info accessible, feedback system functional, post-conference content available
+- **Epic 8**: Secure authentication system ready for sensitive operations when needed
 
 ### Overall Project KPIs (from PRD)
 - **Adoption**: ≥50% of non-Apax attendees use app >1×/day on both event days

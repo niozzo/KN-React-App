@@ -1,16 +1,28 @@
+/**
+ * Browser-only Supabase client
+ * This version doesn't include server-side database functions
+ */
+
 import { createClient } from '@supabase/supabase-js'
 
 // Browser-safe configuration
 const supabaseUrl = 'https://iikcgdhztkrexuuqheli.supabase.co'
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlpa2NnZGh6dGtyZXh1dXFoZWxpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwMzY3NDEsImV4cCI6MjA3MjYxMjc0MX0.N3KNNn6N_S4qPlBeclj07QsekCeZnF_FkBKef96XnO8'
 
-export const supabase = createClient(supabaseUrl, supabaseKey)
+// Create a single Supabase client instance
+export const supabase = createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: false
+  }
+})
 
-// Temporary authentication system
+// Authentication state
 let authenticatedSupabase = null
 let isAuthenticated = false
 
-// Function to authenticate with username/password
+// Function to authenticate with username/password (legacy - not used in new system)
 export const authenticateWithCredentials = async (email, password) => {
   try {
     console.log('🔐 Attempting authentication with credentials...')
@@ -28,14 +40,8 @@ export const authenticateWithCredentials = async (email, password) => {
     console.log('✅ Authentication successful!')
     console.log('👤 User:', data.user?.email)
     
-    // Create authenticated client
-    authenticatedSupabase = createClient(supabaseUrl, supabaseKey, {
-      global: {
-        headers: {
-          Authorization: `Bearer ${data.session?.access_token}`
-        }
-      }
-    })
+    // Use the existing client with session
+    authenticatedSupabase = supabase
     
     isAuthenticated = true
     
@@ -99,76 +105,3 @@ export const testConnection = async () => {
     return { success: false, data: null, error: err.message }
   }
 }
-
-// Get all tables by trying common table names
-export const getTables = async () => {
-  try {
-    const client = getAuthenticatedClient()
-    const commonTables = ['users', 'profiles', 'posts', 'products', 'orders', 'customers', 'items', 'articles', 'comments', 'categories']
-    const foundTables = []
-    
-    for (const tableName of commonTables) {
-      try {
-        const { error } = await client
-          .from(tableName)
-          .select('*')
-          .limit(1)
-        
-        if (!error) {
-          foundTables.push({ table_name: tableName })
-        }
-      } catch (err) {
-        // Table doesn't exist, continue
-      }
-    }
-    
-    return { success: true, tables: foundTables, error: null }
-  } catch (err) {
-    return { success: false, tables: null, error: err.message }
-  }
-}
-
-// Get table structure
-export const getTableStructure = async (tableName) => {
-  try {
-    const client = getAuthenticatedClient()
-    const { data, error } = await client
-      .from('information_schema.columns')
-      .select('column_name, data_type, is_nullable, column_default')
-      .eq('table_schema', 'public')
-      .eq('table_name', tableName)
-      .order('ordinal_position')
-    
-    if (error) throw error
-    return { success: true, columns: data, error: null }
-  } catch (err) {
-    return { success: false, columns: null, error: err.message }
-  }
-}
-
-// Get sample data from a table
-export const getTableData = async (tableName, limit = 10) => {
-  try {
-    const client = getAuthenticatedClient()
-    const { data, error } = await client
-      .from(tableName)
-      .select('*')
-      .limit(limit)
-    
-    if (error) throw error
-    return { success: true, data, error: null }
-  } catch (err) {
-    return { success: false, data: null, error: err.message }
-  }
-}
-
-// Re-export direct database functions for convenience
-export {
-  testDirectConnection,
-  getDirectTables,
-  getDirectTableStructure,
-  getDirectTableData,
-  getDirectTableRowCount,
-  executeDirectQuery,
-  closeDirectConnection
-} from './direct-db.js'

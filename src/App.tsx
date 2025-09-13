@@ -11,6 +11,7 @@ import OfflineIndicator from './components/OfflineIndicator'
 import InstallPrompt from './components/InstallPrompt'
 import OfflinePage from './components/OfflinePage'
 import { pwaService } from './services/pwaService'
+import { AuthProvider, withAuth } from './contexts/AuthContext'
 
 // Component to handle scroll restoration
 function ScrollToTop() {
@@ -24,6 +25,15 @@ function ScrollToTop() {
   return null
 }
 
+// Protected route components
+const ProtectedHomePage = withAuth(HomePage)
+const ProtectedMeetPage = withAuth(MeetPage)
+const ProtectedSchedulePage = withAuth(SchedulePage)
+const ProtectedSponsorsPage = withAuth(SponsorsPage)
+const ProtectedSettingsPage = withAuth(SettingsPage)
+const ProtectedBioPage = withAuth(BioPage)
+const ProtectedSeatMapPage = withAuth(SeatMapPage)
+
 function App() {
   useEffect(() => {
     // Initialize PWA service
@@ -31,22 +41,24 @@ function App() {
   }, []);
 
   return (
-    <div data-testid="app">
-      <ScrollToTop />
-      <OfflineIndicator />
-      <InstallPrompt />
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/home" element={<HomePage />} />
-        <Route path="/meet" element={<MeetPage />} />
-        <Route path="/schedule" element={<SchedulePage />} />
-        <Route path="/sponsors" element={<SponsorsPage />} />
-        <Route path="/settings" element={<SettingsPage />} />
-        <Route path="/bio" element={<BioPage />} />
-        <Route path="/seat-map" element={<SeatMapPage />} />
-        <Route path="/offline" element={<OfflinePage />} />
-      </Routes>
-    </div>
+    <AuthProvider>
+      <div data-testid="app">
+        <ScrollToTop />
+        <OfflineIndicator />
+        <InstallPrompt />
+        <Routes>
+          <Route path="/" element={<ProtectedHomePage />} />
+          <Route path="/home" element={<ProtectedHomePage />} />
+          <Route path="/meet" element={<ProtectedMeetPage />} />
+          <Route path="/schedule" element={<ProtectedSchedulePage />} />
+          <Route path="/sponsors" element={<ProtectedSponsorsPage />} />
+          <Route path="/settings" element={<ProtectedSettingsPage />} />
+          <Route path="/bio" element={<ProtectedBioPage />} />
+          <Route path="/seat-map" element={<ProtectedSeatMapPage />} />
+          <Route path="/offline" element={<OfflinePage />} />
+        </Routes>
+      </div>
+    </AuthProvider>
   )
 }
 
