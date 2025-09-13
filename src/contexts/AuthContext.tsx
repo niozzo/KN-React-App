@@ -116,6 +116,9 @@ export const useAuth = (): AuthContextType => {
   return context
 }
 
+// Default export for Fast Refresh compatibility
+export default useAuth
+
 // Higher-order component for protected routes
 export const withAuth = <P extends object>(
   Component: React.ComponentType<P>
