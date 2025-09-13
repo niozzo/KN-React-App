@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <!-- Background -->
+  <rect width="512" height="512" fill="white"/>
+  <!-- Globe: max size with a little padding so stroke never clips -->
+  <g stroke="#d6dbe0" fill="none" stroke-width="3">
+    <circle cx="256" cy="256" r="234"/>
+    <ellipse cx="256" cy="256" rx="234" ry="78"/>
+    <ellipse cx="256" cy="256" rx="234" ry="156"/>
+    <ellipse cx="256" cy="256" rx="78" ry="234"/>
+    <ellipse cx="256" cy="256" rx="156" ry="234"/>
+  </g>
+  <!-- Text: centered horizontally and vertically controlled -->
+  <g fill="#0d2238" font-family="Arial, Helvetica, sans-serif" font-weight="700" text-anchor="middle" >
+    <text x="256" y="208" font-size="152" dominant-baseline="middle">KN</text>
+    <text x="256" y="356" font-size="152" dominant-baseline="middle">25</text>
+  </g>
+</svg>

@@ -20,13 +20,10 @@ const HomePage = () => {
   };
 
   const nextSession = {
-    title: "Track A: Revenue Growth Strategies",
-    time: "1:30 PM - 3:00 PM",
-    location: "Conference Room B",
-    speaker: "Michael Rodriguez, CEO at InnovateCorp",
-    seatInfo: {
-      table: "Table 5"
-    }
+    title: "Navigating Concurrent & Complex Uncertainty @ Bazooka Candy Brands",
+    time: "10:30 AM",
+    location: "Main conference room",
+    speaker: "Tony Jacobs, Chief Executive Officer & Jocelyn Stahl, Chief Operating Officer"
   };
 
   const handleScheduleClick = () => {

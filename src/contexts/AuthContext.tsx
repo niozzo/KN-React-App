@@ -296,6 +296,7 @@ export const LoginPage: React.FC = () => {
             }}>
               Enter your 6-character access code
             </label>
+            
             <div style={{ position: 'relative' }}>
               <input
                 id="accessCode"
@@ -367,6 +368,19 @@ export const LoginPage: React.FC = () => {
           textAlign: 'center'
         }}>
           <p className="mb-sm">Ask registration for help if you can not find your access code</p>
+          
+          {/* Development-only example code */}
+          {import.meta.env.DEV && (
+            <p style={{
+              fontSize: 'var(--text-sm)',
+              color: 'var(--ink-600)',
+              textAlign: 'center',
+              marginTop: 'var(--space-md)',
+              fontWeight: '500'
+            }}>
+              Example valid code: 678547
+            </p>
+          )}
         </div>
       </div>
     </div>
