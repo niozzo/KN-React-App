@@ -167,56 +167,144 @@ const LoginPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Conference Companion
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Enter your access code to continue
+    <div className="main-content" style={{ 
+      minHeight: '100vh', 
+      display: 'flex', 
+      alignItems: 'flex-start', 
+      justifyContent: 'center',
+      background: 'linear-gradient(135deg, #F5F6F7 0%, #F2ECFB 100%)',
+      padding: 'var(--space-xl) var(--space-lg) var(--space-lg)',
+      position: 'relative',
+      overflow: 'hidden'
+    }}>
+      {/* Soft Background Imagery */}
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: `
+          radial-gradient(circle at 20% 30%, rgba(124, 76, 196, 0.15) 0%, transparent 60%),
+          radial-gradient(circle at 80% 70%, rgba(148, 104, 206, 0.12) 0%, transparent 60%),
+          radial-gradient(circle at 40% 80%, rgba(196, 168, 232, 0.10) 0%, transparent 60%),
+          radial-gradient(circle at 60% 20%, rgba(124, 76, 196, 0.08) 0%, transparent 50%)
+        `,
+        zIndex: 1
+      }} />
+      
+      {/* Subtle Pattern Overlay */}
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundImage: `
+          radial-gradient(circle at 1px 1px, rgba(124, 76, 196, 0.2) 1px, transparent 0)
+        `,
+        backgroundSize: '25px 25px',
+        opacity: 0.4,
+        zIndex: 2
+      }} />
+      
+      {/* Additional Soft Elements */}
+      <div style={{
+        position: 'absolute',
+        top: '10%',
+        right: '10%',
+        width: '200px',
+        height: '200px',
+        background: 'radial-gradient(circle, rgba(148, 104, 206, 0.1) 0%, transparent 70%)',
+        borderRadius: '50%',
+        zIndex: 1
+      }} />
+      
+      <div style={{
+        position: 'absolute',
+        bottom: '15%',
+        left: '15%',
+        width: '150px',
+        height: '150px',
+        background: 'radial-gradient(circle, rgba(196, 168, 232, 0.08) 0%, transparent 70%)',
+        borderRadius: '50%',
+        zIndex: 1
+      }} />
+      <div className="card" style={{ 
+        maxWidth: '400px', 
+        width: '100%',
+        textAlign: 'center',
+        position: 'relative',
+        zIndex: 10,
+        marginTop: 'var(--space-lg)',
+        backdropFilter: 'blur(10px)',
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        border: '1px solid rgba(124, 76, 196, 0.1)',
+        boxShadow: '0 8px 32px rgba(124, 76, 196, 0.1), 0 4px 16px rgba(0, 0, 0, 0.05)'
+      }}>
+        <div className="mb-lg">
+          <h1 className="logo" style={{ 
+            fontSize: 'var(--text-4xl)', 
+            marginBottom: 'var(--space-sm)',
+            textAlign: 'center'
+          }}>
+            KnowledgeNow 2025
+          </h1>
+          <p className="text-base" style={{ color: 'var(--ink-700)' }}>
+            Your access code
           </p>
         </div>
         
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div>
-            <label htmlFor="accessCode" className="sr-only">
-              Access Code
-            </label>
+        <form onSubmit={handleSubmit} style={{ marginTop: 'var(--space-xl)' }}>
+          <div className="mb-lg">
             <input
               id="accessCode"
               name="accessCode"
               type="text"
               required
-              className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-              placeholder="Enter your 6-character access code"
+              className="form-input"
+              placeholder="Enter access code"
               value={accessCode}
               onChange={(e) => setAccessCode(e.target.value.toUpperCase())}
               maxLength={6}
               disabled={isLoading}
+              style={{
+                textAlign: 'center',
+                fontSize: 'var(--text-lg)',
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase'
+              }}
             />
           </div>
 
           {error && (
-            <div className="text-red-600 text-sm text-center">
+            <div className="mb-lg" style={{ 
+              color: 'var(--red-500)', 
+              fontSize: 'var(--text-sm)',
+              textAlign: 'center'
+            }}>
               {error}
             </div>
           )}
 
-          <div>
+          <div className="mb-lg">
             <button
               type="submit"
               disabled={isLoading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn btn-primary btn-lg"
+              style={{ width: '100%' }}
             >
               {isLoading ? 'Signing in...' : 'Sign In'}
             </button>
           </div>
         </form>
         
-        <div className="text-center text-xs text-gray-500">
-          <p>Your access code is 6 alphanumeric characters</p>
-          <p>Contact support if you need assistance</p>
+        <div style={{ 
+          color: 'var(--ink-500)', 
+          fontSize: 'var(--text-xs)',
+          textAlign: 'center'
+        }}>
+          <p className="mb-xs">Please check in at registration if you can not find your access code</p>
         </div>
       </div>
     </div>

@@ -22,7 +22,7 @@ describe('InstallPrompt', () => {
     window.dispatchEvent(installEvent)
     
     await waitFor(() => {
-      expect(screen.getByText(/install conference companion/i)).toBeInTheDocument()
+      expect(screen.getByText(/install knowledgenow 2025/i)).toBeInTheDocument()
     })
   })
 
@@ -34,7 +34,7 @@ describe('InstallPrompt', () => {
     window.dispatchEvent(installEvent)
     
     await waitFor(() => {
-      expect(screen.getByText(/install conference companion/i)).toBeInTheDocument()
+      expect(screen.getByText(/install knowledgenow 2025/i)).toBeInTheDocument()
     })
     
     // Click install button
@@ -53,7 +53,7 @@ describe('InstallPrompt', () => {
     window.dispatchEvent(installEvent)
     
     await waitFor(() => {
-      expect(screen.getByText(/install conference companion/i)).toBeInTheDocument()
+      expect(screen.getByText(/install knowledgenow 2025/i)).toBeInTheDocument()
     })
     
     // Simulate successful installation
@@ -64,7 +64,7 @@ describe('InstallPrompt', () => {
     
     // Wait for async installation flow to complete
     await waitFor(() => {
-      expect(screen.queryByText(/install conference companion/i)).not.toBeInTheDocument()
+      expect(screen.queryByText(/install knowledgenow 2025/i)).not.toBeInTheDocument()
     }, { timeout: 3000 })
   })
 
@@ -76,7 +76,7 @@ describe('InstallPrompt', () => {
     
     await waitFor(() => {
       const installButton = screen.getByText('Install')
-      expect(installButton).toHaveAttribute('aria-label', 'Install Conference Companion app')
+      expect(installButton).toHaveAttribute('aria-label', 'Install KnowledgeNow 2025 app')
     })
   })
 })

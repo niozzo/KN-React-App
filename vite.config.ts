@@ -13,9 +13,9 @@ export default defineConfig({
       },
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
-        name: 'Conference Companion',
-        short_name: 'ConfComp',
-        description: 'Executive conference companion app for seamless event management',
+        name: 'KnowledgeNow 2025',
+        short_name: 'KN2025',
+        description: 'KnowledgeNow 2025 conference companion app for seamless event management',
         theme_color: '#1976d2',
         background_color: '#ffffff',
         display: 'standalone',

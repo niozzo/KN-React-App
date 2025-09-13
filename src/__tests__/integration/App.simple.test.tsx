@@ -63,8 +63,8 @@ describe('App - Basic Integration', () => {
         </BrowserRouter>
       )
 
-      expect(screen.getByText('Conference Companion')).toBeInTheDocument()
-      expect(screen.getByPlaceholderText('Enter your 6-character access code')).toBeInTheDocument()
+      expect(screen.getByText('KnowledgeNow 2025')).toBeInTheDocument()
+      expect(screen.getByPlaceholderText('Enter your access code')).toBeInTheDocument()
       expect(screen.getByRole('button', { name: 'Sign In' })).toBeInTheDocument()
     })
 
@@ -91,7 +91,7 @@ describe('App - Basic Integration', () => {
       )
 
       expect(screen.getByTestId('home-page')).toBeInTheDocument()
-      expect(screen.queryByText('Conference Companion')).not.toBeInTheDocument()
+      expect(screen.queryByText('KnowledgeNow 2025')).not.toBeInTheDocument()
     })
   })
 
@@ -108,7 +108,7 @@ describe('App - Basic Integration', () => {
       )
 
       // Should show login page as fallback
-      expect(screen.getByText('Conference Companion')).toBeInTheDocument()
+      expect(screen.getByText('KnowledgeNow 2025')).toBeInTheDocument()
     })
   })
 })

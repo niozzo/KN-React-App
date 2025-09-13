@@ -1,8 +1,8 @@
-# Conference Companion - React Architecture
+# KnowledgeNow 2025 - React Architecture
 
 ## Overview
 
-This directory contains the refactored React architecture for the Conference Companion application. The new architecture transforms the monolithic HTML mockup files into a clean, maintainable component-based system while preserving the exact visual design and user experience.
+This directory contains the refactored React architecture for the KnowledgeNow 2025 application. The new architecture transforms the monolithic HTML mockup files into a clean, maintainable component-based system while preserving the exact visual design and user experience.
 
 ## Architecture Benefits
 

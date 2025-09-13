@@ -36,14 +36,66 @@ const LoginPageTestWrapper = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Conference Companion
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Enter your access code to continue
+    <div className="main-content" style={{ 
+      minHeight: '100vh', 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center',
+      background: 'linear-gradient(135deg, var(--gray-100) 0%, var(--purple-050) 100%)',
+      padding: 'var(--space-lg)',
+      position: 'relative',
+      overflow: 'hidden'
+    }}>
+      {/* Soft Background Imagery */}
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: `
+          radial-gradient(circle at 20% 30%, rgba(124, 76, 196, 0.1) 0%, transparent 50%),
+          radial-gradient(circle at 80% 70%, rgba(148, 104, 206, 0.08) 0%, transparent 50%),
+          radial-gradient(circle at 40% 80%, rgba(196, 168, 232, 0.06) 0%, transparent 50%)
+        `,
+        zIndex: 1
+      }} />
+      
+      {/* Subtle Pattern Overlay */}
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundImage: `
+          radial-gradient(circle at 1px 1px, rgba(124, 76, 196, 0.15) 1px, transparent 0)
+        `,
+        backgroundSize: '20px 20px',
+        opacity: 0.3,
+        zIndex: 2
+      }} />
+      <div className="card" style={{ 
+        maxWidth: '400px', 
+        width: '100%',
+        textAlign: 'center',
+        position: 'relative',
+        zIndex: 10,
+        backdropFilter: 'blur(10px)',
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        border: '1px solid rgba(124, 76, 196, 0.1)',
+        boxShadow: '0 8px 32px rgba(124, 76, 196, 0.1), 0 4px 16px rgba(0, 0, 0, 0.05)'
+      }}>
+        <div className="mb-lg">
+          <h1 className="logo" style={{ 
+            fontSize: 'var(--text-4xl)', 
+            marginBottom: 'var(--space-sm)',
+            textAlign: 'center'
+          }}>
+            KnowledgeNow 2025
+          </h1>
+          <p className="text-base" style={{ color: 'var(--ink-700)' }}>
+            Your access code
           </p>
         </div>
         
@@ -58,7 +110,7 @@ const LoginPageTestWrapper = () => {
               type="text"
               required
               className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-              placeholder="Enter your 6-character access code"
+              placeholder="Your access code"
               value={accessCode}
               onChange={(e) => setAccessCode(e.target.value.toUpperCase())}
               maxLength={6}
@@ -84,8 +136,7 @@ const LoginPageTestWrapper = () => {
         </form>
         
         <div className="text-center text-xs text-gray-500">
-          <p>Your access code is 6 alphanumeric characters</p>
-          <p>Contact support if you need assistance</p>
+          <p>If you cannot find your access code, please check in at registration for it</p>
         </div>
       </div>
     </div>
@@ -113,11 +164,11 @@ describe('LoginPage - Basic Functionality', () => {
         </AuthProvider>
       )
 
-      expect(screen.getByText('Conference Companion')).toBeInTheDocument()
-      expect(screen.getByText('Enter your access code to continue')).toBeInTheDocument()
-      expect(screen.getByPlaceholderText('Enter your 6-character access code')).toBeInTheDocument()
+      expect(screen.getByText('KnowledgeNow 2025')).toBeInTheDocument()
+      expect(screen.getByText('Your access code')).toBeInTheDocument()
+      expect(screen.getByPlaceholderText('Your access code')).toBeInTheDocument()
       expect(screen.getByRole('button', { name: 'Sign In' })).toBeInTheDocument()
-      expect(screen.getByText('Your access code is 6 alphanumeric characters')).toBeInTheDocument()
+      expect(screen.getByText('If you cannot find your access code, please check in at registration for it')).toBeInTheDocument()
     })
 
     it('should have proper form accessibility', () => {
@@ -133,7 +184,7 @@ describe('LoginPage - Basic Functionality', () => {
         </AuthProvider>
       )
 
-      const input = screen.getByPlaceholderText('Enter your 6-character access code')
+      const input = screen.getByPlaceholderText('Your access code')
       const button = screen.getByRole('button', { name: 'Sign In' })
 
       expect(input).toHaveAttribute('type', 'text')
@@ -157,7 +208,7 @@ describe('LoginPage - Basic Functionality', () => {
         </AuthProvider>
       )
 
-      const input = screen.getByPlaceholderText('Enter your 6-character access code')
+      const input = screen.getByPlaceholderText('Your access code')
       
       fireEvent.change(input, { target: { value: 'abc123' } })
       expect(input).toHaveValue('ABC123') // Should convert to uppercase
@@ -176,7 +227,7 @@ describe('LoginPage - Basic Functionality', () => {
         </AuthProvider>
       )
 
-      const input = screen.getByPlaceholderText('Enter your 6-character access code')
+      const input = screen.getByPlaceholderText('Your access code')
       const button = screen.getByRole('button', { name: 'Sign In' })
 
       // Check that form has proper validation attributes

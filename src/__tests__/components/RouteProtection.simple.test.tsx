@@ -41,8 +41,8 @@ describe('Route Protection - Basic Functionality', () => {
         </AuthProvider>
       )
 
-      expect(screen.getByText('Conference Companion')).toBeInTheDocument()
-      expect(screen.getByText('Enter your access code to continue')).toBeInTheDocument()
+      expect(screen.getByText('KnowledgeNow 2025')).toBeInTheDocument()
+      expect(screen.getByText('Your access code to continue')).toBeInTheDocument()
       expect(screen.queryByTestId('test-component')).not.toBeInTheDocument()
     })
   })
@@ -72,7 +72,7 @@ describe('Route Protection - Basic Functionality', () => {
 
       expect(screen.getByTestId('test-component')).toBeInTheDocument()
       expect(screen.getByText('Test Component Content')).toBeInTheDocument()
-      expect(screen.queryByText('Conference Companion')).not.toBeInTheDocument()
+      expect(screen.queryByText('KnowledgeNow 2025')).not.toBeInTheDocument()
     })
   })
 
@@ -89,7 +89,7 @@ describe('Route Protection - Basic Functionality', () => {
       )
 
       // Should show login page as fallback
-      expect(screen.getByText('Conference Companion')).toBeInTheDocument()
+      expect(screen.getByText('KnowledgeNow 2025')).toBeInTheDocument()
       expect(screen.queryByTestId('test-component')).not.toBeInTheDocument()
     })
   })

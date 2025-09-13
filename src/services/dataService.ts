@@ -1,5 +1,5 @@
 /**
- * Data Service for Conference Companion PWA
+ * Data Service for KnowledgeNow 2025 PWA
  * 
  * This service handles all database operations with READ-ONLY access.
  * All data requires authentication - no public data is available.

@@ -71,7 +71,7 @@ const InstallPrompt: React.FC<InstallPromptProps> = ({ onInstall, onDismiss }) =
         <div style={{ fontSize: '24px', marginRight: '12px' }}>📱</div>
         <div>
           <h3 style={{ margin: '0 0 4px 0', fontSize: '16px', color: '#333' }}>
-            Install Conference Companion
+            Install KnowledgeNow 2025
           </h3>
           <p style={{ margin: '0', fontSize: '14px', color: '#666' }}>
             Get quick access to your conference info
@@ -91,7 +91,7 @@ const InstallPrompt: React.FC<InstallPromptProps> = ({ onInstall, onDismiss }) =
             fontSize: '14px',
             border: 'none'
           }}
-          aria-label="Install Conference Companion app"
+          aria-label="Install KnowledgeNow 2025 app"
         >
           Install
         </button>
