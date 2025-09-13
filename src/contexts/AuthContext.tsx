@@ -11,6 +11,7 @@ import {
   signOut as authSignOut,
   getAuthStatus 
 } from '../services/authService'
+import { PWADataSyncService } from '../services/pwaDataSyncService'
 import type { Attendee } from '../types/attendee'
 
 interface AuthContextType {
@@ -37,6 +38,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [attendee, setAttendee] = useState<Attendee | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  
+  // Initialize PWA data sync service
+  const [dataSyncService] = useState(() => new PWADataSyncService())
 
   // Check authentication status on mount
   useEffect(() => {
@@ -64,6 +68,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (result.success && result.attendee) {
         setIsAuthenticated(true)
         setAttendee(result.attendee)
+        
+        // Trigger data synchronization after successful authentication
+        console.log('🔄 Starting data synchronization after authentication...')
+        try {
+          await dataSyncService.syncAllData()
+          console.log('✅ Data synchronization completed successfully')
+        } catch (syncError) {
+          console.error('⚠️ Data synchronization failed:', syncError)
+          // Don't fail login if sync fails - user can still use the app
+        }
+        
         return { success: true }
       } else {
         setIsAuthenticated(false)
