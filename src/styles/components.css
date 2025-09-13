@@ -1227,8 +1227,6 @@ body {
   grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
   gap: var(--space-sm);
   margin-bottom: var(--space-xl);
-  /* DEBUG: Uncomment to see actual gap */
-  /* background: rgba(255,0,0,0.1); */
 }
 
 .sponsor-card {
