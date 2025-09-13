@@ -1,109 +1,97 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react'
 
-interface BeforeInstallPromptEvent extends Event {
-  prompt(): Promise<void>;
-  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+interface InstallPromptProps {
+  onInstall?: () => void
+  onDismiss?: () => void
 }
 
-const InstallPrompt: React.FC = () => {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+const InstallPrompt: React.FC<InstallPromptProps> = ({ onInstall, onDismiss }) => {
+  const [showPrompt, setShowPrompt] = useState(false)
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
 
   useEffect(() => {
+    // Listen for the beforeinstallprompt event
     const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setShowInstallPrompt(true);
-    };
+      e.preventDefault()
+      setDeferredPrompt(e)
+      setShowPrompt(true)
+    }
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    };
-  }, []);
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+    }
+  }, [])
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) return;
-
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    
-    if (outcome === 'accepted') {
-      console.log('User accepted the install prompt');
-    } else {
-      console.log('User dismissed the install prompt');
+    if (deferredPrompt) {
+      deferredPrompt.prompt()
+      const { outcome } = await deferredPrompt.userChoice
+      
+      if (outcome === 'accepted') {
+        onInstall?.()
+        setShowPrompt(false)
+        setDeferredPrompt(null)
+      } else {
+        // User declined, keep prompt available
+        setDeferredPrompt(null)
+      }
     }
-    
-    setDeferredPrompt(null);
-    setShowInstallPrompt(false);
-  };
+  }
 
   const handleDismiss = () => {
-    setShowInstallPrompt(false);
-  };
+    setShowPrompt(false)
+    onDismiss?.()
+  }
 
-  if (!showInstallPrompt) return null;
+  if (!showPrompt) {
+    return null
+  }
 
   return (
-    <div style={{
-      position: 'fixed',
-      bottom: '20px',
-      left: '20px',
-      right: '20px',
-      backgroundColor: 'white',
-      border: '1px solid #e0e0e0',
-      borderRadius: '8px',
-      padding: '16px',
-      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-      zIndex: 1000,
-      maxWidth: '400px',
-      margin: '0 auto'
-    }}>
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        marginBottom: '12px'
-      }}>
-        <div style={{
-          fontSize: '24px',
-          marginRight: '12px'
-        }}>
-          📱
-        </div>
+    <div 
+      data-testid="install-prompt"
+      style={{
+        position: 'fixed',
+        bottom: '20px',
+        left: '20px',
+        right: '20px',
+        backgroundColor: 'white',
+        border: '1px solid #e0e0e0',
+        borderRadius: '8px',
+        padding: '16px',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+        zIndex: 1000,
+        maxWidth: '400px',
+        margin: '0 auto'
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '12px' }}>
+        <div style={{ fontSize: '24px', marginRight: '12px' }}>📱</div>
         <div>
-          <h3 style={{
-            margin: '0 0 4px 0',
-            fontSize: '16px',
-            color: '#333'
-          }}>
+          <h3 style={{ margin: '0 0 4px 0', fontSize: '16px', color: '#333' }}>
             Install Conference Companion
           </h3>
-          <p style={{
-            margin: '0',
-            fontSize: '14px',
-            color: '#666'
-          }}>
+          <p style={{ margin: '0', fontSize: '14px', color: '#666' }}>
             Get quick access to your conference info
           </p>
         </div>
       </div>
-      <div style={{
-        display: 'flex',
-        gap: '8px'
-      }}>
+      <div style={{ display: 'flex', gap: '8px' }}>
         <button
           onClick={handleInstallClick}
           style={{
-            flex: 1,
+            flex: '1 1 0%',
             backgroundColor: '#1976d2',
             color: 'white',
-            border: 'none',
             padding: '8px 16px',
             borderRadius: '4px',
             cursor: 'pointer',
-            fontSize: '14px'
+            fontSize: '14px',
+            border: 'none'
           }}
+          aria-label="Install Conference Companion app"
         >
           Install
         </button>
@@ -123,7 +111,7 @@ const InstallPrompt: React.FC = () => {
         </button>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default InstallPrompt;
+export default InstallPrompt

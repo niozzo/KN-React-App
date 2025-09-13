@@ -9,13 +9,15 @@ import OfflineIndicator from '../../components/OfflineIndicator'
 describe('OfflineIndicator', () => {
   test('renders without crashing', () => {
     render(<OfflineIndicator />)
-    expect(screen.getByTestId('offline-indicator')).toBeInTheDocument()
+    // Component should not be visible when online (returns null)
+    expect(screen.queryByTestId('offline-indicator')).not.toBeInTheDocument()
   })
 
   testOnlineBehavior(() => {
-    test('shows online state when connected', () => {
+    test('hides indicator when online', () => {
       render(<OfflineIndicator />)
-      expect(screen.getByText(/online/i)).toBeInTheDocument()
+      // Component should be hidden when online (returns null)
+      expect(screen.queryByTestId('offline-indicator')).not.toBeInTheDocument()
     })
   })
 
@@ -29,8 +31,8 @@ describe('OfflineIndicator', () => {
   test('updates when network state changes', () => {
     const { rerender } = render(<OfflineIndicator />)
     
-    // Initially online
-    expect(screen.getByText(/online/i)).toBeInTheDocument()
+    // Initially online - component should be hidden when online
+    expect(screen.queryByText(/online/i)).not.toBeInTheDocument()
     
     // Simulate going offline
     Object.defineProperty(navigator, 'onLine', {

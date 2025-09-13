@@ -31,7 +31,7 @@ function App() {
   }, []);
 
   return (
-    <>
+    <div data-testid="app">
       <ScrollToTop />
       <OfflineIndicator />
       <InstallPrompt />
@@ -46,7 +46,7 @@ function App() {
         <Route path="/seat-map" element={<SeatMapPage />} />
         <Route path="/offline" element={<OfflinePage />} />
       </Routes>
-    </>
+    </div>
   )
 }
 

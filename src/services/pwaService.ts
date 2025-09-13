@@ -10,7 +10,7 @@ class PWAService {
   }
 
   private initializeWorkbox() {
-    if ('serviceWorker' in navigator) {
+    if ('serviceWorker' in navigator && navigator.serviceWorker.addEventListener) {
       this.workbox = new Workbox('/sw.js');
       
       this.workbox.addEventListener('waiting', () => {

@@ -11,17 +11,18 @@ const PageLayout = ({
   user = { name: "John Doe", initials: "JD" },
   onLogoClick,
   onUserClick,
-  className = ''
+  className = '',
+  ...props
 }) => {
   return (
-    <div className={`page-layout ${className}`} style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div className={`page-layout ${className}`} style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }} {...props}>
       <Header 
         user={user}
         onLogoClick={onLogoClick}
         onUserClick={onUserClick}
       />
       
-      <main className="main-content">
+      <main className="main-content" data-testid="main-content">
         {children}
       </main>
       

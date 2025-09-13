@@ -3,7 +3,8 @@
  * Tests the main App component with PWA features integration
  */
 
-import { render, screen, testOfflineBehavior, testOnlineBehavior } from '../utils/test-utils'
+import { vi } from 'vitest'
+import { render, screen, testOfflineBehavior, testOnlineBehavior, waitFor } from '../utils/test-utils'
 import App from '../../App'
 
 describe('App Integration', () => {
@@ -12,14 +13,28 @@ describe('App Integration', () => {
     expect(screen.getByTestId('app')).toBeInTheDocument()
   })
 
-  test('renders offline indicator', () => {
+  test('renders offline indicator when offline', () => {
     render(<App />)
-    expect(screen.getByTestId('offline-indicator')).toBeInTheDocument()
+    // OfflineIndicator should be hidden when online (returns null)
+    expect(screen.queryByTestId('offline-indicator')).not.toBeInTheDocument()
   })
 
-  test('renders install prompt', () => {
+  test('renders install prompt when beforeinstallprompt event is triggered', async () => {
     render(<App />)
-    expect(screen.getByTestId('install-prompt')).toBeInTheDocument()
+    
+    // Initially no install prompt should be visible
+    expect(screen.queryByTestId('install-prompt')).not.toBeInTheDocument()
+    
+    // Simulate beforeinstallprompt event
+    const installEvent = new Event('beforeinstallprompt') as any
+    installEvent.prompt = vi.fn().mockResolvedValue({ outcome: 'accepted' })
+    installEvent.userChoice = Promise.resolve({ outcome: 'accepted' })
+    window.dispatchEvent(installEvent)
+    
+    // Wait for install prompt to appear
+    await waitFor(() => {
+      expect(screen.getByTestId('install-prompt')).toBeInTheDocument()
+    })
   })
 
   test('renders main content area', () => {
@@ -28,9 +43,10 @@ describe('App Integration', () => {
   })
 
   testOnlineBehavior(() => {
-    test('shows online state in offline indicator', () => {
+    test('hides offline indicator when online', () => {
       render(<App />)
-      expect(screen.getByText(/online/i)).toBeInTheDocument()
+      // OfflineIndicator should not be visible when online (returns null)
+      expect(screen.queryByTestId('offline-indicator')).not.toBeInTheDocument()
     })
   })
 

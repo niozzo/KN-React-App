@@ -35,7 +35,7 @@ const HomePage = () => {
   };
 
   return (
-    <PageLayout>
+    <PageLayout data-testid="home-page">
       {/* Now/Next Section */}
       <section className="now-next-section">
         <h2 className="section-title">Now & Next</h2>

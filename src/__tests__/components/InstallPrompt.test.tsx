@@ -10,7 +10,8 @@ import InstallPrompt from '../../components/InstallPrompt'
 describe('InstallPrompt', () => {
   test('renders without crashing', () => {
     render(<InstallPrompt />)
-    expect(screen.getByTestId('install-prompt')).toBeInTheDocument()
+    // Component should not be visible by default (no beforeinstallprompt event)
+    expect(screen.queryByTestId('install-prompt')).not.toBeInTheDocument()
   })
 
   test('shows install button when prompt is available', async () => {
@@ -21,7 +22,7 @@ describe('InstallPrompt', () => {
     window.dispatchEvent(installEvent)
     
     await waitFor(() => {
-      expect(screen.getByText(/install app/i)).toBeInTheDocument()
+      expect(screen.getByText(/install conference companion/i)).toBeInTheDocument()
     })
   })
 
@@ -33,11 +34,11 @@ describe('InstallPrompt', () => {
     window.dispatchEvent(installEvent)
     
     await waitFor(() => {
-      expect(screen.getByText(/install app/i)).toBeInTheDocument()
+      expect(screen.getByText(/install conference companion/i)).toBeInTheDocument()
     })
     
     // Click install button
-    const installButton = screen.getByText(/install app/i)
+    const installButton = screen.getByText('Install')
     fireEvent.click(installButton)
     
     // Verify prompt was called
@@ -52,17 +53,17 @@ describe('InstallPrompt', () => {
     window.dispatchEvent(installEvent)
     
     await waitFor(() => {
-      expect(screen.getByText(/install app/i)).toBeInTheDocument()
+      expect(screen.getByText(/install conference companion/i)).toBeInTheDocument()
     })
     
     // Simulate successful installation
     installEvent.userChoice = Promise.resolve({ outcome: 'accepted' })
     
-    const installButton = screen.getByText(/install app/i)
+    const installButton = screen.getByText(/install conference companion/i)
     fireEvent.click(installButton)
     
     await waitFor(() => {
-      expect(screen.queryByText(/install app/i)).not.toBeInTheDocument()
+      expect(screen.queryByText(/install conference companion/i)).not.toBeInTheDocument()
     })
   })
 
@@ -73,7 +74,7 @@ describe('InstallPrompt', () => {
     window.dispatchEvent(installEvent)
     
     await waitFor(() => {
-      const installButton = screen.getByText(/install app/i)
+      const installButton = screen.getByText('Install')
       expect(installButton).toHaveAttribute('aria-label', 'Install Conference Companion app')
     })
   })
