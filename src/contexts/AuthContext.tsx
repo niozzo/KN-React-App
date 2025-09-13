@@ -5,7 +5,7 @@
  * All data access requires authentication - no public data is available.
  */
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react'
 import { 
   authenticateWithAccessCode, 
   signOut as authSignOut,
@@ -59,8 +59,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (accessCode: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      setIsLoading(true)
-      
       const result = await authenticateWithAccessCode(accessCode)
       
       if (result.success && result.attendee) {
@@ -70,7 +68,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } else {
         setIsAuthenticated(false)
         setAttendee(null)
-        return { success: false, error: result.error }
+        return { success: false, error: 'Invalid access code. Please try again or ask at the registration desk for help.' }
       }
     } catch (error) {
       console.error('❌ Login error:', error)
@@ -78,10 +76,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setAttendee(null)
       return { 
         success: false, 
-        error: error instanceof Error ? error.message : 'Login failed' 
+        error: 'Invalid access code. Please try again or ask at the registration desk for help.' 
       }
-    } finally {
-      setIsLoading(false)
     }
   }
 
@@ -147,36 +143,72 @@ export const withAuth = <P extends object>(
 
 // Login page component
 const LoginPage: React.FC = () => {
-  const { login, isLoading } = useAuth()
+  const { login } = useAuth()
   const [accessCode, setAccessCode] = useState('')
   const [error, setError] = useState('')
+  const [showError, setShowError] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = useCallback(async (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
     setError('')
+    setShowError(false)
     
     if (!accessCode.trim()) {
       setError('Please enter your access code')
+      setShowError(true)
       return
     }
 
-    const result = await login(accessCode.trim())
-    if (!result.success) {
-      setError(result.error || 'Invalid access code')
+    try {
+      const result = await login(accessCode.trim())
+      
+      if (!result.success) {
+        setError('Invalid access code. Please try again or ask at the registration desk for help.')
+        setShowError(true)
+      }
+    } catch (error) {
+      setError('Invalid access code. Please try again or ask at the registration desk for help.')
+      setShowError(true)
+    } finally {
+      setIsLoading(false)
     }
-  }
+  }, [accessCode, login])
+
+  // Auto-submit when 6th character is entered
+  useEffect(() => {
+    if (accessCode.length === 6 && !isLoading) {
+      // Show loading state first
+      setIsLoading(true)
+      
+      // Clear the field after a brief delay to show loading
+      setTimeout(() => {
+        setAccessCode('')
+        handleSubmit()
+      }, 500) // 500ms delay to show loading state
+    }
+  }, [accessCode, handleSubmit, isLoading])
 
   return (
-    <div className="main-content" style={{ 
-      minHeight: '100vh', 
-      display: 'flex', 
-      alignItems: 'flex-start', 
-      justifyContent: 'center',
-      background: 'linear-gradient(135deg, #F5F6F7 0%, #F2ECFB 100%)',
-      padding: 'var(--space-xl) var(--space-lg) var(--space-lg)',
-      position: 'relative',
-      overflow: 'hidden'
-    }}>
+    <>
+      <style>
+        {`
+          @keyframes spin {
+            0% { transform: translateY(-50%) rotate(0deg); }
+            100% { transform: translateY(-50%) rotate(360deg); }
+          }
+        `}
+      </style>
+      <div className="main-content" style={{ 
+        minHeight: '100vh', 
+        display: 'flex', 
+        alignItems: 'flex-start', 
+        justifyContent: 'center',
+        background: 'linear-gradient(135deg, #F5F6F7 0%, #F2ECFB 100%)',
+        padding: 'var(--space-xl) var(--space-lg) var(--space-lg)',
+        position: 'relative',
+        overflow: 'hidden'
+      }}>
       {/* Soft Background Imagery */}
       <div style={{
         position: 'absolute',
@@ -245,39 +277,70 @@ const LoginPage: React.FC = () => {
         <div className="mb-lg">
           <h1 className="logo" style={{ 
             fontSize: 'var(--text-4xl)', 
-            marginBottom: 'var(--space-sm)',
+            marginBottom: 'var(--space-xl)',
             textAlign: 'center'
           }}>
             KnowledgeNow 2025
           </h1>
-          <p className="text-base" style={{ color: 'var(--ink-700)' }}>
-            Your access code
-          </p>
         </div>
         
         <form onSubmit={handleSubmit} style={{ marginTop: 'var(--space-xl)' }}>
           <div className="mb-lg">
-            <input
-              id="accessCode"
-              name="accessCode"
-              type="text"
-              required
-              className="form-input"
-              placeholder="Enter access code"
-              value={accessCode}
-              onChange={(e) => setAccessCode(e.target.value.toUpperCase())}
-              maxLength={6}
-              disabled={isLoading}
-              style={{
-                textAlign: 'center',
-                fontSize: 'var(--text-lg)',
-                letterSpacing: '0.1em',
-                textTransform: 'uppercase'
-              }}
-            />
+            <label htmlFor="accessCode" style={{ 
+              display: 'block',
+              fontSize: 'var(--text-sm)',
+              color: 'var(--ink-700)',
+              marginBottom: 'var(--space-sm)',
+              textAlign: 'center',
+              fontWeight: '500'
+            }}>
+              Enter your 6-character access code
+            </label>
+            <div style={{ position: 'relative' }}>
+              <input
+                id="accessCode"
+                name="accessCode"
+                type="text"
+                required
+                className="form-input"
+                placeholder=""
+                value={accessCode}
+                onChange={(e) => setAccessCode(e.target.value.toUpperCase())}
+                maxLength={6}
+                disabled={isLoading}
+                style={{
+                  textAlign: 'center',
+                  fontSize: '2rem',
+                  fontWeight: 'bold',
+                  letterSpacing: '0.5em',
+                  textTransform: 'uppercase',
+                  fontFamily: 'monospace',
+                  padding: 'var(--space-md)',
+                  border: '2px solid var(--ink-300)',
+                  borderRadius: 'var(--radius-md)',
+                  backgroundColor: 'var(--white)',
+                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                  opacity: isLoading ? 0.7 : 1
+                }}
+              />
+              {isLoading && (
+                <div style={{
+                  position: 'absolute',
+                  top: '50%',
+                  right: 'var(--space-md)',
+                  transform: 'translateY(-50%)',
+                  width: '24px',
+                  height: '24px',
+                  border: '3px solid var(--ink-200)',
+                  borderTop: '3px solid var(--purple-500)',
+                  borderRadius: '50%',
+                  animation: 'spin 1s linear infinite'
+                }} />
+              )}
+            </div>
           </div>
 
-          {error && (
+          {showError && error && (
             <div className="mb-lg" style={{ 
               color: 'var(--red-500)', 
               fontSize: 'var(--text-sm)',
@@ -286,27 +349,17 @@ const LoginPage: React.FC = () => {
               {error}
             </div>
           )}
-
-          <div className="mb-lg">
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="btn btn-primary btn-lg"
-              style={{ width: '100%' }}
-            >
-              {isLoading ? 'Signing in...' : 'Sign In'}
-            </button>
-          </div>
         </form>
         
         <div style={{ 
           color: 'var(--ink-500)', 
-          fontSize: 'var(--text-xs)',
+          fontSize: '0.75rem',
           textAlign: 'center'
         }}>
-          <p className="mb-xs">Please check in at registration if you can not find your access code</p>
+          <p className="mb-sm">Ask registration for help if you can not find your access code</p>
         </div>
       </div>
     </div>
+    </>
   )
 }
