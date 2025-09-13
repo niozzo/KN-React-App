@@ -10,17 +10,13 @@ import Button from '../components/common/Button';
  */
 const SettingsPage = () => {
   // Settings state - would come from props or API in real implementation
-  const [settings, setSettings] = useState({
-    discoverability: true,
-    contactInformation: true,
-    overlapHints: true,
-    analyticsParticipation: false,
-    sessionReminders: true,
-    adminBroadcasts: true,
-    emailNotifications: true,
-    offlineMode: true,
-    autoRefresh: true
-  });
+       const [settings, setSettings] = useState({
+         discoverability: true,
+         overlapHints: true,
+         sessionReminders: true,
+         adminBroadcasts: true,
+         offlineMode: true
+       });
 
 
   const handleToggle = (settingKey) => {
@@ -68,27 +64,13 @@ const SettingsPage = () => {
             isEnabled={settings.discoverability}
             onChange={handleToggle}
           />
-          <SettingItem
-            settingKey="contactInformation"
-            title="Contact Information"
-            description="Show email and phone in your profile"
-            isEnabled={settings.contactInformation}
-            onChange={handleToggle}
-          />
-          <SettingItem
-            settingKey="overlapHints"
-            title="Overlap Hints"
-            description="Show shared sessions and dinner table assignments"
-            isEnabled={settings.overlapHints}
-            onChange={handleToggle}
-          />
-          <SettingItem
-            settingKey="analyticsParticipation"
-            title="Analytics Participation"
-            description="Help improve the app with anonymous usage data"
-            isEnabled={settings.analyticsParticipation}
-            onChange={handleToggle}
-          />
+               <SettingItem
+                 settingKey="overlapHints"
+                 title="Overlap Hints"
+                 description="Allow others to see sessions shared with you"
+                 isEnabled={settings.overlapHints}
+                 onChange={handleToggle}
+               />
         </div>
       </section>
 
@@ -100,8 +82,8 @@ const SettingsPage = () => {
         <div className="section-content">
           <SettingItem
             settingKey="sessionReminders"
-            title="Session Reminders"
-            description="Get notified 15 minutes before your sessions"
+            title="End of Break Reminders"
+            description="Get notified 5 minutes before the end of a break"
             isEnabled={settings.sessionReminders}
             onChange={handleToggle}
           />
@@ -110,13 +92,6 @@ const SettingsPage = () => {
             title="Admin Broadcasts"
             description="Receive important conference updates"
             isEnabled={settings.adminBroadcasts}
-            onChange={handleToggle}
-          />
-          <SettingItem
-            settingKey="emailNotifications"
-            title="Email Notifications"
-            description="Receive notifications via email"
-            isEnabled={settings.emailNotifications}
             onChange={handleToggle}
           />
         </div>
@@ -133,13 +108,6 @@ const SettingsPage = () => {
             title="Offline Mode"
             description="Download schedule for offline access"
             isEnabled={settings.offlineMode}
-            onChange={handleToggle}
-          />
-          <SettingItem
-            settingKey="autoRefresh"
-            title="Auto-refresh"
-            description="Automatically update schedule and notifications"
-            isEnabled={settings.autoRefresh}
             onChange={handleToggle}
           />
         </div>
