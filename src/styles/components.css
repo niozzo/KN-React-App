@@ -42,11 +42,6 @@ body {
   margin: 0 auto;
 }
 
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: var(--space-md);
-}
 
 .logo {
   font-family: var(--font-heading);
@@ -61,10 +56,6 @@ body {
   color: var(--purple-500);
 }
 
-.site-map-link:hover {
-  background-color: var(--gray-100);
-  color: var(--purple-700);
-}
 
 .user-info {
   display: flex;

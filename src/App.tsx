@@ -7,7 +7,6 @@ import SponsorsPage from './pages/SponsorsPage.jsx'
 import SettingsPage from './pages/SettingsPage.jsx'
 import BioPage from './pages/BioPage.jsx'
 import SeatMapPage from './pages/SeatMapPage.jsx'
-import IndexPage from './pages/IndexPage.jsx'
 import OfflineIndicator from './components/OfflineIndicator'
 import InstallPrompt from './components/InstallPrompt'
 import OfflinePage from './components/OfflinePage'
@@ -45,7 +44,6 @@ function App() {
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/bio" element={<BioPage />} />
         <Route path="/seat-map" element={<SeatMapPage />} />
-        <Route path="/index" element={<IndexPage />} />
         <Route path="/offline" element={<OfflinePage />} />
       </Routes>
     </>
