@@ -26,7 +26,18 @@ jobs:
       run: npm run lint || echo "Linting not configured yet"
     
     - name: Run tests
-      run: npm test || echo "Tests not configured yet"
+      run: npm run test:ci
+    
+    - name: Generate coverage report
+      run: npm run test:coverage
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage/lcov.info
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
     
     - name: Build application
       run: npm run build
