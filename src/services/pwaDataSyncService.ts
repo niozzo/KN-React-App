@@ -1,11 +1,13 @@
 /**
  * PWA Data Synchronization Service
  * Story 1.2: Database Integration & Data Access Layer Setup
+ * Story 1.3: PWA Polish & Branding - Added schema validation
  * 
  * Handles offline data caching, synchronization, and conflict resolution
  */
 
 // All data reads must go through backend endpoints protected by RLS-aware auth
+import { SchemaValidationService } from './schemaValidationService';
 
 export interface SyncStatus {
   isOnline: boolean;
@@ -47,6 +49,8 @@ export class PWADataSyncService {
     syncInProgress: false
   };
 
+  private schemaValidator: SchemaValidationService;
+
   private cacheConfig: CacheConfig = {
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
     maxSize: 50 * 1024 * 1024, // 50MB
@@ -68,6 +72,7 @@ export class PWADataSyncService {
   };
 
   constructor() {
+    this.schemaValidator = new SchemaValidationService();
     this.initializeSync();
     this.setupEventListeners();
   }
@@ -179,6 +184,21 @@ export class PWADataSyncService {
 
     try {
       console.log('🔄 Starting data synchronization...');
+
+      // Validate schema before syncing
+      console.log('🔍 Validating database schema...');
+      try {
+        const schemaResult = await this.schemaValidator.validateSchema();
+        if (!schemaResult.isValid) {
+          console.warn('⚠️ Schema validation failed:', schemaResult.errors);
+          result.errors.push(`Schema validation failed: ${schemaResult.errors.length} errors found`);
+        } else {
+          console.log('✅ Schema validation passed');
+        }
+      } catch (schemaError) {
+        console.warn('⚠️ Schema validation error:', schemaError);
+        result.errors.push(`Schema validation error: ${schemaError.message}`);
+      }
 
       // Sync each table
       const tables = ['attendees', 'sponsors', 'seat_assignments', 'agenda_items', 'dining_options', 'hotels'];
