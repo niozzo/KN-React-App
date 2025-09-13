@@ -12,6 +12,7 @@ import {
   getAuthStatus 
 } from '../services/authService'
 import type { Attendee } from '../types/attendee'
+import InstallPrompt from '../components/InstallPrompt'
 
 interface AuthContextType {
   // Authentication state
@@ -370,7 +371,7 @@ export const LoginPage: React.FC = () => {
           <p className="mb-sm">Ask registration for help if you can not find your access code</p>
           
           {/* Development-only example code */}
-          {import.meta.env.DEV && (
+          {(import.meta as any).env?.DEV && (
             <p style={{
               fontSize: 'var(--text-sm)',
               color: 'var(--ink-600)',
@@ -383,6 +384,9 @@ export const LoginPage: React.FC = () => {
           )}
         </div>
       </div>
+      
+      {/* PWA Install Button */}
+      <InstallPrompt placement="login" />
     </div>
     </>
   )

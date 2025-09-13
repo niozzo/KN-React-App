@@ -45,7 +45,7 @@ function App() {
       <div data-testid="app">
         <ScrollToTop />
         <OfflineIndicator />
-        <InstallPrompt />
+        <InstallPrompt placement="auto" />
         <Routes>
           <Route path="/" element={<ProtectedHomePage />} />
           <Route path="/home" element={<ProtectedHomePage />} />

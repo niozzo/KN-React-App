@@ -4,6 +4,7 @@ import PageLayout from '../components/layout/PageLayout';
 import SessionCard from '../components/session/SessionCard';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
+import InstallPrompt from '../components/InstallPrompt';
 
 /**
  * Home Page Component
@@ -121,6 +122,11 @@ const HomePage = () => {
             →
           </div>
         </Card>
+      </section>
+
+      {/* PWA Install Button */}
+      <section className="install-prompt-section">
+        <InstallPrompt placement="home" />
       </section>
     </PageLayout>
   );
