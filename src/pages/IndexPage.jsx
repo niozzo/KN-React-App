@@ -13,11 +13,11 @@ const IndexPage = () => {
   const pages = [
     {
       id: "home",
-      title: "Home Screen",
-      description: "Main dashboard with Now/Next cards and quick actions",
+      title: "Home Dashboard",
+      description: "Main dashboard with Now/Next cards and quick actions (default page)",
       icon: "🏠",
-      path: "/home",
-      url: "home.html"
+      path: "/",
+      url: "index.html"
     },
     {
       id: "schedule",
@@ -54,12 +54,12 @@ const IndexPage = () => {
   ];
 
   const quickLinks = [
-    { id: "home", label: "Home", icon: "🏠", path: "/home" },
+    { id: "home", label: "Home", icon: "🏠", path: "/" },
     { id: "schedule", label: "Schedule", icon: "📅", path: "/schedule" },
     { id: "meet", label: "Meet List", icon: "👥", path: "/meet" },
     { id: "sponsors", label: "Sponsors", icon: "🏢", path: "/sponsors" },
     { id: "settings", label: "Settings", icon: "⚙️", path: "/settings" },
-    { id: "session-detail", label: "Session Detail", icon: "📋", path: "/session-detail" }
+    { id: "site-map", label: "Site Map", icon: "🗺️", path: "/index" }
   ];
 
   return (
@@ -99,7 +99,7 @@ const IndexPage = () => {
             marginBottom: 'var(--space-lg)'
           }}
         >
-          Interactive Mockups & Prototypes
+          Site Map & Navigation
         </p>
         <p 
           className="description"
@@ -110,9 +110,27 @@ const IndexPage = () => {
             margin: '0 auto var(--space-xl)'
           }}
         >
-          Experience the complete Conference Companion PWA through interactive mockups. 
-          Start with the Home screen to see the full user experience in action.
+          Navigate to any page in the Conference Companion PWA. 
+          The main dashboard is now the default home page.
         </p>
+        <div style={{ marginBottom: 'var(--space-lg)' }}>
+          <Link 
+            to="/"
+            style={{
+              display: 'inline-block',
+              background: 'var(--purple-700)',
+              color: 'var(--white)',
+              padding: 'var(--space-md) var(--space-lg)',
+              borderRadius: '8px',
+              textDecoration: 'none',
+              fontWeight: '600',
+              fontSize: '16px',
+              transition: 'all 0.3s ease'
+            }}
+          >
+            ← Back to Home Dashboard
+          </Link>
+        </div>
       </header>
 
       {/* Main CTA Section */}
@@ -156,7 +174,7 @@ const IndexPage = () => {
               marginBottom: 'var(--space-md)'
             }}
           >
-            Home Screen
+            Main Dashboard
           </h2>
           <p 
             className="cta-description"
@@ -169,11 +187,11 @@ const IndexPage = () => {
               marginRight: 'auto'
             }}
           >
-            Experience the main dashboard with Now/Next cards, smart countdown timers, 
-            seat assignments, and direct access to your full schedule. This is where attendees begin their journey.
+            The main dashboard with Now/Next cards, smart countdown timers, 
+            seat assignments, and direct access to your full schedule. This is now the default home page.
           </p>
           <Link 
-            to="/home"
+            to="/"
             className="cta-button"
             style={{
               display: 'inline-block',
@@ -188,7 +206,7 @@ const IndexPage = () => {
               boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)'
             }}
           >
-            Launch Home Screen →
+            Go to Dashboard →
           </Link>
           <p 
             style={{

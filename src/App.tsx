@@ -37,7 +37,7 @@ function App() {
       <OfflineIndicator />
       <InstallPrompt />
       <Routes>
-        <Route path="/" element={<IndexPage />} />
+        <Route path="/" element={<HomePage />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/meet" element={<MeetPage />} />
         <Route path="/schedule" element={<SchedulePage />} />
