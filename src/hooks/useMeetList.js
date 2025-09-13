@@ -1,13 +1,20 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef } from 'react';
+import { useAnimations } from './useAnimations';
 
 /**
  * useMeetList Hook
- * Manages meet list state and animations using React refs
+ * Manages meet list state with proper animation integration
+ * Refactored to use centralized animation system
  */
 export const useMeetList = (initialMeetList = []) => {
   const [meetList, setMeetList] = useState(initialMeetList);
-  const [isAnimating, setIsAnimating] = useState(false);
   const meetListButtonRef = useRef(null);
+  const { 
+    isAnimating, 
+    triggerBusinessCardFlyAnimation, 
+    triggerCounterPulse, 
+    triggerRemoveAnimation 
+  } = useAnimations();
 
   const addToMeetList = useCallback((attendee, event) => {
     // Check if already in meet list
@@ -18,19 +25,19 @@ export const useMeetList = (initialMeetList = []) => {
     // Prevent multiple animations
     if (isAnimating) return;
 
-    setIsAnimating(true);
-    
     // Add to meet list
     setMeetList(prev => [...prev, { ...attendee, addedAt: Date.now() }]);
     
-    // Trigger counter animation after state update
-    setTimeout(() => {
-      updateMeetListCounter();
-    }, 50); // Small delay to ensure DOM is updated
+    // Trigger business card fly animation
+    if (event && meetListButtonRef.current) {
+      triggerBusinessCardFlyAnimation(event.currentTarget, meetListButtonRef.current);
+    }
     
-    // Reset animation state
-    setTimeout(() => setIsAnimating(false), 1000);
-  }, [meetList, isAnimating]);
+    // Trigger counter animation
+    if (meetListButtonRef.current) {
+      triggerCounterPulse(meetListButtonRef.current);
+    }
+  }, [meetList, isAnimating, triggerBusinessCardFlyAnimation, triggerCounterPulse]);
 
   const removeFromMeetList = useCallback((attendee) => {
     setMeetList(prev => prev.filter(person => person.id !== attendee.id));
@@ -40,24 +47,21 @@ export const useMeetList = (initialMeetList = []) => {
     return meetList.some(person => person.id === attendee.id);
   }, [meetList]);
 
-
-  const updateMeetListCounter = useCallback(() => {
-    // Use ref if available, fallback to DOM selector
-    const targetButton = meetListButtonRef.current || 
-      document.querySelector('.nav-item:nth-child(3)'); // Meet is 3rd tab
-    
-    if (targetButton) {
-      targetButton.classList.add('counter-pulse', 'tab-flash');
-      setTimeout(() => {
-        targetButton.classList.remove('counter-pulse', 'tab-flash');
-      }, 1200);
+  const handleRemoveWithAnimation = useCallback((attendee, event) => {
+    if (event && meetListButtonRef.current) {
+      triggerRemoveAnimation(event.currentTarget, () => {
+        removeFromMeetList(attendee);
+      });
+    } else {
+      removeFromMeetList(attendee);
     }
-  }, []);
+  }, [removeFromMeetList, triggerRemoveAnimation]);
 
   return {
     meetList,
     addToMeetList,
     removeFromMeetList,
+    handleRemoveWithAnimation,
     isInMeetList,
     isAnimating,
     meetListCount: meetList.length,

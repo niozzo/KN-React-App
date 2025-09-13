@@ -83,6 +83,7 @@ const MeetPage = () => {
     meetList, 
     addToMeetList, 
     removeFromMeetList, 
+    handleRemoveWithAnimation,
     isInMeetList,
     meetListButtonRef
   } = useMeetList([
@@ -111,123 +112,14 @@ const MeetPage = () => {
 
   const handleAttendeeAction = (attendee, event) => {
     if (isInMeetList(attendee)) {
-      // Trigger remove animation
-      triggerRemoveAnimation(event.currentTarget, attendee);
+      // Use new animation system for remove
+      handleRemoveWithAnimation(attendee, event);
     } else {
-      // Trigger business card fly animation
-      triggerBusinessCardFlyAnimation(event.currentTarget);
-      addToMeetList(attendee);
+      // Use new animation system for add
+      addToMeetList(attendee, event);
     }
   };
 
-  const triggerBusinessCardFlyAnimation = (button) => {
-    // Get button position for animation start point
-    const buttonRect = button.getBoundingClientRect();
-    const startX = buttonRect.left + buttonRect.width / 2;
-    const startY = buttonRect.top + buttonRect.height / 2;
-    
-    // Get My Meet List tab position for animation end point
-    const meetListTab = meetListButtonRef.current;
-    if (!meetListTab) {
-      console.log('Meet list tab not found');
-      return;
-    }
-    
-    const tabRect = meetListTab.getBoundingClientRect();
-    const endX = tabRect.left + tabRect.width / 2;
-    const endY = tabRect.top + tabRect.height / 2;
-    
-    console.log('Animation target:', {
-      startX, startY,
-      endX, endY,
-      deltaX: endX - startX,
-      deltaY: endY - startY
-    });
-    
-    // Calculate distance to travel
-    const deltaX = endX - startX;
-    const deltaY = endY - startY;
-    
-    // Create business card icon
-    const businessCard = document.createElement('div');
-    businessCard.className = 'business-card-icon';
-    businessCard.innerHTML = '📇';
-    businessCard.style.position = 'fixed';
-    businessCard.style.fontSize = '24px';
-    businessCard.style.zIndex = '1000';
-    businessCard.style.pointerEvents = 'none';
-    businessCard.style.left = startX + 'px';
-    businessCard.style.top = startY + 'px';
-    
-    // Set CSS custom properties for animation
-    businessCard.style.setProperty('--delta-x', deltaX + 'px');
-    businessCard.style.setProperty('--delta-y', deltaY + 'px');
-    
-    document.body.appendChild(businessCard);
-    
-    // Remove business card after animation
-    setTimeout(() => {
-      if (businessCard.parentNode) {
-        businessCard.parentNode.removeChild(businessCard);
-      }
-    }, 800);
-  };
-
-  const triggerRemoveAnimation = (button, attendee) => {
-    try {
-      // Get the attendee card
-      const attendeeCard = button.closest('.attendee-card');
-      const attendeeList = attendeeCard?.closest('.attendee-list');
-      
-      if (!attendeeCard || !attendeeList) {
-        console.log('Card or list not found for remove animation');
-        return;
-      }
-      
-      // Reset button state to prevent pressed state
-      button.blur();
-      
-      // Add smooth scroll class to the list
-      attendeeList.classList.add('smooth-scroll');
-      
-      // Add removing animation class
-      attendeeCard.classList.add('removing');
-      
-      // Update counter immediately (like in mockup)
-      updateMeetListCounterRemove();
-      
-      // Remove from meet list after animation completes
-      setTimeout(() => {
-        try {
-          removeFromMeetList(attendee);
-          
-          // Remove smooth scroll class after state update
-          setTimeout(() => {
-            if (attendeeList && attendeeList.classList) {
-              attendeeList.classList.remove('smooth-scroll');
-            }
-          }, 100);
-        } catch (error) {
-          console.error('Error during remove animation:', error);
-        }
-      }, 600);
-    } catch (error) {
-      console.error('Error in triggerRemoveAnimation:', error);
-    }
-  };
-
-  const updateMeetListCounterRemove = () => {
-    // Use ref if available, fallback to DOM selector
-    const targetButton = meetListButtonRef.current || 
-      document.querySelector('.nav-item:nth-child(3)'); // Meet is 3rd tab
-    
-    if (targetButton) {
-      targetButton.classList.add('counter-pulse');
-      setTimeout(() => {
-        targetButton.classList.remove('counter-pulse');
-      }, 600);
-    }
-  };
 
   const handleViewBio = (attendee) => {
     navigate(`/bio?id=${attendee.id}`);

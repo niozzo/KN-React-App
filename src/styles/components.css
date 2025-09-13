@@ -681,6 +681,16 @@ body {
   }
 }
 
+/* Animation Wrapper */
+.animation-wrapper {
+  opacity: 0;
+  transition: opacity 0.3s ease-in;
+}
+
+.animation-wrapper.fadeIn {
+  opacity: 1;
+}
+
 /* Meet List Animations */
 .counter-pulse {
   animation: counterPulse 0.6s ease-in-out;
