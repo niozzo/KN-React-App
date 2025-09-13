@@ -1,13 +1,17 @@
 import { Routes, Route, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
-import HomePage from './pages/HomePage'
-import MeetPage from './pages/MeetPage'
-import SchedulePage from './pages/SchedulePage'
-import SponsorsPage from './pages/SponsorsPage'
-import SettingsPage from './pages/SettingsPage'
-import BioPage from './pages/BioPage'
-import SeatMapPage from './pages/SeatMapPage'
-import IndexPage from './pages/IndexPage'
+import HomePage from './pages/HomePage.jsx'
+import MeetPage from './pages/MeetPage.jsx'
+import SchedulePage from './pages/SchedulePage.jsx'
+import SponsorsPage from './pages/SponsorsPage.jsx'
+import SettingsPage from './pages/SettingsPage.jsx'
+import BioPage from './pages/BioPage.jsx'
+import SeatMapPage from './pages/SeatMapPage.jsx'
+import IndexPage from './pages/IndexPage.jsx'
+import OfflineIndicator from './components/OfflineIndicator'
+import InstallPrompt from './components/InstallPrompt'
+import OfflinePage from './components/OfflinePage'
+import { pwaService } from './services/pwaService'
 
 // Component to handle scroll restoration
 function ScrollToTop() {
@@ -22,9 +26,16 @@ function ScrollToTop() {
 }
 
 function App() {
+  useEffect(() => {
+    // Initialize PWA service
+    pwaService.checkForUpdates();
+  }, []);
+
   return (
     <>
       <ScrollToTop />
+      <OfflineIndicator />
+      <InstallPrompt />
       <Routes>
         <Route path="/" element={<IndexPage />} />
         <Route path="/home" element={<HomePage />} />
@@ -35,6 +46,7 @@ function App() {
         <Route path="/bio" element={<BioPage />} />
         <Route path="/seat-map" element={<SeatMapPage />} />
         <Route path="/index" element={<IndexPage />} />
+        <Route path="/offline" element={<OfflinePage />} />
       </Routes>
     </>
   )
