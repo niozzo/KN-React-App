@@ -1,27 +1,12 @@
 {
   "version": 2,
-  "builds": [
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "rewrites": [
     {
-      "src": "mockups/**/*",
-      "use": "@vercel/static"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/",
-      "dest": "/mockups/index.html"
-    },
-    {
-      "src": "/mockups/(.*)",
-      "dest": "/mockups/$1"
-    },
-    {
-      "src": "/(.*\\.html)",
-      "dest": "/mockups/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/mockups/$1"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
