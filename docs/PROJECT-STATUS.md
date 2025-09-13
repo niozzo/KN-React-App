@@ -100,7 +100,7 @@
 - `docs/architecture/database-schema.md` - Database structure
 - `docs/architecture/supabase-rls-troubleshooting.md` - RLS troubleshooting
 - `docs/architecture/RELEASE-NOTES-1.2.md` - Story 1.2 release notes
-- `docs/stories/1.3.pwa-polish-branding.md` - Story 1.3 PWA implementation
+- `docs/stories/1.3.pwa-polish-branding-COMPLETE.md` - Story 1.3 PWA implementation
 
 ### **Migration Guides**
 - `MIGRATION-GUIDE-1.2.md` - Complete migration guide
