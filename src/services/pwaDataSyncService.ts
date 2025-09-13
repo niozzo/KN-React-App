@@ -57,14 +57,14 @@ export class PWADataSyncService {
   
   // Map table names to backend API endpoints
   private readonly tableToEndpoint: Record<string, string> = {
-    attendees: '/api/db/table-data?table=attendees',
-    sponsors: '/api/db/table-data?table=sponsors',
-    seat_assignments: '/api/db/table-data?table=seat_assignments',
-    agenda_items: '/api/db/table-data?table=agenda_items',
-    dining_options: '/api/db/table-data?table=dining_options',
-    hotels: '/api/db/table-data?table=hotels',
-    seating_configurations: '/api/db/table-data?table=seating_configurations',
-    user_profiles: '/api/db/table-data?table=user_profiles'
+    attendees: 'http://localhost:3000/api/db/table-data?table=attendees',
+    sponsors: 'http://localhost:3000/api/db/table-data?table=sponsors',
+    seat_assignments: 'http://localhost:3000/api/db/table-data?table=seat_assignments',
+    agenda_items: 'http://localhost:3000/api/db/table-data?table=agenda_items',
+    dining_options: 'http://localhost:3000/api/db/table-data?table=dining_options',
+    hotels: 'http://localhost:3000/api/db/table-data?table=hotels',
+    seating_configurations: 'http://localhost:3000/api/db/table-data?table=seating_configurations',
+    user_profiles: 'http://localhost:3000/api/db/table-data?table=user_profiles'
   };
 
   constructor() {
