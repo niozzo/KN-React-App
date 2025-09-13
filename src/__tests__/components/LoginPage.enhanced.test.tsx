@@ -325,13 +325,13 @@ describe('LoginPage - Enhanced Functionality', () => {
   })
 
   describe('Error Display', () => {
-    it.skip('should display error message for invalid access code', async () => {
+    it('should display error message for invalid access code', async () => {
       const MockLoginPage = () => {
         const [accessCode, setAccessCode] = React.useState('')
         const [error, setError] = React.useState('')
         const [showError, setShowError] = React.useState(false)
 
-        const handleSubmit = async () => {
+        const handleSubmit = React.useCallback(async () => {
           setShowError(false)
           
           try {
@@ -346,13 +346,13 @@ describe('LoginPage - Enhanced Functionality', () => {
             setError('Invalid access code. Please try again or ask at the registration desk for help.')
             setShowError(true)
           }
-        }
+        }, [accessCode])
 
         React.useEffect(() => {
           if (accessCode.length === 6) {
             handleSubmit()
           }
-        }, [accessCode])
+        }, [accessCode, handleSubmit])
 
         return (
           <div>
@@ -380,14 +380,14 @@ describe('LoginPage - Enhanced Functionality', () => {
 
       const input = screen.getByTestId('access-code-input')
       
-      // Type invalid access code
-      fireEvent.change(input, { target: { value: 'INVALID' } })
+      // Type invalid access code (6 characters)
+      fireEvent.change(input, { target: { value: 'INVALI' } })
       
       // Wait for error to appear
       await waitFor(() => {
         expect(screen.getByTestId('error-message')).toBeInTheDocument()
         expect(screen.getByText('Invalid access code. Please try again or ask at the registration desk for help.')).toBeInTheDocument()
-      }, { timeout: 3000 })
+      }, { timeout: 5000 })
     })
 
     it('should clear error when new input is entered', async () => {

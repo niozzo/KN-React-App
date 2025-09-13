@@ -142,7 +142,7 @@ export const withAuth = <P extends object>(
 }
 
 // Login page component
-const LoginPage: React.FC = () => {
+export const LoginPage: React.FC = () => {
   const { login } = useAuth()
   const [accessCode, setAccessCode] = useState('')
   const [error, setError] = useState('')
@@ -305,7 +305,14 @@ const LoginPage: React.FC = () => {
                 className="form-input"
                 placeholder=""
                 value={accessCode}
-                onChange={(e) => setAccessCode(e.target.value.toUpperCase())}
+                onChange={(e) => {
+                  setAccessCode(e.target.value.toUpperCase())
+                  // Clear error when user starts typing
+                  if (showError) {
+                    setShowError(false)
+                    setError('')
+                  }
+                }}
                 maxLength={6}
                 disabled={isLoading}
                 style={{
@@ -324,18 +331,21 @@ const LoginPage: React.FC = () => {
                 }}
               />
               {isLoading && (
-                <div style={{
-                  position: 'absolute',
-                  top: '50%',
-                  right: 'var(--space-md)',
-                  transform: 'translateY(-50%)',
-                  width: '24px',
-                  height: '24px',
-                  border: '3px solid var(--ink-200)',
-                  borderTop: '3px solid var(--purple-500)',
-                  borderRadius: '50%',
-                  animation: 'spin 1s linear infinite'
-                }} />
+                <div 
+                  data-testid="loading-spinner"
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    right: 'var(--space-md)',
+                    transform: 'translateY(-50%)',
+                    width: '24px',
+                    height: '24px',
+                    border: '3px solid var(--ink-200)',
+                    borderTop: '3px solid var(--purple-500)',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite'
+                  }} 
+                />
               )}
             </div>
           </div>

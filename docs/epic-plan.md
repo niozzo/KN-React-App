@@ -34,8 +34,8 @@ This document breaks down the Conference Companion PWA project into manageable e
 ### Epic 7: Conference Information & Support
 *Provide essential conference information, feedback systems, and post-conference content access*
 
-### Epic 8: Authentication System
-*Implement secure authentication for sensitive operations when needed*
+### Epic 8: Hardening the App
+*Implement comprehensive testing, security hardening, and quality assurance measures to ensure production readiness.*
 
 ---
 
@@ -363,28 +363,47 @@ This document breaks down the Conference Companion PWA project into manageable e
 
 ---
 
-## Epic 8: Authentication System
+## Epic 8: Hardening the App
 
-**Goal:** Implement secure authentication system for sensitive operations when user authentication is required.
+**Goal:** Implement comprehensive testing, security hardening, and quality assurance measures to ensure production readiness.
 
-**Business Value:** Provides secure access control for sensitive features and user-specific data when needed, ensuring privacy and security for conference attendees.
+**Business Value:** Ensures the application meets all quality, security, and reliability standards for production deployment, providing confidence in system stability and user experience.
 
 **Stories:**
 
-### Story 8.1: Authentication System
-**As an** attendee,  
-**I want** to sign in securely with minimal friction using email OTP,  
-**so that** I can access personalized conference information when authentication is required.
+### Story 8.1: Visual Regression Testing for UI Changes
+**As a** developer,  
+**I want** automated visual regression testing to catch unintended UI changes,  
+**so that** the user interface remains consistent and functional across all updates.
 
 **Acceptance Criteria:**
-1. Email OTP/magic link authentication implemented
-2. Optional SMS OTP when phone number is available
-3. Session persistence and secure token storage
-4. Rate limiting on OTP sends (max 3 attempts per 15 minutes)
-5. Sign-out flows and session management
-6. Privacy consent banner for discoverability and notifications
-7. Account recovery flow for locked accounts
-8. Integration with Supabase Auth for user management
+1. Visual regression testing framework integrated (e.g., Percy, Chromatic, or Playwright Visual)
+2. Automated screenshot comparison for all major UI components
+3. Baseline images captured for all supported viewport sizes (mobile, tablet, desktop)
+4. Integration with CI/CD pipeline to run on every PR
+5. Visual diff reporting with clear pass/fail indicators
+6. Support for dynamic content and responsive design testing
+7. Ability to update baselines when intentional changes are made
+8. Coverage of critical user flows and edge cases
+9. Performance impact monitoring to ensure tests don't slow down builds
+10. Clear documentation for developers on how to handle visual test failures
+
+### Story 8.2: Security Hardening & Vulnerability Assessment
+**As a** security-conscious developer,  
+**I want** comprehensive security measures and vulnerability scanning,  
+**so that** the application is protected against common security threats.
+
+**Acceptance Criteria:**
+1. Dependency vulnerability scanning with automated updates
+2. OWASP security headers implementation
+3. Content Security Policy (CSP) configuration
+4. Input validation and sanitization across all forms
+5. Rate limiting on API endpoints
+6. Security audit of authentication flows
+7. Penetration testing of critical user paths
+8. Security monitoring and alerting setup
+9. Regular security dependency updates
+10. Security documentation and incident response procedures
 
 ---
 
@@ -398,21 +417,21 @@ This document breaks down the Conference Companion PWA project into manageable e
 - **Epic 5** depends on Epic 3 (sponsor integration with networking)
 - **Epic 6** depends on all previous epics (final polish)
 - **Epic 7** can start after Epic 1 (basic info independent), but feedback system depends on Epic 2 (session data)
-- **Epic 8** can be implemented independently when authentication is needed for sensitive operations
+- **Epic 8** can be implemented in parallel with other epics as hardening measures are applied throughout development
 
 ### Parallel Development Opportunities
 - **Epic 4** (Admin Tools) can develop in parallel with Epic 2-3
 - **Epic 5** (Sponsor Integration) can start after Epic 3 begins
 - **Epic 6** (Polish) can begin final stories while Epic 5 completes
 - **Epic 7** (Conference Info) can start after Epic 1, with basic info independent of other epics
-- **Epic 8** (Authentication) can be implemented independently when needed for sensitive operations
+- **Epic 8** (Hardening) can be implemented in parallel with other epics as quality measures are applied throughout development
 
 ### Timeline Considerations
 - **Epic 1-2**: Critical path for core functionality (Weeks 1-2)
 - **Epic 3-4**: Can develop in parallel after Epic 2 starts (Weeks 2-3)
 - **Epic 5-6**: Final integration and polish phase (Week 4)
 - **Epic 7**: Can develop in parallel with other epics (Weeks 1-4)
-- **Epic 8**: Can be implemented independently when authentication is needed
+- **Epic 8**: Can be implemented in parallel with other epics throughout development
 
 ### Resource Requirements
 - **Epic 1**: 1 full-stack developer (foundation work)
@@ -422,7 +441,7 @@ This document breaks down the Conference Companion PWA project into manageable e
 - **Epic 5**: 1 frontend developer + analytics support (sponsor features)
 - **Epic 6**: 1 full-stack developer + QA (polish and testing)
 - **Epic 7**: 1 frontend developer (conference information features)
-- **Epic 8**: 1 full-stack developer (authentication system)
+- **Epic 8**: 1 full-stack developer + QA specialist (hardening and testing)
 
 ---
 
@@ -436,7 +455,7 @@ This document breaks down the Conference Companion PWA project into manageable e
 - **Epic 5**: Sponsor visibility, analytics tracking, performance targets met
 - **Epic 6**: Production ready, privacy compliant, A2HS optimized
 - **Epic 7**: Conference info accessible, feedback system functional, post-conference content available
-- **Epic 8**: Secure authentication system ready for sensitive operations when needed
+- **Epic 8**: Visual regression testing implemented, security hardening complete, production-ready quality standards met
 
 ### Overall Project KPIs (from PRD)
 - **Adoption**: ≥50% of non-Apax attendees use app >1×/day on both event days
