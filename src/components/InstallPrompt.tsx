@@ -25,16 +25,20 @@ const InstallPrompt: React.FC<InstallPromptProps> = ({ onInstall, onDismiss }) =
   }, [])
 
   const handleInstallClick = async () => {
+    console.log('Install clicked, deferredPrompt:', !!deferredPrompt)
     if (deferredPrompt) {
       deferredPrompt.prompt()
       const { outcome } = await deferredPrompt.userChoice
+      console.log('Installation outcome:', outcome)
       
       if (outcome === 'accepted') {
+        console.log('Setting showPrompt to false')
         onInstall?.()
         setShowPrompt(false)
         setDeferredPrompt(null)
+        console.log('Installation completed, component should hide')
       } else {
-        // User declined, keep prompt available
+        console.log('User declined installation')
         setDeferredPrompt(null)
       }
     }

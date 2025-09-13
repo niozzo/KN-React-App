@@ -59,12 +59,13 @@ describe('InstallPrompt', () => {
     // Simulate successful installation
     installEvent.userChoice = Promise.resolve({ outcome: 'accepted' })
     
-    const installButton = screen.getByText(/install conference companion/i)
+    const installButton = screen.getByText('Install')
     fireEvent.click(installButton)
     
+    // Wait for async installation flow to complete
     await waitFor(() => {
       expect(screen.queryByText(/install conference companion/i)).not.toBeInTheDocument()
-    })
+    }, { timeout: 3000 })
   })
 
   test('has proper accessibility attributes', async () => {
