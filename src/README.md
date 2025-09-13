@@ -30,7 +30,8 @@ src/
 │   │   ├── BottomNav.jsx
 │   │   ├── Button.jsx
 │   │   ├── Card.jsx
-│   │   └── StatusTag.jsx
+│   │   ├── StatusTag.jsx
+│   │   └── InstallPrompt.tsx  # PWA install component
 │   ├── session/         # Session-specific components
 │   │   └── SessionCard.jsx
 │   ├── attendee/        # Attendee-specific components
@@ -44,9 +45,19 @@ src/
 ├── pages/               # Page components
 │   ├── HomePage.jsx
 │   └── MeetPage.jsx
+├── services/            # Service layer
+│   ├── pwaDataSyncService.ts      # PWA data synchronization
+│   ├── schemaValidationService.ts # Database schema validation
+│   └── ...other services
+├── contexts/            # React contexts
+│   └── AuthContext.tsx  # Authentication context with data sync
 ├── styles/              # Styling system
 │   ├── design-tokens.css
 │   └── components.css
+├── __tests__/           # Test files
+│   ├── dataSync.test.ts
+│   ├── schemaValidation.test.ts
+│   └── ...other tests
 └── README.md
 ```
 
@@ -177,6 +188,31 @@ const {
 } = useSort(items, 'lastname');
 ```
 
+## PWA Services
+
+### PWADataSyncService
+Handles authentication-triggered data synchronization:
+```typescript
+const dataSyncService = new PWADataSyncService();
+await dataSyncService.syncAllData();
+```
+
+### SchemaValidationService
+Validates database schema changes:
+```typescript
+const schemaValidator = new SchemaValidationService();
+const result = await schemaValidator.validateSchema();
+```
+
+### InstallPrompt Component
+Cross-platform PWA installation:
+```jsx
+<InstallPrompt 
+  placement="home"  // 'home' | 'login' | 'auto'
+  onInstall={() => console.log('Installing...')}
+/>
+```
+
 ## Page Components
 
 ### HomePage
@@ -268,17 +304,23 @@ const AttendeeList = ({ attendees }) => {
 ### Phase 2: Component Migration
 - [x] HomePage component
 - [x] MeetPage component
+- [x] PWA InstallPrompt component
 - [ ] SchedulePage component
 - [ ] SponsorsPage component
 - [ ] SettingsPage component
 
 ### Phase 3: Integration
+- [x] PWA data synchronization
+- [x] Service worker implementation
+- [x] Authentication-triggered data sync
 - [ ] React Router setup
 - [ ] State management integration
 - [ ] API integration
 - [ ] Animation system
 
 ### Phase 4: Testing & Optimization
+- [x] PWA testing (service worker, data sync)
+- [x] Schema validation testing
 - [ ] Component testing
 - [ ] Performance optimization
 - [ ] Accessibility audit
