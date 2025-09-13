@@ -13,6 +13,8 @@ This directory contains the results and documentation from various technical spi
 - ✅ **Authentication**: Server-side authentication with user credentials
 - ✅ **RLS Bypass**: Authenticated requests bypass Row Level Security policies
 - ✅ **Deployment**: Successfully deployed and tested on Vercel
+- ⚠️ **CRITICAL**: Database uses RLS policies - anonymous access returns 0 rows
+- ✅ **Solution**: Use admin credentials for authenticated access to bypass RLS
 
 **Files**:
 - `spike-client.html` - Working client-side interface for testing API endpoints

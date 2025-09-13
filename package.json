@@ -20,7 +20,8 @@
     "test:ci": "vitest run --coverage",
     "test:ui": "vitest --ui",
     "test-connection": "node test-direct-connection.js",
-    "show-counts": "node show-table-counts.js"
+    "show-counts": "node show-table-counts.js",
+    "spike": "node scripts/spike-server.js"
   },
   "repository": {
     "type": "git",

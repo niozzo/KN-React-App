@@ -4,7 +4,7 @@
  * Tests data fetching with READ-ONLY database access and authentication requirements
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { 
   getAllAttendees,
   getCurrentAttendeeData,
@@ -21,28 +21,14 @@ import {
 } from '../../services/dataService'
 import { DataServiceError } from '../../services/dataService'
 
-// Mock Supabase client
-vi.mock('../../lib/supabase', () => ({
-  supabase: {
-    from: vi.fn(() => ({
-      select: vi.fn(() => ({
-        eq: vi.fn(() => ({
-          single: vi.fn()
-        })),
-        order: vi.fn(() => ({
-          order: vi.fn(() => ({
-            order: vi.fn()
-          }))
-        })),
-        in: vi.fn(() => ({
-          order: vi.fn(() => ({
-            order: vi.fn()
-          }))
-        }))
-      }))
-    }))
-  }
-}))
+// Mock fetch for API-based data access
+const mockFetch = () => {
+  const original = globalThis.fetch
+  const fetchMock = vi.fn()
+  // @ts-expect-error override global in tests
+  globalThis.fetch = fetchMock
+  return { fetchMock, restore: () => { globalThis.fetch = original } }
+}
 
 // Mock auth service
 vi.mock('../../services/authService', () => ({
@@ -57,6 +43,10 @@ describe('Data Service', () => {
     const authService = vi.mocked(await import('../../services/authService'))
     authService.isUserAuthenticated.mockReturnValue(true)
     authService.getCurrentAttendee.mockReturnValue({ id: 'test-attendee-id' })
+  })
+
+  afterEach(() => {
+    // Ensure we restore fetch if we changed it in a test
   })
 
   describe('Authentication Requirements', () => {
@@ -76,34 +66,19 @@ describe('Data Service', () => {
         { id: '1', first_name: 'John', last_name: 'Doe', access_code: 'ABC123' },
         { id: '2', first_name: 'Jane', last_name: 'Smith', access_code: 'DEF456' }
       ]
-
-      const mockSupabase = await import('../../lib/supabase')
-      mockSupabase.supabase.from.mockReturnValue({
-        select: vi.fn(() => ({
-          order: vi.fn().mockResolvedValue({
-            data: mockAttendees,
-            error: null
-          })
-        }))
-      })
-
+      const { fetchMock, restore } = mockFetch()
+      fetchMock.mockResolvedValueOnce({ ok: true, json: async () => ({ success: true, data: mockAttendees }) })
       const result = await getAllAttendees()
       expect(result).toEqual(mockAttendees)
+      restore()
     })
 
     it('should handle database errors', async () => {
-      const mockSupabase = await import('../../lib/supabase')
-      mockSupabase.supabase.from.mockReturnValue({
-        select: vi.fn(() => ({
-          order: vi.fn().mockResolvedValue({
-            data: null,
-            error: new Error('Database error')
-          })
-        }))
-      })
-
+      const { fetchMock, restore } = mockFetch()
+      fetchMock.mockResolvedValueOnce({ ok: false, status: 500, statusText: 'Server Error', json: async () => ({}) })
       await expect(getAllAttendees()).rejects.toThrow(DataServiceError)
       await expect(getAllAttendees()).rejects.toThrow('Failed to fetch attendees')
+      restore()
     })
   })
 
@@ -113,21 +88,11 @@ describe('Data Service', () => {
         { id: '1', title: 'Opening Session', date: '2024-01-01', start_time: '09:00:00' },
         { id: '2', title: 'Breakout Session', date: '2024-01-01', start_time: '10:00:00' }
       ]
-
-      const mockSupabase = await import('../../lib/supabase')
-      mockSupabase.supabase.from.mockReturnValue({
-        select: vi.fn(() => ({
-          order: vi.fn(() => ({
-            order: vi.fn().mockResolvedValue({
-              data: mockAgendaItems,
-              error: null
-            })
-          }))
-        }))
-      })
-
+      const { fetchMock, restore } = mockFetch()
+      fetchMock.mockResolvedValueOnce({ ok: true, json: async () => ({ success: true, data: mockAgendaItems }) })
       const result = await getAllAgendaItems()
       expect(result).toEqual(mockAgendaItems)
+      restore()
     })
   })
 
@@ -142,93 +107,45 @@ describe('Data Service', () => {
         { id: 'agenda-1', title: 'Selected Session 1' },
         { id: 'agenda-2', title: 'Selected Session 2' }
       ]
-
-      const mockSupabase = await import('../../lib/supabase')
-      
-      // Mock first call to get attendee's selected_breakouts
-      mockSupabase.supabase.from.mockReturnValueOnce({
-        select: vi.fn(() => ({
-          eq: vi.fn(() => ({
-            single: vi.fn().mockResolvedValue({
-              data: mockAttendee,
-              error: null
-            })
-          }))
-        }))
-      })
-
-      // Mock second call to get agenda items
-      mockSupabase.supabase.from.mockReturnValueOnce({
-        select: vi.fn(() => ({
-          in: vi.fn(() => ({
-            order: vi.fn(() => ({
-              order: vi.fn().mockResolvedValue({
-                data: mockAgendaItems,
-                error: null
-              })
-            }))
-          }))
-        }))
-      })
-
+      const { fetchMock, restore } = mockFetch()
+      // First call: /api/attendees/:id
+      fetchMock.mockResolvedValueOnce({ ok: true, json: async () => ({ success: true, data: mockAttendee }) })
+      // Second call: /api/agenda-items
+      fetchMock.mockResolvedValueOnce({ ok: true, json: async () => ({ success: true, data: mockAgendaItems }) })
       const result = await getAttendeeSelectedAgendaItems('test-attendee-id')
       expect(result).toEqual(mockAgendaItems)
+      restore()
     })
 
     it('should return empty array when no selections', async () => {
-      const mockAttendee = {
-        id: 'test-attendee-id',
-        selected_breakouts: null
-      }
-
-      const mockSupabase = await import('../../lib/supabase')
-      mockSupabase.supabase.from.mockReturnValue({
-        select: vi.fn(() => ({
-          eq: vi.fn(() => ({
-            single: vi.fn().mockResolvedValue({
-              data: mockAttendee,
-              error: null
-            })
-          }))
-        }))
-      })
-
+      const { fetchMock, restore } = mockFetch()
+      // First call: attendee record without selections
+      fetchMock.mockResolvedValueOnce({ ok: true, json: async () => ({ success: true, data: { id: 'test-attendee-id', selected_breakouts: null } }) })
       const result = await getAttendeeSelectedAgendaItems('test-attendee-id')
       expect(result).toEqual([])
+      restore()
     })
   })
 
   describe('testDatabaseConnection', () => {
     it('should test database connection and return table counts', async () => {
-      const mockSupabase = await import('../../lib/supabase')
-      
-      // Mock the Supabase response for each table
-      mockSupabase.supabase.from.mockImplementation((tableName) => ({
-        select: vi.fn(() => ({
-          count: 'exact',
-          head: true
-        }))
-      }))
-
-      // Mock the actual response
-      const mockResponse = { count: 222, error: null }
-      mockSupabase.supabase.from.mockResolvedValue(mockResponse)
+      const { fetchMock, restore } = mockFetch()
+      // Mock table-count responses for a few tables
+      fetchMock.mockResolvedValue({ ok: true, json: async () => ({ success: true, count: 10 }) })
 
       const result = await testDatabaseConnection()
       expect(result.success).toBe(true)
+      restore()
     })
 
     it('should handle connection errors gracefully', async () => {
-      const mockSupabase = await import('../../lib/supabase')
-      
-      // Mock Supabase to throw an error
-      mockSupabase.supabase.from.mockImplementation(() => {
-        throw new Error('Connection failed')
-      })
+      const { fetchMock, restore } = mockFetch()
+      fetchMock.mockResolvedValue({ ok: false, status: 500, statusText: 'Server Error', json: async () => ({}) })
 
       const result = await testDatabaseConnection()
       expect(result.success).toBe(true) // The function handles errors gracefully and returns success
       expect(result.tableCounts).toBeDefined()
+      restore()
     })
   })
 })

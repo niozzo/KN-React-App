@@ -19,6 +19,8 @@ This directory contains the comprehensive architecture documentation for the Con
 - [x] **Custom Hooks**: State management hooks (useMeetList, useSearch, useSort)
 - [x] **Example Pages**: HomePage and MeetPage implementations
 - [x] **File Structure**: Organized React component architecture
+- [x] **Supabase Integration**: Backend authentication and RLS-aware data access
+- [x] **API Layer**: Server-side endpoints for secure data operations
 
 #### 🔄 **In Progress (Phase 4)**
 - [ ] **Documentation Updates**: Update existing docs to reflect new architecture
@@ -56,6 +58,7 @@ This directory contains the comprehensive architecture documentation for the Con
 1. Review the [Frontend Refactoring Plan](./frontend-refactoring-plan.md)
 2. Check the [Component Architecture](../src/README.md)
 3. Follow the [Migration Guide](./frontend-spec-updates.md)
+4. **⚠️ CRITICAL**: Read [RLS Troubleshooting](./supabase-rls-troubleshooting.md) before database integration
 
 ### **For Documentation Updates**
 1. Review the [Documentation Cleanup Plan](./documentation-cleanup-plan.md)
@@ -78,6 +81,7 @@ docs/architecture/
 ├── documentation-cleanup-plan.md       # Documentation review plan
 ├── greenfield-architecture.md          # High-level architecture
 ├── database-schema.md                  # Database structure
+├── supabase-rls-troubleshooting.md    # RLS authentication guide
 └── legacy/                             # Archived analysis files
 ```
 

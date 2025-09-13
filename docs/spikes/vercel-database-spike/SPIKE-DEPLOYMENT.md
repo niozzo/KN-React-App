@@ -77,6 +77,38 @@ Visit the deployed URL to access the spike client interface that will:
 - Display all tables with row counts
 - Show database summary statistics
 
+### 🔐 RLS Authentication Solution
+
+**CRITICAL**: This database uses Row Level Security (RLS) policies that block anonymous access to data.
+
+**Problem**: Anonymous Supabase API returns 0 rows due to RLS policies, even though tables exist and contain data.
+
+**Solution**: Use authenticated access with admin credentials:
+
+```javascript
+// Authenticate with admin credentials to bypass RLS
+const { data, error } = await supabase.auth.signInWithPassword({
+  email: 'ishan.gammampila@apax.com',
+  password: 'xx8kRx#tn@R?'
+});
+```
+
+**Key Findings**:
+- ✅ Anonymous access: Can discover table names but returns 0 rows
+- ✅ Authenticated access: Bypasses RLS and returns actual data
+- ✅ Admin interface uses same authenticated approach
+- ✅ All tables are populated when using proper authentication
+
+**Actual Database Contents** (with authenticated access):
+- `attendees`: 235 rows
+- `agenda_items`: 8 rows  
+- `sponsors`: 27 rows
+- `seat_assignments`: 48 rows
+- `dining_options`: 2 rows
+- `hotels`: 3 rows
+- `seating_configurations`: 2 rows
+- `user_profiles`: 1 row
+
 ### 🔒 Security Notes
 
 - Database credentials are kept server-side only

@@ -7,7 +7,8 @@
  * CRITICAL: READ-ONLY DATABASE ACCESS - We cannot modify any data
  */
 
-import { supabase } from '../lib/supabase'
+// NOTE: All data access must go through server-side authenticated endpoints
+// to comply with RLS. Do not use the Supabase anon client from the browser.
 import { isUserAuthenticated } from './authService'
 import type { Attendee } from '../types/attendee'
 import type { AgendaItem } from '../types/agenda'
@@ -36,6 +37,26 @@ const requireAuthentication = (): void => {
   }
 }
 
+// Lightweight API client for backend endpoints
+const apiGet = async <T>(path: string): Promise<T> => {
+  const response = await fetch(path, { credentials: 'include' })
+  if (!response.ok) {
+    // Try to parse structured error to detect backend auth issues
+    try {
+      const errJson = await response.json()
+      if (errJson?.authRequired) {
+        throw new DataServiceError('API request failed: backend auth required', 'BACKEND_AUTH_REQUIRED')
+      }
+    } catch (_) {
+      // Ignore JSON parse failure and fall through to generic error
+    }
+    throw new DataServiceError(`API request failed: ${response.status} ${response.statusText}`, 'API_ERROR')
+  }
+  const json = await response.json()
+  // Most endpoints return { success, data }
+  return (json?.data ?? json) as T
+}
+
 /**
  * Get all attendees (shared data - same for all authenticated users)
  * @returns Array of all attendees
@@ -44,13 +65,9 @@ export const getAllAttendees = async (): Promise<Attendee[]> => {
   requireAuthentication()
   
   try {
-    const { data, error } = await supabase
-      .from('attendees')
-      .select('*')
-      .order('last_name', { ascending: true })
-
-    if (error) throw error
-    return data as Attendee[]
+    const data = await apiGet<Attendee[]>('/api/attendees')
+    // Ensure stable ordering for UI
+    return [...data].sort((a, b) => (a.last_name || '').localeCompare(b.last_name || ''))
   } catch (error) {
     console.error('❌ Error fetching attendees:', error)
     throw new DataServiceError('Failed to fetch attendees', 'FETCH_ERROR')
@@ -65,14 +82,10 @@ export const getCurrentAttendeeData = async (): Promise<Attendee | null> => {
   requireAuthentication()
   
   try {
-    const { data, error } = await supabase
-      .from('attendees')
-      .select('*')
-      .eq('id', (await import('./authService.js')).getCurrentAttendee()?.id)
-      .single()
-
-    if (error) throw error
-    return data as Attendee
+    const current = (await import('./authService.js')).getCurrentAttendee?.()
+    if (!current?.id) return null
+    const data = await apiGet<Attendee>(`/api/attendees/${current.id}`)
+    return data
   } catch (error) {
     console.error('❌ Error fetching current attendee:', error)
     throw new DataServiceError('Failed to fetch current attendee data', 'FETCH_ERROR')
@@ -87,14 +100,10 @@ export const getAllAgendaItems = async (): Promise<AgendaItem[]> => {
   requireAuthentication()
   
   try {
-    const { data, error } = await supabase
-      .from('agenda_items')
-      .select('*')
-      .order('date', { ascending: true })
-      .order('start_time', { ascending: true })
-
-    if (error) throw error
-    return data as AgendaItem[]
+    const data = await apiGet<AgendaItem[]>('/api/agenda-items')
+    return [...data]
+      .sort((a, b) => (a.date || '').localeCompare(b.date || ''))
+      .sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''))
   } catch (error) {
     console.error('❌ Error fetching agenda items:', error)
     throw new DataServiceError('Failed to fetch agenda items', 'FETCH_ERROR')
@@ -110,29 +119,16 @@ export const getAttendeeSelectedAgendaItems = async (attendeeId: string): Promis
   requireAuthentication()
   
   try {
-    // First get the attendee's selected_breakouts
-    const { data: attendee, error: attendeeError } = await supabase
-      .from('attendees')
-      .select('selected_breakouts')
-      .eq('id', attendeeId)
-      .single()
-
-    if (attendeeError) throw attendeeError
-
-    if (!attendee?.selected_breakouts || !Array.isArray(attendee.selected_breakouts)) {
-      return []
-    }
-
-    // Get the agenda items for selected breakouts
-    const { data, error } = await supabase
-      .from('agenda_items')
-      .select('*')
-      .in('id', attendee.selected_breakouts)
-      .order('date', { ascending: true })
-      .order('start_time', { ascending: true })
-
-    if (error) throw error
-    return data as AgendaItem[]
+    // Get selected_breakouts via server
+    const attendee = await apiGet<{ selected_breakouts?: string[] }>(`/api/attendees/${attendeeId}`)
+    const selected = Array.isArray(attendee?.selected_breakouts) ? attendee.selected_breakouts : []
+    if (selected.length === 0) return []
+    // Small dataset: fetch all agenda items and filter client-side
+    const all = await apiGet<AgendaItem[]>('/api/agenda-items')
+    return all
+      .filter(item => selected.includes(item.id as unknown as string))
+      .sort((a, b) => (a.date || '').localeCompare(b.date || ''))
+      .sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''))
   } catch (error) {
     console.error('❌ Error fetching selected agenda items:', error)
     throw new DataServiceError('Failed to fetch selected agenda items', 'FETCH_ERROR')
@@ -147,14 +143,10 @@ export const getAllSponsors = async (): Promise<Sponsor[]> => {
   requireAuthentication()
   
   try {
-    const { data, error } = await supabase
-      .from('sponsors')
-      .select('*')
-      .eq('is_active', true)
-      .order('display_order', { ascending: true })
-
-    if (error) throw error
-    return data as Sponsor[]
+    const data = await apiGet<Sponsor[]>('/api/sponsors')
+    return [...data]
+      .filter(s => (s as any).is_active !== false)
+      .sort((a, b) => ((a as any).display_order ?? 0) - ((b as any).display_order ?? 0))
   } catch (error) {
     console.error('❌ Error fetching sponsors:', error)
     throw new DataServiceError('Failed to fetch sponsors', 'FETCH_ERROR')
@@ -170,14 +162,8 @@ export const getAttendeeSeatAssignments = async (attendeeId: string): Promise<Se
   requireAuthentication()
   
   try {
-    const { data, error } = await supabase
-      .from('seat_assignments')
-      .select('*')
-      .eq('attendee_id', attendeeId)
-      .order('assigned_at', { ascending: true })
-
-    if (error) throw error
-    return data as SeatAssignment[]
+    const data = await apiGet<SeatAssignment[]>(`/api/attendees/${attendeeId}/seat-assignments`)
+    return data
   } catch (error) {
     console.error('❌ Error fetching seat assignments:', error)
     throw new DataServiceError('Failed to fetch seat assignments', 'FETCH_ERROR')
@@ -192,15 +178,11 @@ export const getAllDiningOptions = async (): Promise<DiningOption[]> => {
   requireAuthentication()
   
   try {
-    const { data, error } = await supabase
-      .from('dining_options')
-      .select('*')
-      .eq('is_active', true)
-      .order('date', { ascending: true })
-      .order('time', { ascending: true })
-
-    if (error) throw error
-    return data as DiningOption[]
+    const data = await apiGet<DiningOption[]>('/api/dining-options')
+    return [...data]
+      .filter(d => (d as any).is_active !== false)
+      .sort((a, b) => (a.date || '').localeCompare(b.date || ''))
+      .sort((a, b) => (a.time || '').localeCompare(b.time || ''))
   } catch (error) {
     console.error('❌ Error fetching dining options:', error)
     throw new DataServiceError('Failed to fetch dining options', 'FETCH_ERROR')
@@ -216,29 +198,8 @@ export const getAttendeeDiningSelections = async (attendeeId: string): Promise<D
   requireAuthentication()
   
   try {
-    // First get the attendee's dining_selections
-    const { data: attendee, error: attendeeError } = await supabase
-      .from('attendees')
-      .select('dining_selections')
-      .eq('id', attendeeId)
-      .single()
-
-    if (attendeeError) throw attendeeError
-
-    if (!attendee?.dining_selections || !Array.isArray(attendee.dining_selections)) {
-      return []
-    }
-
-    // Get the dining options for selected dining
-    const { data, error } = await supabase
-      .from('dining_options')
-      .select('*')
-      .in('id', attendee.dining_selections)
-      .order('date', { ascending: true })
-      .order('time', { ascending: true })
-
-    if (error) throw error
-    return data as DiningOption[]
+    const data = await apiGet<DiningOption[]>(`/api/attendees/${attendeeId}/dining-selections`)
+    return data
   } catch (error) {
     console.error('❌ Error fetching dining selections:', error)
     throw new DataServiceError('Failed to fetch dining selections', 'FETCH_ERROR')
@@ -253,14 +214,10 @@ export const getAllHotels = async (): Promise<Hotel[]> => {
   requireAuthentication()
   
   try {
-    const { data, error } = await supabase
-      .from('hotels')
-      .select('*')
-      .eq('is_active', true)
-      .order('display_order', { ascending: true })
-
-    if (error) throw error
-    return data as Hotel[]
+    const data = await apiGet<Hotel[]>('/api/hotels')
+    return [...data]
+      .filter(h => (h as any).is_active !== false)
+      .sort((a, b) => ((a as any).display_order ?? 0) - ((b as any).display_order ?? 0))
   } catch (error) {
     console.error('❌ Error fetching hotels:', error)
     throw new DataServiceError('Failed to fetch hotels', 'FETCH_ERROR')
@@ -276,28 +233,10 @@ export const getAttendeeHotelSelection = async (attendeeId: string): Promise<Hot
   requireAuthentication()
   
   try {
-    // First get the attendee's hotel_selection
-    const { data: attendee, error: attendeeError } = await supabase
-      .from('attendees')
-      .select('hotel_selection')
-      .eq('id', attendeeId)
-      .single()
-
-    if (attendeeError) throw attendeeError
-
-    if (!attendee?.hotel_selection) {
-      return null
-    }
-
-    // Get the hotel details
-    const { data, error } = await supabase
-      .from('hotels')
-      .select('*')
-      .eq('id', attendee.hotel_selection)
-      .single()
-
-    if (error) throw error
-    return data as Hotel
+    const attendee = await apiGet<{ hotel_selection?: string }>(`/api/attendees/${attendeeId}`)
+    if (!attendee?.hotel_selection) return null
+    const hotel = await apiGet<Hotel>(`/api/hotels/${attendee.hotel_selection}`)
+    return hotel
   } catch (error) {
     console.error('❌ Error fetching hotel selection:', error)
     throw new DataServiceError('Failed to fetch hotel selection', 'FETCH_ERROR')
@@ -312,13 +251,7 @@ export const getAllSeatingConfigurations = async (): Promise<any[]> => {
   requireAuthentication()
   
   try {
-    const { data, error } = await supabase
-      .from('seating_configurations')
-      .select('*')
-      .eq('is_active', true)
-      .order('created_at', { ascending: true })
-
-    if (error) throw error
+    const data = await apiGet<any[]>('/api/seating-configurations')
     return data
   } catch (error) {
     console.error('❌ Error fetching seating configurations:', error)
@@ -334,30 +267,45 @@ export const testDatabaseConnection = async (): Promise<{
   success: boolean
   error?: string
   tableCounts?: Record<string, number>
+  authConfigured?: boolean
+  authOk?: boolean
 }> => {
   try {
-    // Test basic connection by fetching table counts
-    const tables = ['attendees', 'agenda_items', 'sponsors', 'seat_assignments', 'dining_options', 'hotels']
-    const tableCounts: Record<string, number> = {}
-
-    for (const table of tables) {
-      try {
-        const { count, error } = await supabase
-          .from(table)
-          .select('*', { count: 'exact', head: true })
-
-        if (error) throw error
-        tableCounts[table] = count || 0
-      } catch (error) {
-        console.warn(`⚠️ Could not fetch count for table ${table}:`, error)
-        tableCounts[table] = 0
+    // Check backend health/auth first for clearer diagnostics
+    try {
+      const healthRes = await fetch('/api/health', { credentials: 'include' })
+      if (healthRes.ok) {
+        const health = await healthRes.json()
+        if (typeof health?.authConfigured === 'boolean') {
+          // Attach to result later
+        }
       }
+    } catch (_) {
+      // Non-fatal; continue
     }
-
-    return {
-      success: true,
-      tableCounts
-    }
+    const tables = ['attendees', 'agenda_items', 'sponsors', 'seat_assignments', 'dining_options', 'hotels', 'seating_configurations', 'user_profiles']
+    const tableCounts: Record<string, number> = {}
+    await Promise.all(
+      tables.map(async (table) => {
+        try {
+          const res = await fetch(`/api/db/table-count?table=${encodeURIComponent(table)}`, { credentials: 'include' })
+          if (!res.ok) {
+            // Attempt to surface backend auth requirement
+            try {
+              const j = await res.json()
+              if (j?.authRequired) throw new Error('BACKEND_AUTH_REQUIRED')
+            } catch (_) {}
+            throw new Error(`${res.status}`)
+          }
+          const json = await res.json()
+          tableCounts[table] = json?.count ?? 0
+        } catch (err) {
+          console.warn(`⚠️ Could not fetch count for table ${table}:`, err)
+          tableCounts[table] = 0
+        }
+      })
+    )
+    return { success: true, tableCounts }
   } catch (error) {
     console.error('❌ Database connection test failed:', error)
     return {
