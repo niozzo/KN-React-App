@@ -1,7 +1,7 @@
 {
-  "name": "kn-react-app",
+  "name": "apax-knowledge-now-2025",
   "version": "1.0.0",
-  "description": "",
+  "description": "Apax KnowledgeNow 2025 - Conference PWA Application",
   "type": "module",
   "main": "index.js",
   "directories": {
