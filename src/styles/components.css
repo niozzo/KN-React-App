@@ -325,6 +325,16 @@ body {
   margin-left: var(--space-xs);
 }
 
+.status-success {
+  background: var(--green-100);
+  color: var(--green-700);
+  border: 1px solid var(--green-300);
+  border-radius: var(--radius-md);
+  font-weight: var(--font-medium);
+  text-transform: none;
+  letter-spacing: normal;
+}
+
 /* Form Components */
 .form-input {
   padding: var(--space-sm) var(--space-md);
@@ -520,6 +530,21 @@ body {
 @media (max-width: 480px) {
   .desktop-only {
     display: none;
+  }
+}
+
+/* Bio Page Styles */
+.profile-header {
+  /* Removed flex properties - now using block layout */
+}
+
+.contact-actions {
+  margin-left: calc(80px + var(--space-lg)); /* Align with text: avatar width + gap */
+}
+
+@media (max-width: 768px) {
+  .contact-actions {
+    margin-left: calc(80px + var(--space-lg)); /* Same alignment on mobile */
   }
 }
 
@@ -1401,8 +1426,8 @@ body {
 
 .setting-item {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  gap: var(--space-md);
   padding: var(--space-md) 0;
   border-bottom: 1px solid var(--gray-200);
 }
@@ -1413,7 +1438,6 @@ body {
 
 .setting-info {
   flex: 1;
-  margin-right: var(--space-md);
 }
 
 .setting-title {
@@ -1438,6 +1462,7 @@ body {
   border-radius: 14px;
   cursor: pointer;
   transition: background-color var(--transition-normal);
+  margin-top: 2px;
 }
 
 .toggle-switch.active {
@@ -1587,9 +1612,9 @@ body {
   }
   
   .setting-item {
-    flex-direction: column;
+    flex-direction: row;
     align-items: flex-start;
-    gap: var(--space-sm);
+    gap: var(--space-md);
   }
   
   .action-buttons {

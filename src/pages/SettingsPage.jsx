@@ -19,17 +19,9 @@ const SettingsPage = () => {
     adminBroadcasts: true,
     emailNotifications: true,
     offlineMode: true,
-    autoRefresh: true,
-    darkMode: false
+    autoRefresh: true
   });
 
-  // Profile data - would come from props or API in real implementation
-  const profile = {
-    name: 'John Doe',
-    title: 'Chief Executive Officer',
-    company: 'InnovateCorp',
-    initials: 'JD'
-  };
 
   const handleToggle = (settingKey) => {
     setSettings(prev => ({
@@ -38,31 +30,23 @@ const SettingsPage = () => {
     }));
   };
 
-  const handleEditProfile = () => {
-    console.log('Edit profile clicked');
-    // Navigate to profile edit page or open modal
-  };
 
   const handleSignOut = () => {
     console.log('Sign out clicked');
     // Handle sign out logic
   };
 
-  const handleDeleteAccount = () => {
-    console.log('Delete account clicked');
-    // Handle delete account logic with confirmation
-  };
 
   const SettingItem = ({ settingKey, title, description, isEnabled, onChange }) => (
     <div className="setting-item">
-      <div className="setting-info">
-        <div className="setting-title">{title}</div>
-        <div className="setting-description">{description}</div>
-      </div>
       <div 
         className={`toggle-switch ${isEnabled ? 'active' : ''}`}
         onClick={() => onChange(settingKey)}
       />
+      <div className="setting-info">
+        <div className="setting-title">{title}</div>
+        <div className="setting-description">{description}</div>
+      </div>
     </div>
   );
 
@@ -70,23 +54,11 @@ const SettingsPage = () => {
     <PageLayout>
       <h1 className="page-title">Settings</h1>
 
-      {/* Profile Section */}
-      <section className="settings-section">
-        <div className="profile-section">
-          <div className="profile-avatar">{profile.initials}</div>
-          <div className="profile-info">
-            <div className="profile-name">{profile.name}</div>
-            <div className="profile-title">{profile.title}</div>
-            <div className="profile-company">{profile.company}</div>
-          </div>
-        </div>
-      </section>
 
       {/* Privacy Controls */}
       <section className="settings-section">
         <div className="section-header">
           <h2 className="section-title">Privacy Controls</h2>
-          <p className="section-description">Manage your discoverability and data sharing preferences</p>
         </div>
         <div className="section-content">
           <SettingItem
@@ -124,7 +96,6 @@ const SettingsPage = () => {
       <section className="settings-section">
         <div className="section-header">
           <h2 className="section-title">Notifications</h2>
-          <p className="section-description">Control how and when you receive notifications</p>
         </div>
         <div className="section-content">
           <SettingItem
@@ -155,7 +126,6 @@ const SettingsPage = () => {
       <section className="settings-section">
         <div className="section-header">
           <h2 className="section-title">App Settings</h2>
-          <p className="section-description">Customize your app experience</p>
         </div>
         <div className="section-content">
           <SettingItem
@@ -172,13 +142,6 @@ const SettingsPage = () => {
             isEnabled={settings.autoRefresh}
             onChange={handleToggle}
           />
-          <SettingItem
-            settingKey="darkMode"
-            title="Dark Mode"
-            description="Use dark theme for better viewing"
-            isEnabled={settings.darkMode}
-            onChange={handleToggle}
-          />
         </div>
       </section>
 
@@ -188,24 +151,10 @@ const SettingsPage = () => {
           <div className="action-buttons">
             <Button 
               variant="secondary"
-              onClick={handleEditProfile}
-              className="action-button"
-            >
-              Edit Profile
-            </Button>
-            <Button 
-              variant="secondary"
               onClick={handleSignOut}
               className="action-button"
             >
               Sign Out
-            </Button>
-            <Button 
-              variant="danger"
-              onClick={handleDeleteAccount}
-              className="action-button danger"
-            >
-              Delete Account
             </Button>
           </div>
         </div>

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import PageLayout from '../components/layout/PageLayout';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
+import StatusTag from '../components/common/StatusTag';
 
 /**
  * Bio Page Component
@@ -19,10 +20,6 @@ const BioPage = () => {
     bio: `Sarah Chen is a visionary technology leader with over 15 years of experience driving digital transformation across Fortune 500 companies. As CTO of TechCorp, she has spearheaded the development of cutting-edge AI and machine learning platforms that have revolutionized how businesses approach data analytics and customer engagement. Her innovative approach to technology strategy has resulted in a 300% increase in operational efficiency and positioned TechCorp as a market leader in enterprise software solutions.
 
 Sarah holds a Ph.D. in Computer Science from Stanford University and has been recognized as one of the "Top 50 Women in Tech" by Forbes. She is passionate about mentoring the next generation of technology leaders and frequently speaks at industry conferences about the future of artificial intelligence and its impact on business transformation. Her leadership philosophy centers on fostering a culture of innovation, collaboration, and continuous learning within her teams.`
-  };
-
-  const handleEmailClick = () => {
-    window.location.href = 'mailto:example@example.com';
   };
 
   const handleToggleMeetList = () => {
@@ -65,9 +62,6 @@ Sarah holds a Ph.D. in Computer Science from Stanford University and has been re
       <Card 
         className="profile-header"
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 'var(--space-lg)',
           marginBottom: 'var(--space-lg)'
         }}
       >
@@ -77,8 +71,7 @@ Sarah holds a Ph.D. in Computer Science from Stanford University and has been re
             display: 'flex',
             alignItems: 'center',
             gap: 'var(--space-lg)',
-            marginBottom: 'var(--space-lg)',
-            flex: 1
+            marginBottom: 'var(--space-lg)'
           }}
         >
           <div 
@@ -103,7 +96,7 @@ Sarah holds a Ph.D. in Computer Science from Stanford University and has been re
                 fontSize: '28px',
                 fontWeight: '700',
                 color: 'var(--ink-900)',
-                marginBottom: 'var(--space-sm)'
+                marginBottom: '4px'
               }}
             >
               {attendee.name}
@@ -111,7 +104,7 @@ Sarah holds a Ph.D. in Computer Science from Stanford University and has been re
             <div 
               className="title"
               style={{
-                fontSize: '18px',
+                fontSize: '16px',
                 color: 'var(--ink-600)',
                 marginBottom: 'var(--space-sm)'
               }}
@@ -121,8 +114,8 @@ Sarah holds a Ph.D. in Computer Science from Stanford University and has been re
             <div 
               className="company"
               style={{
-                fontSize: '16px',
-                color: 'var(--purple-700)',
+                fontSize: '18px',
+                color: 'var(--coral)',
                 fontWeight: '500'
               }}
             >
@@ -135,77 +128,22 @@ Sarah holds a Ph.D. in Computer Science from Stanford University and has been re
           className="contact-actions"
           style={{
             display: 'flex',
-            gap: 'var(--space-md)',
-            marginTop: 'var(--space-lg)'
+            gap: 'var(--space-md)'
           }}
         >
-          <Button 
-            onClick={handleEmailClick}
-            className="primary"
-            style={{
-              padding: 'var(--space-xs) var(--space-sm)',
-              border: '1px solid var(--purple-700)',
-              background: 'var(--purple-700)',
-              color: 'var(--white)',
-              textDecoration: 'none',
-              borderRadius: '6px',
-              fontWeight: '500',
-              transition: 'all 0.2s ease',
-              fontSize: '14px',
-              whiteSpace: 'nowrap',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 'var(--space-xs)',
-              height: '32px',
-              minHeight: '32px',
-              cursor: 'pointer'
-            }}
-          >
-            Send Email
-          </Button>
-          
           {inMeetList ? (
-            <span 
-              className="in-meet-list-tag"
-              style={{
-                background: 'var(--green-100)',
-                color: 'var(--green-700)',
-                border: '1px solid var(--green-300)',
-                padding: 'var(--space-xs) var(--space-sm)',
-                borderRadius: '6px',
-                fontSize: '14px',
-                fontWeight: '500',
-                whiteSpace: 'nowrap',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 'var(--space-xs)',
-                height: '32px',
-                minHeight: '32px'
-              }}
-            >
-              ✓ In my meet list
-            </span>
+            <StatusTag variant="success">
+              ✓ In My List
+            </StatusTag>
           ) : (
             <Button 
+              variant="secondary"
+              size="sm"
               onClick={handleToggleMeetList}
               id="meetListBtn"
               style={{
-                padding: 'var(--space-xs) var(--space-sm)',
-                border: '1px solid var(--purple-700)',
-                background: 'var(--white)',
-                color: 'var(--purple-700)',
-                textDecoration: 'none',
-                borderRadius: '6px',
-                fontWeight: '500',
-                transition: 'all 0.2s ease',
-                fontSize: '14px',
-                whiteSpace: 'nowrap',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 'var(--space-xs)',
-                height: '32px',
-                minHeight: '32px',
-                cursor: 'pointer'
+                fontSize: 'var(--text-sm)',
+                whiteSpace: 'nowrap'
               }}
             >
               + Add to Meet List
@@ -242,19 +180,6 @@ Sarah holds a Ph.D. in Computer Science from Stanford University and has been re
         </div>
       </Card>
       
-      {/* Footer */}
-      <div 
-        className="footer"
-        style={{
-          textAlign: 'center',
-          marginTop: 'var(--space-2xl)',
-          padding: 'var(--space-lg)',
-          color: 'var(--ink-500)',
-          fontSize: '14px'
-        }}
-      >
-        <p>Conference Networking App - Demo Version</p>
-      </div>
     </PageLayout>
   );
 };

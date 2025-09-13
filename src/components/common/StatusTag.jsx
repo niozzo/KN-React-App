@@ -16,7 +16,8 @@ const StatusTag = ({
     now: 'status-now',
     next: 'status-next',
     past: 'status-past',
-    sponsor: 'status-sponsor'
+    sponsor: 'status-sponsor',
+    success: 'status-success'
   };
 
   const classes = [
