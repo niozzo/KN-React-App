@@ -118,7 +118,7 @@ const InstallPrompt: React.FC<InstallPromptProps> = ({ onInstall, onDismiss, pla
           }}
         >
           <h3 style={{ margin: '0 0 16px 0', fontSize: '20px', color: '#0E1821' }}>
-            Install Apax KnowledgeNow 2025
+            Apax KnowledgeNow 2025 App
           </h3>
           <div style={{ marginBottom: '20px' }}>
             <p style={{ margin: '0 0 12px 0', fontSize: '16px', color: '#2A3745' }}>
@@ -201,10 +201,10 @@ const InstallPrompt: React.FC<InstallPromptProps> = ({ onInstall, onDismiss, pla
         <div style={{ fontSize: '28px', marginRight: '16px' }}>📱</div>
         <div>
           <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', color: '#0E1821', fontWeight: '600' }}>
-            Install Apax KnowledgeNow 2025
+            Apax KnowledgeNow 2025 App
           </h3>
           <p style={{ margin: '0', fontSize: '14px', color: '#5A6A7A' }}>
-            Get quick access to your conference info
+            Install to get access even when offline
           </p>
         </div>
       </div>
