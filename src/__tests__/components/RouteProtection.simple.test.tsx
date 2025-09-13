@@ -42,7 +42,7 @@ describe('Route Protection - Basic Functionality', () => {
       )
 
       expect(screen.getByText('KnowledgeNow 2025')).toBeInTheDocument()
-      expect(screen.getByText('Your access code to continue')).toBeInTheDocument()
+      expect(screen.getByText('Enter your 6-character access code')).toBeInTheDocument()
       expect(screen.queryByTestId('test-component')).not.toBeInTheDocument()
     })
   })

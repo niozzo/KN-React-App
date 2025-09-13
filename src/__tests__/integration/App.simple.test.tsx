@@ -64,8 +64,8 @@ describe('App - Basic Integration', () => {
       )
 
       expect(screen.getByText('KnowledgeNow 2025')).toBeInTheDocument()
-      expect(screen.getByPlaceholderText('Enter your access code')).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: 'Sign In' })).toBeInTheDocument()
+      expect(screen.getByText('Enter your 6-character access code')).toBeInTheDocument()
+      expect(screen.getByRole('textbox', { name: 'Enter your 6-character access code' })).toBeInTheDocument()
     })
 
     it('should show protected content when authenticated', () => {
