@@ -137,14 +137,19 @@ export class PWADataSyncService {
    * Register background sync with service worker
    */
   private async registerBackgroundSync(): Promise<void> {
-    if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
-      try {
+    try {
+      // Check if service worker and background sync are supported
+      if ('serviceWorker' in navigator && 
+          'ServiceWorkerRegistration' in window &&
+          'sync' in window.ServiceWorkerRegistration.prototype) {
         const registration = await navigator.serviceWorker.ready;
         await registration.sync.register('data-sync');
         console.log('🔄 Background sync registered');
-      } catch (error) {
-        console.warn('⚠️ Background sync registration failed:', error);
+      } else {
+        console.log('⚠️ Background sync not supported in this environment');
       }
+    } catch (error) {
+      console.warn('⚠️ Background sync registration failed:', error);
     }
   }
 
@@ -300,20 +305,20 @@ export class PWADataSyncService {
    * Cache data in service worker
    */
   private async cacheInServiceWorker(tableName: string, data: any[]): Promise<void> {
-    if ('serviceWorker' in navigator) {
-      try {
+    try {
+      if ('serviceWorker' in navigator && navigator.serviceWorker.ready) {
         const registration = await navigator.serviceWorker.ready;
         const endpoint = this.tableToEndpoint[tableName];
         
-        if (endpoint) {
-          registration.active?.postMessage({
+        if (endpoint && registration.active) {
+          registration.active.postMessage({
             type: 'CACHE_DATA',
             data: { [endpoint]: data }
           });
         }
-      } catch (error) {
-        console.warn('⚠️ Failed to cache data in service worker:', error);
       }
+    } catch (error) {
+      console.warn('⚠️ Failed to cache data in service worker:', error);
     }
   }
 
