@@ -12,7 +12,6 @@ import {
   getAuthStatus 
 } from '../services/authService'
 import type { Attendee } from '../types/attendee'
-import InstallPrompt from '../components/InstallPrompt'
 
 interface AuthContextType {
   // Authentication state
@@ -388,8 +387,6 @@ export const LoginPage: React.FC = () => {
         </div>
       </div>
       
-      {/* PWA Install Button */}
-      <InstallPrompt placement="login" />
     </div>
     </>
   )
