@@ -38,7 +38,19 @@ const InstallPrompt: React.FC<InstallPromptProps> = ({ onInstall, onDismiss, pla
       return () => clearTimeout(timer)
     }
 
+    // For Chrome/Edge, listen for beforeinstallprompt event
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+
+    // Fallback timer for Chrome/Edge in development (10 seconds)
+    // This helps with testing - remove in production
+    if (!isIOSDevice && !isInStandaloneMode && (import.meta as any).env?.DEV) {
+      const fallbackTimer = setTimeout(() => {
+        if (!deferredPrompt) {
+          setShowPrompt(true)
+        }
+      }, 10000) // Show after 10 seconds in dev mode
+      return () => clearTimeout(fallbackTimer)
+    }
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
