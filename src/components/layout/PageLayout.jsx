@@ -5,10 +5,10 @@ import BottomNav from '../common/BottomNav';
 /**
  * Page Layout Component
  * Provides consistent layout structure for all pages
+ * Header now gets user info from AuthContext automatically
  */
 const PageLayout = ({
   children,
-  user = { name: "John Doe", initials: "JD" },
   onLogoClick,
   onUserClick,
   className = '',
@@ -17,7 +17,6 @@ const PageLayout = ({
   return (
     <div className={`page-layout ${className}`} style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }} {...props}>
       <Header 
-        user={user}
         onLogoClick={onLogoClick}
         onUserClick={onUserClick}
       />

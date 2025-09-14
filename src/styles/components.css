@@ -61,19 +61,40 @@ body {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
+  transition: all var(--transition-normal);
+}
+
+.user-info span {
+  color: var(--ink-700);
+  font-weight: var(--font-medium);
+  transition: color var(--transition-normal);
 }
 
 .user-avatar {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: var(--radius-full);
-  background: var(--purple-050);
+  background: linear-gradient(135deg, var(--purple-100) 0%, var(--purple-200) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: var(--font-semibold);
   color: var(--purple-700);
   font-size: var(--text-sm);
+  border: 2px solid var(--purple-200);
+  transition: all var(--transition-normal);
+  box-shadow: 0 2px 4px rgba(124, 76, 196, 0.1);
+}
+
+.user-info:hover .user-avatar {
+  background: linear-gradient(135deg, var(--purple-200) 0%, var(--purple-300) 100%);
+  border-color: var(--purple-300);
+  box-shadow: 0 4px 8px rgba(124, 76, 196, 0.15);
+  transform: translateY(-1px);
+}
+
+.user-info:hover span {
+  color: var(--purple-700);
 }
 
 /* Bottom Navigation */
