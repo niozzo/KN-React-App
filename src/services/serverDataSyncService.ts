@@ -7,6 +7,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
+import { sanitizeAttendeeForStorage } from '../types/attendee';
 
 export interface ServerSyncResult {
   success: boolean;
@@ -141,14 +142,22 @@ export class ServerDataSyncService {
   private async cacheTableData(tableName: string, data: any[]): Promise<void> {
     try {
       const cacheKey = `kn_cache_${tableName}`;
+      
+      // Sanitize attendees data to remove access_code before caching
+      let sanitizedData = data;
+      if (tableName === 'attendees') {
+        sanitizedData = data.map(attendee => sanitizeAttendeeForStorage(attendee));
+        console.log(`🔒 Sanitized ${data.length} attendee records (removed access_code)`);
+      }
+      
       const cacheData = {
-        data,
+        data: sanitizedData,
         timestamp: Date.now(),
         version: 1,
         source: 'server-sync'
       };
 
-      console.log(`💾 Caching ${tableName} with ${data.length} records`);
+      console.log(`💾 Caching ${tableName} with ${sanitizedData.length} records`);
       localStorage.setItem(cacheKey, JSON.stringify(cacheData));
       console.log(`💾 Cached to localStorage with key: ${cacheKey}`);
       

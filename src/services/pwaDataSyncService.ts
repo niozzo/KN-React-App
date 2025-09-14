@@ -9,6 +9,7 @@
 // All data reads must go through backend endpoints protected by RLS-aware auth
 import { SchemaValidationService } from './schemaValidationService';
 import { supabase } from '../lib/supabase';
+import { sanitizeAttendeeForStorage } from '../types/attendee';
 
 export interface SyncStatus {
   isOnline: boolean;
@@ -289,21 +290,29 @@ export class PWADataSyncService {
   private async cacheTableData(tableName: string, data: any[]): Promise<void> {
     try {
       const cacheKey = `${this.CACHE_PREFIX}${tableName}`;
+      
+      // Sanitize attendees data to remove access_code before caching
+      let sanitizedData = data;
+      if (tableName === 'attendees') {
+        sanitizedData = data.map(attendee => sanitizeAttendeeForStorage(attendee));
+        console.log(`🔒 Sanitized ${data.length} attendee records (removed access_code)`);
+      }
+      
       const cacheData = {
-        data,
+        data: sanitizedData,
         timestamp: Date.now(),
         version: 1
       };
 
-      console.log(`💾 Caching ${tableName} with ${data.length} records`);
+      console.log(`💾 Caching ${tableName} with ${sanitizedData.length} records`);
       localStorage.setItem(cacheKey, JSON.stringify(cacheData));
       console.log(`💾 Cached to localStorage with key: ${cacheKey}`);
       
       // Update cache size tracking
       this.updateCacheSize();
       
-      // Also cache in service worker for faster access
-      this.cacheInServiceWorker(tableName, data);
+      // Also cache in service worker for faster access (with sanitized data)
+      this.cacheInServiceWorker(tableName, sanitizedData);
       
     } catch (error) {
       console.error(`❌ Failed to cache ${tableName}:`, error);
