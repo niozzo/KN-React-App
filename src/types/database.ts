@@ -210,6 +210,16 @@ export interface AuthSession {
   expiresAt: string;
 }
 
+// Sanitized attendee type for storage (excludes sensitive access_code)
+export type SanitizedAttendee = Omit<Attendee, 'access_code'>
+
+// Sanitized auth session for storage (excludes access_code from attendee)
+export interface SanitizedAuthSession {
+  attendee: SanitizedAttendee;
+  isAuthenticated: boolean;
+  expiresAt: string;
+}
+
 // ============================================================================
 // DATABASE OPERATION TYPES
 // ============================================================================

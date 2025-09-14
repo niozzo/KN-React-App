@@ -8,6 +8,7 @@ import {
   AccessCodeAuthRequest, 
   AccessCodeAuthResponse, 
   AuthSession, 
+  SanitizedAuthSession,
   AccessCodeAuthService as IAccessCodeAuthService 
 } from '../types/database';
 
@@ -193,11 +194,18 @@ export class AccessCodeAuthService implements IAccessCodeAuthService {
   }
 
   /**
-   * Save session to localStorage
+   * Save session to localStorage (sanitized without access_code)
    */
   private saveSessionToStorage(session: AuthSession): void {
     try {
-      localStorage.setItem(this.SESSION_KEY, JSON.stringify(session));
+      // Create sanitized session without access_code for security
+      const { access_code, ...sanitizedAttendee } = session.attendee;
+      const sanitizedSession: SanitizedAuthSession = {
+        attendee: sanitizedAttendee,
+        isAuthenticated: session.isAuthenticated,
+        expiresAt: session.expiresAt
+      };
+      localStorage.setItem(this.SESSION_KEY, JSON.stringify(sanitizedSession));
     } catch (err) {
       console.error('❌ Error saving session to storage:', err);
     }
@@ -205,6 +213,7 @@ export class AccessCodeAuthService implements IAccessCodeAuthService {
 
   /**
    * Load session from localStorage
+   * Note: Loaded session will not have access_code (for security)
    */
   private loadSessionFromStorage(): AuthSession | null {
     try {
@@ -213,7 +222,16 @@ export class AccessCodeAuthService implements IAccessCodeAuthService {
         return null;
       }
       
-      return JSON.parse(stored) as AuthSession;
+      const sanitizedSession = JSON.parse(stored) as SanitizedAuthSession;
+      
+      // Convert back to AuthSession format (attendee won't have access_code)
+      // This is acceptable since we only use stored sessions for persistence,
+      // not for re-authentication
+      return {
+        attendee: sanitizedSession.attendee as any, // Type assertion needed
+        isAuthenticated: sanitizedSession.isAuthenticated,
+        expiresAt: sanitizedSession.expiresAt
+      };
     } catch (err) {
       console.error('❌ Error loading session from storage:', err);
       return null;

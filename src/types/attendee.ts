@@ -92,6 +92,15 @@ export interface Attendee {
   last_synced_at: string      // Last sync timestamp
 }
 
+// Sanitized attendee type for storage (excludes sensitive access_code)
+export type SanitizedAttendee = Omit<Attendee, 'access_code'>
+
+// Utility function to sanitize attendee data for storage
+export const sanitizeAttendeeForStorage = (attendee: Attendee): SanitizedAttendee => {
+  const { access_code, ...sanitizedAttendee } = attendee
+  return sanitizedAttendee
+}
+
 // Form data interface for creating/editing attendees
 export interface AttendeeFormData {
   salutation: string

@@ -9,10 +9,10 @@
 
 import { supabase } from '../lib/supabase'
 import { serverDataSyncService } from './serverDataSyncService'
-import type { Attendee } from '../types/attendee'
+import type { Attendee, SanitizedAttendee, sanitizeAttendeeForStorage } from '../types/attendee'
 
 // Authentication state
-let currentAttendee: Attendee | null = null
+let currentAttendee: Attendee | SanitizedAttendee | null = null
 let isAuthenticated = false
 
 // Initialize authentication state from localStorage if available
@@ -24,9 +24,11 @@ const initializeAuthState = () => {
       if (storedAuth) {
         const authData = JSON.parse(storedAuth)
         if (authData.attendee && authData.isAuthenticated) {
-          currentAttendee = authData.attendee
+          // Note: Restored attendee won't have access_code (for security)
+          // This is only for session persistence, not re-authentication
+          currentAttendee = authData.attendee as SanitizedAttendee
           isAuthenticated = true
-          console.log('🔄 Restored authentication state from localStorage')
+          console.log('🔄 Restored authentication state from localStorage (without access_code)')
         }
       }
     } catch (error) {
@@ -89,10 +91,11 @@ export const authenticateWithAccessCode = async (accessCode: string): Promise<{
     currentAttendee = data as Attendee
     isAuthenticated = true
 
-    // Persist to localStorage
+    // Persist to localStorage (without access_code for security)
     try {
+      const sanitizedAttendee = sanitizeAttendeeForStorage(data as Attendee)
       localStorage.setItem('conference_auth', JSON.stringify({
-        attendee: data,
+        attendee: sanitizedAttendee,
         isAuthenticated: true,
         timestamp: Date.now()
       }))
@@ -121,8 +124,9 @@ export const authenticateWithAccessCode = async (accessCode: string): Promise<{
 /**
  * Get current authenticated attendee
  * @returns Current attendee or null if not authenticated
+ * Note: May not include access_code if restored from localStorage
  */
-export const getCurrentAttendee = (): Attendee | null => {
+export const getCurrentAttendee = (): Attendee | SanitizedAttendee | null => {
   return currentAttendee
 }
 
