@@ -6,7 +6,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
-import { AuthProvider } from '../../contexts/AuthContext'
+import { AuthProvider, LoginPage } from '../../contexts/AuthContext'
 import { getAuthStatus, authenticateWithAccessCode } from '../../services/authService'
 import React from 'react'
 
@@ -16,19 +16,18 @@ vi.mock('../../services/authService', () => ({
   authenticateWithAccessCode: vi.fn()
 }))
 
-// Test component that renders the actual LoginPage from AuthContext
-const LoginPageTestWrapper = () => {
-  const { LoginPage } = React.useContext(React.createContext({ LoginPage: null }))
-  
-  // We'll render the actual LoginPage component from AuthContext
-  return (
-    <AuthProvider>
-      <div data-testid="login-page-wrapper">
-        {/* This will be replaced with the actual LoginPage component */}
-      </div>
-    </AuthProvider>
-  )
-}
+// Mock the data sync service
+vi.mock('../../services/serverDataSyncService', () => ({
+  serverDataSyncService: {
+    lookupAttendeeByAccessCode: vi.fn(),
+    syncAllData: vi.fn().mockResolvedValue({
+      success: true,
+      syncedTables: ['attendees', 'sponsors', 'agenda_items'],
+      errors: [],
+      totalRecords: 10
+    })
+  }
+}))
 
 describe('LoginPage - Enhanced Functionality', () => {
   beforeEach(() => {
@@ -43,7 +42,9 @@ describe('LoginPage - Enhanced Functionality', () => {
         attendee: null
       })
 
-      vi.mocked(authenticateWithAccessCode).mockResolvedValue({
+      // Mock the data sync service that the AuthContext actually uses
+      const { serverDataSyncService } = await import('../../services/serverDataSyncService')
+      vi.mocked(serverDataSyncService.lookupAttendeeByAccessCode).mockResolvedValue({
         success: true,
         attendee: {
           id: '1',
@@ -55,132 +56,12 @@ describe('LoginPage - Enhanced Functionality', () => {
         }
       })
 
-      // We need to test the actual LoginPage component
-      // For now, let's create a mock that simulates the behavior
-      const MockLoginPage = () => {
-        const [accessCode, setAccessCode] = React.useState('')
-        const [isLoading, setIsLoading] = React.useState(false)
-        const [error, setError] = React.useState('')
-        const [showError, setShowError] = React.useState(false)
-
-        const handleSubmit = async (e?: React.FormEvent) => {
-          if (e) e.preventDefault()
-          setIsLoading(true)
-          setShowError(false)
-          
-          try {
-            const result = await authenticateWithAccessCode(accessCode)
-            if (result.success) {
-              // Simulate successful login
-              console.log('Login successful')
-            } else {
-              setError(result.error || 'Login failed')
-              setShowError(true)
-            }
-          } catch (err) {
-            setError('Invalid access code. Please try again or ask at the registration desk for help.')
-            setShowError(true)
-          } finally {
-            setIsLoading(false)
-          }
-        }
-
-        // Auto-submit effect
-        React.useEffect(() => {
-          if (accessCode.length === 6 && !isLoading) {
-            const timer = setTimeout(() => {
-              setAccessCode('')
-              handleSubmit()
-            }, 500)
-            return () => clearTimeout(timer)
-          }
-        }, [accessCode, isLoading])
-
-        return (
-          <div className="main-content" style={{ 
-            minHeight: '100vh', 
-            display: 'flex', 
-            alignItems: 'flex-start', 
-            justifyContent: 'center',
-            background: 'linear-gradient(135deg, #F5F6F7 0%, #F2ECFB 100%)',
-            padding: 'var(--space-xl) var(--space-lg) var(--space-lg)',
-            position: 'relative',
-            overflow: 'hidden'
-          }}>
-            <div className="card" style={{ 
-              maxWidth: '400px', 
-              width: '100%',
-              textAlign: 'center',
-              position: 'relative',
-              zIndex: 10,
-              marginTop: 'var(--space-lg)',
-              backgroundColor: 'rgba(255, 255, 255, 0.95)',
-              border: '1px solid rgba(124, 76, 196, 0.1)',
-              boxShadow: '0 8px 32px rgba(124, 76, 196, 0.1), 0 4px 16px rgba(0, 0, 0, 0.05)'
-            }}>
-              <div className="mb-lg">
-                <h1 className="logo" style={{ 
-                  fontSize: 'var(--text-4xl)', 
-                  marginBottom: 'var(--space-xl)',
-                  textAlign: 'center'
-                }}>
-                  KnowledgeNow 2025
-                </h1>
-              </div>
-              
-              <form style={{ marginTop: 'var(--space-xl)' }}>
-                <div className="mb-lg">
-                  <label htmlFor="accessCode" style={{
-                    display: 'block', fontSize: 'var(--text-sm)', color: 'var(--ink-700)',
-                    marginBottom: 'var(--space-sm)', textAlign: 'center', fontWeight: '500'
-                  }}>
-                    Enter your 6-character access code
-                  </label>
-                  <div style={{ position: 'relative' }}>
-                    <input
-                      id="accessCode" name="accessCode" type="text" required className="form-input"
-                      placeholder=""
-                      value={accessCode} 
-                      onChange={(e) => setAccessCode(e.target.value.toUpperCase())}
-                      maxLength={6} 
-                      disabled={isLoading}
-                      style={{
-                        textAlign: 'center', fontSize: '2rem', fontWeight: 'bold', letterSpacing: '0.5em',
-                        textTransform: 'uppercase', fontFamily: 'monospace', padding: 'var(--space-md)',
-                        border: '2px solid var(--ink-300)', borderRadius: 'var(--radius-md)',
-                        backgroundColor: 'var(--white)', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                        opacity: isLoading ? 0.7 : 1
-                      }}
-                    />
-                    {isLoading && (
-                      <div style={{
-                        position: 'absolute', top: '50%', right: 'var(--space-md)', transform: 'translateY(-50%)',
-                        width: '24px', height: '24px', border: '3px solid var(--ink-200)',
-                        borderTop: '3px solid var(--purple-500)', borderRadius: '50%',
-                        animation: 'spin 1s linear infinite'
-                      }} />
-                    )}
-                  </div>
-                </div>
-              </form>
-              
-              {showError && error && (
-                <div style={{ color: 'var(--red-600)', fontSize: 'var(--text-sm)', textAlign: 'center', marginTop: 'var(--space-sm)' }}>
-                  {error}
-                </div>
-              )}
-              
-              <div style={{ color: 'var(--ink-500)', fontSize: '0.75rem', textAlign: 'center' }}>
-                <p className="mb-sm">
-                  Ask registration for help if you can not find your access code
-                </p>
-              </div>
-            </div>
-          </div>
-        )
-      }
-
-      render(<MockLoginPage />)
+      // Render the actual LoginPage component
+      render(
+        <AuthProvider>
+          <LoginPage />
+        </AuthProvider>
+      )
 
       const input = screen.getByRole('textbox', { name: 'Enter your 6-character access code' })
       
@@ -190,11 +71,20 @@ describe('LoginPage - Enhanced Functionality', () => {
       
       // Type 6th character - should trigger auto-submit
       fireEvent.change(input, { target: { value: 'ABC123' } })
-      expect(input).toHaveValue('ABC123')
       
-      // Wait for auto-submit to trigger
+      // Wait for auto-submit to trigger (with longer timeout for the 500ms delay)
       await waitFor(() => {
-        expect(authenticateWithAccessCode).toHaveBeenCalledWith('ABC123')
+        expect(serverDataSyncService.lookupAttendeeByAccessCode).toHaveBeenCalledWith('ABC123')
+      }, { timeout: 2000 })
+      
+      // Verify the authentication flow completed successfully
+      await waitFor(() => {
+        expect(screen.queryByText('Invalid access code')).not.toBeInTheDocument()
+      }, { timeout: 1000 })
+      
+      // After auto-submit, the input should be cleared
+      await waitFor(() => {
+        expect(input).toHaveValue('')
       }, { timeout: 1000 })
     })
 
@@ -205,37 +95,13 @@ describe('LoginPage - Enhanced Functionality', () => {
         attendee: null
       })
 
-      const MockLoginPage = () => {
-        const [accessCode, setAccessCode] = React.useState('')
-        const [isLoading, setIsLoading] = React.useState(false)
+      render(
+        <AuthProvider>
+          <LoginPage />
+        </AuthProvider>
+      )
 
-        const handleSubmit = async () => {
-          setIsLoading(true)
-          // This should not be called
-          console.log('Submit called - this should not happen')
-        }
-
-        React.useEffect(() => {
-          if (accessCode.length === 6 && !isLoading) {
-            handleSubmit()
-          }
-        }, [accessCode, isLoading])
-
-        return (
-          <div>
-            <input
-              value={accessCode}
-              onChange={(e) => setAccessCode(e.target.value.toUpperCase())}
-              maxLength={6}
-              data-testid="access-code-input"
-            />
-          </div>
-        )
-      }
-
-      render(<MockLoginPage />)
-
-      const input = screen.getByTestId('access-code-input')
+      const input = screen.getByRole('textbox', { name: 'Enter your 6-character access code' })
       
       // Type 5 characters - should not auto-submit
       fireEvent.change(input, { target: { value: 'ABC12' } })
@@ -257,59 +123,26 @@ describe('LoginPage - Enhanced Functionality', () => {
         attendee: null
       })
 
-      let resolveAuth: (value: any) => void
-      vi.mocked(authenticateWithAccessCode).mockImplementation(() => 
+      // Mock a delayed response to test loading state
+      const { serverDataSyncService } = await import('../../services/serverDataSyncService')
+      vi.mocked(serverDataSyncService.lookupAttendeeByAccessCode).mockImplementation(() => 
         new Promise(resolve => {
-          resolveAuth = resolve
+          setTimeout(() => {
+            resolve({
+              success: true,
+              attendee: { id: '1', first_name: 'John', last_name: 'Doe', email: 'john@example.com', company: 'Test Corp', access_code: 'ABC123' }
+            })
+          }, 1000) // 1 second delay to ensure loading state is visible
         })
       )
 
-      const MockLoginPage = () => {
-        const [accessCode, setAccessCode] = React.useState('')
-        const [isLoading, setIsLoading] = React.useState(false)
+      render(
+        <AuthProvider>
+          <LoginPage />
+        </AuthProvider>
+      )
 
-        const handleSubmit = async () => {
-          setIsLoading(true)
-          await authenticateWithAccessCode(accessCode)
-          setIsLoading(false)
-        }
-
-        React.useEffect(() => {
-          if (accessCode.length === 6 && !isLoading) {
-            handleSubmit()
-          }
-        }, [accessCode, isLoading])
-
-        return (
-          <div>
-            <div style={{ position: 'relative' }}>
-              <input
-                value={accessCode}
-                onChange={(e) => setAccessCode(e.target.value.toUpperCase())}
-                maxLength={6}
-                disabled={isLoading}
-                data-testid="access-code-input"
-                style={{ opacity: isLoading ? 0.7 : 1 }}
-              />
-              {isLoading && (
-                <div 
-                  data-testid="loading-spinner"
-                  style={{
-                    position: 'absolute', top: '50%', right: '10px', transform: 'translateY(-50%)',
-                    width: '24px', height: '24px', border: '3px solid #e5e7eb',
-                    borderTop: '3px solid #8b5cf6', borderRadius: '50%',
-                    animation: 'spin 1s linear infinite'
-                  }}
-                />
-              )}
-            </div>
-          </div>
-        )
-      }
-
-      render(<MockLoginPage />)
-
-      const input = screen.getByTestId('access-code-input')
+      const input = screen.getByRole('textbox', { name: 'Enter your 6-character access code' })
       
       // Type 6 characters to trigger auto-submit
       fireEvent.change(input, { target: { value: 'ABC123' } })
@@ -322,165 +155,99 @@ describe('LoginPage - Enhanced Functionality', () => {
       // Input should be dimmed
       expect(input).toHaveStyle({ opacity: '0.7' })
       
-      // Resolve the authentication promise
-      resolveAuth({
-        success: true,
-        attendee: { id: '1', first_name: 'John', last_name: 'Doe', email: 'john@example.com', company: 'Test Corp', access_code: 'ABC123' }
-      })
-      
-      // Wait for the async operation to complete to prevent unhandled promise
+      // Wait for the async operation to complete
       await waitFor(() => {
         expect(screen.queryByTestId('loading-spinner')).not.toBeInTheDocument()
-      })
+      }, { timeout: 3000 })
     })
   })
 
   describe('Error Display', () => {
     it('should display error message for invalid access code', async () => {
-      const MockLoginPage = () => {
-        const [accessCode, setAccessCode] = React.useState('')
-        const [error, setError] = React.useState('')
-        const [showError, setShowError] = React.useState(false)
+      vi.mocked(getAuthStatus).mockReturnValue({
+        isAuthenticated: false,
+        hasAttendee: false,
+        attendee: null
+      })
 
-        const handleSubmit = React.useCallback(async () => {
-          setShowError(false)
-          
-          try {
-            const result = await authenticateWithAccessCode(accessCode)
-            if (result.success) {
-              console.log('Login successful')
-            } else {
-              setError(result.error || 'Login failed')
-              setShowError(true)
-            }
-          } catch (err) {
-            setError('Invalid access code. Please try again or ask at the registration desk for help.')
-            setShowError(true)
-          }
-        }, [accessCode])
-
-        React.useEffect(() => {
-          if (accessCode.length === 6) {
-            handleSubmit()
-          }
-        }, [accessCode, handleSubmit])
-
-        return (
-          <div>
-            <input
-              value={accessCode}
-              onChange={(e) => setAccessCode(e.target.value.toUpperCase())}
-              maxLength={6}
-              data-testid="access-code-input"
-            />
-            {showError && error && (
-              <div data-testid="error-message" style={{ color: 'var(--red-600)', fontSize: 'var(--text-sm)' }}>
-                {error}
-              </div>
-            )}
-          </div>
-        )
-      }
-
-      vi.mocked(authenticateWithAccessCode).mockResolvedValue({
+      const { serverDataSyncService } = await import('../../services/serverDataSyncService')
+      vi.mocked(serverDataSyncService.lookupAttendeeByAccessCode).mockResolvedValue({
         success: false,
         error: 'Invalid access code. Please try again or ask at the registration desk for help.'
       })
 
-      render(<MockLoginPage />)
+      render(
+        <AuthProvider>
+          <LoginPage />
+        </AuthProvider>
+      )
 
-      const input = screen.getByTestId('access-code-input')
+      const input = screen.getByRole('textbox', { name: 'Enter your 6-character access code' })
       
       // Type invalid access code (6 characters)
       fireEvent.change(input, { target: { value: 'INVALI' } })
       
       // Wait for error to appear
       await waitFor(() => {
-        expect(screen.getByTestId('error-message')).toBeInTheDocument()
         expect(screen.getByText('Invalid access code. Please try again or ask at the registration desk for help.')).toBeInTheDocument()
       }, { timeout: 5000 })
     })
 
     it('should clear error when new input is entered', async () => {
-      const MockLoginPage = () => {
-        const [accessCode, setAccessCode] = React.useState('')
-        const [error, setError] = React.useState('')
-        const [showError, setShowError] = React.useState(false)
+      vi.mocked(getAuthStatus).mockReturnValue({
+        isAuthenticated: false,
+        hasAttendee: false,
+        attendee: null
+      })
 
-        const handleInputChange = (value: string) => {
-          setAccessCode(value)
-          if (showError) {
-            setShowError(false)
-            setError('')
-          }
-        }
+      // First trigger an error with invalid code
+      const { serverDataSyncService } = await import('../../services/serverDataSyncService')
+      vi.mocked(serverDataSyncService.lookupAttendeeByAccessCode).mockResolvedValue({
+        success: false,
+        error: 'Invalid access code. Please try again or ask at the registration desk for help.'
+      })
 
-        return (
-          <div>
-            <input
-              value={accessCode}
-              onChange={(e) => handleInputChange(e.target.value.toUpperCase())}
-              maxLength={6}
-              data-testid="access-code-input"
-            />
-            {showError && error && (
-              <div data-testid="error-message" style={{ color: 'var(--red-600)', fontSize: 'var(--text-sm)' }}>
-                {error}
-              </div>
-            )}
-            <button 
-              onClick={() => { setError('Test error'); setShowError(true); }}
-              data-testid="trigger-error"
-            >
-              Trigger Error
-            </button>
-          </div>
-        )
-      }
+      render(
+        <AuthProvider>
+          <LoginPage />
+        </AuthProvider>
+      )
 
-      render(<MockLoginPage />)
-
-      const input = screen.getByTestId('access-code-input')
-      const triggerButton = screen.getByTestId('trigger-error')
+      const input = screen.getByRole('textbox', { name: 'Enter your 6-character access code' })
       
-      // Trigger error
-      fireEvent.click(triggerButton)
-      expect(screen.getByTestId('error-message')).toBeInTheDocument()
+      // Trigger error with invalid 6-character code
+      fireEvent.change(input, { target: { value: 'INVALI' } })
+      
+      // Wait for error to appear (with longer timeout for auto-submit)
+      await waitFor(() => {
+        expect(screen.getByText('Invalid access code. Please try again or ask at the registration desk for help.')).toBeInTheDocument()
+      }, { timeout: 3000 })
       
       // Type new input - should clear error
       fireEvent.change(input, { target: { value: 'A' } })
-      expect(screen.queryByTestId('error-message')).not.toBeInTheDocument()
+      
+      // Error should be cleared
+      await waitFor(() => {
+        expect(screen.queryByText('Invalid access code. Please try again or ask at the registration desk for help.')).not.toBeInTheDocument()
+      })
     })
   })
 
   describe('Visual Styling', () => {
     it('should apply large, spaced input styling', () => {
-      const MockLoginPage = () => {
-        const [accessCode, setAccessCode] = React.useState('')
+      vi.mocked(getAuthStatus).mockReturnValue({
+        isAuthenticated: false,
+        hasAttendee: false,
+        attendee: null
+      })
 
-        return (
-          <div>
-            <input
-              value={accessCode}
-              onChange={(e) => setAccessCode(e.target.value.toUpperCase())}
-              maxLength={6}
-              data-testid="access-code-input"
-              style={{
-                textAlign: 'center', 
-                fontSize: '2rem', 
-                fontWeight: 'bold', 
-                letterSpacing: '0.5em',
-                textTransform: 'uppercase', 
-                fontFamily: 'monospace'
-              }}
-            />
-          </div>
-        )
-      }
+      render(
+        <AuthProvider>
+          <LoginPage />
+        </AuthProvider>
+      )
 
-      render(<MockLoginPage />)
-
-      const input = screen.getByTestId('access-code-input')
+      const input = screen.getByRole('textbox', { name: 'Enter your 6-character access code' })
       
       expect(input).toHaveStyle({ 
         textAlign: 'center',
@@ -493,28 +260,83 @@ describe('LoginPage - Enhanced Functionality', () => {
     })
 
     it('should convert input to uppercase', () => {
-      const MockLoginPage = () => {
-        const [accessCode, setAccessCode] = React.useState('')
+      vi.mocked(getAuthStatus).mockReturnValue({
+        isAuthenticated: false,
+        hasAttendee: false,
+        attendee: null
+      })
 
-        return (
-          <div>
-            <input
-              value={accessCode}
-              onChange={(e) => setAccessCode(e.target.value.toUpperCase())}
-              maxLength={6}
-              data-testid="access-code-input"
-            />
-          </div>
-        )
-      }
+      render(
+        <AuthProvider>
+          <LoginPage />
+        </AuthProvider>
+      )
 
-      render(<MockLoginPage />)
-
-      const input = screen.getByTestId('access-code-input')
+      const input = screen.getByRole('textbox', { name: 'Enter your 6-character access code' })
       
       // Type lowercase - should convert to uppercase
       fireEvent.change(input, { target: { value: 'abc123' } })
       expect(input).toHaveValue('ABC123')
+    })
+  })
+
+  describe('Real Authentication Flow Integration', () => {
+    it('should complete full authentication flow with real component', async () => {
+      // Start with unauthenticated state
+      vi.mocked(getAuthStatus).mockReturnValue({
+        isAuthenticated: false,
+        hasAttendee: false,
+        attendee: null
+      })
+
+      const { serverDataSyncService } = await import('../../services/serverDataSyncService')
+      
+      // Mock successful authentication
+      vi.mocked(serverDataSyncService.lookupAttendeeByAccessCode).mockResolvedValue({
+        success: true,
+        attendee: {
+          id: '1',
+          first_name: 'John',
+          last_name: 'Doe',
+          email: 'john@example.com',
+          company: 'Test Corp',
+          access_code: 'ABC123'
+        }
+      })
+
+      // Mock successful data sync
+      vi.mocked(serverDataSyncService.syncAllData).mockResolvedValue({
+        success: true,
+        syncedTables: ['attendees', 'sponsors', 'agenda_items'],
+        errors: [],
+        totalRecords: 10
+      })
+
+      render(
+        <AuthProvider>
+          <LoginPage />
+        </AuthProvider>
+      )
+
+      const input = screen.getByRole('textbox', { name: 'Enter your 6-character access code' })
+      
+      // Enter valid access code
+      fireEvent.change(input, { target: { value: 'ABC123' } })
+      
+      // Verify authentication service was called
+      await waitFor(() => {
+        expect(serverDataSyncService.lookupAttendeeByAccessCode).toHaveBeenCalledWith('ABC123')
+      }, { timeout: 2000 })
+      
+      // Verify data sync was called
+      await waitFor(() => {
+        expect(serverDataSyncService.syncAllData).toHaveBeenCalled()
+      }, { timeout: 2000 })
+      
+      // Verify no error messages are shown
+      await waitFor(() => {
+        expect(screen.queryByText('Invalid access code')).not.toBeInTheDocument()
+      }, { timeout: 1000 })
     })
   })
 })
