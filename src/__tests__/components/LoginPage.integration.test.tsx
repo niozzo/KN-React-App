@@ -10,13 +10,21 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { AuthProvider, LoginPage } from '../../contexts/AuthContext'
-import { authenticateWithAccessCode, getAuthStatus } from '../../services/authService'
+import { getAuthStatus } from '../../services/authService'
+import { serverDataSyncService } from '../../services/serverDataSyncService'
 import React from 'react'
 
 // Mock the auth service
 vi.mock('../../services/authService', () => ({
-  getAuthStatus: vi.fn(),
-  authenticateWithAccessCode: vi.fn()
+  getAuthStatus: vi.fn()
+}))
+
+// Mock the server data sync service
+vi.mock('../../services/serverDataSyncService', () => ({
+  serverDataSyncService: {
+    syncAllData: vi.fn(),
+    lookupAttendeeByAccessCode: vi.fn()
+  }
 }))
 
 // Test data constants for better maintainability
@@ -47,8 +55,13 @@ describe('LoginPage - Integration Tests', () => {
 
   describe('Complete Login Flow', () => {
     it('should complete full successful login flow from input to authentication', async () => {
-      // Mock successful authentication
-      vi.mocked(authenticateWithAccessCode).mockResolvedValue({
+      // Mock successful data sync and attendee lookup
+      vi.mocked(serverDataSyncService.syncAllData).mockResolvedValue({
+        success: true,
+        syncedTables: ['attendees', 'sponsors'],
+        totalRecords: 100
+      })
+      vi.mocked(serverDataSyncService.lookupAttendeeByAccessCode).mockResolvedValue({
         success: true,
         attendee: TEST_DATA.MOCK_ATTENDEE
       })
@@ -77,9 +90,10 @@ describe('LoginPage - Integration Tests', () => {
       // 5. Verify input is dimmed during loading
       expect(input).toHaveStyle({ opacity: '0.7' })
 
-      // 6. Verify authentication service was called
+      // 6. Verify data sync and attendee lookup were called
       await waitFor(() => {
-        expect(authenticateWithAccessCode).toHaveBeenCalledWith(TEST_DATA.VALID_ACCESS_CODE)
+        expect(vi.mocked(serverDataSyncService.syncAllData)).toHaveBeenCalled()
+        expect(vi.mocked(serverDataSyncService.lookupAttendeeByAccessCode)).toHaveBeenCalledWith(TEST_DATA.VALID_ACCESS_CODE)
       }, { timeout: 2000 })
 
       // 7. Verify loading spinner disappears after authentication
@@ -89,8 +103,13 @@ describe('LoginPage - Integration Tests', () => {
     })
 
     it('should complete full failed login flow with error display', async () => {
-      // Mock failed authentication
-      vi.mocked(authenticateWithAccessCode).mockResolvedValue({
+      // Mock successful data sync but failed attendee lookup
+      vi.mocked(serverDataSyncService.syncAllData).mockResolvedValue({
+        success: true,
+        syncedTables: ['attendees', 'sponsors'],
+        totalRecords: 100
+      })
+      vi.mocked(serverDataSyncService.lookupAttendeeByAccessCode).mockResolvedValue({
         success: false,
         error: 'Invalid access code'
       })
@@ -115,13 +134,14 @@ describe('LoginPage - Integration Tests', () => {
         expect(screen.getByText('Invalid access code. Please try again or ask at the registration desk for help.')).toBeInTheDocument()
       }, { timeout: 3000 })
 
-      // Verify authentication was called
-      expect(authenticateWithAccessCode).toHaveBeenCalledWith(TEST_DATA.INVALID_ACCESS_CODE)
+      // Verify services were called
+      expect(vi.mocked(serverDataSyncService.syncAllData)).toHaveBeenCalled()
+      expect(vi.mocked(serverDataSyncService.lookupAttendeeByAccessCode)).toHaveBeenCalledWith(TEST_DATA.INVALID_ACCESS_CODE)
     })
 
     it('should handle authentication service errors gracefully', async () => {
-      // Mock service error
-      vi.mocked(authenticateWithAccessCode).mockRejectedValue(new Error('Network error'))
+      // Mock data sync error
+      vi.mocked(serverDataSyncService.syncAllData).mockRejectedValue(new Error('Network error'))
 
       render(
         <AuthProvider>
@@ -133,6 +153,7 @@ describe('LoginPage - Integration Tests', () => {
       fireEvent.change(input, { target: { value: TEST_DATA.VALID_ACCESS_CODE } })
 
       // Wait for error message
+      // Note: The component shows a generic error message when data sync fails
       await waitFor(() => {
         expect(screen.getByText('Invalid access code. Please try again or ask at the registration desk for help.')).toBeInTheDocument()
       }, { timeout: 3000 })
@@ -141,7 +162,12 @@ describe('LoginPage - Integration Tests', () => {
 
   describe('Auto-Submit Functionality', () => {
     it('should auto-submit when exactly 6 characters are entered', async () => {
-      vi.mocked(authenticateWithAccessCode).mockResolvedValue({
+      vi.mocked(serverDataSyncService.syncAllData).mockResolvedValue({
+        success: true,
+        syncedTables: ['attendees', 'sponsors'],
+        totalRecords: 100
+      })
+      vi.mocked(serverDataSyncService.lookupAttendeeByAccessCode).mockResolvedValue({
         success: true,
         attendee: TEST_DATA.MOCK_ATTENDEE
       })
@@ -156,13 +182,14 @@ describe('LoginPage - Integration Tests', () => {
       
       // Type 5 characters - should not auto-submit
       fireEvent.change(input, { target: { value: 'ABC12' } })
-      expect(authenticateWithAccessCode).not.toHaveBeenCalled()
+      expect(vi.mocked(serverDataSyncService.syncAllData)).not.toHaveBeenCalled()
       
       // Type 6th character - should trigger auto-submit
       fireEvent.change(input, { target: { value: TEST_DATA.VALID_ACCESS_CODE } })
       
       await waitFor(() => {
-        expect(authenticateWithAccessCode).toHaveBeenCalledWith(TEST_DATA.VALID_ACCESS_CODE)
+        expect(vi.mocked(serverDataSyncService.syncAllData)).toHaveBeenCalled()
+        expect(vi.mocked(serverDataSyncService.lookupAttendeeByAccessCode)).toHaveBeenCalledWith(TEST_DATA.VALID_ACCESS_CODE)
       }, { timeout: 2000 })
     })
 
@@ -181,18 +208,23 @@ describe('LoginPage - Integration Tests', () => {
       // Wait a bit to ensure no auto-submit
       await new Promise(resolve => setTimeout(resolve, 100))
       
-      expect(authenticateWithAccessCode).not.toHaveBeenCalled()
+      expect(vi.mocked(serverDataSyncService.syncAllData)).not.toHaveBeenCalled()
     })
   })
 
   describe('Loading States', () => {
     it('should show loading spinner during auto-submit', async () => {
-      vi.mocked(authenticateWithAccessCode).mockImplementation(() => 
+      vi.mocked(serverDataSyncService.syncAllData).mockImplementation(() => 
         new Promise(resolve => setTimeout(() => resolve({
           success: true,
-          attendee: TEST_DATA.MOCK_ATTENDEE
+          syncedTables: ['attendees', 'sponsors'],
+          totalRecords: 100
         }), 100))
       )
+      vi.mocked(serverDataSyncService.lookupAttendeeByAccessCode).mockResolvedValue({
+        success: true,
+        attendee: TEST_DATA.MOCK_ATTENDEE
+      })
 
       render(
         <AuthProvider>
@@ -217,7 +249,12 @@ describe('LoginPage - Integration Tests', () => {
 
   describe('Error Handling', () => {
     it('should display error message for invalid access code', async () => {
-      vi.mocked(authenticateWithAccessCode).mockResolvedValue({
+      vi.mocked(serverDataSyncService.syncAllData).mockResolvedValue({
+        success: true,
+        syncedTables: ['attendees', 'sponsors'],
+        totalRecords: 100
+      })
+      vi.mocked(serverDataSyncService.lookupAttendeeByAccessCode).mockResolvedValue({
         success: false,
         error: 'Invalid access code'
       })
@@ -241,7 +278,12 @@ describe('LoginPage - Integration Tests', () => {
 
     it('should clear error when new input is entered', async () => {
       // First trigger an error
-      vi.mocked(authenticateWithAccessCode).mockResolvedValue({
+      vi.mocked(serverDataSyncService.syncAllData).mockResolvedValue({
+        success: true,
+        syncedTables: ['attendees', 'sponsors'],
+        totalRecords: 100
+      })
+      vi.mocked(serverDataSyncService.lookupAttendeeByAccessCode).mockResolvedValue({
         success: false,
         error: 'Invalid access code'
       })

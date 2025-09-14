@@ -6,6 +6,18 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { pwaDataSyncService } from '../../services/pwaDataSyncService';
 
+// Mock Supabase
+vi.mock('../../lib/supabase', () => ({
+  supabase: {
+    from: vi.fn(() => ({
+      select: vi.fn().mockResolvedValue({
+        data: [{ id: 1, name: 'Test' }],
+        error: null
+      })
+    }))
+  }
+}));
+
 // Mock fetch for backend API endpoints
 const createOkResponse = (data: any) => ({
   ok: true,
@@ -139,8 +151,25 @@ describe('PWADataSyncService', () => {
     });
 
     it('should handle sync errors gracefully', async () => {
-      // All fetch calls fail with HTTP 500
-      (global.fetch as any) = vi.fn().mockResolvedValue(createErrorResponse());
+      // Import the mocked supabase
+      const { supabase } = await import('../../lib/supabase');
+      
+      // Mock Supabase to return errors for some tables
+      (supabase.from as any).mockImplementation((tableName: string) => {
+        if (tableName === 'attendees') {
+          return {
+            select: vi.fn().mockResolvedValue({
+              data: [{ id: 1, name: 'Test' }],
+              error: null
+            })
+          }
+        } else {
+          return {
+            select: vi.fn().mockRejectedValue(new Error(`Failed to sync ${tableName}`))
+          }
+        }
+      });
+
       const result = await pwaDataSyncService.syncAllData();
 
       expect(result.success).toBe(true); // Should still succeed overall

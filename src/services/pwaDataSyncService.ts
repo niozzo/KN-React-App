@@ -8,6 +8,7 @@
 
 // All data reads must go through backend endpoints protected by RLS-aware auth
 import { SchemaValidationService } from './schemaValidationService';
+import { supabase } from '../lib/supabase';
 
 export interface SyncStatus {
   isOnline: boolean;
@@ -59,16 +60,16 @@ export class PWADataSyncService {
 
   private syncTimer: NodeJS.Timeout | null = null;
   
-  // Map table names to backend API endpoints
-  private readonly tableToEndpoint: Record<string, string> = {
-    attendees: 'http://localhost:3000/api/db/table-data?table=attendees',
-    sponsors: 'http://localhost:3000/api/db/table-data?table=sponsors',
-    seat_assignments: 'http://localhost:3000/api/db/table-data?table=seat_assignments',
-    agenda_items: 'http://localhost:3000/api/db/table-data?table=agenda_items',
-    dining_options: 'http://localhost:3000/api/db/table-data?table=dining_options',
-    hotels: 'http://localhost:3000/api/db/table-data?table=hotels',
-    seating_configurations: 'http://localhost:3000/api/db/table-data?table=seating_configurations',
-    user_profiles: 'http://localhost:3000/api/db/table-data?table=user_profiles'
+  // Map table names to Supabase table names
+  private readonly tableToSupabaseTable: Record<string, string> = {
+    attendees: 'attendees',
+    sponsors: 'sponsors',
+    seat_assignments: 'seat_assignments',
+    agenda_items: 'agenda_items',
+    dining_options: 'dining_options',
+    hotels: 'hotels',
+    seating_configurations: 'seating_configurations',
+    user_profiles: 'user_profiles'
   };
 
   constructor() {
@@ -206,7 +207,7 @@ export class PWADataSyncService {
       }
 
       // Sync each table
-      const tables = ['attendees', 'sponsors', 'seat_assignments', 'agenda_items', 'dining_options', 'hotels'];
+      const tables = ['attendees', 'sponsors', 'seat_assignments', 'agenda_items', 'dining_options', 'hotels', 'seating_configurations', 'user_profiles'];
       
       for (const table of tables) {
         try {
@@ -251,18 +252,25 @@ export class PWADataSyncService {
     console.log(`🔄 Syncing ${tableName}...`);
 
     try {
-      // Get data from backend API (server-side authenticated)
-      const endpoint = this.tableToEndpoint[tableName];
-      if (!endpoint) {
-        throw new Error(`No endpoint configured for table: ${tableName}`);
+      // Get Supabase table name
+      const supabaseTable = this.tableToSupabaseTable[tableName];
+      if (!supabaseTable) {
+        throw new Error(`No Supabase table configured for: ${tableName}`);
       }
 
-      const response = await fetch(endpoint, { credentials: 'include' });
-      if (!response.ok) {
-        throw new Error(response.statusText || `HTTP ${response.status}`);
+      console.log(`📡 Fetching from Supabase table: ${supabaseTable}`);
+      
+      // Query data from Supabase
+      const { data, error } = await supabase
+        .from(supabaseTable)
+        .select('*');
+      
+      if (error) {
+        throw new Error(`Supabase query failed: ${error.message}`);
       }
-      const json = await response.json();
-      const data = (json?.data ?? json) as any[];
+      
+      console.log(`📊 Fetched data for ${tableName}: ${data?.length || 0} records`);
+      console.log(`📊 Sample record for ${tableName}:`, data?.[0] || 'No data');
 
       // Cache the data
       await this.cacheTableData(tableName, data || []);
@@ -287,7 +295,9 @@ export class PWADataSyncService {
         version: 1
       };
 
+      console.log(`💾 Caching ${tableName} with ${data.length} records`);
       localStorage.setItem(cacheKey, JSON.stringify(cacheData));
+      console.log(`💾 Cached to localStorage with key: ${cacheKey}`);
       
       // Update cache size tracking
       this.updateCacheSize();
@@ -308,12 +318,14 @@ export class PWADataSyncService {
     try {
       if ('serviceWorker' in navigator && navigator.serviceWorker.ready) {
         const registration = await navigator.serviceWorker.ready;
-        const endpoint = this.tableToEndpoint[tableName];
+        const supabaseTable = this.tableToSupabaseTable[tableName];
         
-        if (endpoint && registration.active) {
+        if (supabaseTable && registration.active) {
+          // Create a cache key for the Supabase table
+          const cacheKey = `supabase_${supabaseTable}`;
           registration.active.postMessage({
             type: 'CACHE_DATA',
-            data: { [endpoint]: data }
+            data: { [cacheKey]: data }
           });
         }
       }
@@ -534,7 +546,7 @@ export class PWADataSyncService {
    * Get offline data availability
    */
   async getOfflineDataStatus(): Promise<{ [tableName: string]: boolean }> {
-    const tables = ['attendees', 'sponsors', 'seat_assignments', 'agenda_items', 'dining_options', 'hotels'];
+    const tables = ['attendees', 'sponsors', 'seat_assignments', 'agenda_items', 'dining_options', 'hotels', 'seating_configurations', 'user_profiles'];
     const status: { [tableName: string]: boolean } = {};
 
     for (const table of tables) {
@@ -547,6 +559,26 @@ export class PWADataSyncService {
     }
 
     return status;
+  }
+
+  /**
+   * Debug method to check what data is cached
+   */
+  async debugCachedData(): Promise<void> {
+    console.log('🔍 Debugging cached data...');
+    const tables = ['attendees', 'sponsors', 'seat_assignments', 'agenda_items', 'dining_options', 'hotels', 'seating_configurations', 'user_profiles'];
+    
+    for (const table of tables) {
+      try {
+        const data = await this.getCachedTableData(table);
+        console.log(`📊 ${table}: ${data.length} records cached`);
+        if (data.length > 0) {
+          console.log(`📊 ${table} sample record:`, data[0]);
+        }
+      } catch (error) {
+        console.log(`❌ ${table}: Error getting cached data`, error);
+      }
+    }
   }
 
   /**

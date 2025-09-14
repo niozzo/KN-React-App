@@ -257,11 +257,11 @@ describe('LoginPage - Enhanced Functionality', () => {
         attendee: null
       })
 
+      let resolveAuth: (value: any) => void
       vi.mocked(authenticateWithAccessCode).mockImplementation(() => 
-        new Promise(resolve => setTimeout(() => resolve({
-          success: true,
-          attendee: { id: '1', first_name: 'John', last_name: 'Doe', email: 'john@example.com', company: 'Test Corp', access_code: 'ABC123' }
-        }), 100))
+        new Promise(resolve => {
+          resolveAuth = resolve
+        })
       )
 
       const MockLoginPage = () => {
@@ -321,6 +321,17 @@ describe('LoginPage - Enhanced Functionality', () => {
       
       // Input should be dimmed
       expect(input).toHaveStyle({ opacity: '0.7' })
+      
+      // Resolve the authentication promise
+      resolveAuth({
+        success: true,
+        attendee: { id: '1', first_name: 'John', last_name: 'Doe', email: 'john@example.com', company: 'Test Corp', access_code: 'ABC123' }
+      })
+      
+      // Wait for the async operation to complete to prevent unhandled promise
+      await waitFor(() => {
+        expect(screen.queryByTestId('loading-spinner')).not.toBeInTheDocument()
+      })
     })
   })
 

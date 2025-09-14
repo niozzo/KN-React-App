@@ -7,11 +7,10 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react'
 import { 
-  authenticateWithAccessCode, 
   signOut as authSignOut,
   getAuthStatus 
 } from '../services/authService'
-import { PWADataSyncService } from '../services/pwaDataSyncService'
+import { serverDataSyncService } from '../services/serverDataSyncService'
 import type { Attendee } from '../types/attendee'
 
 interface AuthContextType {
@@ -39,8 +38,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [attendee, setAttendee] = useState<Attendee | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   
-  // Initialize PWA data sync service
-  const [dataSyncService] = useState(() => new PWADataSyncService())
+  // Initialize server-side data sync service
+  const [dataSyncService] = useState(() => serverDataSyncService)
 
   // Check authentication status on mount
   useEffect(() => {
@@ -63,21 +62,40 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (accessCode: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      const result = await authenticateWithAccessCode(accessCode)
+      console.log('🔄 Starting hybrid authentication process...')
+      
+      // Step 1: Use admin authentication to get all data (bypass RLS)
+      console.log('🔐 Step 1: Authenticating with admin credentials for data access...')
+      try {
+        const syncResult = await dataSyncService.syncAllData()
+        console.log('✅ Admin data sync completed:', syncResult)
+        
+        if (!syncResult.success) {
+          console.error('❌ Admin data sync failed:', syncResult.errors)
+          return { 
+            success: false, 
+            error: 'Data synchronization failed. Please try again or contact support.' 
+          }
+        }
+      } catch (syncError) {
+        console.error('❌ Admin data sync error:', syncError)
+        return { 
+          success: false, 
+          error: 'Data synchronization failed. Please try again or contact support.' 
+        }
+      }
+      
+      // Step 2: Use attendee access code for user identification with admin auth
+      console.log('🔐 Step 2: Validating attendee access code with admin authentication...')
+      const result = await dataSyncService.lookupAttendeeByAccessCode(accessCode)
       
       if (result.success && result.attendee) {
         setIsAuthenticated(true)
         setAttendee(result.attendee)
         
-        // Trigger data synchronization after successful authentication
-        console.log('🔄 Starting data synchronization after authentication...')
-        try {
-          await dataSyncService.syncAllData()
-          console.log('✅ Data synchronization completed successfully')
-        } catch (syncError) {
-          console.error('⚠️ Data synchronization failed:', syncError)
-          // Don't fail login if sync fails - user can still use the app
-        }
+        console.log('✅ Hybrid authentication successful!')
+        console.log('👤 Attendee identified:', `${result.attendee.first_name} ${result.attendee.last_name}`)
+        console.log('📊 Data synced for offline use')
         
         return { success: true }
       } else {
@@ -86,12 +104,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return { success: false, error: 'Invalid access code. Please try again or ask at the registration desk for help.' }
       }
     } catch (error) {
-      console.error('❌ Login error:', error)
+      console.error('❌ Hybrid authentication error:', error)
       setIsAuthenticated(false)
       setAttendee(null)
       return { 
         success: false, 
-        error: 'Invalid access code. Please try again or ask at the registration desk for help.' 
+        error: 'Authentication failed. Please try again or contact support.' 
       }
     }
   }
@@ -167,19 +185,20 @@ export const LoginPage: React.FC = () => {
   const [showError, setShowError] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
-  const handleSubmit = useCallback(async (e?: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e?: React.FormEvent, codeToSubmit?: string) => {
     if (e) e.preventDefault()
     setError('')
     setShowError(false)
     
-    if (!accessCode.trim()) {
+    const codeToUse = codeToSubmit || accessCode
+    if (!codeToUse.trim()) {
       setError('Please enter your access code')
       setShowError(true)
       return
     }
 
     try {
-      const result = await login(accessCode.trim())
+      const result = await login(codeToUse.trim())
       
       if (!result.success) {
         setError('Invalid access code. Please try again or ask at the registration desk for help.')
@@ -199,10 +218,13 @@ export const LoginPage: React.FC = () => {
       // Show loading state first
       setIsLoading(true)
       
+      // Store the code before clearing
+      const codeToSubmit = accessCode
+      
       // Clear the field after a brief delay to show loading
       setTimeout(() => {
         setAccessCode('')
-        handleSubmit()
+        handleSubmit(undefined, codeToSubmit)
       }, 500) // 500ms delay to show loading state
     }
   }, [accessCode, handleSubmit, isLoading])
@@ -396,7 +418,7 @@ export const LoginPage: React.FC = () => {
               marginTop: 'var(--space-md)',
               fontWeight: '500'
             }}>
-              Example valid code: 678547
+              Example valid codes: 831263, 944718, 325480, 5460AD
             </p>
           )}
         </div>

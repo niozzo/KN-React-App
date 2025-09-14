@@ -8,6 +8,7 @@
  */
 
 import { supabase } from '../lib/supabase'
+import { serverDataSyncService } from './serverDataSyncService'
 import type { Attendee } from '../types/attendee'
 
 // Authentication state
