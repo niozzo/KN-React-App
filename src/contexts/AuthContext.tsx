@@ -12,6 +12,7 @@ import {
 } from '../services/authService'
 import { serverDataSyncService } from '../services/serverDataSyncService'
 import { attendeeInfoService } from '../services/attendeeInfoService'
+import { dataClearingService } from '../services/dataClearingService'
 import type { Attendee } from '../types/attendee'
 
 interface AuthContextType {
@@ -19,13 +20,14 @@ interface AuthContextType {
   isAuthenticated: boolean
   attendee: Attendee | null
   isLoading: boolean
+  isSigningOut: boolean
   
   // Easy access to attendee name information
   attendeeName: { first_name: string; last_name: string; full_name: string } | null
   
   // Authentication methods
   login: (accessCode: string) => Promise<{ success: boolean; error?: string }>
-  logout: () => void
+  logout: () => Promise<{ success: boolean; error?: string }>
   
   // Status methods
   checkAuthStatus: () => void
@@ -42,6 +44,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [attendee, setAttendee] = useState<Attendee | null>(null)
   const [attendeeName, setAttendeeName] = useState<{ first_name: string; last_name: string; full_name: string } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isSigningOut, setIsSigningOut] = useState(false)
   
   // Initialize server-side data sync service
   const [dataSyncService] = useState(() => serverDataSyncService)
@@ -132,17 +135,65 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }
 
-  const logout = () => {
+  const logout = async (): Promise<{ success: boolean; error?: string }> => {
+    if (isSigningOut) {
+      console.log('⏳ Sign-out already in progress')
+      return { success: false, error: 'Sign-out already in progress' }
+    }
+
+    setIsSigningOut(true)
+    
     try {
+      console.log('🔄 Starting comprehensive sign-out process...')
+      
+      // Step 1: Clear all cached data
+      console.log('🗑️ Step 1: Clearing all cached data...')
+      const clearResult = await dataClearingService.clearAllData()
+      
+      if (!clearResult.success) {
+        console.warn('⚠️ Data clearing had issues:', clearResult.errors)
+        // Continue with logout even if some data clearing failed
+      }
+      
+      // Step 2: Clear authentication state
+      console.log('🔐 Step 2: Clearing authentication state...')
+      authSignOut()
+      
+      // Step 3: Update React state
+      console.log('⚛️ Step 3: Updating React state...')
+      setIsAuthenticated(false)
+      setAttendee(null)
+      setAttendeeName(null)
+      
+      // Step 4: Verify data clearing
+      console.log('✅ Step 4: Verifying data clearing...')
+      const verificationResult = await dataClearingService.verifyDataCleared()
+      
+      if (!verificationResult) {
+        console.warn('⚠️ Data clearing verification failed - some data may remain')
+      }
+      
+      console.log('✅ Sign-out completed successfully')
+      console.log(`📊 Performance: ${clearResult.performanceMetrics.duration.toFixed(2)}ms`)
+      
+      return { success: true }
+      
+    } catch (error) {
+      console.error('❌ Sign-out error:', error)
+      
+      // Even if data clearing failed, still clear authentication state
+      console.log('🔐 Clearing authentication state despite data clearing failure...')
       authSignOut()
       setIsAuthenticated(false)
       setAttendee(null)
       setAttendeeName(null)
       
-      // Clear cached attendee info
-      attendeeInfoService.clearAttendeeInfo()
-    } catch (error) {
-      console.error('❌ Logout error:', error)
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Sign-out failed' 
+      }
+    } finally {
+      setIsSigningOut(false)
     }
   }
 
@@ -151,6 +202,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     attendee,
     attendeeName,
     isLoading,
+    isSigningOut,
     login,
     logout,
     checkAuthStatus

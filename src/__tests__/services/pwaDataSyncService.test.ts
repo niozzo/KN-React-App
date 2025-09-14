@@ -4,6 +4,10 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+
+// Unmock the PWA data sync service to test the actual implementation
+vi.unmock('../../services/pwaDataSyncService');
+
 import { pwaDataSyncService } from '../../services/pwaDataSyncService';
 
 // Mock Supabase

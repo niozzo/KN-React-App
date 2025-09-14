@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import PageLayout from '../components/layout/PageLayout';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
@@ -9,14 +11,21 @@ import Button from '../components/common/Button';
  * Refactored from settings.html to React component
  */
 const SettingsPage = () => {
+  const navigate = useNavigate();
+  const { logout, isSigningOut } = useAuth();
+  
   // Settings state - would come from props or API in real implementation
-       const [settings, setSettings] = useState({
-         discoverability: true,
-         overlapHints: true,
-         sessionReminders: true,
-         adminBroadcasts: true,
-         offlineMode: true
-       });
+  const [settings, setSettings] = useState({
+    discoverability: true,
+    overlapHints: true,
+    sessionReminders: true,
+    adminBroadcasts: true,
+    offlineMode: true
+  });
+  
+  // Sign-out state
+  const [signOutError, setSignOutError] = useState('');
+  const [showSignOutError, setShowSignOutError] = useState(false);
 
 
   const handleToggle = (settingKey) => {
@@ -27,9 +36,28 @@ const SettingsPage = () => {
   };
 
 
-  const handleSignOut = () => {
-    console.log('Sign out clicked');
-    // Handle sign out logic
+  const handleSignOut = async () => {
+    console.log('🔄 Sign out clicked');
+    setSignOutError('');
+    setShowSignOutError(false);
+    
+    try {
+      const result = await logout();
+      
+      if (result.success) {
+        console.log('✅ Sign-out successful, navigating to login page');
+        // Navigate to login page after successful sign-out
+        navigate('/login');
+      } else {
+        console.error('❌ Sign-out failed:', result.error);
+        setSignOutError(result.error || 'Sign-out failed. Please try again.');
+        setShowSignOutError(true);
+      }
+    } catch (error) {
+      console.error('❌ Sign-out error:', error);
+      setSignOutError('Sign-out failed. Please try again.');
+      setShowSignOutError(true);
+    }
   };
 
 
@@ -121,10 +149,34 @@ const SettingsPage = () => {
               variant="secondary"
               onClick={handleSignOut}
               className="action-button"
+              disabled={isSigningOut}
             >
-              Sign Out
+              {isSigningOut ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Signing Out...
+                </>
+              ) : (
+                'Sign Out'
+              )}
             </Button>
           </div>
+          
+          {/* Sign-out Error Display */}
+          {showSignOutError && signOutError && (
+            <div className="error-message" style={{
+              color: 'var(--red-500)',
+              fontSize: 'var(--text-sm)',
+              textAlign: 'center',
+              marginTop: 'var(--space-md)',
+              padding: 'var(--space-sm)',
+              backgroundColor: 'var(--red-50)',
+              border: '1px solid var(--red-200)',
+              borderRadius: 'var(--radius-sm)'
+            }}>
+              {signOutError}
+            </div>
+          )}
         </div>
       </section>
 

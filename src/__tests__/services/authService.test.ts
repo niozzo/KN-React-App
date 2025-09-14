@@ -5,6 +5,10 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+
+// Unmock the auth service to test the actual implementation
+vi.unmock('../../services/authService')
+
 import { 
   authenticateWithAccessCode, 
   getCurrentAttendee, 
@@ -40,6 +44,10 @@ describe('Authentication Service', () => {
     })
 
     it('should reject invalid formats', () => {
+      console.log('Testing ABC12:', validateAccessCodeFormat('ABC12'))
+      console.log('Testing ABC1234:', validateAccessCodeFormat('ABC1234'))
+      console.log('Testing ABC-123:', validateAccessCodeFormat('ABC-123'))
+      
       expect(validateAccessCodeFormat('ABC12')).toBe(false) // Too short
       expect(validateAccessCodeFormat('ABC1234')).toBe(false) // Too long
       expect(validateAccessCodeFormat('ABC-123')).toBe(false) // Invalid character

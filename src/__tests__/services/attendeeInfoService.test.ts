@@ -6,7 +6,11 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { AttendeeInfoService, type AttendeeInfo, type CachedAttendeeInfo } from '../../services/attendeeInfoService'
+
+// Unmock the attendee info service to test the actual implementation
+vi.unmock('../../services/attendeeInfoService')
+
+import { attendeeInfoService, type AttendeeInfo, type CachedAttendeeInfo } from '../../services/attendeeInfoService'
 
 // Mock localStorage
 const localStorageMock = {
@@ -23,11 +27,8 @@ Object.defineProperty(window, 'localStorage', {
 })
 
 describe('AttendeeInfoService', () => {
-  let service: AttendeeInfoService
-
   beforeEach(() => {
     vi.clearAllMocks()
-    service = new AttendeeInfoService()
   })
 
   afterEach(() => {
@@ -47,7 +48,7 @@ describe('AttendeeInfoService', () => {
         access_code: 'ABC123'
       }
 
-      const result = service.extractAttendeeInfo(mockAttendee)
+      const result = attendeeInfoService.extractAttendeeInfo(mockAttendee)
 
       expect(result).toEqual({
         id: '123',
@@ -70,7 +71,7 @@ describe('AttendeeInfoService', () => {
         // Missing email, company, title
       }
 
-      const result = service.extractAttendeeInfo(mockAttendee)
+      const result = attendeeInfoService.extractAttendeeInfo(mockAttendee)
 
       expect(result).toEqual({
         id: '123',
@@ -92,17 +93,17 @@ describe('AttendeeInfoService', () => {
         access_code: 'DEF456'
       }
 
-      const result = service.extractAttendeeInfo(mockAttendee)
+      const result = attendeeInfoService.extractAttendeeInfo(mockAttendee)
 
       expect(result.full_name).toBe('')
     })
 
     it('should throw error for null attendee data', () => {
-      expect(() => service.extractAttendeeInfo(null)).toThrow('Attendee data is required')
+      expect(() => attendeeInfoService.extractAttendeeInfo(null)).toThrow('Attendee data is required')
     })
 
     it('should throw error for undefined attendee data', () => {
-      expect(() => service.extractAttendeeInfo(undefined)).toThrow('Attendee data is required')
+      expect(() => attendeeInfoService.extractAttendeeInfo(undefined)).toThrow('Attendee data is required')
     })
   })
 
@@ -119,7 +120,7 @@ describe('AttendeeInfoService', () => {
         access_code: 'ABC123'
       }
 
-      service.storeAttendeeInfo(attendeeInfo)
+      attendeeInfoService.storeAttendeeInfo(attendeeInfo)
 
       expect(localStorageMock.setItem).toHaveBeenCalledWith(
         'kn_current_attendee_info',
@@ -143,7 +144,7 @@ describe('AttendeeInfoService', () => {
         access_code: 'ABC123'
       }
 
-      service.storeAttendeeInfo(attendeeInfo)
+      attendeeInfoService.storeAttendeeInfo(attendeeInfo)
 
       const storedData = JSON.parse(localStorageMock.setItem.mock.calls[0][1])
       expect(storedData).toHaveProperty('timestamp')
@@ -167,7 +168,7 @@ describe('AttendeeInfoService', () => {
         access_code: 'ABC123'
       }
 
-      expect(() => service.storeAttendeeInfo(attendeeInfo)).toThrow('Storage quota exceeded')
+      expect(() => attendeeInfoService.storeAttendeeInfo(attendeeInfo)).toThrow('Storage quota exceeded')
     })
   })
 
@@ -190,7 +191,7 @@ describe('AttendeeInfoService', () => {
 
       localStorageMock.getItem.mockReturnValue(JSON.stringify(mockCachedData))
 
-      const result = service.getCachedAttendeeInfo()
+      const result = attendeeInfoService.getCachedAttendeeInfo()
 
       expect(result).toEqual(mockCachedData.data)
     })
@@ -198,7 +199,7 @@ describe('AttendeeInfoService', () => {
     it('should return null when no cached data exists', () => {
       localStorageMock.getItem.mockReturnValue(null)
 
-      const result = service.getCachedAttendeeInfo()
+      const result = attendeeInfoService.getCachedAttendeeInfo()
 
       expect(result).toBeNull()
     })
@@ -221,7 +222,7 @@ describe('AttendeeInfoService', () => {
 
       localStorageMock.getItem.mockReturnValue(JSON.stringify(expiredData))
 
-      const result = service.getCachedAttendeeInfo()
+      const result = attendeeInfoService.getCachedAttendeeInfo()
 
       expect(result).toBeNull()
       expect(localStorageMock.removeItem).toHaveBeenCalledWith('kn_current_attendee_info')
@@ -230,7 +231,7 @@ describe('AttendeeInfoService', () => {
     it('should handle malformed JSON gracefully', () => {
       localStorageMock.getItem.mockReturnValue('invalid json')
 
-      const result = service.getCachedAttendeeInfo()
+      const result = attendeeInfoService.getCachedAttendeeInfo()
 
       expect(result).toBeNull()
     })
@@ -255,7 +256,7 @@ describe('AttendeeInfoService', () => {
 
       localStorageMock.getItem.mockReturnValue(JSON.stringify(mockCachedData))
 
-      const result = service.getAttendeeName()
+      const result = attendeeInfoService.getAttendeeName()
 
       expect(result).toEqual({
         first_name: 'John',
@@ -267,7 +268,7 @@ describe('AttendeeInfoService', () => {
     it('should return null when no cached data exists', () => {
       localStorageMock.getItem.mockReturnValue(null)
 
-      const result = service.getAttendeeName()
+      const result = attendeeInfoService.getAttendeeName()
 
       expect(result).toBeNull()
     })
@@ -292,7 +293,7 @@ describe('AttendeeInfoService', () => {
 
       localStorageMock.getItem.mockReturnValue(JSON.stringify(mockCachedData))
 
-      const result = service.getFullAttendeeInfo()
+      const result = attendeeInfoService.getFullAttendeeInfo()
 
       expect(result).toEqual(mockCachedData.data)
     })
@@ -300,7 +301,7 @@ describe('AttendeeInfoService', () => {
 
   describe('clearAttendeeInfo', () => {
     it('should remove attendee info from localStorage', () => {
-      service.clearAttendeeInfo()
+      attendeeInfoService.clearAttendeeInfo()
 
       expect(localStorageMock.removeItem).toHaveBeenCalledWith('kn_current_attendee_info')
     })
@@ -311,7 +312,7 @@ describe('AttendeeInfoService', () => {
         throw new Error('Storage error')
       })
 
-      service.clearAttendeeInfo()
+      attendeeInfoService.clearAttendeeInfo()
       
       expect(consoleSpy).toHaveBeenCalledWith('❌ Failed to clear attendee info cache:', expect.any(Error))
       consoleSpy.mockRestore()
@@ -337,7 +338,7 @@ describe('AttendeeInfoService', () => {
 
       localStorageMock.getItem.mockReturnValue(JSON.stringify(mockCachedData))
 
-      const result = service.hasValidAttendeeInfo()
+      const result = attendeeInfoService.hasValidAttendeeInfo()
 
       expect(result).toBe(true)
     })
@@ -345,7 +346,7 @@ describe('AttendeeInfoService', () => {
     it('should return false when no cached data exists', () => {
       localStorageMock.getItem.mockReturnValue(null)
 
-      const result = service.hasValidAttendeeInfo()
+      const result = attendeeInfoService.hasValidAttendeeInfo()
 
       expect(result).toBe(false)
     })
@@ -365,7 +366,7 @@ describe('AttendeeInfoService', () => {
 
       localStorageMock.getItem.mockReturnValue(JSON.stringify(invalidData))
 
-      const result = service.hasValidAttendeeInfo()
+      const result = attendeeInfoService.hasValidAttendeeInfo()
 
       expect(result).toBe(false)
     })
@@ -400,7 +401,7 @@ describe('AttendeeInfoService', () => {
         last_name: 'Smith'
       }
 
-      service.updateAttendeeInfo(updates)
+      attendeeInfoService.updateAttendeeInfo(updates)
 
       expect(localStorageMock.setItem).toHaveBeenCalledWith(
         'kn_current_attendee_info',
@@ -414,7 +415,7 @@ describe('AttendeeInfoService', () => {
     it('should throw error when no cached data exists to update', () => {
       localStorageMock.getItem.mockReturnValue(null)
 
-      expect(() => service.updateAttendeeInfo({ first_name: 'Jane' })).toThrow(
+      expect(() => attendeeInfoService.updateAttendeeInfo({ first_name: 'Jane' })).toThrow(
         'No cached attendee info to update'
       )
     })

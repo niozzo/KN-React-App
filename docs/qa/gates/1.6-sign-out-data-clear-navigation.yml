@@ -1,0 +1,75 @@
+schema: 1
+story: '1.6'
+story_title: 'Sign-Out Data Clear & Navigation'
+gate: CONCERNS
+status_reason: 'Critical test coverage gaps identified - missing integration tests for complete sign-out flow and failing comprehensive test suite'
+reviewer: 'Quinn (Test Architect)'
+updated: '2024-12-19T15:37:00Z'
+
+top_issues:
+  - severity: high
+    issue: 'Missing integration tests for complete sign-out flow (AC 7, 8, 9)'
+    description: 'No tests verify SettingsPage → AuthContext → DataClearingService → Navigation flow'
+    suggested_owner: 'dev'
+    refs: ['src/__tests__/integration/signOutFlow.test.tsx']
+  - severity: high
+    issue: '6 failing tests in comprehensive test suite'
+    description: 'Test failures prevent validation of error scenarios and edge cases'
+    suggested_owner: 'dev'
+    refs: ['src/__tests__/services/dataClearingService.comprehensive.test.ts']
+  - severity: medium
+    issue: 'Missing performance testing for 5-second requirement (AC 10)'
+    description: 'No tests validate sign-out completes within 5 seconds with large datasets'
+    suggested_owner: 'dev'
+    refs: ['src/__tests__/integration/signOutFlow.test.tsx']
+  - severity: medium
+    issue: 'Missing UI component tests for SettingsPage sign-out button'
+    description: 'No tests verify loading states, error handling, and user feedback'
+    suggested_owner: 'dev'
+    refs: ['src/__tests__/pages/SettingsPage.signout.test.tsx']
+
+waiver: { active: false }
+
+quality_score: 60
+expires: '2025-01-02T15:37:00Z'
+
+evidence:
+  tests_reviewed: 3
+  risks_identified: 4
+  trace:
+    ac_covered: [1, 2, 3, 4, 5, 6]
+    ac_gaps: [7, 8, 9, 10, 11, 12, 13, 14, 15]
+
+nfr_validation:
+  security:
+    status: CONCERNS
+    notes: 'Data clearing implementation is comprehensive but not fully tested for edge cases and data leakage scenarios'
+  performance:
+    status: FAIL
+    notes: 'No tests validate 5-second performance requirement or large dataset scenarios'
+  reliability:
+    status: CONCERNS
+    notes: 'Error handling is implemented but not comprehensively tested for all failure scenarios'
+  maintainability:
+    status: PASS
+    notes: 'Code is well-structured and follows established patterns'
+
+recommendations:
+  immediate:
+    - action: 'Fix 6 failing tests in comprehensive test suite'
+      refs: ['src/__tests__/services/dataClearingService.comprehensive.test.ts']
+    - action: 'Add integration tests for complete sign-out flow'
+      refs: ['src/__tests__/integration/signOutFlow.test.tsx']
+    - action: 'Add UI component tests for SettingsPage sign-out functionality'
+      refs: ['src/__tests__/pages/SettingsPage.signout.test.tsx']
+    - action: 'Add performance tests validating 5-second requirement'
+      refs: ['src/__tests__/integration/signOutFlow.test.tsx']
+  future:
+    - action: 'Add cross-browser compatibility testing'
+      refs: ['src/__tests__/integration/signOutFlow.test.tsx']
+    - action: 'Add security testing for data leakage prevention'
+      refs: ['src/__tests__/services/dataClearingService.comprehensive.test.ts']
+    - action: 'Validate 80% test coverage requirement is met'
+      refs: ['src/__tests__/']
+
+

@@ -5,7 +5,11 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { ServerDataSyncService } from '../../services/serverDataSyncService'
+
+// Unmock the server data sync service to test the actual implementation
+vi.unmock('../../services/serverDataSyncService')
+
+import { serverDataSyncService } from '../../services/serverDataSyncService'
 
 // Mock Supabase client
 vi.mock('@supabase/supabase-js', () => ({
@@ -38,16 +42,13 @@ Object.defineProperty(window, 'localStorage', {
 })
 
 describe('ServerDataSyncService', () => {
-  let service: ServerDataSyncService
-
   beforeEach(() => {
     vi.clearAllMocks()
-    service = new ServerDataSyncService()
   })
 
   describe('lookupAttendeeByAccessCode', () => {
     it('should validate access code format', async () => {
-      const result = await service.lookupAttendeeByAccessCode('ABC12')
+      const result = await serverDataSyncService.lookupAttendeeByAccessCode('ABC12')
       
       expect(result.success).toBe(false)
       expect(result.error).toBe('Invalid access code format. Must be 6 alphanumeric characters.')
@@ -55,7 +56,7 @@ describe('ServerDataSyncService', () => {
     })
 
     it('should reject empty access code', async () => {
-      const result = await service.lookupAttendeeByAccessCode('')
+      const result = await serverDataSyncService.lookupAttendeeByAccessCode('')
       
       expect(result.success).toBe(false)
       expect(result.error).toBe('Invalid access code format. Must be 6 alphanumeric characters.')
@@ -71,7 +72,7 @@ describe('ServerDataSyncService', () => {
         from: vi.fn()
       })
 
-      const result = await service.lookupAttendeeByAccessCode('ABC123')
+      const result = await serverDataSyncService.lookupAttendeeByAccessCode('ABC123')
       
       expect(result.success).toBe(false)
       expect(result.error).toBe('Attendee lookup failed. Please try again.')
@@ -94,7 +95,7 @@ describe('ServerDataSyncService', () => {
         }))
       })
 
-      const result = await service.lookupAttendeeByAccessCode('ABC123')
+      const result = await serverDataSyncService.lookupAttendeeByAccessCode('ABC123')
       
       expect(result.success).toBe(false)
       expect(result.error).toBe('Invalid access code. Please check and try again.')
@@ -106,7 +107,7 @@ describe('ServerDataSyncService', () => {
       const testData = [{ id: 1, name: 'Test' }]
       
       // Use reflection to access private method
-      const cacheMethod = (service as any).cacheTableData.bind(service)
+      const cacheMethod = (serverDataSyncService as any).cacheTableData.bind(serverDataSyncService)
       await cacheMethod('test_table', testData)
       
       expect(localStorageMock.setItem).toHaveBeenCalledWith(
@@ -128,7 +129,7 @@ describe('ServerDataSyncService', () => {
       
       localStorageMock.getItem.mockReturnValue(JSON.stringify(cacheData))
       
-      const result = await service.getCachedTableData('test_table')
+      const result = await serverDataSyncService.getCachedTableData('test_table')
       
       expect(result).toEqual(testData)
       expect(localStorageMock.getItem).toHaveBeenCalledWith('kn_cache_test_table')
@@ -137,7 +138,7 @@ describe('ServerDataSyncService', () => {
     it('should return empty array when no cached data', async () => {
       localStorageMock.getItem.mockReturnValue(null)
       
-      const result = await service.getCachedTableData('test_table')
+      const result = await serverDataSyncService.getCachedTableData('test_table')
       
       expect(result).toEqual([])
     })
@@ -145,7 +146,7 @@ describe('ServerDataSyncService', () => {
     it('should handle JSON parse errors gracefully', async () => {
       localStorageMock.getItem.mockReturnValue('invalid json')
       
-      const result = await service.getCachedTableData('test_table')
+      const result = await serverDataSyncService.getCachedTableData('test_table')
       
       expect(result).toEqual([])
     })
@@ -157,7 +158,7 @@ describe('ServerDataSyncService', () => {
       const originalKeys = Object.keys
       Object.keys = vi.fn().mockReturnValue(['kn_cache_table1', 'kn_cache_table2', 'other_key'])
       
-      await service.clearCache()
+      await serverDataSyncService.clearCache()
       
       expect(localStorageMock.removeItem).toHaveBeenCalledWith('kn_cache_table1')
       expect(localStorageMock.removeItem).toHaveBeenCalledWith('kn_cache_table2')
