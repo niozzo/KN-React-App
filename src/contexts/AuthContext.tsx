@@ -11,6 +11,7 @@ import {
   getAuthStatus 
 } from '../services/authService'
 import { serverDataSyncService } from '../services/serverDataSyncService'
+import { attendeeInfoService } from '../services/attendeeInfoService'
 import type { Attendee } from '../types/attendee'
 
 interface AuthContextType {
@@ -18,6 +19,9 @@ interface AuthContextType {
   isAuthenticated: boolean
   attendee: Attendee | null
   isLoading: boolean
+  
+  // Easy access to attendee name information
+  attendeeName: { first_name: string; last_name: string; full_name: string } | null
   
   // Authentication methods
   login: (accessCode: string) => Promise<{ success: boolean; error?: string }>
@@ -36,6 +40,7 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [attendee, setAttendee] = useState<Attendee | null>(null)
+  const [attendeeName, setAttendeeName] = useState<{ first_name: string; last_name: string; full_name: string } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   
   // Initialize server-side data sync service
@@ -50,11 +55,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const authStatus = getAuthStatus()
       setIsAuthenticated(authStatus.isAuthenticated)
-      setAttendee(authStatus.attendee)
+      // Note: authStatus.attendee might be SanitizedAttendee, but we'll handle it in the context
+      setAttendee(authStatus.attendee as Attendee | null)
+      
+      // Load attendee name from cache if available
+      const cachedName = attendeeInfoService.getAttendeeName()
+      setAttendeeName(cachedName)
     } catch (error) {
       console.error('❌ Error checking auth status:', error)
       setIsAuthenticated(false)
       setAttendee(null)
+      setAttendeeName(null)
     } finally {
       setIsLoading(false)
     }
@@ -93,20 +104,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setIsAuthenticated(true)
         setAttendee(result.attendee)
         
+        // Load attendee name from the newly cached info
+        const cachedName = attendeeInfoService.getAttendeeName()
+        setAttendeeName(cachedName)
+        
         console.log('✅ Hybrid authentication successful!')
         console.log('👤 Attendee identified:', `${result.attendee.first_name} ${result.attendee.last_name}`)
         console.log('📊 Data synced for offline use')
+        console.log('👤 Attendee name cached for easy access:', cachedName?.full_name)
         
         return { success: true }
       } else {
         setIsAuthenticated(false)
         setAttendee(null)
+        setAttendeeName(null)
         return { success: false, error: 'Invalid access code. Please try again or ask at the registration desk for help.' }
       }
     } catch (error) {
       console.error('❌ Hybrid authentication error:', error)
       setIsAuthenticated(false)
       setAttendee(null)
+      setAttendeeName(null)
       return { 
         success: false, 
         error: 'Authentication failed. Please try again or contact support.' 
@@ -119,6 +137,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       authSignOut()
       setIsAuthenticated(false)
       setAttendee(null)
+      setAttendeeName(null)
+      
+      // Clear cached attendee info
+      attendeeInfoService.clearAttendeeInfo()
     } catch (error) {
       console.error('❌ Logout error:', error)
     }
@@ -127,6 +149,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const value: AuthContextType = {
     isAuthenticated,
     attendee,
+    attendeeName,
     isLoading,
     login,
     logout,
@@ -409,18 +432,16 @@ export const LoginPage: React.FC = () => {
         }}>
           <p className="mb-sm">Ask registration for help if you can not find your access code</p>
           
-          {/* Development-only example code */}
-          {(import.meta as any).env?.DEV && (
-            <p style={{
-              fontSize: 'var(--text-sm)',
-              color: 'var(--ink-600)',
-              textAlign: 'center',
-              marginTop: 'var(--space-md)',
-              fontWeight: '500'
-            }}>
-              Example valid codes: 831263, 944718, 325480, 5460AD
-            </p>
-          )}
+          {/* Sample access codes for testing */}
+          <p style={{
+            fontSize: 'var(--text-sm)',
+            color: 'var(--ink-600)',
+            textAlign: 'center',
+            marginTop: 'var(--space-md)',
+            fontWeight: '500'
+          }}>
+            Sample codes: 831263, 944718, 325480, 5460AD
+          </p>
         </div>
       </div>
       

@@ -8,6 +8,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { sanitizeAttendeeForStorage } from '../types/attendee';
+import { attendeeInfoService } from './attendeeInfoService';
 
 export interface ServerSyncResult {
   success: boolean;
@@ -36,12 +37,12 @@ export class ServerDataSyncService {
 
          constructor() {
            // Get credentials from environment variables
-           this.supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://iikcgdhztkrexuuqheli.supabase.co';
-           this.supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlpa2NnZGh6dGtyZXh1dXFoZWxpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwMzY3NDEsImV4cCI6MjA3MjYxMjc0MX0.N3KNNn6N_S4qPlBeclj07QsekCeZnF_FkBKef96XnO8';
+           this.supabaseUrl = (import.meta as any).env?.VITE_SUPABASE_URL || 'https://iikcgdhztkrexuuqheli.supabase.co';
+           this.supabaseKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlpa2NnZGh6dGtyZXh1dXFoZWxpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwMzY3NDEsImV4cCI6MjA3MjYxMjc0MX0.N3KNNn6N_S4qPlBeclj07QsekCeZnF_FkBKef96XnO8';
            
            // Admin credentials for server-side authentication (using same env vars as spike server)
-           this.adminEmail = import.meta.env.SUPABASE_USER_EMAIL || 'ishan.gammampila@apax.com';
-           this.adminPassword = import.meta.env.SUPABASE_USER_PASSWORD || 'xx8kRx#tn@R?';
+           this.adminEmail = (import.meta as any).env?.SUPABASE_USER_EMAIL || 'ishan.gammampila@apax.com';
+           this.adminPassword = (import.meta as any).env?.SUPABASE_USER_PASSWORD || 'xx8kRx#tn@R?';
          }
 
   /**
@@ -61,7 +62,7 @@ export class ServerDataSyncService {
       throw new Error('Admin credentials not configured. Please set VITE_SUPABASE_USER_EMAIL and VITE_SUPABASE_USER_PASSWORD');
     }
     
-    const { data, error } = await supabaseClient.auth.signInWithPassword({
+    const { error } = await supabaseClient.auth.signInWithPassword({
       email: this.adminEmail,
       password: this.adminPassword
     });
@@ -253,6 +254,16 @@ export class ServerDataSyncService {
       }
       
       const attendee = data[0];
+      
+      // Extract attendee information before returning (for easy access)
+      try {
+        const attendeeInfo = attendeeInfoService.extractAttendeeInfo(attendee);
+        attendeeInfoService.storeAttendeeInfo(attendeeInfo);
+        console.log('✅ Attendee info extracted and cached:', attendeeInfo.full_name);
+      } catch (error) {
+        console.warn('⚠️ Failed to extract attendee info:', error);
+        // Continue with authentication even if info extraction fails
+      }
       
       console.log('✅ Attendee found:', `${attendee.first_name} ${attendee.last_name}`);
       return {
