@@ -129,7 +129,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           console.log('⚠️ Using basic authentication (offline data may be limited)')
         }
         console.log('👤 Attendee name cached for easy access:', cachedName?.full_name)
-        
+
+        // Navigate to home page after successful authentication
+        // Use setTimeout to ensure state update completes before navigation
+        setTimeout(() => {
+          // Use window.location for navigation to work in all contexts
+          if (window.location.pathname === '/login') {
+            window.location.href = '/'
+          }
+        }, 100)
+
         return { success: true }
       } else {
         setIsAuthenticated(false)
