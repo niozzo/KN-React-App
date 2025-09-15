@@ -175,7 +175,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       if (!clearResult.success) {
         console.warn('⚠️ Data clearing had issues:', clearResult.errors)
-        // Continue with logout even if some data clearing failed
+        // Return failure if data clearing failed
+        return { 
+          success: false, 
+          error: `Data clearing failed: ${clearResult.errors.join(', ')}` 
+        }
       }
       
       // Step 2: Clear authentication state
@@ -194,6 +198,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       if (!verificationResult) {
         console.warn('⚠️ Data clearing verification failed - some data may remain')
+        return { 
+          success: false, 
+          error: 'Data clearing verification failed - some data may remain' 
+        }
       }
       
       console.log('✅ Sign-out completed successfully')
