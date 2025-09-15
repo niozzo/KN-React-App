@@ -506,6 +506,17 @@ export const LoginPage: React.FC = () => {
           textAlign: 'center'
         }}>
           <p className="mb-sm">Ask registration for help if you can not find your access code</p>
+          
+          {/* Sample access codes for testing */}
+          <p style={{
+            fontSize: 'var(--text-sm)',
+            color: 'var(--ink-600)',
+            textAlign: 'center',
+            marginTop: 'var(--space-md)',
+            fontWeight: '500'
+          }}>
+            Sample codes: 831263, 944718
+          </p>
         </div>
       </div>
       
