@@ -9,7 +9,8 @@
 
 import { supabase } from '../lib/supabase'
 import { serverDataSyncService } from './serverDataSyncService'
-import type { Attendee, SanitizedAttendee, sanitizeAttendeeForStorage } from '../types/attendee'
+import type { Attendee, SanitizedAttendee } from '../types/attendee'
+import { sanitizeAttendeeForStorage } from '../types/attendee'
 
 // Authentication state
 let currentAttendee: Attendee | SanitizedAttendee | null = null
@@ -17,27 +18,22 @@ let isAuthenticated = false
 
 // Initialize authentication state from localStorage if available
 const initializeAuthState = () => {
-  // Skip auto-restore in development to always show login screen
-  if (import.meta.env.PROD) {
-    try {
-      const storedAuth = localStorage.getItem('conference_auth')
-      if (storedAuth) {
-        const authData = JSON.parse(storedAuth)
-        if (authData.attendee && authData.isAuthenticated) {
-          // Note: Restored attendee won't have access_code (for security)
-          // This is only for session persistence, not re-authentication
-          currentAttendee = authData.attendee as SanitizedAttendee
-          isAuthenticated = true
-          console.log('🔄 Restored authentication state from localStorage (without access_code)')
-        }
+  try {
+    const storedAuth = localStorage.getItem('conference_auth')
+    if (storedAuth) {
+      const authData = JSON.parse(storedAuth)
+      if (authData.attendee && authData.isAuthenticated) {
+        // Note: Restored attendee won't have access_code (for security)
+        // This is only for session persistence, not re-authentication
+        currentAttendee = authData.attendee as SanitizedAttendee
+        isAuthenticated = true
+        console.log('🔄 Restored authentication state from localStorage (without access_code)')
       }
-    } catch (error) {
-      console.warn('⚠️ Failed to restore auth state from localStorage:', error)
-      // Clear invalid data
-      localStorage.removeItem('conference_auth')
     }
-  } else {
-    console.log('🔧 Development mode: Skipping auth state restoration')
+  } catch (error) {
+    console.warn('⚠️ Failed to restore auth state from localStorage:', error)
+    // Clear invalid data
+    localStorage.removeItem('conference_auth')
   }
 }
 

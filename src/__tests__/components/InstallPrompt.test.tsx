@@ -3,7 +3,7 @@
  * Tests the A2HS (Add to Home Screen) install prompt functionality
  */
 
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 import InstallPrompt from '../../components/InstallPrompt'
 
@@ -66,7 +66,10 @@ describe('InstallPrompt', () => {
     
     // Simulate beforeinstallprompt event
     const installEvent = mockInstallPrompt()
-    window.dispatchEvent(installEvent)
+    
+    await act(async () => {
+      window.dispatchEvent(installEvent)
+    })
     
     await waitFor(() => {
       expect(screen.getByText(/apax knowledgenow 2025/i)).toBeInTheDocument()
@@ -78,7 +81,10 @@ describe('InstallPrompt', () => {
     
     // Simulate beforeinstallprompt event
     const installEvent = mockInstallPrompt()
-    window.dispatchEvent(installEvent)
+    
+    await act(async () => {
+      window.dispatchEvent(installEvent)
+    })
     
     await waitFor(() => {
       expect(screen.getByText(/apax knowledgenow 2025/i)).toBeInTheDocument()
@@ -86,7 +92,10 @@ describe('InstallPrompt', () => {
     
     // Click install button
     const installButton = screen.getByText('Install')
-    fireEvent.click(installButton)
+    
+    await act(async () => {
+      fireEvent.click(installButton)
+    })
     
     // Verify prompt was called
     expect(installEvent.prompt).toHaveBeenCalled()
@@ -97,7 +106,10 @@ describe('InstallPrompt', () => {
     
     // Simulate beforeinstallprompt event
     const installEvent = mockInstallPrompt()
-    window.dispatchEvent(installEvent)
+    
+    await act(async () => {
+      window.dispatchEvent(installEvent)
+    })
     
     await waitFor(() => {
       expect(screen.getByText(/apax knowledgenow 2025/i)).toBeInTheDocument()
@@ -107,7 +119,10 @@ describe('InstallPrompt', () => {
     installEvent.userChoice = Promise.resolve({ outcome: 'accepted' })
     
     const installButton = screen.getByText('Install')
-    fireEvent.click(installButton)
+    
+    await act(async () => {
+      fireEvent.click(installButton)
+    })
     
     // Wait for async installation flow to complete
     await waitFor(() => {
@@ -119,7 +134,10 @@ describe('InstallPrompt', () => {
     render(<InstallPrompt />)
     
     const installEvent = mockInstallPrompt()
-    window.dispatchEvent(installEvent)
+    
+    await act(async () => {
+      window.dispatchEvent(installEvent)
+    })
     
     await waitFor(() => {
       const installButton = screen.getByText('Install')

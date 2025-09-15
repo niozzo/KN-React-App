@@ -11,7 +11,7 @@ import OfflineIndicator from './components/OfflineIndicator'
 import InstallPrompt from './components/InstallPrompt'
 import OfflinePage from './components/OfflinePage'
 import { pwaService } from './services/pwaService'
-import { AuthProvider, withAuth } from './contexts/AuthContext'
+import { AuthProvider, withAuth, LoginPage } from './contexts/AuthContext'
 
 // Component to handle scroll restoration
 function ScrollToTop() {
@@ -46,6 +46,7 @@ function App() {
         <ScrollToTop />
         <OfflineIndicator />
         <Routes>
+          <Route path="/login" element={<LoginPage />} />
           <Route path="/" element={<ProtectedHomePage />} />
           <Route path="/home" element={<ProtectedHomePage />} />
           <Route path="/meet" element={<ProtectedMeetPage />} />

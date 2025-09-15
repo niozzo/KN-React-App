@@ -17,6 +17,32 @@ import '../setup/testSetup'
 // Get mock functions
 import { mockNavigate } from '../setup/testSetup'
 
+// Mock useNavigate directly in this test file
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom')
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+    useLocation: () => ({
+      pathname: '/settings',
+      search: '',
+      hash: '',
+      state: null,
+      key: 'test-key'
+    }),
+    BrowserRouter: ({ children }: { children: React.ReactNode }) => children,
+    MemoryRouter: ({ children }: { children: React.ReactNode }) => children,
+    Link: ({ children, to, ...props }: any) => {
+      const { createElement } = require('react')
+      return createElement('a', { href: to, ...props }, children)
+    },
+    NavLink: ({ children, to, ...props }: any) => {
+      const { createElement } = require('react')
+      return createElement('a', { href: to, ...props }, children)
+    }
+  }
+})
+
 // Mock the data clearing service
 vi.mock('../../services/dataClearingService', () => ({
   dataClearingService: {
@@ -141,7 +167,7 @@ describe('Sign-Out Flow Integration - Simplified', () => {
     }, { timeout: 3000 })
   })
 
-  it.skip('should navigate to login page after successful sign-out', async () => {
+  it('should navigate to login page after successful sign-out', async () => {
     // Mock successful data clearing
     mockDataClearingService.clearAllData.mockResolvedValue({
       success: true,
@@ -161,20 +187,7 @@ describe('Sign-Out Flow Integration - Simplified', () => {
     })
     
     // Ensure auth service signOut returns success
-    vi.mocked(mockAuthService.signOut).mockResolvedValue({ success: true })
-    
-    // Test that the mock is working
-    console.log('Testing mock directly...')
-    const directResult = await mockAuthService.signOut()
-    console.log('Direct mock result:', directResult)
-    
-    // Test useNavigate mock
-    console.log('Testing useNavigate mock...')
-    const { useNavigate } = await import('react-router-dom')
-    const testNavigate = useNavigate()
-    console.log('useNavigate function:', testNavigate)
-    console.log('mockNavigate function:', mockNavigate)
-    console.log('Are they the same?', testNavigate === mockNavigate)
+    vi.mocked(mockAuthService.signOut).mockReturnValue({ success: true })
     
     render(
       <BrowserRouter>
@@ -192,20 +205,10 @@ describe('Sign-Out Flow Integration - Simplified', () => {
       expect(mockDataClearingService.clearAllData).toHaveBeenCalled()
     }, { timeout: 3000 })
 
-    // Debug: Check if mockNavigate was called at all
-    console.log('mockNavigate calls:', mockNavigate.mock.calls)
-    console.log('mockAuthService.signOut calls:', mockAuthService.signOut.mock.calls)
-    
-    // Test the navigate function directly
-    console.log('Testing navigate function directly...')
-    const directNavigate = useNavigate()
-    directNavigate('/test')
-    console.log('After direct navigate call:', mockNavigate.mock.calls)
-    
     // Verify navigation was called
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('/login')
-    }, { timeout: 1000 })
+    }, { timeout: 2000 })
   })
 
   it('should handle sign-out errors gracefully', async () => {

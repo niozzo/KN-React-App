@@ -8,7 +8,8 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react'
 import { 
   signOut as authSignOut,
-  getAuthStatus 
+  getAuthStatus,
+  authenticateWithAccessCode
 } from '../services/authService'
 import { serverDataSyncService } from '../services/serverDataSyncService'
 import { attendeeInfoService } from '../services/attendeeInfoService'
@@ -49,10 +50,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Initialize server-side data sync service
   const [dataSyncService] = useState(() => serverDataSyncService)
 
-  // Check authentication status on mount
+  // Check authentication status on mount - only if not already authenticated
   useEffect(() => {
-    checkAuthStatus()
-  }, [])
+    // Only check auth status if we don't already have it
+    // This prevents race conditions with login state updates
+    if (!isAuthenticated) {
+      checkAuthStatus()
+    }
+  }, [isAuthenticated])
 
   const checkAuthStatus = () => {
     try {
@@ -76,34 +81,39 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (accessCode: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      console.log('🔄 Starting hybrid authentication process...')
+      console.log('🔄 Starting authentication process...')
       
-      // Step 1: Use admin authentication to get all data (bypass RLS)
-      console.log('🔐 Step 1: Authenticating with admin credentials for data access...')
+      // Step 1: Try admin authentication to get all data (bypass RLS)
+      console.log('🔐 Step 1: Attempting admin authentication for data access...')
+      let syncResult = null
       try {
-        const syncResult = await dataSyncService.syncAllData()
+        syncResult = await dataSyncService.syncAllData()
         console.log('✅ Admin data sync completed:', syncResult)
         
         if (!syncResult.success) {
-          console.error('❌ Admin data sync failed:', syncResult.errors)
-          return { 
-            success: false, 
-            error: 'Data synchronization failed. Please try again or contact support.' 
-          }
+          console.warn('⚠️ Admin data sync failed, continuing with basic authentication:', syncResult.errors)
         }
       } catch (syncError) {
-        console.error('❌ Admin data sync error:', syncError)
-        return { 
-          success: false, 
-          error: 'Data synchronization failed. Please try again or contact support.' 
+        console.warn('⚠️ Admin data sync error, continuing with basic authentication:', syncError)
+        // Continue with basic authentication even if admin sync fails
+      }
+      
+      // Step 2: Use attendee access code for user identification
+      console.log('🔐 Step 2: Validating attendee access code...')
+      const result = await dataSyncService.lookupAttendeeByAccessCode(accessCode)
+      
+      // Step 2.5: Authenticate with the auth service to set the global auth state
+      if (result.success && result.attendee) {
+        console.log('🔐 Step 2.5: Setting global authentication state...')
+        const authResult = await authenticateWithAccessCode(accessCode)
+        if (!authResult.success) {
+          console.warn('⚠️ Failed to set global auth state, but attendee lookup succeeded')
         }
       }
       
-      // Step 2: Use attendee access code for user identification with admin auth
-      console.log('🔐 Step 2: Validating attendee access code with admin authentication...')
-      const result = await dataSyncService.lookupAttendeeByAccessCode(accessCode)
-      
       if (result.success && result.attendee) {
+        // Set authentication state immediately
+        console.log('🔄 Setting authentication state to true...')
         setIsAuthenticated(true)
         setAttendee(result.attendee)
         
@@ -111,9 +121,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const cachedName = attendeeInfoService.getAttendeeName()
         setAttendeeName(cachedName)
         
-        console.log('✅ Hybrid authentication successful!')
+        console.log('✅ Authentication successful!')
         console.log('👤 Attendee identified:', `${result.attendee.first_name} ${result.attendee.last_name}`)
-        console.log('📊 Data synced for offline use')
+        if (syncResult?.success) {
+          console.log('📊 Data synced for offline use')
+        } else {
+          console.log('⚠️ Using basic authentication (offline data may be limited)')
+        }
         console.log('👤 Attendee name cached for easy access:', cachedName?.full_name)
         
         return { success: true }
@@ -121,10 +135,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setIsAuthenticated(false)
         setAttendee(null)
         setAttendeeName(null)
-        return { success: false, error: 'Invalid access code. Please try again or ask at the registration desk for help.' }
+        return { success: false, error: result.error || 'Invalid access code. Please try again or ask at the registration desk for help.' }
       }
     } catch (error) {
-      console.error('❌ Hybrid authentication error:', error)
+      console.error('❌ Authentication error:', error)
       setIsAuthenticated(false)
       setAttendee(null)
       setAttendeeName(null)

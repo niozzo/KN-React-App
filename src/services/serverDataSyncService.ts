@@ -227,49 +227,95 @@ export class ServerDataSyncService {
         };
       }
       
-      const supabaseClient = await this.getAuthenticatedClient();
-      
-      const { data, error } = await supabaseClient
-        .from('attendees')
-        .select('*')
-        .eq('access_code', accessCode);
-      
-      if (error) {
-        console.error('❌ Attendee lookup failed:', error.message);
-        return {
-          success: false,
-          error: 'Invalid access code. Please check and try again.'
-        };
-      }
-      
-      if (!data || data.length === 0) {
-        return {
-          success: false,
-          error: 'Access code not found. Please check and try again.'
-        };
-      }
-      
-      if (data.length > 1) {
-        console.warn('⚠️ Multiple attendees found with same access code, using first one');
-      }
-      
-      const attendee = data[0];
-      
-      // Extract attendee information before returning (for easy access)
       try {
-        const attendeeInfo = attendeeInfoService.extractAttendeeInfo(attendee);
-        attendeeInfoService.storeAttendeeInfo(attendeeInfo);
-        console.log('✅ Attendee info extracted and cached:', attendeeInfo.full_name);
-      } catch (error) {
-        console.warn('⚠️ Failed to extract attendee info:', error);
-        // Continue with authentication even if info extraction fails
+        const supabaseClient = await this.getAuthenticatedClient();
+        
+        const { data, error } = await supabaseClient
+          .from('attendees')
+          .select('*')
+          .eq('access_code', accessCode);
+        
+        if (error) {
+          console.error('❌ Attendee lookup failed:', error.message);
+          return {
+            success: false,
+            error: 'Invalid access code. Please check and try again.'
+          };
+        }
+        
+        if (!data || data.length === 0) {
+          return {
+            success: false,
+            error: 'Access code not found. Please check and try again.'
+          };
+        }
+        
+        if (data.length > 1) {
+          console.warn('⚠️ Multiple attendees found with same access code, using first one');
+        }
+        
+        const attendee = data[0];
+        
+        // Extract attendee information before returning (for easy access)
+        try {
+          const attendeeInfo = attendeeInfoService.extractAttendeeInfo(attendee);
+          attendeeInfoService.storeAttendeeInfo(attendeeInfo);
+          console.log('✅ Attendee info extracted and cached:', attendeeInfo.full_name);
+        } catch (error) {
+          console.warn('⚠️ Failed to extract attendee info:', error);
+          // Continue with authentication even if info extraction fails
+        }
+        
+        console.log('✅ Attendee found:', `${attendee.first_name} ${attendee.last_name}`);
+        return {
+          success: true,
+          attendee: attendee
+        };
+        
+      } catch (authError) {
+        console.warn('⚠️ Admin authentication failed, trying fallback authentication:', authError);
+        
+        // Fallback: Try with basic Supabase client (without admin auth)
+        const basicClient = createClient(this.supabaseUrl, this.supabaseKey);
+        
+        const { data, error } = await basicClient
+          .from('attendees')
+          .select('*')
+          .eq('access_code', accessCode);
+        
+        if (error) {
+          console.error('❌ Fallback attendee lookup failed:', error.message);
+          return {
+            success: false,
+            error: 'Invalid access code. Please check and try again.'
+          };
+        }
+        
+        if (!data || data.length === 0) {
+          return {
+            success: false,
+            error: 'Access code not found. Please check and try again.'
+          };
+        }
+        
+        const attendee = data[0];
+        
+        // Extract attendee information before returning (for easy access)
+        try {
+          const attendeeInfo = attendeeInfoService.extractAttendeeInfo(attendee);
+          attendeeInfoService.storeAttendeeInfo(attendeeInfo);
+          console.log('✅ Attendee info extracted and cached (fallback):', attendeeInfo.full_name);
+        } catch (error) {
+          console.warn('⚠️ Failed to extract attendee info (fallback):', error);
+          // Continue with authentication even if info extraction fails
+        }
+        
+        console.log('✅ Attendee found (fallback):', `${attendee.first_name} ${attendee.last_name}`);
+        return {
+          success: true,
+          attendee: attendee
+        };
       }
-      
-      console.log('✅ Attendee found:', `${attendee.first_name} ${attendee.last_name}`);
-      return {
-        success: true,
-        attendee: attendee
-      };
       
     } catch (error) {
       console.error('❌ Attendee lookup error:', error);

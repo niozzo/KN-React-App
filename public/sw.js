@@ -1,7 +1,7 @@
 // Service Worker for Apax KnowledgeNow 2025 PWA
 // Comprehensive service worker with advanced caching strategies
 
-const CACHE_VERSION = '1.3.0';
+const CACHE_VERSION = '1.3.1';
 const CACHE_NAME = `apax-knowledge-now-2025-v${CACHE_VERSION}`;
 const DATA_CACHE_NAME = `apax-data-cache-v${CACHE_VERSION}`;
 const IMAGE_CACHE_NAME = `apax-images-cache-v${CACHE_VERSION}`;
@@ -101,6 +101,11 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Skip POST/PUT/DELETE requests - let them pass through without caching
+  if (request.method !== 'GET') {
+    return;
+  }
+
   // Determine caching strategy based on request type
   if (isAPIRequest(request)) {
     event.respondWith(handleAPIRequest(request));
@@ -121,8 +126,8 @@ async function handleAPIRequest(request) {
     // Try network first
     const networkResponse = await fetch(request);
     
-    if (networkResponse.ok) {
-      // Cache successful responses
+    if (networkResponse.ok && request.method === 'GET') {
+      // Only cache GET requests (Cache API doesn't support POST/PUT/DELETE)
       cache.put(request, networkResponse.clone());
       console.log('🌐 API response cached:', request.url);
     }
@@ -131,11 +136,13 @@ async function handleAPIRequest(request) {
   } catch (error) {
     console.log('📱 Network failed, trying cache:', request.url);
     
-    // Fallback to cache
-    const cachedResponse = await cache.match(request);
-    if (cachedResponse) {
-      console.log('💾 Serving from cache:', request.url);
-      return cachedResponse;
+    // Only try cache for GET requests
+    if (request.method === 'GET') {
+      const cachedResponse = await cache.match(request);
+      if (cachedResponse) {
+        console.log('💾 Serving from cache:', request.url);
+        return cachedResponse;
+      }
     }
     
     // Return offline response for API requests
@@ -158,17 +165,20 @@ async function handleAPIRequest(request) {
 async function handleImageRequest(request) {
   const cache = await caches.open(IMAGE_CACHE_NAME);
   
-  // Try cache first
-  const cachedResponse = await cache.match(request);
-  if (cachedResponse) {
-    console.log('🖼️ Image served from cache:', request.url);
-    return cachedResponse;
+  // Only cache GET requests
+  if (request.method === 'GET') {
+    // Try cache first
+    const cachedResponse = await cache.match(request);
+    if (cachedResponse) {
+      console.log('🖼️ Image served from cache:', request.url);
+      return cachedResponse;
+    }
   }
   
   try {
     // Fetch from network and cache
     const networkResponse = await fetch(request);
-    if (networkResponse.ok) {
+    if (networkResponse.ok && request.method === 'GET') {
       cache.put(request, networkResponse.clone());
       console.log('🌐 Image cached:', request.url);
     }
@@ -187,15 +197,17 @@ async function handleNavigationRequest(request) {
   try {
     // Try network first for navigation
     const networkResponse = await fetch(request);
-    if (networkResponse.ok) {
+    if (networkResponse.ok && request.method === 'GET') {
       cache.put(request, networkResponse.clone());
     }
     return networkResponse;
   } catch (error) {
-    // Fallback to cache
-    const cachedResponse = await cache.match(request);
-    if (cachedResponse) {
-      return cachedResponse;
+    // Fallback to cache (only for GET requests)
+    if (request.method === 'GET') {
+      const cachedResponse = await cache.match(request);
+      if (cachedResponse) {
+        return cachedResponse;
+      }
     }
     
     // Return offline page
@@ -207,16 +219,19 @@ async function handleNavigationRequest(request) {
 async function handleStaticRequest(request) {
   const cache = await caches.open(CACHE_NAME);
   
-  // Try cache first
-  const cachedResponse = await cache.match(request);
-  if (cachedResponse) {
-    return cachedResponse;
+  // Only cache GET requests
+  if (request.method === 'GET') {
+    // Try cache first
+    const cachedResponse = await cache.match(request);
+    if (cachedResponse) {
+      return cachedResponse;
+    }
   }
   
   try {
     // Fetch from network and cache
     const networkResponse = await fetch(request);
-    if (networkResponse.ok) {
+    if (networkResponse.ok && request.method === 'GET') {
       cache.put(request, networkResponse.clone());
     }
     return networkResponse;
@@ -228,8 +243,9 @@ async function handleStaticRequest(request) {
 
 // Helper functions
 function isAPIRequest(request) {
-  return request.url.includes('/api/') || 
-         request.url.includes('localhost:3000/api/');
+  return (request.url.includes('/api/') || 
+          request.url.includes('localhost:3000/api/')) &&
+         request.method === 'GET';
 }
 
 function isImageRequest(request) {
@@ -262,7 +278,9 @@ async function syncDataInBackground() {
       try {
         const response = await fetch(endpoint);
         if (response.ok) {
-          await cache.put(endpoint, response.clone());
+          // Create a GET request for caching
+          const getRequest = new Request(endpoint, { method: 'GET' });
+          await cache.put(getRequest, response.clone());
           console.log('✅ Background sync completed:', endpoint);
         }
       } catch (error) {
@@ -350,7 +368,9 @@ async function cacheDataFromMainThread(data) {
     const response = new Response(JSON.stringify(dataArray), {
       headers: { 'Content-Type': 'application/json' }
     });
-    await cache.put(endpoint, response);
+    // Create a GET request for caching
+    const getRequest = new Request(endpoint, { method: 'GET' });
+    await cache.put(getRequest, response);
     console.log('💾 Data cached from main thread:', endpoint);
   }
 }

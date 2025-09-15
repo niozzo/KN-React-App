@@ -8,7 +8,7 @@
 import { vi } from 'vitest'
 import '@testing-library/jest-dom'
 
-// Mock React Router
+// Mock React Router with proper hoisting
 export const mockNavigate = vi.fn()
 const mockLocation = {
   pathname: '/settings',
@@ -18,12 +18,24 @@ const mockLocation = {
   key: 'test-key'
 }
 
+// Use vi.hoisted to ensure mocks are available before module imports
+const mockRouter = vi.hoisted(() => ({
+  mockNavigate: vi.fn(),
+  mockLocation: {
+    pathname: '/settings',
+    search: '',
+    hash: '',
+    state: null,
+    key: 'test-key'
+  }
+}))
+
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom')
   return {
     ...actual,
-    useNavigate: () => mockNavigate,
-    useLocation: () => mockLocation,
+    useNavigate: () => mockRouter.mockNavigate,
+    useLocation: () => mockRouter.mockLocation,
     BrowserRouter: ({ children }: { children: React.ReactNode }) => children,
     MemoryRouter: ({ children }: { children: React.ReactNode }) => children,
     Link: ({ children, to, ...props }: any) => {
@@ -36,6 +48,9 @@ vi.mock('react-router-dom', async () => {
     }
   }
 })
+
+// Export the hoisted mock for test access
+export { mockRouter }
 
 // Don't mock the data clearing service - let it use the real implementation
 // with our mocked browser APIs

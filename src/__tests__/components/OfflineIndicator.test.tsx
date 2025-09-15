@@ -3,7 +3,7 @@
  * Tests the offline indicator component's behavior and PWA integration
  */
 
-import { render, screen, testOfflineBehavior, testOnlineBehavior } from '../utils/test-utils'
+import { render, screen, testOfflineBehavior, testOnlineBehavior, act } from '../utils/test-utils'
 import OfflineIndicator from '../../components/OfflineIndicator'
 
 describe('OfflineIndicator', () => {
@@ -28,7 +28,7 @@ describe('OfflineIndicator', () => {
     })
   })
 
-  test('updates when network state changes', () => {
+  test('updates when network state changes', async () => {
     const { rerender } = render(<OfflineIndicator />)
     
     // Initially online - component should be hidden when online
@@ -40,7 +40,10 @@ describe('OfflineIndicator', () => {
       writable: true,
       configurable: true
     })
-    window.dispatchEvent(new Event('offline'))
+    
+    await act(async () => {
+      window.dispatchEvent(new Event('offline'))
+    })
     
     rerender(<OfflineIndicator />)
     expect(screen.getByText(/offline/i)).toBeInTheDocument()

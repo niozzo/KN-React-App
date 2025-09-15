@@ -17,6 +17,32 @@ import '../setup/testSetup'
 // Get mock functions
 import { mockNavigate } from '../setup/testSetup'
 
+// Mock useNavigate directly in this test file
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom')
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+    useLocation: () => ({
+      pathname: '/settings',
+      search: '',
+      hash: '',
+      state: null,
+      key: 'test-key'
+    }),
+    BrowserRouter: ({ children }: { children: React.ReactNode }) => children,
+    MemoryRouter: ({ children }: { children: React.ReactNode }) => children,
+    Link: ({ children, to, ...props }: any) => {
+      const { createElement } = require('react')
+      return createElement('a', { href: to, ...props }, children)
+    },
+    NavLink: ({ children, to, ...props }: any) => {
+      const { createElement } = require('react')
+      return createElement('a', { href: to, ...props }, children)
+    }
+  }
+})
+
 describe('SettingsPage Sign-Out Button', () => {
   beforeEach(async () => {
     vi.clearAllMocks()
@@ -89,7 +115,7 @@ describe('SettingsPage Sign-Out Button', () => {
     })
   })
 
-  it.skip('should navigate to login page after successful logout', async () => {
+  it('should navigate to login page after successful logout', async () => {
     // Mock data clearing success
     const { dataClearingService } = await import('../../services/dataClearingService')
     vi.spyOn(dataClearingService, 'clearAllData').mockResolvedValue({
@@ -110,6 +136,10 @@ describe('SettingsPage Sign-Out Button', () => {
     })
     vi.spyOn(dataClearingService, 'verifyDataCleared').mockResolvedValue(true)
 
+    // Ensure auth service signOut returns success
+    const { signOut } = await import('../../services/authService')
+    vi.mocked(signOut).mockReturnValue({ success: true })
+
     render(
       <BrowserRouter>
         <AuthProvider>
@@ -121,11 +151,10 @@ describe('SettingsPage Sign-Out Button', () => {
     const signOutButton = screen.getByRole('button', { name: /sign out/i })
     fireEvent.click(signOutButton)
 
-    // Debug: Check if mockNavigate was called at all
+    // Wait for the sign-out process to complete and navigation to occur
     await waitFor(() => {
-      console.log('mockNavigate calls:', mockNavigate.mock.calls)
       expect(mockNavigate).toHaveBeenCalledWith('/login')
-    }, { timeout: 2000 })
+    }, { timeout: 3000 })
   })
 
   it('should show loading state when signing out', async () => {
@@ -195,7 +224,7 @@ describe('SettingsPage Sign-Out Button', () => {
     }, { timeout: 3000 })
   })
 
-  it('should not navigate when logout fails', async () => {
+  it('should show error message when data clearing fails', async () => {
     // Mock data clearing failure
     const { dataClearingService } = await import('../../services/dataClearingService')
     vi.spyOn(dataClearingService, 'clearAllData').mockRejectedValue(new Error('Data clearing failed'))
@@ -211,9 +240,12 @@ describe('SettingsPage Sign-Out Button', () => {
     const signOutButton = screen.getByRole('button', { name: /sign out/i })
     fireEvent.click(signOutButton)
 
-    // Wait a bit to ensure navigation doesn't happen
-    await new Promise(resolve => setTimeout(resolve, 100))
+    // Wait for error message to appear
+    await waitFor(() => {
+      expect(screen.getByText(/data clearing failed/i)).toBeInTheDocument()
+    }, { timeout: 3000 })
 
+    // Should not navigate when data clearing fails
     expect(mockNavigate).not.toHaveBeenCalled()
   })
 })
