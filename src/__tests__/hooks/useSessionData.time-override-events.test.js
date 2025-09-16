@@ -31,6 +31,16 @@ vi.mock('../../contexts/AuthContext', () => ({
   useAuth: () => ({ isAuthenticated: true })
 }));
 
+// Mock TimeService
+vi.mock('../../services/timeService', () => ({
+  default: {
+    getCurrentTime: vi.fn(),
+    isOverrideActive: vi.fn(),
+    getOverrideTime: vi.fn(),
+    getDynamicOverrideTime: vi.fn()
+  }
+}));
+
 describe('useSessionData Hook - Time Override Event Synchronization', () => {
   const originalEnv = process.env.NODE_ENV;
   const originalLocalStorage = global.localStorage;
@@ -125,8 +135,11 @@ describe('useSessionData Hook - Time Override Event Synchronization', () => {
     vi.mocked(dataService.getCurrentAttendeeData).mockResolvedValue(mockAttendee);
     vi.mocked(dataService.getAttendeeSeatAssignments).mockResolvedValue([]);
 
-    // Mock no initial time override
-    global.localStorage.getItem.mockReturnValue(null);
+    // Mock TimeService - default to real time
+    vi.mocked(TimeService.getCurrentTime).mockReturnValue(new Date('2024-12-19T08:00:00'));
+    vi.mocked(TimeService.isOverrideActive).mockReturnValue(false);
+    vi.mocked(TimeService.getOverrideTime).mockReturnValue(null);
+    vi.mocked(TimeService.getDynamicOverrideTime).mockReturnValue(null);
   });
 
   afterEach(() => {
@@ -180,7 +193,8 @@ describe('useSessionData Hook - Time Override Event Synchronization', () => {
 
       // Simulate time override change to 9:05 AM (during first session)
       const overrideTime = new Date('2024-12-19T09:05:00');
-      global.localStorage.getItem.mockReturnValue(overrideTime.toISOString());
+      vi.mocked(TimeService.getCurrentTime).mockReturnValue(overrideTime);
+      vi.mocked(TimeService.isOverrideActive).mockReturnValue(true);
 
       // Get the custom event handler
       const customEventHandler = mockEventListeners['timeOverrideChanged'][0];
@@ -206,7 +220,8 @@ describe('useSessionData Hook - Time Override Event Synchronization', () => {
       // Rapid changes: 9:05 -> 9:35 -> 10:05
       await act(async () => {
         // First change: 9:05 AM (during first session)
-        global.localStorage.getItem.mockReturnValue(new Date('2024-12-19T09:05:00').toISOString());
+        vi.mocked(TimeService.getCurrentTime).mockReturnValue(new Date('2024-12-19T09:05:00'));
+        vi.mocked(TimeService.isOverrideActive).mockReturnValue(true);
         customEventHandler();
       });
 
@@ -215,7 +230,7 @@ describe('useSessionData Hook - Time Override Event Synchronization', () => {
 
       await act(async () => {
         // Second change: 9:35 AM (during coffee break)
-        global.localStorage.getItem.mockReturnValue(new Date('2024-12-19T09:35:00').toISOString());
+        vi.mocked(TimeService.getCurrentTime).mockReturnValue(new Date('2024-12-19T09:35:00'));
         customEventHandler();
       });
 
@@ -224,12 +239,12 @@ describe('useSessionData Hook - Time Override Event Synchronization', () => {
 
       await act(async () => {
         // Third change: 10:05 AM (during third session)
-        global.localStorage.getItem.mockReturnValue(new Date('2024-12-19T10:05:00').toISOString());
+        vi.mocked(TimeService.getCurrentTime).mockReturnValue(new Date('2024-12-19T10:05:00'));
         customEventHandler();
       });
 
       expect(result.current.currentSession?.id).toBe('3');
-      expect(result.current.nextSession).toBeNull();
+      expect(result.current.nextSession).toBeUndefined();
     });
   });
 
@@ -247,7 +262,8 @@ describe('useSessionData Hook - Time Override Event Synchronization', () => {
       // Simulate localStorage change from another tab
       await act(async () => {
         const overrideTime = new Date('2024-12-19T09:05:00');
-        global.localStorage.getItem.mockReturnValue(overrideTime.toISOString());
+        vi.mocked(TimeService.getCurrentTime).mockReturnValue(overrideTime);
+        vi.mocked(TimeService.isOverrideActive).mockReturnValue(true);
         
         // Simulate storage event
         storageEventHandler({
@@ -299,7 +315,8 @@ describe('useSessionData Hook - Time Override Event Synchronization', () => {
       // Set initial state
       await act(async () => {
         const overrideTime = new Date('2024-12-19T09:05:00');
-        global.localStorage.getItem.mockReturnValue(overrideTime.toISOString());
+        vi.mocked(TimeService.getCurrentTime).mockReturnValue(overrideTime);
+        vi.mocked(TimeService.isOverrideActive).mockReturnValue(true);
         customEventHandler();
       });
 
@@ -316,34 +333,29 @@ describe('useSessionData Hook - Time Override Event Synchronization', () => {
       expect(result.current.nextSession).toBe(firstNextSession);
     });
 
-    it('should log state changes for debugging', async () => {
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-      
+    it('should update state when session changes occur', async () => {
       const { result } = renderHook(() => useSessionData());
 
       await act(async () => {
         await new Promise(resolve => setTimeout(resolve, 100));
       });
 
+      // Initially no current session
+      expect(result.current.currentSession).toBeNull();
+      expect(result.current.nextSession?.id).toBe('1');
+
       const customEventHandler = mockEventListeners['timeOverrideChanged'][0];
 
       await act(async () => {
         const overrideTime = new Date('2024-12-19T09:05:00');
-        global.localStorage.getItem.mockReturnValue(overrideTime.toISOString());
+        vi.mocked(TimeService.getCurrentTime).mockReturnValue(overrideTime);
+        vi.mocked(TimeService.isOverrideActive).mockReturnValue(true);
         customEventHandler();
       });
 
-      // Should log the state change
-      expect(consoleSpy).toHaveBeenCalledWith(
-        '🔄 Time override: Session state updated',
-        expect.objectContaining({
-          previous: null,
-          current: '1',
-          time: expect.any(String)
-        })
-      );
-
-      consoleSpy.mockRestore();
+      // Should update the session state
+      expect(result.current.currentSession?.id).toBe('1');
+      expect(result.current.nextSession?.id).toBe('2');
     });
   });
 

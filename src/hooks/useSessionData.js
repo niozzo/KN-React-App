@@ -22,27 +22,7 @@ const isSessionActive = (session, currentTime) => {
   const start = new Date(`${session.date}T${session.start_time}`);
   const end = new Date(`${session.date}T${session.end_time}`);
   
-  const isActive = currentTime >= start && currentTime <= end;
-  
-  // Debug logging for the first session
-  if (session.id === '1' || session.title?.includes('Opening')) {
-    console.log('🔍 isSessionActive debug:', {
-      sessionId: session.id,
-      sessionTitle: session.title,
-      sessionDate: session.date,
-      sessionStartTime: session.start_time,
-      sessionEndTime: session.end_time,
-      startDateTime: start.toISOString(),
-      endDateTime: end.toISOString(),
-      currentTime: currentTime.toISOString(),
-      isActive: isActive,
-      currentTimeMs: currentTime.getTime(),
-      startTimeMs: start.getTime(),
-      endTimeMs: end.getTime()
-    });
-  }
-  
-  return isActive;
+  return currentTime >= start && currentTime <= end;
 };
 
 /**
@@ -159,23 +139,24 @@ export const useSessionData = (options = {}) => {
       setSessions(filteredSessions);
       setLastUpdated(new Date());
       
-      // Debug: Log the first few sessions
-      console.log('📋 Loaded sessions:', filteredSessions.slice(0, 3).map(s => ({
-        id: s.id,
-        title: s.title,
-        date: s.date,
-        start_time: s.start_time,
-        end_time: s.end_time
-      })));
 
       // Determine current and next sessions
       const currentTime = getCurrentTime();
       const activeSession = filteredSessions.find(session => 
         isSessionActive(session, currentTime)
       );
-      const upcomingSession = filteredSessions.find(session => 
-        isSessionUpcoming(session, currentTime)
-      );
+      
+      // Find the next session - prioritize by date first, then time
+      const upcomingSession = filteredSessions
+        .filter(session => isSessionUpcoming(session, currentTime))
+        .sort((a, b) => {
+          // First sort by date
+          const dateComparison = (a.date || '').localeCompare(b.date || '');
+          if (dateComparison !== 0) return dateComparison;
+          
+          // Then sort by start time
+          return (a.start_time || '').localeCompare(b.start_time || '');
+        })[0]; // Get the first (earliest) upcoming session
 
       // Enhance sessions with seat assignment data
       const enhanceSessionWithSeatInfo = (session) => {
@@ -285,35 +266,28 @@ export const useSessionData = (options = {}) => {
       // Re-evaluate session states when time override changes
       const currentTime = getCurrentTime();
       
-      console.log('🕐 Time override change detected:', {
-        currentTime: currentTime.toISOString(),
-        sessionsCount: sessions.length
-      });
       
       // Find current active session
       const activeSession = sessions.find(session => 
         isSessionActive(session, currentTime)
       );
       
-      // Find next upcoming session
-      const upcomingSession = sessions.find(session => 
-        isSessionUpcoming(session, currentTime)
-      );
+      // Find next upcoming session - prioritize by date first, then time
+      const upcomingSession = sessions
+        .filter(session => isSessionUpcoming(session, currentTime))
+        .sort((a, b) => {
+          // First sort by date
+          const dateComparison = (a.date || '').localeCompare(b.date || '');
+          if (dateComparison !== 0) return dateComparison;
+          
+          // Then sort by start time
+          return (a.start_time || '').localeCompare(b.start_time || '');
+        })[0]; // Get the first (earliest) upcoming session
       
-      console.log('🔍 Session evaluation:', {
-        activeSession: activeSession?.id || 'none',
-        upcomingSession: upcomingSession?.id || 'none',
-        currentTime: currentTime.toISOString()
-      });
       
       // Update state only if changed (performance optimization)
       setCurrentSession(prev => {
         if (prev?.id !== activeSession?.id) {
-          console.log('🔄 Time override: Session state updated', {
-            previous: prev?.id,
-            current: activeSession?.id,
-            time: currentTime.toISOString()
-          });
           return activeSession;
         }
         return prev;
@@ -321,11 +295,6 @@ export const useSessionData = (options = {}) => {
       
       setNextSession(prev => {
         if (prev?.id !== upcomingSession?.id) {
-          console.log('🔄 Time override: Next session updated', {
-            previous: prev?.id,
-            current: upcomingSession?.id,
-            time: currentTime.toISOString()
-          });
           return upcomingSession;
         }
         return prev;
@@ -334,15 +303,13 @@ export const useSessionData = (options = {}) => {
 
     // Listen for time override changes via localStorage (cross-tab)
     const handleStorageChange = (e) => {
-      if (e.key === 'kn_time_override') {
-        console.log('📱 Storage event detected for time override');
+      if (e.key === 'kn_time_override' || e.key === 'kn_time_override_start') {
         handleTimeOverrideChange();
       }
     };
 
     // Listen for time override changes via custom event (same-tab)
     const handleTimeOverrideUpdate = () => {
-      console.log('🎯 Custom event detected for time override');
       handleTimeOverrideChange();
     };
     
@@ -354,6 +321,59 @@ export const useSessionData = (options = {}) => {
       window.removeEventListener('timeOverrideChanged', handleTimeOverrideUpdate);
     };
   }, [sessions]); // Re-run when sessions change to update the closure
+
+  // Real-time update mechanism for both real time and dynamic time override
+  useEffect(() => {
+    // Only set up real-time updates if we have sessions
+    if (sessions.length === 0) {
+      return;
+    }
+
+    const isOverrideActive = TimeService.isOverrideActive();
+
+    const handleRealTimeUpdate = () => {
+      const currentTime = getCurrentTime();
+      
+      // Find current active session
+      const activeSession = sessions.find(session => 
+        isSessionActive(session, currentTime)
+      );
+      
+      // Find next upcoming session - prioritize by date first, then time
+      const upcomingSession = sessions
+        .filter(session => isSessionUpcoming(session, currentTime))
+        .sort((a, b) => {
+          // First sort by date
+          const dateComparison = (a.date || '').localeCompare(b.date || '');
+          if (dateComparison !== 0) return dateComparison;
+          
+          // Then sort by start time
+          return (a.start_time || '').localeCompare(b.start_time || '');
+        })[0]; // Get the first (earliest) upcoming session
+      
+      // Update state only if changed (performance optimization)
+      setCurrentSession(prev => {
+        if (prev?.id !== activeSession?.id) {
+          return activeSession;
+        }
+        return prev;
+      });
+      
+      setNextSession(prev => {
+        if (prev?.id !== upcomingSession?.id) {
+          return upcomingSession;
+        }
+        return prev;
+      });
+    };
+
+    // Set up interval for real-time updates (every second)
+    const interval = setInterval(handleRealTimeUpdate, 1000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [sessions]); // Re-run when sessions change
 
   // Refresh data manually
   const refresh = useCallback(() => {

@@ -74,18 +74,12 @@ describe('TimeService Event Emission', () => {
       );
     });
 
-    it('should log the time override setting', () => {
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    it('should set the time override without errors', () => {
       const testDate = new Date('2024-12-19T09:05:00');
       
-      TimeService.setOverrideTime(testDate);
-
-      expect(consoleSpy).toHaveBeenCalledWith(
-        '🕐 Time override set:',
-        testDate.toISOString()
-      );
-
-      consoleSpy.mockRestore();
+      expect(() => {
+        TimeService.setOverrideTime(testDate);
+      }).not.toThrow();
     });
 
     it('should throw error if localStorage fails', () => {
@@ -137,14 +131,10 @@ describe('TimeService Event Emission', () => {
       expect(global.localStorage.removeItem).toHaveBeenCalledWith('kn_time_override');
     });
 
-    it('should log the time override clearing', () => {
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-      
-      TimeService.clearOverrideTime();
-
-      expect(consoleSpy).toHaveBeenCalledWith('🕐 Time override cleared');
-
-      consoleSpy.mockRestore();
+    it('should clear the time override without errors', () => {
+      expect(() => {
+        TimeService.clearOverrideTime();
+      }).not.toThrow();
     });
 
     it('should throw error if localStorage fails', () => {

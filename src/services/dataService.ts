@@ -190,8 +190,6 @@ export const getAllAgendaItems = async (): Promise<AgendaItem[]> => {
         if (Array.isArray(agendaItems) && agendaItems.length > 0) {
           console.log('✅ Using cached agenda items from localStorage')
           return [...agendaItems]
-            .sort((a, b) => (a.date || '').localeCompare(b.date || ''))
-            .sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''))
         }
       }
     } catch (cacheError) {
@@ -202,8 +200,6 @@ export const getAllAgendaItems = async (): Promise<AgendaItem[]> => {
     console.log('🌐 No cached agenda items found, fetching from API...')
     const data = await apiGet<AgendaItem[]>('/api/agenda-items')
     return [...data]
-      .sort((a, b) => (a.date || '').localeCompare(b.date || ''))
-      .sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''))
   } catch (error) {
     console.error('❌ Error fetching agenda items:', error)
     throw new DataServiceError('Failed to fetch agenda items', 'FETCH_ERROR')

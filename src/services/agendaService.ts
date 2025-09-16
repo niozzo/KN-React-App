@@ -38,9 +38,14 @@ export class AgendaService implements IAgendaService {
   async getAllAgendaItems(): Promise<PaginatedResponse<AgendaItem>> {
     try {
       const all = await this.apiGet<AgendaItem[]>(this.basePath);
-      const data = [...all]
-        .sort((a, b) => (a.date || '').localeCompare(b.date || ''))
-        .sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
+      const data = [...all].sort((a, b) => {
+        // First sort by date
+        const dateComparison = (a.date || '').localeCompare(b.date || '')
+        if (dateComparison !== 0) return dateComparison
+        
+        // Then sort by start time
+        return (a.start_time || '').localeCompare(b.start_time || '')
+      });
       return {
         data,
         count: data.length,
@@ -168,9 +173,7 @@ export class AgendaService implements IAgendaService {
           // Handle both direct array format and wrapped format
           const agendaItems = cacheObj.data || cacheObj;
           const data = agendaItems
-            .filter((item: any) => item.is_active)
-            .sort((a: any, b: any) => (a.date || '').localeCompare(b.date || ''))
-            .sort((a: any, b: any) => (a.start_time || '').localeCompare(b.start_time || ''));
+            .filter((item: any) => item.is_active);
           
           console.log('🏠 LOCALSTORAGE: Using cached agenda items from localStorage');
           console.log('🏠 LOCALSTORAGE: Found', data.length, 'cached agenda items');
@@ -190,8 +193,14 @@ export class AgendaService implements IAgendaService {
       const all = await this.apiGet<AgendaItem[]>(this.basePath);
       const data = all
         .filter(item => (item as any).is_active)
-        .sort((a, b) => (a.date || '').localeCompare(b.date || ''))
-        .sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
+        .sort((a, b) => {
+          // First sort by date
+          const dateComparison = (a.date || '').localeCompare(b.date || '')
+          if (dateComparison !== 0) return dateComparison
+          
+          // Then sort by start time
+          return (a.start_time || '').localeCompare(b.start_time || '')
+        });
       console.log('🌐 API: Fetched', data.length, 'agenda items from API');
       return {
         data,

@@ -193,8 +193,7 @@ const InstallPrompt: React.FC<InstallPromptProps> = ({ onInstall, onDismiss, pla
         border: '1px solid #D9DBDC',
         borderRadius: '12px',
         padding: '20px',
-        boxShadow: '0 4px 12px rgba(14,24,33,0.08)',
-        zIndex: 1000
+        boxShadow: '0 4px 12px rgba(14,24,33,0.08)'
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
