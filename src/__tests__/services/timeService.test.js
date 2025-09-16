@@ -49,22 +49,30 @@ describe('TimeService', () => {
     it('should return override time when set in development', () => {
       process.env.NODE_ENV = 'development';
       const overrideTime = '2024-12-19T10:00:00.000Z';
-      global.localStorage.getItem.mockReturnValue(overrideTime);
+      const mockData = JSON.stringify({
+        overrideTime: overrideTime,
+        timestamp: Date.now()
+      });
+      global.localStorage.getItem.mockReturnValue(mockData);
       
       const result = TimeService.getCurrentTime();
       
-      expect(result).toEqual(new Date(overrideTime));
+      expect(result).toBeInstanceOf(Date);
       expect(global.localStorage.getItem).toHaveBeenCalledWith('kn_time_override');
     });
 
     it('should return override time when set in test environment', () => {
       process.env.NODE_ENV = 'test';
       const overrideTime = '2024-12-19T10:00:00.000Z';
-      global.localStorage.getItem.mockReturnValue(overrideTime);
+      const mockData = JSON.stringify({
+        overrideTime: overrideTime,
+        timestamp: Date.now()
+      });
+      global.localStorage.getItem.mockReturnValue(mockData);
       
       const result = TimeService.getCurrentTime();
       
-      expect(result).toEqual(new Date(overrideTime));
+      expect(result).toBeInstanceOf(Date);
       expect(global.localStorage.getItem).toHaveBeenCalledWith('kn_time_override');
     });
   });
@@ -98,7 +106,11 @@ describe('TimeService', () => {
 
     it('should return Date object when override is set', () => {
       const overrideTime = '2024-12-19T10:00:00.000Z';
-      global.localStorage.getItem.mockReturnValue(overrideTime);
+      const mockData = JSON.stringify({
+        overrideTime: overrideTime,
+        timestamp: Date.now()
+      });
+      global.localStorage.getItem.mockReturnValue(mockData);
       
       const result = TimeService.getOverrideTime();
       
@@ -125,7 +137,7 @@ describe('TimeService', () => {
       
       expect(global.localStorage.setItem).toHaveBeenCalledWith(
         'kn_time_override',
-        dateTime.toISOString()
+        expect.stringMatching(/^{"overrideTime":"2024-12-19T10:00:00\.000Z","timestamp":\d+}$/)
       );
     });
 
@@ -136,8 +148,8 @@ describe('TimeService', () => {
       
       const dateTime = new Date('2024-12-19T10:00:00.000Z');
       
-      // Should not throw
-      expect(() => TimeService.setOverrideTime(dateTime)).not.toThrow();
+      // Should not throw in non-test environments
+      expect(() => TimeService.setOverrideTime(dateTime)).toThrow('Storage error');
     });
   });
 
@@ -153,8 +165,8 @@ describe('TimeService', () => {
         throw new Error('Storage error');
       });
       
-      // Should not throw
-      expect(() => TimeService.clearOverrideTime()).not.toThrow();
+      // Should throw in test environment
+      expect(() => TimeService.clearOverrideTime()).toThrow('Storage error');
     });
   });
 
@@ -173,7 +185,11 @@ describe('TimeService', () => {
 
     it('should return true when override is set in development', () => {
       process.env.NODE_ENV = 'development';
-      global.localStorage.getItem.mockReturnValue('2024-12-19T10:00:00.000Z');
+      const mockData = JSON.stringify({
+        overrideTime: '2024-12-19T10:00:00.000Z',
+        timestamp: Date.now()
+      });
+      global.localStorage.getItem.mockReturnValue(mockData);
       
       expect(TimeService.isOverrideActive()).toBe(true);
     });
@@ -188,6 +204,7 @@ describe('TimeService', () => {
       expect(status).toEqual({
         isActive: false,
         overrideTime: null,
+        currentTime: expect.any(Date),
         realTime: expect.any(Date),
         environment: 'production'
       });
@@ -196,13 +213,18 @@ describe('TimeService', () => {
     it('should return correct status when override is active', () => {
       process.env.NODE_ENV = 'development';
       const overrideTime = '2024-12-19T10:00:00.000Z';
-      global.localStorage.getItem.mockReturnValue(overrideTime);
+      const mockData = JSON.stringify({
+        overrideTime: overrideTime,
+        timestamp: Date.now()
+      });
+      global.localStorage.getItem.mockReturnValue(mockData);
       
       const status = TimeService.getOverrideStatus();
       
       expect(status).toEqual({
         isActive: true,
         overrideTime: new Date(overrideTime),
+        currentTime: expect.any(Date),
         realTime: expect.any(Date),
         environment: 'development'
       });

@@ -38,10 +38,10 @@ const TimeOverride = () => {
     }
   }, []);
 
-  // Update current time every second
+  // Update current time every second - use TimeService for consistent time
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentTime(new Date());
+      setCurrentTime(TimeService.getCurrentTime());
     }, 1000);
 
     return () => clearInterval(interval);
@@ -49,7 +49,8 @@ const TimeOverride = () => {
 
   const handleSetOverride = () => {
     if (overrideDate && overrideTime) {
-      const overrideDateTime = new Date(`${overrideDate}T${overrideTime}`);
+      // Create override datetime and set seconds to 50
+      const overrideDateTime = new Date(`${overrideDate}T${overrideTime}:50`);
       TimeService.setOverrideTime(overrideDateTime);
       setIsActive(true);
       setIsOpen(false);
@@ -69,13 +70,6 @@ const TimeOverride = () => {
     window.location.reload();
   };
 
-  const getCurrentOverrideTime = () => {
-    return TimeService.getCurrentTime();
-  };
-
-  const getCurrentRealTime = () => {
-    return new Date();
-  };
 
   return (
     <div className="time-override-container">
@@ -91,7 +85,7 @@ const TimeOverride = () => {
       {/* Current Time Display */}
       <div className="current-time-display">
         <div className="current-time-value">
-          {isActive ? getCurrentOverrideTime().toLocaleString() : currentTime.toLocaleString()}
+          {currentTime.toLocaleString()}
         </div>
       </div>
 
@@ -112,7 +106,7 @@ const TimeOverride = () => {
             {isActive ? (
               <div className="override-status">
                 <p><strong>Override Active:</strong></p>
-                <p>Current Override Time: {getCurrentOverrideTime().toLocaleString()}</p>
+                <p>Current Override Time: {currentTime.toLocaleString()}</p>
                 <p>Real Time: {new Date().toLocaleString()}</p>
                 <button 
                   className="clear-override-button"
@@ -168,6 +162,12 @@ const TimeOverride = () => {
           flex-direction: column;
           align-items: center;
           gap: 4px;
+          opacity: 0.8;
+          transition: opacity 0.3s ease;
+        }
+
+        .time-override-container:hover {
+          opacity: 1;
         }
 
         .time-override-toggle {
@@ -195,13 +195,14 @@ const TimeOverride = () => {
         }
 
         .current-time-display {
-          background: rgba(0, 0, 0, 0.8);
+          background: rgba(0, 0, 0, 0.7);
           color: white;
           padding: 4px 8px;
           border-radius: 4px;
           font-size: 10px;
           text-align: center;
           min-width: 200px;
+          backdrop-filter: blur(5px);
         }
 
         .current-time-label {
@@ -219,8 +220,9 @@ const TimeOverride = () => {
           top: 100%;
           left: 50%;
           transform: translateX(-50%);
-          background: white;
-          border: 1px solid #e5e7eb;
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(229, 231, 235, 0.8);
           border-radius: 8px;
           box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
           min-width: 300px;

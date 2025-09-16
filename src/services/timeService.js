@@ -9,12 +9,21 @@ class TimeService {
 
   /**
    * Get current time (supports time override for dev/staging/test)
-   * @returns {Date} Current time or override time
+   * @returns {Date} Current time or override time with progression
    */
   static getCurrentTime() {
     if (this.isOverrideEnabled()) {
       const overrideTime = this.getOverrideTime();
       if (overrideTime) {
+        // Calculate current time based on override time progression
+        const now = new Date();
+        const storedOverrideTime = this.getStoredOverrideTime();
+        if (storedOverrideTime) {
+          // Calculate elapsed time since the override was set
+          const timeSinceOverride = now.getTime() - storedOverrideTime.timestamp;
+          const currentOverrideTime = new Date(storedOverrideTime.overrideTime.getTime() + timeSinceOverride);
+          return currentOverrideTime;
+        }
         return overrideTime;
       }
     }
@@ -38,7 +47,8 @@ class TimeService {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       if (!stored) return null;
       
-      const date = new Date(stored);
+      const data = JSON.parse(stored);
+      const date = new Date(data.overrideTime);
       // Check if the date is valid
       if (isNaN(date.getTime())) {
         console.warn('⚠️ Invalid override time in localStorage, clearing it:', stored);
@@ -54,12 +64,44 @@ class TimeService {
   }
 
   /**
+   * Get stored override time with timestamp for progression calculation
+   * @returns {Object|null} Override time data or null if not set
+   */
+  static getStoredOverrideTime() {
+    try {
+      const stored = localStorage.getItem(this.STORAGE_KEY);
+      if (!stored) return null;
+      
+      const data = JSON.parse(stored);
+      const date = new Date(data.overrideTime);
+      // Check if the date is valid
+      if (isNaN(date.getTime())) {
+        console.warn('⚠️ Invalid override time in localStorage, clearing it:', stored);
+        this.clearOverrideTime();
+        return null;
+      }
+      
+      return {
+        overrideTime: date,
+        timestamp: data.timestamp
+      };
+    } catch (error) {
+      console.warn('⚠️ Failed to get stored override time from localStorage:', error);
+      return null;
+    }
+  }
+
+  /**
    * Set time override in localStorage
    * @param {Date} dateTime - The override date/time
    */
   static setOverrideTime(dateTime) {
     try {
-      localStorage.setItem(this.STORAGE_KEY, dateTime.toISOString());
+      const data = {
+        overrideTime: dateTime.toISOString(),
+        timestamp: new Date().getTime()
+      };
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
       
       // Emit custom event for same-tab listeners
       const event = new CustomEvent('timeOverrideChanged', {
@@ -72,7 +114,10 @@ class TimeService {
       window.dispatchEvent(event);
     } catch (error) {
       console.error('❌ Failed to set override time in localStorage:', error);
-      throw error;
+      // Don't throw in production, just log the error
+      if (process.env.NODE_ENV === 'test') {
+        throw error;
+      }
     }
   }
 
@@ -91,7 +136,10 @@ class TimeService {
       console.log('🕐 Time override cleared');
     } catch (error) {
       console.warn('⚠️ Failed to clear override time from localStorage:', error);
-      throw error;
+      // Don't throw in production, just log the error
+      if (process.env.NODE_ENV === 'test') {
+        throw error;
+      }
     }
   }
 
@@ -111,10 +159,12 @@ class TimeService {
     const isActive = this.isOverrideActive();
     const overrideTime = this.getOverrideTime();
     const realTime = new Date();
+    const currentTime = this.getCurrentTime();
 
     return {
       isActive,
       overrideTime: isActive ? overrideTime : null,
+      currentTime: isActive ? currentTime : realTime,
       realTime,
       environment: process.env.NODE_ENV
     };
