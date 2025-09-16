@@ -50,6 +50,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Initialize server-side data sync service
   const [dataSyncService] = useState(() => serverDataSyncService)
 
+  // Function to clear all cached data on authentication failure
+  const clearCachedData = useCallback(() => {
+    try {
+      console.log('🧹 Clearing cached data due to authentication failure...')
+      
+      // Clear all kn_cache_ keys from localStorage
+      const keysToRemove = []
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i)
+        if (key && key.startsWith('kn_cache_')) {
+          keysToRemove.push(key)
+        }
+      }
+      
+      keysToRemove.forEach(key => {
+        localStorage.removeItem(key)
+        console.log(`🧹 Removed cached data: ${key}`)
+      })
+      
+      // Clear authentication state
+      localStorage.removeItem('conference_auth')
+      console.log('🧹 Cleared authentication state')
+      
+      console.log('✅ All cached data cleared')
+    } catch (error) {
+      console.warn('⚠️ Error clearing cached data:', error)
+    }
+  }, [])
+
   const checkAuthStatus = useCallback(() => {
     try {
       const authStatus = getAuthStatus()
@@ -83,63 +112,69 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       console.log('🔄 Starting authentication process...')
       
-      // Step 1: Try admin authentication to get all data (bypass RLS)
-      console.log('🔐 Step 1: Attempting admin authentication for data access...')
+      // Step 1: Authenticate with the auth service FIRST (validate access code)
+      console.log('🔐 Step 1: Authenticating with access code...')
+      const authResult = await authenticateWithAccessCode(accessCode)
+      
+      // Step 2: Only proceed with data sync if authentication is successful
+      if (!authResult.success || !authResult.attendee) {
+        console.log('❌ Authentication failed, no data will be synced')
+        // Clear any cached data to prevent data leakage
+        clearCachedData()
+        return {
+          success: false,
+          error: authResult.error || 'Authentication failed'
+        }
+      }
+      
+      // Step 3: Now that we're authenticated, sync data for offline use
+      console.log('🔐 Step 2: Authentication successful, syncing data for offline use...')
       let syncResult = null
       try {
         syncResult = await serverDataSyncService.syncAllData()
         console.log('✅ Admin data sync completed:', syncResult)
         
         if (!syncResult.success) {
-          console.warn('⚠️ Admin data sync failed, continuing with basic authentication:', syncResult.errors)
+          console.warn('⚠️ Admin data sync failed, but authentication succeeded:', syncResult.errors)
         }
       } catch (syncError) {
-        console.warn('⚠️ Admin data sync error, continuing with basic authentication:', syncError)
-        // Continue with basic authentication even if admin sync fails
+        console.warn('⚠️ Admin data sync error, but authentication succeeded:', syncError)
+        // Authentication succeeded, but data sync failed - still allow login
       }
       
-      // Step 2: Authenticate with the auth service (this also validates the access code)
-      console.log('🔐 Step 2: Authenticating with access code...')
-      const authResult = await authenticateWithAccessCode(accessCode)
+      // Set authentication state (we already validated authResult.success above)
+      console.log('🔄 Setting authentication state to true...')
+      setIsAuthenticated(true)
+      setAttendee(authResult.attendee)
       
-      if (authResult.success && authResult.attendee) {
-        // Set authentication state immediately
-        console.log('🔄 Setting authentication state to true...')
-        setIsAuthenticated(true)
-        setAttendee(authResult.attendee)
-        
-        // Load attendee name from the newly cached info
-        const cachedName = attendeeInfoService.getAttendeeName()
-        setAttendeeName(cachedName)
-        
-        console.log('✅ Authentication successful!')
-        console.log('👤 Attendee identified:', `${authResult.attendee.first_name} ${authResult.attendee.last_name}`)
-        if (syncResult?.success) {
-          console.log('📊 Data synced for offline use')
-        } else {
-          console.log('⚠️ Using basic authentication (offline data may be limited)')
-        }
-        console.log('👤 Attendee name cached for easy access:', cachedName?.full_name)
-
-        // Navigate to home page after successful authentication
-        // Use setTimeout to ensure state update completes before navigation
-        setTimeout(() => {
-          // Use window.location for navigation to work in all contexts
-          // Check if window is available (not in test environment)
-          if (typeof window !== 'undefined' && window.location.pathname === '/login') {
-            window.location.href = '/'
-          }
-        }, 100)
-
-        return { success: true }
+      // Load attendee name from the newly cached info
+      const cachedName = attendeeInfoService.getAttendeeName()
+      setAttendeeName(cachedName)
+      
+      console.log('✅ Authentication successful!')
+      console.log('👤 Attendee identified:', `${authResult.attendee.first_name} ${authResult.attendee.last_name}`)
+      if (syncResult?.success) {
+        console.log('📊 Data synced for offline use')
       } else {
-        setIsAuthenticated(false)
-        setAttendee(null)
-        setAttendeeName(null)
-        return { success: false, error: authResult.error || 'Invalid access code. Please try again or ask at the registration desk for help.' }
+        console.log('⚠️ Using basic authentication (offline data may be limited)')
       }
+      console.log('👤 Attendee name cached for easy access:', cachedName?.full_name)
+
+      // Navigate to home page after successful authentication
+      // Use setTimeout to ensure state update completes before navigation
+      setTimeout(() => {
+        // Use window.location for navigation to work in all contexts
+        // Check if window is available (not in test environment)
+        if (typeof window !== 'undefined' && window.location.pathname === '/login') {
+          window.location.href = '/'
+        }
+      }, 100)
+
+      return { success: true }
     } catch (error) {
       console.warn('⚠️ Authentication error, using fallback:', error)
+      // Clear any cached data to prevent data leakage
+      clearCachedData()
       setIsAuthenticated(false)
       setAttendee(null)
       setAttendeeName(null)
