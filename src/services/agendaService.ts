@@ -172,7 +172,8 @@ export class AgendaService implements IAgendaService {
             .sort((a: any, b: any) => (a.date || '').localeCompare(b.date || ''))
             .sort((a: any, b: any) => (a.start_time || '').localeCompare(b.start_time || ''));
           
-          console.log('✅ Using cached agenda items from localStorage');
+          console.log('🏠 LOCALSTORAGE: Using cached agenda items from localStorage');
+          console.log('🏠 LOCALSTORAGE: Found', data.length, 'cached agenda items');
           return {
             data,
             count: data.length,
@@ -185,12 +186,13 @@ export class AgendaService implements IAgendaService {
       }
       
       // FALLBACK: API call if no cached data exists
-      console.log('🌐 No cached agenda items found, fetching from API...');
+      console.log('🌐 API: No cached agenda items found, fetching from API...');
       const all = await this.apiGet<AgendaItem[]>(this.basePath);
       const data = all
         .filter(item => (item as any).is_active)
         .sort((a, b) => (a.date || '').localeCompare(b.date || ''))
         .sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
+      console.log('🌐 API: Fetched', data.length, 'agenda items from API');
       return {
         data,
         count: data.length,

@@ -7,6 +7,7 @@
  * CRITICAL: READ-ONLY DATABASE ACCESS - We cannot modify any data
  */
 
+
 // NOTE: All data access must go through server-side authenticated endpoints
 // to comply with RLS. Do not use the Supabase anon client from the browser.
 import { isUserAuthenticated } from './authService'
@@ -81,7 +82,8 @@ export const getAllAttendees = async (): Promise<Attendee[]> => {
         const cacheObj = JSON.parse(cachedData)
         const attendees = cacheObj.data || cacheObj
         if (Array.isArray(attendees) && attendees.length > 0) {
-          console.log('✅ Using cached attendees data from localStorage')
+          console.log('🏠 LOCALSTORAGE: Using cached attendees data from localStorage')
+          console.log('🏠 LOCALSTORAGE: Found', attendees.length, 'cached attendees')
           // Ensure stable ordering for UI
           return [...attendees].sort((a, b) => (a.last_name || '').localeCompare(b.last_name || ''))
         }
@@ -91,8 +93,9 @@ export const getAllAttendees = async (): Promise<Attendee[]> => {
     }
     
     // FALLBACK: API call if no cached data exists
-    console.log('🌐 No cached data found, fetching from API...')
+    console.log('🌐 API: No cached data found, fetching from API...')
     const data = await apiGet<Attendee[]>('/api/attendees')
+    console.log('🌐 API: Fetched', data.length, 'attendees from API')
     // Ensure stable ordering for UI
     return [...data].sort((a, b) => (a.last_name || '').localeCompare(b.last_name || ''))
   } catch (error) {
@@ -121,7 +124,8 @@ export const getCurrentAttendeeData = async (): Promise<Attendee | null> => {
         const attendees = cacheObj.data || cacheObj
         const cachedAttendee = attendees.find((a: Attendee) => a.id === current.id)
         if (cachedAttendee) {
-          console.log('✅ Using cached attendee data from localStorage')
+          console.log('🏠 LOCALSTORAGE: Using cached attendee data from localStorage')
+          console.log('🏠 LOCALSTORAGE: Found attendee:', { id: cachedAttendee.id, name: `${cachedAttendee.first_name} ${cachedAttendee.last_name}` })
           return cachedAttendee
         }
       }
@@ -129,10 +133,38 @@ export const getCurrentAttendeeData = async (): Promise<Attendee | null> => {
       console.warn('⚠️ Failed to load cached attendee data:', cacheError)
     }
     
-    // FALLBACK: API call if no cached data exists
-    console.log('🌐 No cached data found, fetching from API...')
-    const data = await apiGet<Attendee>(`/api/attendees/${current.id}`)
-    return data
+    // FALLBACK: Use same API endpoint as login for consistency
+    try {
+      console.log('🌐 API FALLBACK: No cached data found, fetching from API...')
+      console.log('🌐 API FALLBACK: Current attendee ID:', current.id)
+      console.log('🌐 API FALLBACK: Attempting to fetch from /api/attendees')
+      
+      const allAttendees = await apiGet<Attendee[]>('/api/attendees')
+      console.log('🌐 API FALLBACK: API response received:', Array.isArray(allAttendees) ? `${allAttendees.length} attendees` : 'Not an array')
+      
+      // Ensure we have an array before calling find
+      if (Array.isArray(allAttendees)) {
+        const attendee = allAttendees.find(a => a.id === current.id)
+        if (attendee) {
+          console.log('🌐 API SUCCESS: Found attendee using API endpoint')
+          console.log('🌐 API SUCCESS: Found attendee:', { id: attendee.id, name: `${attendee.first_name} ${attendee.last_name}` })
+          return attendee
+        } else {
+          console.log('🌐 API FAILED: Attendee not found in API response')
+          console.log('🌐 API FAILED: Available attendee IDs:', allAttendees.map(a => a.id))
+        }
+      } else {
+        console.log('🌐 API FAILED: Response is not an array')
+      }
+    } catch (apiError) {
+      console.warn('🌐 API ERROR:', apiError)
+      console.log('🌐 API ERROR: Details:', apiError)
+    }
+    
+    // FINAL FALLBACK: Use auth state data if API also fails
+    console.log('🔄 FALLBACK: Using attendee data from auth state (final fallback)')
+    console.log('🔄 FALLBACK: Using basic attendee data:', { id: current.id, name: `${current.first_name} ${current.last_name}` })
+    return current as Attendee
     
   } catch (error) {
     console.error('❌ Error fetching current attendee:', error)
@@ -258,7 +290,8 @@ export const getAttendeeSeatAssignments = async (attendeeId: string): Promise<Se
         // Handle both direct array format and wrapped format
         const seatAssignments = cacheObj.data || cacheObj
         const attendeeSeats = seatAssignments.filter((seat: SeatAssignment) => seat.attendee_id === attendeeId)
-        console.log('✅ Using cached seat assignments from localStorage')
+        console.log('🏠 LOCALSTORAGE: Using cached seat assignments from localStorage')
+        console.log('🏠 LOCALSTORAGE: Found', attendeeSeats.length, 'seat assignments for attendee', attendeeId)
         return attendeeSeats // Return even if empty array
       }
     } catch (cacheError) {
@@ -266,8 +299,9 @@ export const getAttendeeSeatAssignments = async (attendeeId: string): Promise<Se
     }
     
     // FALLBACK: API call if no cached data exists
-    console.log('🌐 No cached seat assignments found, fetching from API...')
+    console.log('🌐 API: No cached seat assignments found, fetching from API...')
     const data = await apiGet<SeatAssignment[]>(`/api/attendees/${attendeeId}/seat-assignments`)
+    console.log('🌐 API: Fetched', data.length, 'seat assignments from API for attendee', attendeeId)
     return data
   } catch (error) {
     console.error('❌ Error fetching seat assignments:', error)

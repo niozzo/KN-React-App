@@ -31,12 +31,22 @@ class TimeService {
 
   /**
    * Get stored override time from localStorage
-   * @returns {Date|null} Override time or null if not set
+   * @returns {Date|null} Override time or null if not set or invalid
    */
   static getOverrideTime() {
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY);
-      return stored ? new Date(stored) : null;
+      if (!stored) return null;
+      
+      const date = new Date(stored);
+      // Check if the date is valid
+      if (isNaN(date.getTime())) {
+        console.warn('⚠️ Invalid override time in localStorage, clearing it:', stored);
+        this.clearOverrideTime();
+        return null;
+      }
+      
+      return date;
     } catch (error) {
       console.warn('⚠️ Failed to get override time from localStorage:', error);
       return null;
