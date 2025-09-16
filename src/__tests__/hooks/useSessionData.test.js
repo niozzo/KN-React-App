@@ -78,12 +78,13 @@ describe('useSessionData Hook', () => {
     getCurrentAttendeeData.mockResolvedValue(mockAttendee);
     getAttendeeSeatAssignments.mockResolvedValue([]);
     
-    // Mock localStorage
+    // Mock localStorage with actual storage
+    const mockStorage = {};
     Object.defineProperty(window, 'localStorage', {
       value: {
-        getItem: vi.fn(),
-        setItem: vi.fn(),
-        removeItem: vi.fn()
+        getItem: vi.fn((key) => mockStorage[key] || null),
+        setItem: vi.fn((key, value) => { mockStorage[key] = value; }),
+        removeItem: vi.fn((key) => { delete mockStorage[key]; })
       },
       writable: true
     });
@@ -283,13 +284,18 @@ describe('useSessionData Hook', () => {
       
       const initialLastUpdated = result.current.lastUpdated;
       
+      // Wait a bit to ensure different timestamp
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 10));
+      });
+      
       // Manual refresh
       act(() => {
         result.current.refresh();
       });
       
       await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 0));
+        await new Promise(resolve => setTimeout(resolve, 10));
       });
       
       expect(result.current.lastUpdated).not.toEqual(initialLastUpdated);
@@ -309,7 +315,7 @@ describe('useSessionData Hook', () => {
       const { result } = renderHook(() => useSessionData());
       
       await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 0));
+        await new Promise(resolve => setTimeout(resolve, 50));
       });
       
       // Should detect current session based on override time

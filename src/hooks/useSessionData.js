@@ -140,7 +140,7 @@ export const useSessionData = (options = {}) => {
 
       // Enhance sessions with seat assignment data
       const enhanceSessionWithSeatInfo = (session) => {
-        if (!session || !seatAssignments.length) return session;
+        if (!session || !seatAssignments.length) return session || null;
         
         // Find seat assignment for this session (if any)
         const seatAssignment = seatAssignments.find(seat => 
@@ -157,8 +157,8 @@ export const useSessionData = (options = {}) => {
         };
       };
 
-      setCurrentSession(enhanceSessionWithSeatInfo(activeSession));
-      setNextSession(enhanceSessionWithSeatInfo(upcomingSession));
+      setCurrentSession(enhanceSessionWithSeatInfo(activeSession) || null);
+      setNextSession(enhanceSessionWithSeatInfo(upcomingSession) || null);
 
     } catch (err) {
       console.error('❌ Error loading session data:', err);
