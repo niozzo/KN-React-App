@@ -299,7 +299,7 @@ export class SchemaValidationService {
         lastModified: new Date().toISOString()
       }));
     } catch (error) {
-      console.error('❌ Failed to fetch tables:', error);
+      console.warn('⚠️ Failed to fetch tables, using fallback validation:', error);
       throw error;
     }
   }

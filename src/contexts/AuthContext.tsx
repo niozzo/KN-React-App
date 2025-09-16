@@ -50,16 +50,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Initialize server-side data sync service
   const [dataSyncService] = useState(() => serverDataSyncService)
 
-  // Check authentication status on mount - only if not already authenticated
-  useEffect(() => {
-    // Only check auth status if we don't already have it
-    // This prevents race conditions with login state updates
-    if (!isAuthenticated) {
-      checkAuthStatus()
-    }
-  }, [isAuthenticated])
-
-  const checkAuthStatus = () => {
+  const checkAuthStatus = useCallback(() => {
     try {
       const authStatus = getAuthStatus()
       setIsAuthenticated(authStatus.isAuthenticated)
@@ -70,14 +61,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const cachedName = attendeeInfoService.getAttendeeName()
       setAttendeeName(cachedName)
     } catch (error) {
-      console.error('❌ Error checking auth status:', error)
+      console.warn('⚠️ Error checking auth status, using defaults:', error)
       setIsAuthenticated(false)
       setAttendee(null)
       setAttendeeName(null)
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [])
+
+  // Check authentication status on mount - only if not already authenticated
+  useEffect(() => {
+    // Only check auth status if we don't already have it
+    // This prevents race conditions with login state updates
+    if (!isAuthenticated) {
+      checkAuthStatus()
+    }
+  }, [isAuthenticated, checkAuthStatus])
 
   const login = async (accessCode: string): Promise<{ success: boolean; error?: string }> => {
     try {
@@ -98,31 +98,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Continue with basic authentication even if admin sync fails
       }
       
-      // Step 2: Use attendee access code for user identification
-      console.log('🔐 Step 2: Validating attendee access code...')
-      const result = await dataSyncService.lookupAttendeeByAccessCode(accessCode)
+      // Step 2: Authenticate with the auth service (this also validates the access code)
+      console.log('🔐 Step 2: Authenticating with access code...')
+      const authResult = await authenticateWithAccessCode(accessCode)
       
-      // Step 2.5: Authenticate with the auth service to set the global auth state
-      if (result.success && result.attendee) {
-        console.log('🔐 Step 2.5: Setting global authentication state...')
-        const authResult = await authenticateWithAccessCode(accessCode)
-        if (!authResult.success) {
-          console.warn('⚠️ Failed to set global auth state, but attendee lookup succeeded')
-        }
-      }
-      
-      if (result.success && result.attendee) {
+      if (authResult.success && authResult.attendee) {
         // Set authentication state immediately
         console.log('🔄 Setting authentication state to true...')
         setIsAuthenticated(true)
-        setAttendee(result.attendee)
+        setAttendee(authResult.attendee)
         
         // Load attendee name from the newly cached info
         const cachedName = attendeeInfoService.getAttendeeName()
         setAttendeeName(cachedName)
         
         console.log('✅ Authentication successful!')
-        console.log('👤 Attendee identified:', `${result.attendee.first_name} ${result.attendee.last_name}`)
+        console.log('👤 Attendee identified:', `${authResult.attendee.first_name} ${authResult.attendee.last_name}`)
         if (syncResult?.success) {
           console.log('📊 Data synced for offline use')
         } else {
@@ -134,7 +125,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Use setTimeout to ensure state update completes before navigation
         setTimeout(() => {
           // Use window.location for navigation to work in all contexts
-          if (window.location.pathname === '/login') {
+          // Check if window is available (not in test environment)
+          if (typeof window !== 'undefined' && window.location.pathname === '/login') {
             window.location.href = '/'
           }
         }, 100)
@@ -144,10 +136,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setIsAuthenticated(false)
         setAttendee(null)
         setAttendeeName(null)
-        return { success: false, error: result.error || 'Invalid access code. Please try again or ask at the registration desk for help.' }
+        return { success: false, error: authResult.error || 'Invalid access code. Please try again or ask at the registration desk for help.' }
       }
     } catch (error) {
-      console.error('❌ Authentication error:', error)
+      console.warn('⚠️ Authentication error, using fallback:', error)
       setIsAuthenticated(false)
       setAttendee(null)
       setAttendeeName(null)
@@ -210,7 +202,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return { success: true }
       
     } catch (error) {
-      console.error('❌ Sign-out error:', error)
+      console.warn('⚠️ Sign-out error, clearing auth state anyway:', error)
       
       // Even if data clearing failed, still clear authentication state
       console.log('🔐 Clearing authentication state despite data clearing failure...')

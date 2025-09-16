@@ -10,20 +10,20 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { AuthProvider, LoginPage } from '../../contexts/AuthContext'
-import { getAuthStatus } from '../../services/authService'
+import { getAuthStatus, authenticateWithAccessCode } from '../../services/authService'
 import { serverDataSyncService } from '../../services/serverDataSyncService'
 import React from 'react'
 
 // Mock the auth service
 vi.mock('../../services/authService', () => ({
-  getAuthStatus: vi.fn()
+  getAuthStatus: vi.fn(),
+  authenticateWithAccessCode: vi.fn()
 }))
 
 // Mock the server data sync service
 vi.mock('../../services/serverDataSyncService', () => ({
   serverDataSyncService: {
-    syncAllData: vi.fn(),
-    lookupAttendeeByAccessCode: vi.fn()
+    syncAllData: vi.fn()
   }
 }))
 
@@ -33,12 +33,63 @@ const TEST_DATA = {
   INVALID_ACCESS_CODE: 'INVALI',
   MOCK_ATTENDEE: {
     id: '1',
+    created_at: '2024-01-01T00:00:00Z',
+    updated_at: '2024-01-01T00:00:00Z',
+    salutation: 'Mr.',
     first_name: 'John',
     last_name: 'Doe',
     email: 'john@example.com',
+    title: 'Developer',
     company: 'Test Corp',
-    access_code: 'ABC123'
-  }
+    bio: '',
+    photo: '',
+    business_phone: '555-1234',
+    mobile_phone: '555-1234',
+    address1: '123 Main St',
+    address2: '',
+    postal_code: '12345',
+    city: 'Test City',
+    state: 'Test State',
+    country: 'Test Country',
+    country_code: 'TC',
+    check_in_date: '2024-01-01',
+    check_out_date: '2024-01-02',
+    hotel_selection: 'test-hotel',
+    custom_hotel: '',
+    room_type: 'King',
+    registration_id: 'REG123',
+    registration_status: 'confirmed',
+    access_code: 'ABC123',
+    has_spouse: false,
+    spouse_details: {
+      email: '',
+      lastName: '',
+      firstName: '',
+      salutation: '',
+      mobilePhone: '',
+      dietaryRequirements: ''
+    },
+    dining_selections: {},
+    selected_breakouts: [],
+    dietary_requirements: '',
+    attributes: {
+      ceo: false,
+      apaxIP: false,
+      spouse: false,
+      apaxOEP: false,
+      speaker: false,
+      cLevelExec: false,
+      sponsorAttendee: false,
+      otherAttendeeType: false,
+      portfolioCompanyExecutive: false
+    },
+    is_cfo: false,
+    is_apax_ep: false,
+    assistant_name: '',
+    assistant_email: '',
+    idloom_id: '',
+    last_synced_at: '2024-01-01T00:00:00Z'
+  } as any
 }
 
 describe('LoginPage - Integration Tests', () => {
@@ -55,13 +106,14 @@ describe('LoginPage - Integration Tests', () => {
 
   describe('Complete Login Flow', () => {
     it('should complete full successful login flow from input to authentication', async () => {
-      // Mock successful data sync and attendee lookup
+      // Mock successful data sync and authentication
       vi.mocked(serverDataSyncService.syncAllData).mockResolvedValue({
         success: true,
         syncedTables: ['attendees', 'sponsors'],
-        totalRecords: 100
+        totalRecords: 100,
+        errors: []
       })
-      vi.mocked(serverDataSyncService.lookupAttendeeByAccessCode).mockResolvedValue({
+      vi.mocked(authenticateWithAccessCode).mockResolvedValue({
         success: true,
         attendee: TEST_DATA.MOCK_ATTENDEE
       })
@@ -90,10 +142,10 @@ describe('LoginPage - Integration Tests', () => {
       // 5. Verify input is dimmed during loading
       expect(input).toHaveStyle({ opacity: '0.7' })
 
-      // 6. Verify data sync and attendee lookup were called
+      // 6. Verify data sync and authentication were called
       await waitFor(() => {
         expect(vi.mocked(serverDataSyncService.syncAllData)).toHaveBeenCalled()
-        expect(vi.mocked(serverDataSyncService.lookupAttendeeByAccessCode)).toHaveBeenCalledWith(TEST_DATA.VALID_ACCESS_CODE)
+        expect(vi.mocked(authenticateWithAccessCode)).toHaveBeenCalledWith(TEST_DATA.VALID_ACCESS_CODE)
       }, { timeout: 2000 })
 
       // 7. Verify loading spinner disappears after authentication
@@ -103,13 +155,14 @@ describe('LoginPage - Integration Tests', () => {
     })
 
     it('should complete full failed login flow with error display', async () => {
-      // Mock successful data sync but failed attendee lookup
+      // Mock successful data sync but failed authentication
       vi.mocked(serverDataSyncService.syncAllData).mockResolvedValue({
         success: true,
         syncedTables: ['attendees', 'sponsors'],
-        totalRecords: 100
+        totalRecords: 100,
+        errors: []
       })
-      vi.mocked(serverDataSyncService.lookupAttendeeByAccessCode).mockResolvedValue({
+      vi.mocked(authenticateWithAccessCode).mockResolvedValue({
         success: false,
         error: 'Invalid access code'
       })
@@ -136,7 +189,7 @@ describe('LoginPage - Integration Tests', () => {
 
       // Verify services were called
       expect(vi.mocked(serverDataSyncService.syncAllData)).toHaveBeenCalled()
-      expect(vi.mocked(serverDataSyncService.lookupAttendeeByAccessCode)).toHaveBeenCalledWith(TEST_DATA.INVALID_ACCESS_CODE)
+      expect(vi.mocked(authenticateWithAccessCode)).toHaveBeenCalledWith(TEST_DATA.INVALID_ACCESS_CODE)
     })
 
     it('should handle authentication service errors gracefully', async () => {
@@ -165,9 +218,10 @@ describe('LoginPage - Integration Tests', () => {
       vi.mocked(serverDataSyncService.syncAllData).mockResolvedValue({
         success: true,
         syncedTables: ['attendees', 'sponsors'],
-        totalRecords: 100
+        totalRecords: 100,
+        errors: []
       })
-      vi.mocked(serverDataSyncService.lookupAttendeeByAccessCode).mockResolvedValue({
+      vi.mocked(authenticateWithAccessCode).mockResolvedValue({
         success: true,
         attendee: TEST_DATA.MOCK_ATTENDEE
       })
@@ -189,7 +243,7 @@ describe('LoginPage - Integration Tests', () => {
       
       await waitFor(() => {
         expect(vi.mocked(serverDataSyncService.syncAllData)).toHaveBeenCalled()
-        expect(vi.mocked(serverDataSyncService.lookupAttendeeByAccessCode)).toHaveBeenCalledWith(TEST_DATA.VALID_ACCESS_CODE)
+        expect(vi.mocked(authenticateWithAccessCode)).toHaveBeenCalledWith(TEST_DATA.VALID_ACCESS_CODE)
       }, { timeout: 2000 })
     })
 
@@ -218,10 +272,11 @@ describe('LoginPage - Integration Tests', () => {
         new Promise(resolve => setTimeout(() => resolve({
           success: true,
           syncedTables: ['attendees', 'sponsors'],
-          totalRecords: 100
+          totalRecords: 100,
+          errors: []
         }), 100))
       )
-      vi.mocked(serverDataSyncService.lookupAttendeeByAccessCode).mockResolvedValue({
+      vi.mocked(authenticateWithAccessCode).mockResolvedValue({
         success: true,
         attendee: TEST_DATA.MOCK_ATTENDEE
       })
@@ -252,9 +307,10 @@ describe('LoginPage - Integration Tests', () => {
       vi.mocked(serverDataSyncService.syncAllData).mockResolvedValue({
         success: true,
         syncedTables: ['attendees', 'sponsors'],
-        totalRecords: 100
+        totalRecords: 100,
+        errors: []
       })
-      vi.mocked(serverDataSyncService.lookupAttendeeByAccessCode).mockResolvedValue({
+      vi.mocked(authenticateWithAccessCode).mockResolvedValue({
         success: false,
         error: 'Invalid access code'
       })
@@ -281,9 +337,10 @@ describe('LoginPage - Integration Tests', () => {
       vi.mocked(serverDataSyncService.syncAllData).mockResolvedValue({
         success: true,
         syncedTables: ['attendees', 'sponsors'],
-        totalRecords: 100
+        totalRecords: 100,
+        errors: []
       })
-      vi.mocked(serverDataSyncService.lookupAttendeeByAccessCode).mockResolvedValue({
+      vi.mocked(authenticateWithAccessCode).mockResolvedValue({
         success: false,
         error: 'Invalid access code'
       })

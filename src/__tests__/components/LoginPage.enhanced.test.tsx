@@ -42,9 +42,8 @@ describe('LoginPage - Enhanced Functionality', () => {
         attendee: null
       })
 
-      // Mock the data sync service that the AuthContext actually uses
-      const { serverDataSyncService } = await import('../../services/serverDataSyncService')
-      vi.mocked(serverDataSyncService.lookupAttendeeByAccessCode).mockResolvedValue({
+      // Mock the auth service that the AuthContext actually uses
+      vi.mocked(authenticateWithAccessCode).mockResolvedValue({
         success: true,
         attendee: {
           id: '1',
@@ -74,7 +73,7 @@ describe('LoginPage - Enhanced Functionality', () => {
       
       // Wait for auto-submit to trigger (with longer timeout for the 500ms delay)
       await waitFor(() => {
-        expect(serverDataSyncService.lookupAttendeeByAccessCode).toHaveBeenCalledWith('ABC123')
+        expect(authenticateWithAccessCode).toHaveBeenCalledWith('ABC123')
       }, { timeout: 2000 })
       
       // Verify the authentication flow completed successfully
@@ -124,8 +123,7 @@ describe('LoginPage - Enhanced Functionality', () => {
       })
 
       // Mock a delayed response to test loading state
-      const { serverDataSyncService } = await import('../../services/serverDataSyncService')
-      vi.mocked(serverDataSyncService.lookupAttendeeByAccessCode).mockImplementation(() => 
+      vi.mocked(authenticateWithAccessCode).mockImplementation(() => 
         new Promise(resolve => {
           setTimeout(() => {
             resolve({
@@ -170,8 +168,7 @@ describe('LoginPage - Enhanced Functionality', () => {
         attendee: null
       })
 
-      const { serverDataSyncService } = await import('../../services/serverDataSyncService')
-      vi.mocked(serverDataSyncService.lookupAttendeeByAccessCode).mockResolvedValue({
+      vi.mocked(authenticateWithAccessCode).mockResolvedValue({
         success: false,
         error: 'Invalid access code. Please try again or ask at the registration desk for help.'
       })
@@ -201,8 +198,7 @@ describe('LoginPage - Enhanced Functionality', () => {
       })
 
       // First trigger an error with invalid code
-      const { serverDataSyncService } = await import('../../services/serverDataSyncService')
-      vi.mocked(serverDataSyncService.lookupAttendeeByAccessCode).mockResolvedValue({
+      vi.mocked(authenticateWithAccessCode).mockResolvedValue({
         success: false,
         error: 'Invalid access code. Please try again or ask at the registration desk for help.'
       })
@@ -289,10 +285,8 @@ describe('LoginPage - Enhanced Functionality', () => {
         attendee: null
       })
 
-      const { serverDataSyncService } = await import('../../services/serverDataSyncService')
-      
       // Mock successful authentication
-      vi.mocked(serverDataSyncService.lookupAttendeeByAccessCode).mockResolvedValue({
+      vi.mocked(authenticateWithAccessCode).mockResolvedValue({
         success: true,
         attendee: {
           id: '1',
@@ -305,6 +299,7 @@ describe('LoginPage - Enhanced Functionality', () => {
       })
 
       // Mock successful data sync
+      const { serverDataSyncService } = await import('../../services/serverDataSyncService')
       vi.mocked(serverDataSyncService.syncAllData).mockResolvedValue({
         success: true,
         syncedTables: ['attendees', 'sponsors', 'agenda_items'],
@@ -325,7 +320,7 @@ describe('LoginPage - Enhanced Functionality', () => {
       
       // Verify authentication service was called
       await waitFor(() => {
-        expect(serverDataSyncService.lookupAttendeeByAccessCode).toHaveBeenCalledWith('ABC123')
+        expect(authenticateWithAccessCode).toHaveBeenCalledWith('ABC123')
       }, { timeout: 2000 })
       
       // Verify data sync was called

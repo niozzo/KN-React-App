@@ -178,6 +178,43 @@ Tests run automatically on:
 - Test descriptions: `should [expected behavior] when [condition]`
 - Test data: Use descriptive names and realistic values
 
+### Test Output Standards
+**CRITICAL**: Test output must be clear and unambiguous:
+
+- **✅ Green Checkmark**: Test PASSED - functionality works as expected
+- **❌ Red X**: Test FAILED - something is broken and needs fixing
+- **⚠️ Yellow Warning**: Non-critical issues (deprecations, performance notes)
+
+#### Console Output Guidelines
+- **`console.log()`**: Normal application flow, debug info
+- **`console.warn()`**: Non-critical issues, deprecations, performance notes
+- **`console.error()`**: ONLY for actual errors that need immediate attention
+
+#### Error Handling Test Standards
+When testing error scenarios:
+```typescript
+// ❌ WRONG - Don't use console.error for expected test errors
+it('should handle network errors', async () => {
+  mockNetworkError()
+  // This creates confusing red ❌ in test output
+  expect(console.error).toHaveBeenCalledWith('❌ Network error:', error)
+})
+
+// ✅ CORRECT - Use console.warn for expected error scenarios
+it('should handle network errors gracefully', async () => {
+  mockNetworkError()
+  // Use console.warn for expected error handling
+  expect(console.warn).toHaveBeenCalledWith('⚠️ Network error handled gracefully:', error)
+  // Verify the app continues working
+  expect(appState).toBe('recovered')
+})
+```
+
+#### Test Output Expectations
+- **Error Handling Tests**: Should use `console.warn()` not `console.error()`
+- **Actual Failures**: Only use `console.error()` for genuine problems
+- **Test Results**: Green ✅ = pass, Red ❌ = fail (never both)
+
 ### Accessibility Testing
 ```typescript
 import { testAccessibility } from '../utils/test-utils'
