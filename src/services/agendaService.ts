@@ -173,7 +173,7 @@ export class AgendaService implements IAgendaService {
           // Handle both direct array format and wrapped format
           const agendaItems = cacheObj.data || cacheObj;
           const data = agendaItems
-            .filter((item: any) => item.is_active);
+            .filter((item: any) => item.isActive);
           
           console.log('🏠 LOCALSTORAGE: Using cached agenda items from localStorage');
           console.log('🏠 LOCALSTORAGE: Found', data.length, 'cached agenda items');
@@ -192,7 +192,7 @@ export class AgendaService implements IAgendaService {
       console.log('🌐 API: No cached agenda items found, fetching from API...');
       const all = await this.apiGet<AgendaItem[]>(this.basePath);
       const data = all
-        .filter(item => (item as any).is_active)
+        .filter(item => (item as any).isActive)
         .sort((a, b) => {
           // First sort by date
           const dateComparison = (a.date || '').localeCompare(b.date || '')

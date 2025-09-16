@@ -19,10 +19,14 @@ export class AgendaTransformer extends BaseTransformer<AgendaItem> {
       { source: 'location', target: 'location', type: 'string', defaultValue: '' },
       { source: 'type', target: 'session_type', type: 'string', defaultValue: 'general' },
       { source: 'speaker', target: 'speaker_name', type: 'string', defaultValue: '' },
-      { source: 'speaker_title', target: 'speaker_title', type: 'string', defaultValue: '' },
-      { source: 'is_breakout', target: 'isBreakout', type: 'boolean', defaultValue: false },
-      { source: 'capacity', target: 'maxAttendees', type: 'number', defaultValue: null },
+      { source: 'capacity', target: 'capacity', type: 'number', defaultValue: null },
+      { source: 'registered_count', target: 'registered_count', type: 'number', defaultValue: 0 },
+      { source: 'attendee_selection', target: 'attendee_selection', type: 'string', defaultValue: 'everyone' },
+      { source: 'selected_attendees', target: 'selected_attendees', type: 'array', defaultValue: [] },
       { source: 'is_active', target: 'isActive', type: 'boolean', defaultValue: true },
+      { source: 'has_seating', target: 'has_seating', type: 'boolean', defaultValue: false },
+      { source: 'seating_notes', target: 'seating_notes', type: 'string', defaultValue: '' },
+      { source: 'seating_type', target: 'seating_type', type: 'string', defaultValue: 'open' },
       { source: 'created_at', target: 'created_at', type: 'date' },
       { source: 'updated_at', target: 'updated_at', type: 'date' }
     ]
@@ -61,12 +65,11 @@ export class AgendaTransformer extends BaseTransformer<AgendaItem> {
       },
       {
         name: 'speakerInfo',
-        sourceFields: ['speaker_name', 'speaker_title'],
+        sourceFields: ['speaker'],
         computation: (data: any) => {
-          const name = data.speaker_name || ''
-          const title = data.speaker_title || ''
+          const name = data.speaker || ''
           if (!name) return ''
-          return title ? `${name}, ${title}` : name
+          return name
         },
         type: 'string'
       }
@@ -86,19 +89,21 @@ export class AgendaTransformer extends BaseTransformer<AgendaItem> {
         field: 'start_time',
         rule: (value: any) => {
           if (!value) return false
-          const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/
+          // Accept both HH:MM and HH:MM:SS formats
+          const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/
           return timeRegex.test(value)
         },
-        message: 'Invalid start time format (HH:MM)'
+        message: 'Invalid start time format (HH:MM or HH:MM:SS)'
       },
       {
         field: 'end_time',
         rule: (value: any) => {
           if (!value) return false
-          const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/
+          // Accept both HH:MM and HH:MM:SS formats
+          const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/
           return timeRegex.test(value)
         },
-        message: 'Invalid end time format (HH:MM)'
+        message: 'Invalid end time format (HH:MM or HH:MM:SS)'
       }
     ]
 
@@ -119,31 +124,18 @@ export class AgendaTransformer extends BaseTransformer<AgendaItem> {
   private handleSchemaEvolution(dbData: any): any {
     const evolved = { ...dbData }
 
-    // Example: Handle field rename from type to session_type
+    // Handle field rename from type to session_type
     if (evolved.type && !evolved.session_type) {
       evolved.session_type = evolved.type
     }
 
-    // Example: Handle field rename from breakout to is_breakout
-    if (evolved.breakout !== undefined && evolved.is_breakout === undefined) {
-      evolved.is_breakout = evolved.breakout
-    }
-
-    // Example: Handle field rename from max_capacity to max_attendees
-    if (evolved.max_capacity !== undefined && evolved.max_attendees === undefined) {
-      evolved.max_attendees = evolved.max_capacity
-    }
-
-    // Example: Handle field addition (new fields are ignored by UI)
-    // Database might add internal_notes, speaker_bio, etc.
-
-    // Example: Handle type changes
-    if (typeof evolved.is_breakout === 'string') {
-      evolved.is_breakout = evolved.is_breakout === 'true' || evolved.is_breakout === '1'
-    }
-
+    // Handle type changes for boolean fields
     if (typeof evolved.is_active === 'string') {
       evolved.is_active = evolved.is_active === 'true' || evolved.is_active === '1'
+    }
+
+    if (typeof evolved.has_seating === 'string') {
+      evolved.has_seating = evolved.has_seating === 'true' || evolved.has_seating === '1'
     }
 
     return evolved
@@ -155,9 +147,8 @@ export class AgendaTransformer extends BaseTransformer<AgendaItem> {
   getSchemaEvolutionMapping(): Record<string, string> {
     return {
       'type': 'session_type',           // Database field -> UI field
-      'breakout': 'isBreakout',
-      'active': 'isActive',
-      'max_capacity': 'maxAttendees'
+      'is_active': 'isActive',
+      'has_seating': 'has_seating'
     }
   }
 

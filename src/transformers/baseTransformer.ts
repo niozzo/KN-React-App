@@ -48,16 +48,31 @@ export abstract class BaseTransformer<T> implements DataTransformer<T> {
       }
 
       const result: any = {}
+      const missingFields: string[] = []
       
       // Apply field mappings
       for (const mapping of this.fieldMappings) {
         const value = this.getFieldValue(dbData, mapping.source)
+        if (mapping.required && (value === undefined || value === null)) {
+          missingFields.push(mapping.source)
+        }
         result[mapping.target] = this.convertType(value, mapping.type, mapping.defaultValue)
+      }
+
+      // Log missing required fields
+      if (missingFields.length > 0) {
+        console.warn(`⚠️ Missing required fields in ${this.tableName}:`, missingFields)
+        console.warn(`Available fields:`, Object.keys(dbData))
       }
 
       // Apply computed fields
       for (const computedField of this.computedFields) {
-        result[computedField.name] = computedField.computation(dbData)
+        try {
+          result[computedField.name] = computedField.computation(dbData)
+        } catch (computedError) {
+          console.warn(`⚠️ Failed to compute field ${computedField.name}:`, computedError)
+          result[computedField.name] = null
+        }
       }
 
       // Validate the result
@@ -67,6 +82,8 @@ export abstract class BaseTransformer<T> implements DataTransformer<T> {
 
       return result as T
     } catch (error) {
+      console.error(`❌ Transformation error in ${this.tableName}:`, error)
+      console.error(`❌ Original data:`, dbData)
       throw this.createError(
         TransformationErrorCode.FIELD_MAPPING_ERROR,
         `Failed to transform data: ${error instanceof Error ? error.message : 'Unknown error'}`,

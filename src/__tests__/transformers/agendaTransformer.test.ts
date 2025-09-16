@@ -24,12 +24,18 @@ describe('AgendaTransformer', () => {
         start_time: '09:00',
         end_time: '10:00',
         location: 'Main Hall',
-        session_type: 'keynote',
-        speaker_name: 'John Doe',
-        speaker_title: 'CEO',
-        is_breakout: false,
-        max_attendees: 100,
-        is_active: true
+        type: 'keynote',
+        speaker: 'John Doe',
+        capacity: 100,
+        registered_count: 0,
+        attendee_selection: 'everyone',
+        selected_attendees: [],
+        is_active: true,
+        has_seating: false,
+        seating_notes: '',
+        seating_type: 'open',
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-01-01T00:00:00Z'
       }
 
       const result = transformer.transformFromDatabase(dbData)
@@ -44,13 +50,19 @@ describe('AgendaTransformer', () => {
         location: 'Main Hall',
         session_type: 'keynote',
         speaker_name: 'John Doe',
-        speaker_title: 'CEO',
-        isBreakout: false,
-        maxAttendees: 100,
+        capacity: 100,
+        registered_count: 0,
+        attendee_selection: 'everyone',
+        selected_attendees: [],
         isActive: true,
+        has_seating: false,
+        seating_notes: '',
+        seating_type: 'open',
+        created_at: expect.any(Date),
+        updated_at: expect.any(Date),
         duration: 60,
         timeRange: '09:00 - 10:00',
-        speakerInfo: 'John Doe, CEO'
+        speakerInfo: 'John Doe'
       })
     })
 
@@ -61,18 +73,16 @@ describe('AgendaTransformer', () => {
         date: '2024-01-15',
         start_time: '09:00',
         end_time: '10:00',
-        type: 'workshop', // Database renamed session_type to type
-        breakout: true,   // Database renamed is_breakout to breakout
-        active: true,     // Database renamed is_active to active
-        max_capacity: 50  // Database renamed max_attendees to max_capacity
+        type: 'workshop', // Database field name
+        is_active: 'true', // String boolean conversion
+        has_seating: '1'   // String boolean conversion
       }
 
       const result = transformer.transformFromDatabase(dbData)
 
       expect(result.session_type).toBe('workshop')
-      expect(result.isBreakout).toBe(true)
       expect(result.isActive).toBe(true)
-      expect(result.maxAttendees).toBe(50)
+      expect(result.has_seating).toBe(true)
     })
 
     it('should compute duration correctly', () => {
@@ -103,36 +113,34 @@ describe('AgendaTransformer', () => {
       expect(result.timeRange).toBe('14:00 - 15:00')
     })
 
-    it('should compute speakerInfo with title', () => {
+    it('should compute speakerInfo with speaker name', () => {
       const dbData = {
         id: '123',
         title: 'Test Session',
         date: '2024-01-15',
         start_time: '09:00',
         end_time: '10:00',
-        speaker_name: 'Jane Smith',
-        speaker_title: 'CTO'
+        speaker: 'Jane Smith'
       }
 
       const result = transformer.transformFromDatabase(dbData)
 
-      expect(result.speakerInfo).toBe('Jane Smith, CTO')
+      expect(result.speakerInfo).toBe('Jane Smith')
     })
 
-    it('should compute speakerInfo without title', () => {
+    it('should compute speakerInfo without speaker name', () => {
       const dbData = {
         id: '123',
         title: 'Test Session',
         date: '2024-01-15',
         start_time: '09:00',
-        end_time: '10:00',
-        speaker_name: 'Bob Johnson'
-        // No speaker_title
+        end_time: '10:00'
+        // No speaker
       }
 
       const result = transformer.transformFromDatabase(dbData)
 
-      expect(result.speakerInfo).toBe('Bob Johnson')
+      expect(result.speakerInfo).toBe('')
     })
 
     it('should handle type conversion for boolean fields', () => {
@@ -142,14 +150,14 @@ describe('AgendaTransformer', () => {
         date: '2024-01-15',
         start_time: '09:00',
         end_time: '10:00',
-        is_breakout: 'true', // String instead of boolean
-        is_active: '1'       // String '1' instead of boolean
+        is_active: 'true', // String instead of boolean
+        has_seating: '1'   // String '1' instead of boolean
       }
 
       const result = transformer.transformFromDatabase(dbData)
 
-      expect(result.isBreakout).toBe(true)
       expect(result.isActive).toBe(true)
+      expect(result.has_seating).toBe(true)
     })
   })
 
@@ -162,8 +170,19 @@ describe('AgendaTransformer', () => {
         start_time: '09:00',
         end_time: '10:00',
         session_type: 'workshop',
-        isBreakout: false,
-        isActive: true
+        isActive: true,
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-01-01T00:00:00Z',
+        description: '',
+        location: '',
+        speaker_name: null,
+        capacity: 0,
+        registered_count: 0,
+        attendee_selection: 'everyone',
+        selected_attendees: [],
+        has_seating: false,
+        seating_notes: '',
+        seating_type: 'open'
       }
 
       const result = transformer.validateAgendaItem(agendaItem)
@@ -195,8 +214,19 @@ describe('AgendaTransformer', () => {
         start_time: '10:00',
         end_time: '09:00', // End time before start time
         session_type: 'workshop',
-        isBreakout: false,
-        isActive: true
+        isActive: true,
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-01-01T00:00:00Z',
+        description: '',
+        location: '',
+        speaker_name: null,
+        capacity: 0,
+        registered_count: 0,
+        attendee_selection: 'everyone',
+        selected_attendees: [],
+        has_seating: false,
+        seating_notes: '',
+        seating_type: 'open'
       }
 
       const result = transformer.validateAgendaItem(agendaItem)
@@ -216,8 +246,19 @@ describe('AgendaTransformer', () => {
           start_time: '14:00',
           end_time: '15:00',
           session_type: 'workshop',
-          isBreakout: false,
-          isActive: true
+          isActive: true,
+          created_at: '2024-01-01T00:00:00Z',
+          updated_at: '2024-01-01T00:00:00Z',
+          description: '',
+          location: '',
+          speaker_name: null,
+          capacity: 0,
+          registered_count: 0,
+          attendee_selection: 'everyone',
+          selected_attendees: [],
+          has_seating: false,
+          seating_notes: '',
+          seating_type: 'open'
         },
         {
           id: '1',
@@ -226,8 +267,19 @@ describe('AgendaTransformer', () => {
           start_time: '09:00',
           end_time: '10:00',
           session_type: 'keynote',
-          isBreakout: false,
-          isActive: true
+          isActive: true,
+          created_at: '2024-01-01T00:00:00Z',
+          updated_at: '2024-01-01T00:00:00Z',
+          description: '',
+          location: '',
+          speaker_name: null,
+          capacity: 0,
+          registered_count: 0,
+          attendee_selection: 'everyone',
+          selected_attendees: [],
+          has_seating: false,
+          seating_notes: '',
+          seating_type: 'open'
         },
         {
           id: '3',
@@ -236,8 +288,19 @@ describe('AgendaTransformer', () => {
           start_time: '09:00',
           end_time: '10:00',
           session_type: 'workshop',
-          isBreakout: false,
-          isActive: true
+          isActive: true,
+          created_at: '2024-01-01T00:00:00Z',
+          updated_at: '2024-01-01T00:00:00Z',
+          description: '',
+          location: '',
+          speaker_name: null,
+          capacity: 0,
+          registered_count: 0,
+          attendee_selection: 'everyone',
+          selected_attendees: [],
+          has_seating: false,
+          seating_notes: '',
+          seating_type: 'open'
         }
       ]
 
@@ -255,9 +318,8 @@ describe('AgendaTransformer', () => {
 
       expect(mapping).toEqual({
         'type': 'session_type',
-        'breakout': 'isBreakout',
-        'active': 'isActive',
-        'max_capacity': 'maxAttendees'
+        'is_active': 'isActive',
+        'has_seating': 'has_seating'
       })
     })
   })

@@ -27,8 +27,8 @@ export interface AgendaItem {
   start_time: string           // Time in HH:MM:SS format
   end_time: string             // Time in HH:MM:SS format
   location: string             // Location string
-  type: SessionType            // Session type (executive-presentation, etc.)
-  speaker: string | null       // Speaker name (nullable)
+  session_type: SessionType    // Session type (executive-presentation, etc.)
+  speaker_name: string | null  // Speaker name (nullable)
   
   // Capacity and Registration
   capacity: number             // Maximum capacity
@@ -39,10 +39,15 @@ export interface AgendaItem {
   selected_attendees: any[]    // Array of selected attendee IDs
   
   // Status and Configuration
-  is_active: boolean           // Active status
+  isActive: boolean            // Active status (transformed from is_active)
   has_seating: boolean         // Whether seating is configured
   seating_notes: string        // Seating configuration notes
   seating_type: SeatingType    // Seating type (open/assigned)
+  
+  // Computed fields
+  duration?: number            // Computed from start_time and end_time
+  timeRange?: string           // Computed from start_time and end_time
+  speakerInfo?: string         // Computed from speaker_name
 }
 
 // Form data interface for creating/editing agenda items
