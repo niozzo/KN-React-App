@@ -47,16 +47,11 @@ const TimeOverride = () => {
   const handleSetOverride = () => {
     if (overrideDateTime) {
       const overrideDate = new Date(overrideDateTime);
-      // Use dynamic override method for proper time progression
-      TimeService.setDynamicOverrideTime(overrideDate, 50);
+      // Set seconds to 50 and use our updated TimeService
+      overrideDate.setSeconds(50);
+      TimeService.setOverrideTime(overrideDate);
       setIsActive(true);
       setIsOpen(false);
-      
-      console.log('🕐 Dynamic override set:', {
-        startTime: overrideDate.toISOString(),
-        currentTime: TimeService.getCurrentTime().toISOString(),
-        isOverrideActive: TimeService.isOverrideActive()
-      });
       
       // No need to reload - the time will advance automatically
     }

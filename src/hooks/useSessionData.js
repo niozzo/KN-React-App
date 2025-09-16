@@ -139,6 +139,8 @@ export const useSessionData = (options = {}) => {
       setSessions(filteredSessions);
       setLastUpdated(new Date());
       
+      // Register session boundaries with TimeService for boundary detection
+      TimeService.registerSessionBoundaries(filteredSessions);
 
       // Determine current and next sessions
       const currentTime = getCurrentTime();
@@ -313,12 +315,20 @@ export const useSessionData = (options = {}) => {
       handleTimeOverrideChange();
     };
     
+    // Listen for session boundary crossings
+    const handleBoundaryCrossing = () => {
+      console.log('🕐 Session boundary crossed, updating session states');
+      handleTimeOverrideChange();
+    };
+    
     window.addEventListener('storage', handleStorageChange);
     window.addEventListener('timeOverrideChanged', handleTimeOverrideUpdate);
+    window.addEventListener('timeOverrideBoundaryCrossed', handleBoundaryCrossing);
 
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('timeOverrideChanged', handleTimeOverrideUpdate);
+      window.removeEventListener('timeOverrideBoundaryCrossed', handleBoundaryCrossing);
     };
   }, [sessions]); // Re-run when sessions change to update the closure
 
@@ -330,6 +340,11 @@ export const useSessionData = (options = {}) => {
     }
 
     const isOverrideActive = TimeService.isOverrideActive();
+    
+    // Start boundary monitoring if override is active
+    if (isOverrideActive) {
+      TimeService.startBoundaryMonitoring();
+    }
 
     const handleRealTimeUpdate = () => {
       const currentTime = getCurrentTime();
@@ -351,24 +366,9 @@ export const useSessionData = (options = {}) => {
           return (a.start_time || '').localeCompare(b.start_time || '');
         })[0]; // Get the first (earliest) upcoming session
       
-      // Debug logging for time override scenarios
-      if (TimeService.isOverrideActive()) {
-        console.log('🔄 Real-time update with override:', {
-          currentTime: currentTime.toISOString(),
-          activeSession: activeSession?.id || 'none',
-          upcomingSession: upcomingSession?.id || 'none',
-          sessionsCount: sessions.length
-        });
-      }
-      
       // Update state only if changed (performance optimization)
       setCurrentSession(prev => {
         if (prev?.id !== activeSession?.id) {
-          console.log('🔄 Session state changed:', {
-            previous: prev?.id,
-            current: activeSession?.id,
-            time: currentTime.toISOString()
-          });
           return activeSession;
         }
         return prev;
@@ -376,11 +376,6 @@ export const useSessionData = (options = {}) => {
       
       setNextSession(prev => {
         if (prev?.id !== upcomingSession?.id) {
-          console.log('🔄 Next session changed:', {
-            previous: prev?.id,
-            current: upcomingSession?.id,
-            time: currentTime.toISOString()
-          });
           return upcomingSession;
         }
         return prev;
@@ -392,6 +387,8 @@ export const useSessionData = (options = {}) => {
 
     return () => {
       clearInterval(interval);
+      // Stop boundary monitoring when component unmounts or sessions change
+      TimeService.stopBoundaryMonitoring();
     };
   }, [sessions]); // Re-run when sessions change
 
