@@ -11,6 +11,9 @@ This directory contains the comprehensive architecture documentation for the Con
 - **[`frontend-spec-updates.md`](./frontend-spec-updates.md)** - Specific updates needed for front-end specification
 - **[`documentation-cleanup-plan.md`](./documentation-cleanup-plan.md)** - Comprehensive documentation review and cleanup strategy
 
+### 🎯 **Core Business Logic**
+- **[`session-filtering-architecture.md`](./session-filtering-architecture.md)** - Session type-based filtering logic and attendee assignments
+
 ### 📋 **Implementation Status**
 
 #### ✅ **Completed (Phase 1-3)**
@@ -26,6 +29,7 @@ This directory contains the comprehensive architecture documentation for the Con
 - [x] **Data Synchronization**: Authentication-triggered offline data sync ✅ **STORY 1.3 COMPLETE**
 - [x] **Schema Validation**: Automated database schema change detection ✅ **STORY 1.3 COMPLETE**
 - [x] **localStorage-First Data Access**: Performance-optimized data retrieval strategy ✅ **STORY 2.1 COMPLETE**
+- [x] **Session Filtering Architecture**: Corrected session type-based filtering logic ✅ **STORY 2.1 COMPLETE**
 
 #### 🔄 **In Progress (Phase 4)**
 - [ ] **Documentation Updates**: Update existing docs to reflect new architecture
