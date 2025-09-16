@@ -21,6 +21,7 @@ const HomePage = () => {
   const {
     currentSession,
     nextSession,
+    sessions,
     attendee,
     seatAssignments,
     isLoading,
@@ -43,6 +44,28 @@ const HomePage = () => {
       // Navigate to schedule page with session focus
       navigate(`/schedule#session-${session.id}`);
     }
+  };
+
+  // Determine if conference has started (has any sessions in the past)
+  const hasConferenceStarted = sessions && sessions.some(session => {
+    if (!session.start_time || !session.date) return false;
+    const sessionStart = new Date(`${session.date}T${session.start_time}`);
+    const now = new Date();
+    return sessionStart < now;
+  });
+
+  // Get the conference start date from the first agenda item
+  const getConferenceStartDate = () => {
+    if (!sessions || sessions.length === 0) return 'TBD';
+    const firstSession = sessions[0];
+    if (!firstSession.date) return 'TBD';
+    
+    const date = new Date(firstSession.date);
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric' 
+    });
   };
 
   // Show loading state
@@ -84,7 +107,7 @@ const HomePage = () => {
     );
   }
 
-  // Show no assignments state
+  // Show no assignments state - when there are no sessions at all (conference hasn't started or no sessions assigned)
   if (!isLoading && attendee && (!currentSession && !nextSession)) {
     return (
       <PageLayout data-testid="home-page">
@@ -168,7 +191,9 @@ const HomePage = () => {
 
       {/* Now/Next Section */}
       <section className="now-next-section">
-        <h2 className="section-title">Now & Next</h2>
+        <h2 className="section-title">
+          {hasConferenceStarted ? 'Now & Next' : `Scheduled Start Date: ${getConferenceStartDate()}`}
+        </h2>
         <div className="cards-container">
           {currentSession ? (
             <SessionCard 
@@ -176,7 +201,7 @@ const HomePage = () => {
               variant="now"
               onClick={() => handleSessionClick(currentSession)}
             />
-          ) : (
+          ) : hasConferenceStarted && nextSession ? (
             <Card className="no-session-card" style={{
               background: 'var(--gray-50)',
               border: '2px dashed var(--gray-300)',
@@ -208,7 +233,38 @@ const HomePage = () => {
                 </Button>
               </div>
             </Card>
-          )}
+          ) : hasConferenceStarted ? (
+            <Card className="no-session-card" style={{
+              background: 'var(--blue-50)',
+              border: '2px solid var(--blue-200)',
+              textAlign: 'center',
+              padding: 'var(--space-xl)'
+            }}>
+              <div className="no-session-content">
+                <h3 style={{ 
+                  color: 'var(--blue-700)', 
+                  marginBottom: 'var(--space-sm)',
+                  fontSize: 'var(--text-lg)'
+                }}>
+                  No Sessions Assigned
+                </h3>
+                <p style={{ 
+                  color: 'var(--blue-600)',
+                  fontSize: 'var(--text-sm)'
+                }}>
+                  You don't have any sessions assigned for today.
+                </p>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => navigate('/schedule')}
+                  style={{ marginTop: 'var(--space-sm)' }}
+                >
+                  View Schedule
+                </Button>
+              </div>
+            </Card>
+          ) : null}
           
           {nextSession ? (
             <SessionCard 

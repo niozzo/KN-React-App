@@ -25,6 +25,17 @@ vi.mock('../../services/dataService', () => ({
   getAttendeeSeatAssignments: vi.fn()
 }));
 
+// Mock the AuthContext to prevent import errors
+vi.mock('../../contexts/AuthContext', () => ({
+  AuthProvider: ({ children }) => children,
+  useAuth: () => ({
+    user: { id: '1', name: 'Test User' },
+    isAuthenticated: true,
+    login: vi.fn(),
+    logout: vi.fn()
+  })
+}));
+
 // Mock the TimeOverride component
 vi.mock('../../components/dev/TimeOverride', () => ({
   default: () => <div data-testid="time-override">Time Override</div>
@@ -134,6 +145,141 @@ describe('HomePage Edge Cases', () => {
       expect(screen.getByText('All Caught Up!')).toBeInTheDocument();
       expect(screen.getByText('No more sessions scheduled for today')).toBeInTheDocument();
       expect(screen.getByText('View Full Schedule')).toBeInTheDocument();
+    });
+  });
+
+  describe('Conference Start Date Display Logic', () => {
+    it('should display "Scheduled Start Date: [date]" when conference has not started', () => {
+      // Mock sessions that are all in the future
+      const futureSessions = [
+        {
+          id: '1',
+          title: 'Future Session',
+          start_time: '14:00:00',
+          end_time: '15:00:00',
+          date: '2025-12-25', // Future date
+          location: 'Room A'
+        }
+      ];
+
+      mockUseSessionData.mockReturnValue({
+        currentSession: null,
+        nextSession: null,
+        sessions: futureSessions,
+        attendee: { id: '1', name: 'Test User' },
+        seatAssignments: [],
+        isLoading: false,
+        isOffline: false,
+        error: null,
+        refresh: vi.fn()
+      });
+
+      renderWithRouter(<HomePage />);
+
+      expect(screen.getByText('Scheduled Start Date: Dec 25, 2025')).toBeInTheDocument();
+    });
+
+    it('should display "Now & Next" when conference has started', () => {
+      // Mock sessions with one in the past (conference started)
+      const mixedSessions = [
+        {
+          id: '1',
+          title: 'Past Session',
+          start_time: '09:00:00',
+          end_time: '10:00:00',
+          date: '2024-01-01', // Past date
+          location: 'Room A'
+        },
+        {
+          id: '2',
+          title: 'Future Session',
+          start_time: '14:00:00',
+          end_time: '15:00:00',
+          date: '2025-12-25', // Future date
+          location: 'Room B'
+        }
+      ];
+
+      mockUseSessionData.mockReturnValue({
+        currentSession: null,
+        nextSession: mixedSessions[1],
+        sessions: mixedSessions,
+        attendee: { id: '1', name: 'Test User' },
+        seatAssignments: [],
+        isLoading: false,
+        isOffline: false,
+        error: null,
+        refresh: vi.fn()
+      });
+
+      renderWithRouter(<HomePage />);
+
+      expect(screen.getByText('Now & Next')).toBeInTheDocument();
+    });
+
+    it('should handle missing sessions data gracefully', () => {
+      mockUseSessionData.mockReturnValue({
+        currentSession: null,
+        nextSession: null,
+        sessions: null,
+        attendee: { id: '1', name: 'Test User' },
+        seatAssignments: [],
+        isLoading: false,
+        isOffline: false,
+        error: null,
+        refresh: vi.fn()
+      });
+
+      renderWithRouter(<HomePage />);
+
+      expect(screen.getByText('Scheduled Start Date: TBD')).toBeInTheDocument();
+    });
+
+    it('should handle empty sessions array', () => {
+      mockUseSessionData.mockReturnValue({
+        currentSession: null,
+        nextSession: null,
+        sessions: [],
+        attendee: { id: '1', name: 'Test User' },
+        seatAssignments: [],
+        isLoading: false,
+        isOffline: false,
+        error: null,
+        refresh: vi.fn()
+      });
+
+      renderWithRouter(<HomePage />);
+
+      expect(screen.getByText('Scheduled Start Date: TBD')).toBeInTheDocument();
+    });
+
+    it('should handle sessions with missing date data', () => {
+      const sessionsWithMissingDate = [
+        {
+          id: '1',
+          title: 'Session Without Date',
+          start_time: '14:00:00',
+          end_time: '15:00:00',
+          date: null, // Missing date
+          location: 'Room A'
+        }
+      ];
+
+      mockUseSessionData.mockReturnValue({
+        currentSession: null,
+        nextSession: null,
+        sessions: sessionsWithMissingDate,
+        attendee: { id: '1', name: 'Test User' },
+        seatAssignments: [],
+        isLoading: false,
+        isOffline: false,
+        error: null,
+        refresh: vi.fn()
+      });
+
+      renderWithRouter(<HomePage />);
+
+      expect(screen.getByText('Scheduled Start Date: TBD')).toBeInTheDocument();
     });
   });
 

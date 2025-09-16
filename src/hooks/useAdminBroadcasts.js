@@ -166,20 +166,9 @@ export const useAdminBroadcasts = (options = {}) => {
       setIsLoading(true);
       setError(null);
 
-      // Simulate API call to check for new broadcasts
-      // In a real implementation, this would call an API endpoint
-      const mockBroadcasts = await simulateBroadcastAPI();
-      
-      if (mockBroadcasts && mockBroadcasts.length > 0) {
-        mockBroadcasts.forEach(broadcast => {
-          addBroadcast(
-            broadcast.message,
-            broadcast.type,
-            broadcast.priority,
-            broadcast.duration
-          );
-        });
-      }
+      // TODO: Implement real broadcast API integration
+      // For now, no automatic broadcast generation
+      // Room change alerts will be handled in the data refresh story
 
     } catch (err) {
       console.error('❌ Error checking for broadcast updates:', err);
@@ -187,38 +176,8 @@ export const useAdminBroadcasts = (options = {}) => {
     } finally {
       setIsLoading(false);
     }
-  }, [enabled, addBroadcast]);
+  }, [enabled]);
 
-  // Simulate broadcast API (for development/testing)
-  const simulateBroadcastAPI = useCallback(async () => {
-    // Simulate random broadcast generation for testing
-    const shouldGenerate = Math.random() < 0.1; // 10% chance
-    
-    if (!shouldGenerate) return [];
-
-    const sampleBroadcasts = [
-      {
-        message: "Coffee break extended by 15 minutes",
-        type: "info",
-        priority: "normal",
-        duration: 15 * 60 * 1000 // 15 minutes
-      },
-      {
-        message: "Session starting in 5 minutes - please take your seats",
-        type: "warning",
-        priority: "high",
-        duration: 5 * 60 * 1000 // 5 minutes
-      },
-      {
-        message: "URGENT: Room change for next session - check your schedule",
-        type: "urgent",
-        priority: "critical",
-        duration: 10 * 60 * 1000 // 10 minutes
-      }
-    ];
-
-    return [sampleBroadcasts[Math.floor(Math.random() * sampleBroadcasts.length)]];
-  }, []);
 
   // Initialize broadcasts
   useEffect(() => {

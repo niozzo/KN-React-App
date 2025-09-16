@@ -20,8 +20,9 @@ const TimeOverride = () => {
   const [overrideDate, setOverrideDate] = useState('');
   const [overrideTime, setOverrideTime] = useState('');
   const [isActive, setIsActive] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
 
-  // Load current override state
+  // Load current override state and set defaults
   useEffect(() => {
     const storedOverride = localStorage.getItem('kn_time_override');
     if (storedOverride) {
@@ -29,7 +30,21 @@ const TimeOverride = () => {
       setOverrideDate(overrideDate.toISOString().split('T')[0]);
       setOverrideTime(overrideDate.toTimeString().slice(0, 5));
       setIsActive(true);
+    } else {
+      // Set default values to current date and time
+      const now = new Date();
+      setOverrideDate(now.toISOString().split('T')[0]);
+      setOverrideTime(now.toTimeString().slice(0, 5));
     }
+  }, []);
+
+  // Update current time every second
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const handleSetOverride = () => {
@@ -57,11 +72,12 @@ const TimeOverride = () => {
   const getCurrentOverrideTime = () => {
     const storedOverride = localStorage.getItem('kn_time_override');
     if (storedOverride) {
-      const overrideDate = new Date(storedOverride);
-      const now = new Date();
-      const timeDiff = now.getTime() - new Date(storedOverride).getTime();
-      return new Date(overrideDate.getTime() + timeDiff);
+      return new Date(storedOverride);
     }
+    return new Date();
+  };
+
+  const getCurrentRealTime = () => {
     return new Date();
   };
 
@@ -75,6 +91,13 @@ const TimeOverride = () => {
       >
         🕐 {isActive ? 'Override Active' : 'Set Time Override'}
       </button>
+      
+      {/* Current Time Display */}
+      <div className="current-time-display">
+        <div className="current-time-value">
+          {isActive ? getCurrentOverrideTime().toLocaleString() : currentTime.toLocaleString()}
+        </div>
+      </div>
 
       {/* Override Panel */}
       {isOpen && (
@@ -137,13 +160,18 @@ const TimeOverride = () => {
         </div>
       )}
 
-      <style jsx>{`
+      <style>{`
         .time-override-container {
           position: fixed;
           top: 10px;
-          right: 10px;
+          left: 50%;
+          transform: translateX(-50%);
           z-index: 1000;
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 4px;
         }
 
         .time-override-toggle {
@@ -170,10 +198,31 @@ const TimeOverride = () => {
           background: #b91c1c;
         }
 
+        .current-time-display {
+          background: rgba(0, 0, 0, 0.8);
+          color: white;
+          padding: 4px 8px;
+          border-radius: 4px;
+          font-size: 10px;
+          text-align: center;
+          min-width: 200px;
+        }
+
+        .current-time-label {
+          font-weight: 600;
+          margin-bottom: 2px;
+        }
+
+        .current-time-value {
+          font-family: 'Courier New', monospace;
+          font-size: 9px;
+        }
+
         .time-override-panel {
           position: absolute;
           top: 100%;
-          right: 0;
+          left: 50%;
+          transform: translateX(-50%);
           background: white;
           border: 1px solid #e5e7eb;
           border-radius: 8px;

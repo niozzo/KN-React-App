@@ -74,6 +74,24 @@ export const getAllAttendees = async (): Promise<Attendee[]> => {
   requireAuthentication()
   
   try {
+    // PRIMARY: Check localStorage first (populated during login)
+    try {
+      const cachedData = localStorage.getItem('kn_cache_attendees')
+      if (cachedData) {
+        const cacheObj = JSON.parse(cachedData)
+        const attendees = cacheObj.data || cacheObj
+        if (Array.isArray(attendees) && attendees.length > 0) {
+          console.log('✅ Using cached attendees data from localStorage')
+          // Ensure stable ordering for UI
+          return [...attendees].sort((a, b) => (a.last_name || '').localeCompare(b.last_name || ''))
+        }
+      }
+    } catch (cacheError) {
+      console.warn('⚠️ Failed to load cached attendees data:', cacheError)
+    }
+    
+    // FALLBACK: API call if no cached data exists
+    console.log('🌐 No cached data found, fetching from API...')
     const data = await apiGet<Attendee[]>('/api/attendees')
     // Ensure stable ordering for UI
     return [...data].sort((a, b) => (a.last_name || '').localeCompare(b.last_name || ''))
@@ -93,29 +111,31 @@ export const getCurrentAttendeeData = async (): Promise<Attendee | null> => {
   try {
     const current = (await import('./authService.js')).getCurrentAttendee?.()
     if (!current?.id) return null
-    const data = await apiGet<Attendee>(`/api/attendees/${current.id}`)
-    return data
-  } catch (error) {
-    console.error('❌ Error fetching current attendee:', error)
     
-    // Try to fallback to cached data if API fails
+    // PRIMARY: Check localStorage first (populated during login)
     try {
       const cachedData = localStorage.getItem('kn_cache_attendees')
       if (cachedData) {
-        const attendees = JSON.parse(cachedData)
-        const current = (await import('./authService.js')).getCurrentAttendee?.()
-        if (current?.id) {
-          const cachedAttendee = attendees.find((a: Attendee) => a.id === current.id)
-          if (cachedAttendee) {
-            console.log('✅ Using cached attendee data as fallback')
-            return cachedAttendee
-          }
+        const cacheObj = JSON.parse(cachedData)
+        // Handle both direct array format and wrapped format
+        const attendees = cacheObj.data || cacheObj
+        const cachedAttendee = attendees.find((a: Attendee) => a.id === current.id)
+        if (cachedAttendee) {
+          console.log('✅ Using cached attendee data from localStorage')
+          return cachedAttendee
         }
       }
     } catch (cacheError) {
       console.warn('⚠️ Failed to load cached attendee data:', cacheError)
     }
     
+    // FALLBACK: API call if no cached data exists
+    console.log('🌐 No cached data found, fetching from API...')
+    const data = await apiGet<Attendee>(`/api/attendees/${current.id}`)
+    return data
+    
+  } catch (error) {
+    console.error('❌ Error fetching current attendee:', error)
     throw new DataServiceError('Failed to fetch current attendee data', 'FETCH_ERROR')
   }
 }
@@ -128,6 +148,26 @@ export const getAllAgendaItems = async (): Promise<AgendaItem[]> => {
   requireAuthentication()
   
   try {
+    // PRIMARY: Check localStorage first (populated during login)
+    try {
+      const cachedData = localStorage.getItem('kn_cache_agenda_items')
+      if (cachedData) {
+        const cacheObj = JSON.parse(cachedData)
+        // Handle both direct array format and wrapped format
+        const agendaItems = cacheObj.data || cacheObj
+        if (Array.isArray(agendaItems) && agendaItems.length > 0) {
+          console.log('✅ Using cached agenda items from localStorage')
+          return [...agendaItems]
+            .sort((a, b) => (a.date || '').localeCompare(b.date || ''))
+            .sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''))
+        }
+      }
+    } catch (cacheError) {
+      console.warn('⚠️ Failed to load cached agenda items:', cacheError)
+    }
+    
+    // FALLBACK: API call if no cached data exists
+    console.log('🌐 No cached agenda items found, fetching from API...')
     const data = await apiGet<AgendaItem[]>('/api/agenda-items')
     return [...data]
       .sort((a, b) => (a.date || '').localeCompare(b.date || ''))
@@ -171,6 +211,26 @@ export const getAllSponsors = async (): Promise<Sponsor[]> => {
   requireAuthentication()
   
   try {
+    // PRIMARY: Check localStorage first (populated during login)
+    try {
+      const cachedData = localStorage.getItem('kn_cache_sponsors')
+      if (cachedData) {
+        const cacheObj = JSON.parse(cachedData)
+        // Handle both direct array format and wrapped format
+        const sponsors = cacheObj.data || cacheObj
+        if (Array.isArray(sponsors) && sponsors.length > 0) {
+          console.log('✅ Using cached sponsors from localStorage')
+          return [...sponsors]
+            .filter(s => (s as any).is_active !== false)
+            .sort((a, b) => ((a as any).display_order ?? 0) - ((b as any).display_order ?? 0))
+        }
+      }
+    } catch (cacheError) {
+      console.warn('⚠️ Failed to load cached sponsors:', cacheError)
+    }
+    
+    // FALLBACK: API call if no cached data exists
+    console.log('🌐 No cached sponsors found, fetching from API...')
     const data = await apiGet<Sponsor[]>('/api/sponsors')
     return [...data]
       .filter(s => (s as any).is_active !== false)
@@ -190,6 +250,23 @@ export const getAttendeeSeatAssignments = async (attendeeId: string): Promise<Se
   requireAuthentication()
   
   try {
+    // PRIMARY: Check localStorage first (populated during login)
+    try {
+      const cachedData = localStorage.getItem('kn_cache_seat_assignments')
+      if (cachedData) {
+        const cacheObj = JSON.parse(cachedData)
+        // Handle both direct array format and wrapped format
+        const seatAssignments = cacheObj.data || cacheObj
+        const attendeeSeats = seatAssignments.filter((seat: SeatAssignment) => seat.attendee_id === attendeeId)
+        console.log('✅ Using cached seat assignments from localStorage')
+        return attendeeSeats // Return even if empty array
+      }
+    } catch (cacheError) {
+      console.warn('⚠️ Failed to load cached seat assignments:', cacheError)
+    }
+    
+    // FALLBACK: API call if no cached data exists
+    console.log('🌐 No cached seat assignments found, fetching from API...')
     const data = await apiGet<SeatAssignment[]>(`/api/attendees/${attendeeId}/seat-assignments`)
     return data
   } catch (error) {

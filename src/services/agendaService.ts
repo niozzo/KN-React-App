@@ -160,6 +160,32 @@ export class AgendaService implements IAgendaService {
    */
   async getActiveAgendaItems(): Promise<PaginatedResponse<AgendaItem>> {
     try {
+      // PRIMARY: Check localStorage first (populated during login)
+      try {
+        const cachedData = localStorage.getItem('kn_cache_agenda_items');
+        if (cachedData) {
+          const cacheObj = JSON.parse(cachedData);
+          // Handle both direct array format and wrapped format
+          const agendaItems = cacheObj.data || cacheObj;
+          const data = agendaItems
+            .filter((item: any) => item.is_active)
+            .sort((a: any, b: any) => (a.date || '').localeCompare(b.date || ''))
+            .sort((a: any, b: any) => (a.start_time || '').localeCompare(b.start_time || ''));
+          
+          console.log('✅ Using cached agenda items from localStorage');
+          return {
+            data,
+            count: data.length,
+            error: null,
+            success: true
+          };
+        }
+      } catch (cacheError) {
+        console.warn('⚠️ Failed to load cached agenda items:', cacheError);
+      }
+      
+      // FALLBACK: API call if no cached data exists
+      console.log('🌐 No cached agenda items found, fetching from API...');
       const all = await this.apiGet<AgendaItem[]>(this.basePath);
       const data = all
         .filter(item => (item as any).is_active)
@@ -173,29 +199,6 @@ export class AgendaService implements IAgendaService {
       };
     } catch (err) {
       console.error('❌ AgendaService.getActiveAgendaItems error:', err);
-      
-      // Try to fallback to cached data if API fails
-      try {
-        const cachedData = localStorage.getItem('kn_cache_agenda_items');
-        if (cachedData) {
-          const agendaItems = JSON.parse(cachedData);
-          const data = agendaItems
-            .filter((item: any) => item.is_active)
-            .sort((a: any, b: any) => (a.date || '').localeCompare(b.date || ''))
-            .sort((a: any, b: any) => (a.start_time || '').localeCompare(b.start_time || ''));
-          
-          console.log('✅ Using cached agenda items as fallback');
-          return {
-            data,
-            count: data.length,
-            error: null,
-            success: true
-          };
-        }
-      } catch (cacheError) {
-        console.warn('⚠️ Failed to load cached agenda items:', cacheError);
-      }
-      
       return {
         data: [],
         count: 0,

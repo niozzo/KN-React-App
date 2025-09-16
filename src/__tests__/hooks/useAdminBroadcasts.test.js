@@ -185,6 +185,47 @@ describe('useAdminBroadcasts Hook', () => {
     });
   });
 
+  describe('Broadcast System Updates', () => {
+    it('should not generate automatic broadcasts', async () => {
+      const { result } = renderHook(() => useAdminBroadcasts({ enabled: true }));
+      
+      // Wait for any potential automatic generation
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      });
+      
+      // Should remain empty - no automatic generation
+      expect(result.current.broadcasts).toEqual([]);
+      expect(result.current.activeBroadcast).toBeNull();
+    });
+
+    it('should maintain manual broadcast functionality', () => {
+      const { result } = renderHook(() => useAdminBroadcasts());
+      
+      act(() => {
+        result.current.addBroadcast('Manual broadcast', 'info', 'normal');
+      });
+      
+      expect(result.current.broadcasts).toHaveLength(1);
+      expect(result.current.broadcasts[0].message).toBe('Manual broadcast');
+    });
+
+    it('should not contain room change simulation messages', () => {
+      const { result } = renderHook(() => useAdminBroadcasts());
+      
+      act(() => {
+        result.current.addBroadcast('Test message', 'info', 'normal');
+      });
+      
+      const broadcasts = result.current.broadcasts;
+      const hasRoomChangeMessage = broadcasts.some(broadcast => 
+        broadcast.message && broadcast.message.includes('Room change')
+      );
+      
+      expect(hasRoomChangeMessage).toBe(false);
+    });
+  });
+
   describe('Expiration Handling', () => {
     it('should handle broadcasts with expiration', () => {
       const { result } = renderHook(() => useAdminBroadcasts());

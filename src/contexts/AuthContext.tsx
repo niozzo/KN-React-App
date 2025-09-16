@@ -87,7 +87,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('🔐 Step 1: Attempting admin authentication for data access...')
       let syncResult = null
       try {
-        syncResult = await dataSyncService.syncAllData()
+        syncResult = await serverDataSyncService.syncAllData()
         console.log('✅ Admin data sync completed:', syncResult)
         
         if (!syncResult.success) {
