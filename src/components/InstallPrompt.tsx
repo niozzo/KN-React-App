@@ -157,6 +157,7 @@ const InstallPrompt: React.FC<InstallPromptProps> = ({ onInstall, onDismiss, pla
 
   // Determine positioning based on placement
   const getPositionStyle = () => {
+    console.log('InstallPrompt placement:', placement); // Debug log
     if (placement === 'login') {
       return {
         position: 'fixed' as const,
@@ -167,12 +168,14 @@ const InstallPrompt: React.FC<InstallPromptProps> = ({ onInstall, onDismiss, pla
         width: '90%'
       }
     } else if (placement === 'home') {
+      console.log('Using home positioning (relative)'); // Debug log
       return {
         position: 'relative' as const,
         margin: '20px 0',
         maxWidth: '100%'
       }
     } else {
+      console.log('Using auto positioning (fixed)'); // Debug log
       return {
         position: 'fixed' as const,
         bottom: '20px',
@@ -193,8 +196,7 @@ const InstallPrompt: React.FC<InstallPromptProps> = ({ onInstall, onDismiss, pla
         border: '1px solid #D9DBDC',
         borderRadius: '12px',
         padding: '20px',
-        boxShadow: '0 4px 12px rgba(14,24,33,0.08)',
-        zIndex: 1000
+        boxShadow: '0 4px 12px rgba(14,24,33,0.08)'
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>

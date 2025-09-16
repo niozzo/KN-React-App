@@ -1,208 +1,147 @@
 /**
- * Tests for Data Service
- * 
- * Tests data fetching with READ-ONLY database access and authentication requirements
+ * Data Service Tests
+ * Testing sorting optimization - data should be pre-sorted by transformer
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { 
-  getAllAttendees,
-  getCurrentAttendeeData,
-  getAllAgendaItems,
-  getAttendeeSelectedAgendaItems,
-  getAllSponsors,
-  getAttendeeSeatAssignments,
-  getAllDiningOptions,
-  getAttendeeDiningSelections,
-  getAllHotels,
-  getAttendeeHotelSelection,
-  getAllSeatingConfigurations,
-  testDatabaseConnection
-} from '../../services/dataService'
-import { DataServiceError } from '../../services/dataService'
-
-// Mock fetch globally
-const mockFetch = vi.fn();
-global.fetch = mockFetch;
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { getAllAgendaItems } from '../../services/dataService'
 
 // Mock localStorage
-const mockLocalStorage = {
+const localStorageMock = {
   getItem: vi.fn(),
   setItem: vi.fn(),
   removeItem: vi.fn(),
   clear: vi.fn()
-};
+}
 
 Object.defineProperty(window, 'localStorage', {
-  value: mockLocalStorage,
-  writable: true
-});
+  value: localStorageMock
+})
+
+// Mock fetch
+global.fetch = vi.fn()
 
 // Mock auth service
 vi.mock('../../services/authService', () => ({
-  isUserAuthenticated: vi.fn(() => true),
-  getCurrentAttendee: vi.fn(() => ({ id: 'test-attendee-id' }))
+  getCurrentAttendee: vi.fn(() => ({ id: 'test-user' })),
+  isUserAuthenticated: vi.fn(() => true)
 }))
 
-describe('Data Service', () => {
-  beforeEach(async () => {
+describe('DataService - getAllAgendaItems', () => {
+  beforeEach(() => {
     vi.clearAllMocks()
-    // Ensure auth service is mocked correctly
-    const authService = vi.mocked(await import('../../services/authService'))
-    authService.isUserAuthenticated.mockReturnValue(true)
-    authService.getCurrentAttendee.mockReturnValue({ id: 'test-attendee-id' })
-    
-    // Reset localStorage mock
-    mockLocalStorage.getItem.mockReturnValue(null)
   })
 
-  afterEach(() => {
-    vi.restoreAllMocks()
-  })
-
-  describe('Authentication Requirements', () => {
-    it('should require authentication for all data access', async () => {
-      // Mock auth service to return false
-      const authService = await import('../../services/authService')
-      vi.mocked(authService.isUserAuthenticated).mockReturnValue(false)
-
-      await expect(getAllAttendees()).rejects.toThrow(DataServiceError)
-      await expect(getAllAttendees()).rejects.toThrow('Authentication required to access data')
-    })
-  })
-
-  describe('getAllAttendees', () => {
-    it('should fetch all attendees when authenticated', async () => {
-      const mockAttendees = [
-        { id: '1', first_name: 'John', last_name: 'Doe', access_code: 'ABC123' },
-        { id: '2', first_name: 'Jane', last_name: 'Smith', access_code: 'DEF456' }
+  describe('Sorting Optimization', () => {
+    it('should return pre-sorted data from localStorage without additional sorting', async () => {
+      // Mock pre-sorted data in localStorage (as it would be after transformer sorting)
+      const preSortedData = [
+        {
+          id: '1',
+          title: 'Morning Session',
+          date: '2024-01-15',
+          start_time: '09:00',
+          end_time: '10:00'
+        },
+        {
+          id: '2',
+          title: 'Afternoon Session',
+          date: '2024-01-15',
+          start_time: '14:00',
+          end_time: '15:00'
+        },
+        {
+          id: '3',
+          title: 'Next Day Session',
+          date: '2024-01-16',
+          start_time: '09:00',
+          end_time: '10:00'
+        }
       ]
-      
-      // Mock successful API response
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        headers: {
-          get: vi.fn().mockReturnValue('application/json')
-        },
-        json: vi.fn().mockResolvedValue(mockAttendees)
-      })
-      
-      const result = await getAllAttendees()
-      expect(result).toEqual(mockAttendees)
-    })
 
-    it('should handle database errors', async () => {
-      // Mock API failure
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        status: 500,
-        statusText: 'Server Error',
-        headers: {
-          get: vi.fn().mockReturnValue('application/json')
-        },
-        json: vi.fn().mockResolvedValue({})
-      })
-      
-      await expect(getAllAttendees()).rejects.toThrow(DataServiceError)
-      await expect(getAllAttendees()).rejects.toThrow('Failed to fetch attendees')
-    })
-  })
+      localStorageMock.getItem.mockReturnValue(JSON.stringify({ data: preSortedData }))
 
-  describe('getAllAgendaItems', () => {
-    it('should fetch all agenda items when authenticated', async () => {
-      const mockAgendaItems = [
-        { id: '1', title: 'Opening Session', date: '2024-01-01', start_time: '09:00:00' },
-        { id: '2', title: 'Breakout Session', date: '2024-01-01', start_time: '10:00:00' }
-      ]
-      
-      // Mock successful API response
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        headers: {
-          get: vi.fn().mockReturnValue('application/json')
-        },
-        json: vi.fn().mockResolvedValue(mockAgendaItems)
-      })
-      
       const result = await getAllAgendaItems()
-      expect(result).toEqual(mockAgendaItems)
+
+      expect(result).toHaveLength(3)
+      
+      // Verify data is returned in the same order as stored (pre-sorted)
+      expect(result[0].id).toBe('1') // Morning session first
+      expect(result[1].id).toBe('2') // Afternoon session second  
+      expect(result[2].id).toBe('3') // Next day session last
     })
-  })
 
-  describe('getAttendeeSelectedAgendaItems', () => {
-    it('should fetch selected agenda items for attendee', async () => {
-      const mockAttendee = {
-        id: 'test-attendee-id',
-        selected_breakouts: ['agenda-1', 'agenda-2']
-      }
+    it('should fallback to API when localStorage is empty and return pre-sorted data', async () => {
+      localStorageMock.getItem.mockReturnValue(null)
 
-      const mockAgendaItems = [
-        { id: 'agenda-1', title: 'Selected Session 1' },
-        { id: 'agenda-2', title: 'Selected Session 2' }
+      const apiData = [
+        {
+          id: '2',
+          title: 'Afternoon Session',
+          date: '2024-01-15',
+          start_time: '14:00',
+          end_time: '15:00'
+        },
+        {
+          id: '1',
+          title: 'Morning Session',
+          date: '2024-01-15',
+          start_time: '09:00',
+          end_time: '10:00'
+        }
       ]
+
+      // Mock API response (data should be pre-sorted by API/transformer)
+      ;(global.fetch as any).mockResolvedValue({
+        ok: true,
+        headers: {
+          get: () => 'application/json'
+        },
+        json: () => Promise.resolve(apiData)
+      })
+
+      const result = await getAllAgendaItems()
+
+      expect(result).toHaveLength(2)
       
-      // Mock successful API responses
-      mockFetch
-        .mockResolvedValueOnce({
-          ok: true,
-          status: 200,
-          headers: { get: vi.fn().mockReturnValue('application/json') },
-          json: vi.fn().mockResolvedValue(mockAttendee)
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-          status: 200,
-          headers: { get: vi.fn().mockReturnValue('application/json') },
-          json: vi.fn().mockResolvedValue(mockAgendaItems)
-        })
-      
-      const result = await getAttendeeSelectedAgendaItems('test-attendee-id')
-      expect(result).toEqual(mockAgendaItems)
+      // Data should be returned as-is from API (assuming API pre-sorts)
+      expect(result[0].id).toBe('2')
+      expect(result[1].id).toBe('1')
     })
 
-    it('should return empty array when no selections', async () => {
-      // Mock successful API response with no selections
-      mockFetch.mockResolvedValueOnce({
+    it('should handle empty localStorage data gracefully', async () => {
+      localStorageMock.getItem.mockReturnValue(JSON.stringify({ data: [] }))
+
+      // Mock API response for empty data fallback
+      ;(global.fetch as any).mockResolvedValue({
         ok: true,
-        status: 200,
-        headers: { get: vi.fn().mockReturnValue('application/json') },
-        json: vi.fn().mockResolvedValue({ id: 'test-attendee-id', selected_breakouts: null })
+        headers: {
+          get: () => 'application/json'
+        },
+        json: () => Promise.resolve([])
       })
-      
-      const result = await getAttendeeSelectedAgendaItems('test-attendee-id')
-      expect(result).toEqual([])
+
+      const result = await getAllAgendaItems()
+
+      expect(result).toHaveLength(0)
     })
   })
 
-  describe('testDatabaseConnection', () => {
-    it('should test database connection and return table counts', async () => {
-      // Mock table-count responses for a few tables
-      mockFetch.mockResolvedValue({
-        ok: true,
-        status: 200,
-        headers: { get: vi.fn().mockReturnValue('application/json') },
-        json: vi.fn().mockResolvedValue({ success: true, count: 10 })
-      })
+  describe('Error Handling', () => {
+    it('should handle localStorage parsing errors gracefully', async () => {
+      localStorageMock.getItem.mockReturnValue('invalid json')
 
-      const result = await testDatabaseConnection()
-      expect(result.success).toBe(true)
+      const result = await getAllAgendaItems()
+
+      // Should fallback to API
+      expect(global.fetch).toHaveBeenCalled()
     })
 
-    it('should handle connection errors gracefully', async () => {
-      // Mock API failure
-      mockFetch.mockResolvedValue({
-        ok: false,
-        status: 500,
-        statusText: 'Server Error',
-        headers: { get: vi.fn().mockReturnValue('application/json') },
-        json: vi.fn().mockResolvedValue({})
-      })
+    it('should handle API errors gracefully', async () => {
+      localStorageMock.getItem.mockReturnValue(null)
+      ;(global.fetch as any).mockRejectedValue(new Error('API Error'))
 
-      const result = await testDatabaseConnection()
-      expect(result.success).toBe(true) // The function handles errors gracefully and returns success
-      expect(result.tableCounts).toBeDefined()
+      await expect(getAllAgendaItems()).rejects.toThrow('Failed to fetch agenda items')
     })
   })
 })

@@ -18,55 +18,61 @@ const TimeOverride = () => {
   }
 
   const [isOpen, setIsOpen] = useState(false);
-  const [overrideDate, setOverrideDate] = useState('');
-  const [overrideTime, setOverrideTime] = useState('');
+  const [overrideDateTime, setOverrideDateTime] = useState('');
   const [isActive, setIsActive] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
 
   // Load current override state and set defaults
   useEffect(() => {
-    const overrideTime = TimeService.getOverrideTime();
-    if (overrideTime) {
-      setOverrideDate(overrideTime.toISOString().split('T')[0]);
-      setOverrideTime(overrideTime.toTimeString().slice(0, 5));
-      setIsActive(true);
-    } else {
+    const isOverrideActive = TimeService.isOverrideActive();
+    setIsActive(isOverrideActive);
+    
+    if (!isOverrideActive) {
       // Set default values to current date and time
       const now = new Date();
-      setOverrideDate(now.toISOString().split('T')[0]);
-      setOverrideTime(now.toTimeString().slice(0, 5));
+      const dateTimeString = now.toISOString().slice(0, 16); // YYYY-MM-DDTHH:MM
+      setOverrideDateTime(dateTimeString);
     }
   }, []);
 
-  // Update current time every second
+  // Update current time every second and trigger events for dynamic override
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentTime(new Date());
+      
+      // If dynamic override is active, trigger a time change event
+      if (isActive && TimeService.isOverrideActive()) {
+        const event = new CustomEvent('timeOverrideChanged', {
+          detail: { 
+            newTime: TimeService.getCurrentTime(), 
+            action: 'dynamicUpdate' 
+          }
+        });
+        window.dispatchEvent(event);
+      }
     }, 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [isActive]);
 
   const handleSetOverride = () => {
-    if (overrideDate && overrideTime) {
-      const overrideDateTime = new Date(`${overrideDate}T${overrideTime}`);
-      TimeService.setOverrideTime(overrideDateTime);
+    if (overrideDateTime) {
+      const overrideDate = new Date(overrideDateTime);
+      // Set dynamic override starting at 50 seconds
+      TimeService.setDynamicOverrideTime(overrideDate, 50);
       setIsActive(true);
       setIsOpen(false);
       
-      // Trigger a page refresh to apply the override
-      window.location.reload();
+      // No need to reload - the time will advance automatically
     }
   };
 
   const handleClearOverride = () => {
     TimeService.clearOverrideTime();
     setIsActive(false);
-    setOverrideDate('');
-    setOverrideTime('');
+    setOverrideDateTime('');
     
-    // Trigger a page refresh to clear the override
-    window.location.reload();
+    // No need to reload - the time will return to real time automatically
   };
 
   const getCurrentOverrideTime = () => {
@@ -85,7 +91,7 @@ const TimeOverride = () => {
         onClick={() => setIsOpen(!isOpen)}
         title="Time Override (Dev/Staging Only)"
       >
-        🕐 {isActive ? 'Override Active' : 'Set Time Override'}
+        🕐 {isActive ? 'Dynamic Override Active' : 'Set Dynamic Override'}
       </button>
       
       {/* Current Time Display */}
@@ -124,31 +130,26 @@ const TimeOverride = () => {
             ) : (
               <div className="override-form">
                 <div className="form-group">
-                  <label htmlFor="override-date">Date:</label>
+                  <label htmlFor="override-datetime">Date & Time (starts at :50 seconds):</label>
                   <input
-                    id="override-date"
-                    type="date"
-                    value={overrideDate}
-                    onChange={(e) => setOverrideDate(e.target.value)}
+                    id="override-datetime"
+                    type="datetime-local"
+                    value={overrideDateTime}
+                    onChange={(e) => setOverrideDateTime(e.target.value)}
                   />
                 </div>
                 
-                <div className="form-group">
-                  <label htmlFor="override-time">Time:</label>
-                  <input
-                    id="override-time"
-                    type="time"
-                    value={overrideTime}
-                    onChange={(e) => setOverrideTime(e.target.value)}
-                  />
+                <div className="form-info">
+                  <p>⏱️ Time will start at 50 seconds and advance automatically</p>
+                  <p>⏳ You'll only wait 10 seconds to see transitions</p>
                 </div>
                 
                 <button 
                   className="set-override-button"
                   onClick={handleSetOverride}
-                  disabled={!overrideDate || !overrideTime}
+                  disabled={!overrideDateTime}
                 >
-                  Set Override
+                  Start Dynamic Override
                 </button>
               </div>
             )}
@@ -171,8 +172,8 @@ const TimeOverride = () => {
         }
 
         .time-override-toggle {
-          background: #6366f1;
-          color: white;
+          background: rgba(99, 102, 241, 0.8);
+          color: rgba(255, 255, 255, 0.9);
           border: none;
           padding: 8px 12px;
           border-radius: 6px;
@@ -183,20 +184,23 @@ const TimeOverride = () => {
         }
 
         .time-override-toggle:hover {
-          background: #4f46e5;
+          background: rgba(79, 70, 229, 0.9);
+          color: rgba(255, 255, 255, 1);
         }
 
         .time-override-toggle.active {
-          background: #dc2626;
+          background: rgba(220, 38, 38, 0.8);
+          color: rgba(255, 255, 255, 0.9);
         }
 
         .time-override-toggle.active:hover {
-          background: #b91c1c;
+          background: rgba(185, 28, 28, 0.9);
+          color: rgba(255, 255, 255, 1);
         }
 
         .current-time-display {
-          background: rgba(0, 0, 0, 0.8);
-          color: white;
+          background: rgba(0, 0, 0, 0.6);
+          color: rgba(255, 255, 255, 0.8);
           padding: 4px 8px;
           border-radius: 4px;
           font-size: 10px;
@@ -271,6 +275,23 @@ const TimeOverride = () => {
           border: 1px solid #d1d5db;
           border-radius: 4px;
           font-size: 14px;
+        }
+
+        .form-info {
+          background: #f3f4f6;
+          padding: 8px 12px;
+          border-radius: 4px;
+          margin-bottom: 12px;
+        }
+
+        .form-info p {
+          margin: 0 0 4px 0;
+          font-size: 11px;
+          color: #6b7280;
+        }
+
+        .form-info p:last-child {
+          margin-bottom: 0;
         }
 
         .set-override-button,

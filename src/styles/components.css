@@ -164,6 +164,12 @@ body {
   width: 100%;
 }
 
+/* Install Prompt Section */
+.install-prompt-section {
+  margin-bottom: var(--space-lg);
+  padding-bottom: var(--space-md);
+}
+
 /* Page Layout */
 .page-title {
   font-family: var(--font-heading);
@@ -356,6 +362,112 @@ body {
   font-weight: var(--font-medium);
   text-transform: none;
   letter-spacing: normal;
+}
+
+/* Animated Now/Next Cards */
+.animated-now-next-cards {
+  position: relative;
+  overflow: visible;
+  z-index: 1;
+}
+
+.animated-now-next-cards .cards-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  position: relative;
+}
+
+@media (min-width: 768px) {
+  .animated-now-next-cards .cards-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-lg);
+  }
+}
+
+.animated-now-next-cards .now-card-wrapper,
+.animated-now-next-cards .next-card-wrapper {
+  position: relative;
+  z-index: 1;
+  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 100%;
+  min-height: 200px;
+}
+
+.animated-session-card {
+  transition: all 0.3s ease;
+}
+
+/* Simple hover and transition effects */
+.animated-now-next-cards .now-card-wrapper:hover {
+  transform: translateY(-2px);
+}
+
+.animated-now-next-cards .next-card-wrapper:hover {
+  transform: translateY(-2px);
+}
+
+/* Special animation for Now -> Next transition */
+.now-to-next-transition .now-card-wrapper {
+  animation: slideDownToNext 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.now-to-next-transition .next-card-wrapper {
+  animation: slideUpFromBelow 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes slideDownToNext {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(10px) scale(0.98);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(20px) scale(0.95);
+    opacity: 0.6;
+  }
+}
+
+@keyframes slideUpFromBelow {
+  0% {
+    transform: translateY(20px) scale(0.95);
+    opacity: 0;
+  }
+  50% {
+    transform: translateY(10px) scale(0.98);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Disappearing animation for old Next card */
+.next-card-disappear {
+  animation: disappearUnderSchedule 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes disappearUnderSchedule {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+    z-index: 2;
+  }
+  50% {
+    transform: translateY(10px) scale(0.98);
+    opacity: 0.7;
+    z-index: 1;
+  }
+  100% {
+    transform: translateY(30px) scale(0.9);
+    opacity: 0;
+    z-index: 0;
+  }
 }
 
 /* Form Components */

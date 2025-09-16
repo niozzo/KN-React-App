@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import PageLayout from '../components/layout/PageLayout';
-import SessionCard from '../components/session/SessionCard';
+import AnimatedNowNextCards from '../components/AnimatedNowNextCards';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import InstallPrompt from '../components/InstallPrompt';
@@ -259,118 +259,12 @@ const HomePage = () => {
         <h2 className="section-title">
           {hasConferenceStarted ? 'Now & Next' : `Scheduled Start Date: ${getConferenceStartDate()}`}
         </h2>
-        <div className="cards-container">
-          {currentSession ? (
-            <SessionCard 
-              session={currentSession} 
-              variant="now"
-              onClick={() => handleSessionClick(currentSession)}
-            />
-          ) : hasConferenceStarted && nextSession ? (
-            <Card className="no-session-card" style={{
-              background: 'var(--gray-50)',
-              border: '2px dashed var(--gray-300)',
-              textAlign: 'center',
-              padding: 'var(--space-xl)'
-            }}>
-              <div className="no-session-content">
-                <div style={{ fontSize: '2rem', marginBottom: 'var(--space-sm)' }}>☕</div>
-                <h3 style={{ 
-                  color: 'var(--text-secondary)', 
-                  marginBottom: 'var(--space-xs)',
-                  fontSize: 'var(--text-lg)'
-                }}>
-                  Between Sessions
-                </h3>
-                <p style={{ 
-                  color: 'var(--text-tertiary)',
-                  fontSize: 'var(--text-sm)'
-                }}>
-                  Take a break or check your full schedule
-                </p>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => navigate('/schedule')}
-                  style={{ marginTop: 'var(--space-sm)' }}
-                >
-                  View Schedule
-                </Button>
-              </div>
-            </Card>
-          ) : hasConferenceStarted ? (
-            <Card className="no-session-card" style={{
-              background: 'var(--blue-50)',
-              border: '2px solid var(--blue-200)',
-              textAlign: 'center',
-              padding: 'var(--space-xl)'
-            }}>
-              <div className="no-session-content">
-                <h3 style={{ 
-                  color: 'var(--blue-700)', 
-                  marginBottom: 'var(--space-sm)',
-                  fontSize: 'var(--text-lg)'
-                }}>
-                  No Sessions Assigned
-                </h3>
-                <p style={{ 
-                  color: 'var(--blue-600)',
-                  fontSize: 'var(--text-sm)'
-                }}>
-                  You don't have any sessions assigned for today.
-                </p>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => navigate('/schedule')}
-                  style={{ marginTop: 'var(--space-sm)' }}
-                >
-                  View Schedule
-                </Button>
-              </div>
-            </Card>
-          ) : null}
-          
-          {nextSession ? (
-            <SessionCard 
-              session={nextSession} 
-              variant="next"
-              onClick={() => handleSessionClick(nextSession)}
-            />
-          ) : (
-            <Card className="no-session-card" style={{
-              background: 'var(--gray-50)',
-              border: '2px dashed var(--gray-300)',
-              textAlign: 'center',
-              padding: 'var(--space-xl)'
-            }}>
-              <div className="no-session-content">
-                <div style={{ fontSize: '2rem', marginBottom: 'var(--space-sm)' }}>🎉</div>
-                <h3 style={{ 
-                  color: 'var(--text-secondary)', 
-                  marginBottom: 'var(--space-xs)',
-                  fontSize: 'var(--text-lg)'
-                }}>
-                  All Caught Up!
-                </h3>
-                <p style={{ 
-                  color: 'var(--text-tertiary)',
-                  fontSize: 'var(--text-sm)'
-                }}>
-                  No more sessions scheduled for today
-                </p>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => navigate('/schedule')}
-                  style={{ marginTop: 'var(--space-sm)' }}
-                >
-                  View Full Schedule
-                </Button>
-              </div>
-            </Card>
-          )}
-        </div>
+        <AnimatedNowNextCards
+          currentSession={currentSession}
+          nextSession={nextSession}
+          hasConferenceStarted={hasConferenceStarted}
+          onSessionClick={handleSessionClick}
+        />
       </section>
 
       {/* Schedule CTA */}

@@ -6,6 +6,8 @@
 
 class TimeService {
   static STORAGE_KEY = 'kn_time_override';
+  static OVERRIDE_START_KEY = 'kn_time_override_start';
+  static OVERRIDE_OFFSET_KEY = 'kn_time_override_offset';
 
   /**
    * Get current time (supports time override for dev/staging/test)
@@ -13,12 +15,51 @@ class TimeService {
    */
   static getCurrentTime() {
     if (this.isOverrideEnabled()) {
+      // First try dynamic override time (auto-advancing)
+      const dynamicTime = this.getDynamicOverrideTime();
+      if (dynamicTime) {
+        return dynamicTime;
+      }
+      
+      // Fallback to static override time
       const overrideTime = this.getOverrideTime();
       if (overrideTime) {
         return overrideTime;
       }
     }
     return new Date();
+  }
+
+  /**
+   * Get dynamic override time (advances from start time)
+   * @returns {Date} Current dynamic override time
+   */
+  static getDynamicOverrideTime() {
+    try {
+      const startTimeStr = localStorage.getItem(this.OVERRIDE_START_KEY);
+      const offsetStr = localStorage.getItem(this.OVERRIDE_OFFSET_KEY);
+      
+      if (!startTimeStr || !offsetStr) {
+        return null;
+      }
+      
+      const startTime = new Date(startTimeStr);
+      const offsetMs = parseInt(offsetStr, 10);
+      
+      if (isNaN(startTime.getTime()) || isNaN(offsetMs)) {
+        return null;
+      }
+      
+      // Calculate current time based on start time + elapsed real time
+      const now = new Date();
+      const elapsedMs = now.getTime() - offsetMs;
+      const currentOverrideTime = new Date(startTime.getTime() + elapsedMs);
+      
+      return currentOverrideTime;
+    } catch (error) {
+      console.warn('⚠️ Failed to get dynamic override time:', error);
+      return null;
+    }
   }
 
   /**
@@ -66,12 +107,41 @@ class TimeService {
         detail: { newTime: dateTime, action: 'set' }
       });
       
-      console.log('🕐 Time override set:', dateTime.toISOString());
-      console.log('📡 Dispatching timeOverrideChanged event:', event);
       
       window.dispatchEvent(event);
     } catch (error) {
       console.error('❌ Failed to set override time in localStorage:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Set dynamic time override (auto-advancing from start time)
+   * @param {Date} startDateTime - The start date/time for the override
+   * @param {number} startSeconds - Seconds to start at (default: 50)
+   */
+  static setDynamicOverrideTime(startDateTime, startSeconds = 50) {
+    try {
+      // Set the start time at the specified seconds
+      const adjustedStartTime = new Date(startDateTime);
+      adjustedStartTime.setSeconds(startSeconds);
+      
+      // Store the start time and current real time offset
+      localStorage.setItem(this.OVERRIDE_START_KEY, adjustedStartTime.toISOString());
+      localStorage.setItem(this.OVERRIDE_OFFSET_KEY, new Date().getTime().toString());
+      
+      // Clear static override if it exists
+      localStorage.removeItem(this.STORAGE_KEY);
+      
+      // Emit custom event for same-tab listeners
+      const event = new CustomEvent('timeOverrideChanged', {
+        detail: { newTime: adjustedStartTime, action: 'setDynamic' }
+      });
+      
+      
+      window.dispatchEvent(event);
+    } catch (error) {
+      console.error('❌ Failed to set dynamic override time:', error);
       throw error;
     }
   }
@@ -82,13 +152,14 @@ class TimeService {
   static clearOverrideTime() {
     try {
       localStorage.removeItem(this.STORAGE_KEY);
+      localStorage.removeItem(this.OVERRIDE_START_KEY);
+      localStorage.removeItem(this.OVERRIDE_OFFSET_KEY);
       
       // Emit custom event for same-tab listeners
       window.dispatchEvent(new CustomEvent('timeOverrideChanged', {
         detail: { newTime: null, action: 'clear' }
       }));
       
-      console.log('🕐 Time override cleared');
     } catch (error) {
       console.warn('⚠️ Failed to clear override time from localStorage:', error);
       throw error;
@@ -100,7 +171,15 @@ class TimeService {
    * @returns {boolean} Whether override is active
    */
   static isOverrideActive() {
-    return this.isOverrideEnabled() && this.getOverrideTime() !== null;
+    if (!this.isOverrideEnabled()) return false;
+    
+    // Check for dynamic override first
+    const dynamicTime = this.getDynamicOverrideTime();
+    if (dynamicTime) return true;
+    
+    // Check for static override
+    const staticTime = this.getOverrideTime();
+    return staticTime !== null;
   }
 
   /**
