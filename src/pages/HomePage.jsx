@@ -22,6 +22,7 @@ const HomePage = () => {
     currentSession,
     nextSession,
     sessions,
+    allSessions,
     attendee,
     seatAssignments,
     isLoading,
@@ -47,7 +48,7 @@ const HomePage = () => {
   };
 
   // Determine if conference has started (has any sessions in the past)
-  const hasConferenceStarted = sessions && sessions.some(session => {
+  const hasConferenceStarted = allSessions && allSessions.some(session => {
     if (!session.start_time || !session.date) return false;
     const sessionStart = new Date(`${session.date}T${session.start_time}`);
     const now = TimeService.getCurrentTime();
@@ -56,8 +57,8 @@ const HomePage = () => {
 
   // Get the conference start date from the first agenda item
   const getConferenceStartDate = () => {
-    if (!sessions || sessions.length === 0) return 'TBD';
-    const firstSession = sessions[0];
+    if (!allSessions || allSessions.length === 0) return 'TBD';
+    const firstSession = allSessions[0];
     if (!firstSession.date) return 'TBD';
     
     const date = new Date(firstSession.date);
@@ -107,8 +108,9 @@ const HomePage = () => {
     );
   }
 
-  // Show no assignments state - when there are no sessions at all (conference hasn't started or no sessions assigned)
-  if (!isLoading && attendee && (!currentSession && !nextSession)) {
+  // Show no assignments state - when there are no sessions assigned to this attendee
+  // But only if the conference has started (there are sessions available)
+  if (!isLoading && attendee && (!currentSession && !nextSession) && hasConferenceStarted) {
     return (
       <PageLayout data-testid="home-page">
         <TimeOverride />
@@ -146,6 +148,69 @@ const HomePage = () => {
                   margin: '0 auto var(--space-lg) auto'
                 }}>
                   You don't have any sessions assigned for today. Check the full schedule to see all available sessions.
+                </p>
+                <div style={{ display: 'flex', gap: 'var(--space-sm)', justifyContent: 'center' }}>
+                  <Button 
+                    variant="primary"
+                    onClick={() => navigate('/schedule')}
+                  >
+                    View Full Schedule
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => navigate('/settings')}
+                  >
+                    Update Preferences
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          </div>
+        </section>
+      </PageLayout>
+    );
+  }
+
+  // Show conference not started state - when there are no sessions assigned and conference hasn't started
+  if (!isLoading && attendee && (!currentSession && !nextSession) && !hasConferenceStarted) {
+    return (
+      <PageLayout data-testid="home-page">
+        <TimeOverride />
+        
+        {isOffline && (
+          <div className="offline-indicator">
+            <span>📱 Offline mode - showing cached data</span>
+          </div>
+        )}
+
+        <section className="now-next-section">
+          <h2 className="section-title">
+            Conference schedule to start on {getConferenceStartDate()}
+          </h2>
+          <div className="cards-container">
+            <Card className="conference-not-started-card" style={{
+              background: 'var(--blue-50)',
+              border: '2px solid var(--blue-200)',
+              textAlign: 'center',
+              padding: 'var(--space-xl)',
+              gridColumn: '1 / -1'
+            }}>
+              <div className="conference-not-started-content">
+                <h3 style={{ 
+                  color: 'var(--blue-700)', 
+                  marginBottom: 'var(--space-sm)',
+                  fontSize: 'var(--text-xl)'
+                }}>
+                  Conference Not Started
+                </h3>
+                <p style={{ 
+                  color: 'var(--blue-600)',
+                  fontSize: 'var(--text-base)',
+                  marginBottom: 'var(--space-lg)',
+                  maxWidth: '400px',
+                  margin: '0 auto var(--space-lg) auto'
+                }}>
+                  The conference will begin on {getConferenceStartDate()}. Check back then for your personalized schedule.
                 </p>
                 <div style={{ display: 'flex', gap: 'var(--space-sm)', justifyContent: 'center' }}>
                   <Button 

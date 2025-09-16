@@ -73,6 +73,7 @@ export const useSessionData = (options = {}) => {
   } = options;
 
   const [sessions, setSessions] = useState([]);
+  const [allSessions, setAllSessions] = useState([]);
   const [currentSession, setCurrentSession] = useState(null);
   const [nextSession, setNextSession] = useState(null);
   const [attendee, setAttendee] = useState(null);
@@ -109,22 +110,26 @@ export const useSessionData = (options = {}) => {
         throw new Error(agendaResponse.error || 'Failed to load agenda items');
       }
 
-      let allSessions = agendaResponse.data;
+      let allSessionsData = agendaResponse.data;
+      
+      // Store all sessions for conference start date logic
+      setAllSessions(allSessionsData);
       
       // Filter sessions for current attendee if they have selections
+      let filteredSessions = allSessionsData;
       if (attendeeData && attendeeData.selected_agenda_items) {
-        allSessions = filterSessionsForAttendee(allSessions, attendeeData);
+        filteredSessions = filterSessionsForAttendee(allSessionsData, attendeeData);
       }
 
-      setSessions(allSessions);
+      setSessions(filteredSessions);
       setLastUpdated(new Date());
 
       // Determine current and next sessions
       const currentTime = getCurrentTime();
-      const activeSession = allSessions.find(session => 
+      const activeSession = filteredSessions.find(session => 
         isSessionActive(session, currentTime)
       );
-      const upcomingSession = allSessions.find(session => 
+      const upcomingSession = filteredSessions.find(session => 
         isSessionUpcoming(session, currentTime)
       );
 
@@ -237,6 +242,7 @@ export const useSessionData = (options = {}) => {
 
   return {
     sessions,
+    allSessions,
     currentSession,
     nextSession,
     attendee,
