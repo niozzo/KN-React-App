@@ -5,7 +5,7 @@
  * All data access requires authentication - no public data is available.
  */
 
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react'
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from 'react'
 import { 
   signOut as authSignOut,
   getAuthStatus,
@@ -224,7 +224,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         error: error instanceof Error ? error.message : 'Sign-out failed' 
       }
     } finally {
-      setIsSigningOut(false)
+      // Only update state if React is still available (not during test teardown)
+      try {
+        setIsSigningOut(false)
+      } catch (error) {
+        // Ignore errors during test teardown or when React is not available
+        console.warn('Failed to update signing out state:', error)
+      }
     }
   }
 
@@ -290,6 +296,7 @@ export const LoginPage: React.FC = () => {
   const [error, setError] = useState('')
   const [showError, setShowError] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const handleSubmit = useCallback(async (e?: React.FormEvent, codeToSubmit?: string) => {
     if (e) e.preventDefault()
@@ -328,12 +335,21 @@ export const LoginPage: React.FC = () => {
       const codeToSubmit = accessCode
       
       // Clear the field after a brief delay to show loading
-      setTimeout(() => {
+      timeoutRef.current = setTimeout(() => {
         setAccessCode('')
         handleSubmit(undefined, codeToSubmit)
       }, 500) // 500ms delay to show loading state
     }
   }, [accessCode, handleSubmit, isLoading])
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+      }
+    }
+  }, [])
 
   return (
     <>

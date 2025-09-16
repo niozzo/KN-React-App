@@ -5,8 +5,8 @@
  * Focused tests for AuthContext logout functionality
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor, renderHook, act } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { render, screen, fireEvent, waitFor, renderHook, act, cleanup } from '@testing-library/react'
 import { AuthProvider } from '../../contexts/AuthContext'
 
 // Import test setup
@@ -65,6 +65,10 @@ import { useAuth } from '../../contexts/AuthContext'
 describe('AuthContext Logout Method', () => {
   let mockDataClearingService: any
   let mockAuthSignOut: any
+
+  afterEach(() => {
+    cleanup()
+  })
 
   beforeEach(async () => {
     vi.clearAllMocks()
