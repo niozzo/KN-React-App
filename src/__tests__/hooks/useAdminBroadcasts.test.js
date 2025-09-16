@@ -23,10 +23,18 @@ describe('useAdminBroadcasts Hook', () => {
       value: mockLocalStorage,
       writable: true
     });
+    
+    // Clear any existing localStorage data
+    mockLocalStorage.clear();
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
+    
+    // Clear localStorage mock state
+    if (window.localStorage) {
+      window.localStorage.clear();
+    }
   });
 
   describe('createBroadcastMessage', () => {
@@ -150,20 +158,24 @@ describe('useAdminBroadcasts Hook', () => {
       expect(highest.message).toBe('High priority');
     });
 
-    it('should update active broadcast when higher priority is added', () => {
-      const { result } = renderHook(() => useAdminBroadcasts());
+    it('should update active broadcast when higher priority is added', async () => {
+      const { result } = renderHook(() => useAdminBroadcasts({ enabled: false }));
       
-      // First, ensure we start with no active broadcast
-      expect(result.current.activeBroadcast).toBeNull();
+      // Wait for initial state to settle
+      await act(async () => {
+        // Ensure we start with no active broadcast
+        expect(result.current.activeBroadcast).toBeNull();
+      });
       
-      act(() => {
+      await act(async () => {
         result.current.addBroadcast('Normal message', 'info', 'normal');
       });
+      
       
       // Normal priority should not set active broadcast
       expect(result.current.activeBroadcast).toBeNull();
       
-      act(() => {
+      await act(async () => {
         result.current.addBroadcast('Critical message', 'urgent', 'critical');
       });
       
@@ -264,17 +276,17 @@ describe('useAdminBroadcasts Hook', () => {
   });
 
   describe('Dismiss Functionality', () => {
-    it('should dismiss active broadcast', () => {
-      const { result } = renderHook(() => useAdminBroadcasts());
+    it('should dismiss active broadcast', async () => {
+      const { result } = renderHook(() => useAdminBroadcasts({ enabled: false }));
       
-      act(() => {
+      await act(async () => {
         result.current.addBroadcast('High priority message', 'urgent', 'high');
       });
       
       expect(result.current.activeBroadcast).toBeDefined();
       expect(result.current.activeBroadcast.priority).toBe('high');
       
-      act(() => {
+      await act(async () => {
         result.current.dismissActiveBroadcast();
       });
       

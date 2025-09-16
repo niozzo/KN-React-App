@@ -37,6 +37,7 @@ export const useAdminBroadcasts = (options = {}) => {
   const [activeBroadcast, setActiveBroadcast] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [dismissedBroadcastId, setDismissedBroadcastId] = useState(null);
 
   // Load broadcasts from localStorage
   const loadBroadcasts = useCallback(() => {
@@ -106,7 +107,7 @@ export const useAdminBroadcasts = (options = {}) => {
     if (priority === 'high' || priority === 'critical') {
       setActiveBroadcast(newBroadcast);
     } else {
-      // For normal/low priority, don't set as active
+      // For normal/low priority, clear active broadcast
       setActiveBroadcast(null);
     }
 
@@ -135,8 +136,11 @@ export const useAdminBroadcasts = (options = {}) => {
 
   // Dismiss active broadcast
   const dismissActiveBroadcast = useCallback(() => {
+    if (activeBroadcast) {
+      setDismissedBroadcastId(activeBroadcast.id);
+    }
     setActiveBroadcast(null);
-  }, []);
+  }, [activeBroadcast]);
 
   // Get highest priority broadcast
   const getHighestPriorityBroadcast = useCallback(() => {
@@ -234,14 +238,22 @@ export const useAdminBroadcasts = (options = {}) => {
     return () => clearInterval(interval);
   }, [enabled, checkInterval, checkForUpdates]);
 
-  // Update active broadcast based on highest priority
+  // Update active broadcast based on highest priority (only high/critical)
   useEffect(() => {
     const highestPriority = getHighestPriorityBroadcast();
     
-    if (highestPriority && (!activeBroadcast || highestPriority.priority !== activeBroadcast.priority)) {
-      setActiveBroadcast(highestPriority);
+    if (highestPriority && (highestPriority.priority === 'high' || highestPriority.priority === 'critical')) {
+      // Don't set as active if it's been dismissed
+      if (highestPriority.id !== dismissedBroadcastId) {
+        if (!activeBroadcast || highestPriority.priority !== activeBroadcast.priority) {
+          setActiveBroadcast(highestPriority);
+        }
+      }
+    } else {
+      // Clear active broadcast if no high/critical priority broadcasts
+      setActiveBroadcast(null);
     }
-  }, [broadcasts, getHighestPriorityBroadcast, activeBroadcast]);
+  }, [broadcasts, getHighestPriorityBroadcast, activeBroadcast, dismissedBroadcastId]);
 
   // Clean up expired broadcasts
   useEffect(() => {
