@@ -27,7 +27,15 @@ const TimeOverride = () => {
     const isOverrideActive = TimeService.isOverrideActive();
     setIsActive(isOverrideActive);
     
-    if (!isOverrideActive) {
+    if (isOverrideActive) {
+      // Load existing override start time for editing
+      const startTime = TimeService.getOverrideStartTime();
+      if (startTime) {
+        // Convert to datetime-local format (YYYY-MM-DDTHH:MM)
+        const dateTimeString = startTime.toISOString().slice(0, 16);
+        setOverrideDateTime(dateTimeString);
+      }
+    } else {
       // Set default values to current date and time
       const now = new Date();
       const dateTimeString = now.toISOString().slice(0, 16); // YYYY-MM-DDTHH:MM
@@ -74,7 +82,7 @@ const TimeOverride = () => {
         onClick={() => setIsOpen(!isOpen)}
         title="Time Override (Dev/Staging Only)"
       >
-        🕐 {isActive ? 'Dynamic Override Active' : 'Set Dynamic Override'}
+        🕐 {isActive ? 'Edit Dynamic Override' : 'Set Dynamic Override'}
       </button>
       
       {/* Current Time Display */}
@@ -103,12 +111,31 @@ const TimeOverride = () => {
                 <p><strong>Override Active:</strong></p>
                 <p>Current Override Time: {currentTime.toLocaleString()}</p>
                 <p>Real Time: {new Date().toLocaleString()}</p>
-                <button 
-                  className="clear-override-button"
-                  onClick={handleClearOverride}
-                >
-                  Clear Override
-                </button>
+                
+                <div className="override-actions">
+                  <button 
+                    className="edit-override-button"
+                    onClick={() => {
+                      // Load current start time for editing
+                      const startTime = TimeService.getOverrideStartTime();
+                      if (startTime) {
+                        const dateTimeString = startTime.toISOString().slice(0, 16);
+                        setOverrideDateTime(dateTimeString);
+                      }
+                      // Switch to edit mode by setting isActive to false temporarily
+                      setIsActive(false);
+                    }}
+                  >
+                    Edit Override
+                  </button>
+                  
+                  <button 
+                    className="clear-override-button"
+                    onClick={handleClearOverride}
+                  >
+                    Clear Override
+                  </button>
+                </div>
               </div>
             ) : (
               <div className="override-form">
@@ -127,13 +154,28 @@ const TimeOverride = () => {
                   <p>⏳ You'll only wait 10 seconds to see transitions</p>
                 </div>
                 
-                <button 
-                  className="set-override-button"
-                  onClick={handleSetOverride}
-                  disabled={!overrideDateTime}
-                >
-                  Start Dynamic Override
-                </button>
+                <div className="form-actions">
+                  <button 
+                    className="set-override-button"
+                    onClick={handleSetOverride}
+                    disabled={!overrideDateTime}
+                  >
+                    {TimeService.isOverrideActive() ? 'Update Override' : 'Start Dynamic Override'}
+                  </button>
+                  
+                  <button 
+                    className="cancel-override-button"
+                    onClick={() => {
+                      setIsOpen(false);
+                      // Reset to current time if canceling
+                      const now = new Date();
+                      const dateTimeString = now.toISOString().slice(0, 16);
+                      setOverrideDateTime(dateTimeString);
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -324,6 +366,56 @@ const TimeOverride = () => {
         .override-status p:first-child {
           font-weight: 600;
           color: #dc2626;
+        }
+
+        .override-actions {
+          display: flex;
+          gap: 8px;
+          margin-top: 12px;
+        }
+
+        .override-actions button {
+          flex: 1;
+          padding: 8px;
+          border: none;
+          border-radius: 4px;
+          font-size: 14px;
+          cursor: pointer;
+          transition: background 0.2s ease;
+        }
+
+        .edit-override-button {
+          background: #6366f1;
+          color: white;
+        }
+
+        .edit-override-button:hover {
+          background: #4f46e5;
+        }
+
+        .form-actions {
+          display: flex;
+          gap: 8px;
+          margin-top: 12px;
+        }
+
+        .form-actions button {
+          flex: 1;
+          padding: 8px;
+          border: none;
+          border-radius: 4px;
+          font-size: 14px;
+          cursor: pointer;
+          transition: background 0.2s ease;
+        }
+
+        .cancel-override-button {
+          background: #6b7280;
+          color: white;
+        }
+
+        .cancel-override-button:hover {
+          background: #4b5563;
         }
       `}</style>
     </div>

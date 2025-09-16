@@ -273,7 +273,7 @@ body {
 .cards-container {
   display: flex;
   flex-direction: column;
-  gap: var(--space-lg);
+  gap: var(--space-md);
 }
 
 .cards-container .card {
@@ -319,6 +319,8 @@ body {
   padding: 4px var(--space-sm);
   border-radius: var(--radius-sm);
   display: inline-block;
+  flex-shrink: 0; /* Prevent status tag from shrinking */
+  white-space: nowrap; /* Prevent text wrapping within the tag */
 }
 
 .status-now {
@@ -374,15 +376,17 @@ body {
 .animated-now-next-cards .cards-container {
   display: flex;
   flex-direction: column;
-  gap: var(--space-lg);
+  gap: var(--space-md);
   position: relative;
+  align-items: stretch;
+  align-content: flex-start;
 }
 
 @media (min-width: 768px) {
   .animated-now-next-cards .cards-container {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: var(--space-lg);
+    gap: var(--space-md);
   }
 }
 
@@ -392,7 +396,8 @@ body {
   z-index: 1;
   transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
   width: 100%;
-  min-height: 200px;
+  margin: 0;
+  padding: 0;
 }
 
 .animated-session-card {
@@ -423,22 +428,22 @@ body {
     opacity: 1;
   }
   50% {
-    transform: translateY(10px) scale(0.98);
+    transform: translateY(5px) scale(0.98);
     opacity: 0.8;
   }
   100% {
-    transform: translateY(20px) scale(0.95);
+    transform: translateY(0) scale(0.95);
     opacity: 0.6;
   }
 }
 
 @keyframes slideUpFromBelow {
   0% {
-    transform: translateY(20px) scale(0.95);
+    transform: translateY(5px) scale(0.95);
     opacity: 0;
   }
   50% {
-    transform: translateY(10px) scale(0.98);
+    transform: translateY(2px) scale(0.98);
     opacity: 0.8;
   }
   100% {
@@ -1172,13 +1177,17 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  flex-wrap: nowrap;
   margin-bottom: var(--space-sm);
+  min-width: 0; /* Allow flex items to shrink */
 }
 
 .session-time-container {
   display: flex;
   flex-direction: column;
   gap: 0px;
+  flex: 1;
+  min-width: 0; /* Allow text to truncate if needed */
 }
 
 .session-time-container:empty {
@@ -1190,6 +1199,10 @@ body {
   color: var(--coral);
   font-weight: var(--font-medium);
   margin-top: -2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .session-time {
@@ -1209,14 +1222,14 @@ body {
   font-size: var(--text-xl);
   font-weight: var(--font-semibold);
   color: var(--ink-800);
-  margin-bottom: var(--space-xs);
+  margin-bottom: var(--space-sm);
 }
 
 .session-details {
   display: flex;
   flex-direction: column;
   gap: var(--space-xs);
-  margin-bottom: var(--space-sm);
+  margin-bottom: 0;
 }
 
 .session-detail {

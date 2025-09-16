@@ -138,6 +138,29 @@ class TimeService {
   }
 
   /**
+   * Get current dynamic override start time
+   * @returns {Date|null} Start time of current dynamic override or null if not set
+   */
+  static getOverrideStartTime() {
+    try {
+      const startTimeStr = localStorage.getItem(this.OVERRIDE_START_KEY);
+      if (!startTimeStr) return null;
+      
+      const startTime = new Date(startTimeStr);
+      if (isNaN(startTime.getTime())) {
+        console.warn('⚠️ Invalid override start time in localStorage, clearing it:', startTimeStr);
+        this.clearOverrideTime();
+        return null;
+      }
+      
+      return startTime;
+    } catch (error) {
+      console.warn('⚠️ Failed to get override start time from localStorage:', error);
+      return null;
+    }
+  }
+
+  /**
    * Set time override in localStorage
    * @param {Date} dateTime - The override date/time
    */

@@ -173,7 +173,7 @@ const AnimatedNowNextCards = ({
           ref={nextCardRef}
           style={{
             transition: 'all 0.8s cubic-bezier(0.4, 0, 0.2, 1)',
-            transform: 'translateY(20px) scale(0.95)',
+            transform: 'translateY(0) scale(0.95)',
             opacity: 0.8,
             zIndex: 1
           }}
@@ -196,7 +196,7 @@ const AnimatedNowNextCards = ({
           ref={nextCardRef}
           style={{
             transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
-            transform: 'translateY(-20px) scale(0.95)',
+            transform: 'translateY(0) scale(0.95)',
             opacity: 0,
             zIndex: 0
           }}

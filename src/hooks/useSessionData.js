@@ -99,11 +99,13 @@ export const useSessionData = (options = {}) => {
   const loadSessionData = useCallback(async () => {
     // Don't load data if not authenticated
     if (!isAuthenticated) {
+      console.log('🔄 useSessionData: Not authenticated, skipping data load');
       setIsLoading(false);
       return;
     }
 
     try {
+      console.log('🔄 useSessionData: Starting data load...');
       setIsLoading(true);
       setError(null);
 
@@ -182,6 +184,13 @@ export const useSessionData = (options = {}) => {
       setCurrentSession(enhanceSessionWithSeatInfo(activeSession) || null);
       setNextSession(enhanceSessionWithSeatInfo(upcomingSession) || null);
 
+      console.log('✅ useSessionData: Data loaded successfully', {
+        allSessions: allSessionsData.length,
+        filteredSessions: filteredSessions.length,
+        currentSession: activeSession?.title,
+        nextSession: upcomingSession?.title
+      });
+
     } catch (err) {
       console.error('❌ Error loading session data:', err);
       setError(err.message);
@@ -204,7 +213,7 @@ export const useSessionData = (options = {}) => {
     } finally {
       setIsLoading(false);
     }
-  }, [enableOfflineMode, isOffline]);
+  }, [enableOfflineMode, isOffline, isAuthenticated]);
 
   // Cache session data for offline use
   const cacheSessionData = useCallback(() => {
