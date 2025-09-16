@@ -8,6 +8,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { agendaService } from '../services/agendaService.ts';
 import { getCurrentAttendeeData, getAttendeeSeatAssignments } from '../services/dataService';
 import TimeService from '../services/timeService';
+import { useAuth } from '../contexts/AuthContext';
 
 /**
  * Determine if a session is currently active
@@ -80,6 +81,9 @@ export const useSessionData = (options = {}) => {
     enableOfflineMode = true
   } = options;
 
+  // Get authentication status
+  const { isAuthenticated } = useAuth();
+
   const [sessions, setSessions] = useState([]);
   const [allSessions, setAllSessions] = useState([]);
   const [currentSession, setCurrentSession] = useState(null);
@@ -93,6 +97,13 @@ export const useSessionData = (options = {}) => {
 
   // Load session data
   const loadSessionData = useCallback(async () => {
+    // Don't load data if not authenticated
+    if (!isAuthenticated) {
+      console.log('🔒 Not authenticated, skipping session data load');
+      setIsLoading(false);
+      return;
+    }
+
     try {
       setIsLoading(true);
       setError(null);
@@ -201,7 +212,7 @@ export const useSessionData = (options = {}) => {
   useEffect(() => {
     const handleOnline = () => {
       setIsOffline(false);
-      if (autoRefresh) {
+      if (autoRefresh && isAuthenticated) {
         loadSessionData();
       }
     };
@@ -217,23 +228,23 @@ export const useSessionData = (options = {}) => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, [autoRefresh, loadSessionData]);
+  }, [autoRefresh, isAuthenticated, loadSessionData]);
 
   // Initial load
   useEffect(() => {
     loadSessionData();
   }, [loadSessionData]);
 
-  // Auto-refresh when online
+  // Auto-refresh when online and authenticated
   useEffect(() => {
-    if (!autoRefresh || isOffline) return;
+    if (!autoRefresh || isOffline || !isAuthenticated) return;
 
     const interval = setInterval(() => {
       loadSessionData();
     }, refreshInterval);
 
     return () => clearInterval(interval);
-  }, [autoRefresh, isOffline, refreshInterval, loadSessionData]);
+  }, [autoRefresh, isOffline, isAuthenticated, refreshInterval, loadSessionData]);
 
   // Cache data when it changes
   useEffect(() => {

@@ -99,10 +99,32 @@ export class DataClearingService {
    */
   private async clearLocalStorageData(result: DataClearingResult): Promise<void> {
     try {
-      // Clear authentication state
-      localStorage.removeItem(this.AUTH_KEY)
+      console.log('🗑️ Clearing all localStorage data...')
+      
+      // Get all localStorage keys
+      const keysToRemove = []
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i)
+        if (key && (
+          key.startsWith(this.CACHE_PREFIX) || // kn_cache_*
+          key === this.AUTH_KEY || // conference_auth
+          key === this.ATTENDEE_INFO_KEY || // kn_current_attendee_info
+          key.startsWith('kn_cached_') || // kn_cached_sessions, etc.
+          key.startsWith('kn_sync_') || // kn_sync_status, etc.
+          key.startsWith('kn_conflicts') // kn_conflicts
+        )) {
+          keysToRemove.push(key)
+        }
+      }
+      
+      // Remove all identified keys
+      keysToRemove.forEach(key => {
+        localStorage.removeItem(key)
+        console.log(`🧹 Removed: ${key}`)
+      })
+      
       result.clearedData.localStorage = true
-      console.log('✅ Cleared localStorage authentication data')
+      console.log(`✅ Cleared ${keysToRemove.length} localStorage items`)
     } catch (error) {
       console.warn('⚠️ Failed to clear localStorage:', error)
       result.errors.push(`localStorage clearing failed: ${error instanceof Error ? error.message : 'Unknown error'}`)

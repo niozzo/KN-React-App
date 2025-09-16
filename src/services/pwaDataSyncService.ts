@@ -100,10 +100,14 @@ export class PWADataSyncService {
    */
   private setupEventListeners(): void {
     window.addEventListener('online', () => {
-      console.log('🌐 Online - Starting sync');
+      console.log('🌐 Online - Checking authentication before sync');
       this.syncStatus.isOnline = true;
       this.startPeriodicSync();
-      this.syncAllData();
+      if (this.isUserAuthenticated()) {
+        this.syncAllData();
+      } else {
+        console.log('🔒 Not authenticated, skipping sync');
+      }
     });
 
     window.addEventListener('offline', () => {
@@ -112,9 +116,9 @@ export class PWADataSyncService {
       this.stopPeriodicSync();
     });
 
-    // Sync when page becomes visible
+    // Sync when page becomes visible (only if authenticated)
     document.addEventListener('visibilitychange', () => {
-      if (!document.hidden && this.syncStatus.isOnline) {
+      if (!document.hidden && this.syncStatus.isOnline && this.isUserAuthenticated()) {
         this.syncAllData();
       }
     });
@@ -129,10 +133,27 @@ export class PWADataSyncService {
     }
 
     this.syncTimer = setInterval(() => {
-      if (this.syncStatus.isOnline && !this.syncStatus.syncInProgress) {
+      // Only sync if online, not in progress, and user is authenticated
+      if (this.syncStatus.isOnline && !this.syncStatus.syncInProgress && this.isUserAuthenticated()) {
         this.syncAllData();
       }
     }, this.cacheConfig.syncInterval);
+  }
+
+  /**
+   * Check if user is authenticated
+   */
+  private isUserAuthenticated(): boolean {
+    try {
+      const authData = localStorage.getItem('conference_auth');
+      if (!authData) return false;
+      
+      const auth = JSON.parse(authData);
+      return auth.isAuthenticated === true && auth.attendee?.id;
+    } catch (error) {
+      console.warn('⚠️ Failed to check authentication status:', error);
+      return false;
+    }
   }
 
   /**
