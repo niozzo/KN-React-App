@@ -351,9 +351,24 @@ export const useSessionData = (options = {}) => {
           return (a.start_time || '').localeCompare(b.start_time || '');
         })[0]; // Get the first (earliest) upcoming session
       
+      // Debug logging for time override scenarios
+      if (TimeService.isOverrideActive()) {
+        console.log('🔄 Real-time update with override:', {
+          currentTime: currentTime.toISOString(),
+          activeSession: activeSession?.id || 'none',
+          upcomingSession: upcomingSession?.id || 'none',
+          sessionsCount: sessions.length
+        });
+      }
+      
       // Update state only if changed (performance optimization)
       setCurrentSession(prev => {
         if (prev?.id !== activeSession?.id) {
+          console.log('🔄 Session state changed:', {
+            previous: prev?.id,
+            current: activeSession?.id,
+            time: currentTime.toISOString()
+          });
           return activeSession;
         }
         return prev;
@@ -361,6 +376,11 @@ export const useSessionData = (options = {}) => {
       
       setNextSession(prev => {
         if (prev?.id !== upcomingSession?.id) {
+          console.log('🔄 Next session changed:', {
+            previous: prev?.id,
+            current: upcomingSession?.id,
+            time: currentTime.toISOString()
+          });
           return upcomingSession;
         }
         return prev;
