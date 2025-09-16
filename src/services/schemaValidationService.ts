@@ -78,6 +78,14 @@ export class SchemaValidationService {
     'user_profiles'
   ];
 
+  private isLocalMode(): boolean {
+    // Check if we're in local development mode (no Supabase connection needed)
+    return process.env.NODE_ENV === 'development' || 
+           process.env.NODE_ENV === 'test' ||
+           window.location.hostname === 'localhost' ||
+           window.location.hostname === '127.0.0.1';
+  }
+
   private readonly EXPECTED_SCHEMAS: Record<string, Partial<TableSchema>> = {
     attendees: {
       columns: [
@@ -269,6 +277,19 @@ export class SchemaValidationService {
    * Get all tables from the database
    */
   private async getAllTables(): Promise<TableSchema[]> {
+    // Skip Supabase queries in local mode
+    if (this.isLocalMode()) {
+      console.log('🏠 Local mode detected - skipping Supabase schema validation');
+      return this.EXPECTED_TABLES.map(tableName => ({
+        name: tableName,
+        columns: [],
+        indexes: [],
+        constraints: [],
+        rowCount: 0,
+        lastModified: new Date().toISOString()
+      }));
+    }
+
     try {
       // Query information_schema to get actual tables
       const { data, error } = await supabase
@@ -308,6 +329,20 @@ export class SchemaValidationService {
    * Get table structure details
    */
   private async getTableStructure(tableName: string): Promise<TableSchema> {
+    // Skip Supabase queries in local mode
+    if (this.isLocalMode()) {
+      console.log(`🏠 Local mode detected - using expected schema for table ${tableName}`);
+      const expectedSchema = this.EXPECTED_SCHEMAS[tableName];
+      return {
+        name: tableName,
+        columns: expectedSchema?.columns || [],
+        indexes: [],
+        constraints: [],
+        rowCount: 0,
+        lastModified: new Date().toISOString()
+      };
+    }
+
     try {
       // Query information_schema.columns to get actual column information
       const { data: columns, error: colError } = await supabase
@@ -331,19 +366,27 @@ export class SchemaValidationService {
         };
       }
 
-      // Query constraints information
-      const { data: constraints, error: constError } = await supabase
-        .from('information_schema.table_constraints')
-        .select('constraint_name, constraint_type')
-        .eq('table_name', tableName)
-        .eq('table_schema', 'public');
+      // Query constraints information (skip in local mode)
+      let constraints = null;
+      let keyColumns = null;
+      
+      if (!this.isLocalMode()) {
+        const { data: constraintsData, error: constError } = await supabase
+          .from('information_schema.table_constraints')
+          .select('constraint_name, constraint_type')
+          .eq('table_name', tableName)
+          .eq('table_schema', 'public');
 
-      // Query primary key information
-      const { data: keyColumns, error: keyError } = await supabase
-        .from('information_schema.key_column_usage')
-        .select('column_name, constraint_name')
-        .eq('table_name', tableName)
-        .eq('table_schema', 'public');
+        // Query primary key information
+        const { data: keyColumnsData, error: keyError } = await supabase
+          .from('information_schema.key_column_usage')
+          .select('column_name, constraint_name')
+          .eq('table_name', tableName)
+          .eq('table_schema', 'public');
+          
+        constraints = constraintsData;
+        keyColumns = keyColumnsData;
+      }
 
       const primaryKeyColumns = keyColumns?.filter(kc => 
         constraints?.some(c => c.constraint_name === kc.constraint_name && c.constraint_type === 'PRIMARY KEY')
