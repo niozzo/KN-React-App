@@ -62,7 +62,8 @@ This directory contains the comprehensive architecture documentation for the Con
 1. Review the [Frontend Refactoring Plan](./frontend-refactoring-plan.md)
 2. Check the [Component Architecture](../src/README.md)
 3. Follow the [Migration Guide](./frontend-spec-updates.md)
-4. **⚠️ CRITICAL**: Read [RLS Troubleshooting](./supabase-rls-troubleshooting.md) before database integration
+4. **⚠️ CRITICAL**: Read [Data Access Architecture](./data-access-architecture.md) before any data integration
+5. **⚠️ CRITICAL**: Read [RLS Troubleshooting](./supabase-rls-troubleshooting.md) before database integration
 
 ### **For Documentation Updates**
 1. Review the [Documentation Cleanup Plan](./documentation-cleanup-plan.md)
@@ -85,6 +86,7 @@ docs/architecture/
 ├── documentation-cleanup-plan.md       # Documentation review plan
 ├── greenfield-architecture.md          # High-level architecture
 ├── database-schema.md                  # Database structure
+├── data-access-architecture.md         # ⚠️ CRITICAL - Data access patterns
 ├── supabase-rls-troubleshooting.md    # RLS authentication guide
 └── legacy/                             # Archived analysis files
 ```

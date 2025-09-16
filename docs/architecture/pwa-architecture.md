@@ -56,12 +56,20 @@ The service worker implements advanced caching strategies and background synchro
 - **Change Detection**: Automatically detects database schema changes
 - **Validation**: Ensures data sync compatibility with current schema
 - **Error Prevention**: Prevents sync failures due to schema mismatches
+- **Environment Awareness**: Skips live database queries in local development mode
 
 #### **Validation Process**
-1. **Schema Inference**: Fetches sample data to infer current schema
-2. **Structure Validation**: Compares against expected schema
-3. **Type Checking**: Validates column data types
-4. **Relationship Validation**: Ensures foreign key relationships are intact
+1. **Environment Detection**: Automatically detects local vs production mode
+2. **Local Mode**: Uses expected schemas without database queries
+3. **Production Mode**: Fetches sample data to infer current schema
+4. **Structure Validation**: Compares against expected schema
+5. **Type Checking**: Validates column data types
+6. **Relationship Validation**: Ensures foreign key relationships are intact
+
+#### **⚠️ CRITICAL: Environment-Based Behavior**
+- **Local Development**: No Supabase connections, uses expected schemas
+- **Production**: Full schema validation with live database queries
+- **Prevents**: 404 errors from `information_schema` endpoints in development
 
 ### **Install Experience (`src/components/InstallPrompt.tsx`)**
 
