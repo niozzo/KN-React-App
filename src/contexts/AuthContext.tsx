@@ -53,8 +53,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Function to clear all cached data on authentication failure
   const clearCachedData = useCallback(() => {
     try {
-      console.log('🧹 Clearing cached data due to authentication failure...')
-      
       // Clear all kn_cache_ keys from localStorage
       const keysToRemove = []
       for (let i = 0; i < localStorage.length; i++) {
@@ -66,14 +64,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       keysToRemove.forEach(key => {
         localStorage.removeItem(key)
-        console.log(`🧹 Removed cached data: ${key}`)
       })
       
       // Clear authentication state
       localStorage.removeItem('conference_auth')
-      console.log('🧹 Cleared authentication state')
-      
-      console.log('✅ All cached data cleared')
     } catch (error) {
       console.warn('⚠️ Error clearing cached data:', error)
     }

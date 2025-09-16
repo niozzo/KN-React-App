@@ -35,7 +35,6 @@ export class DataClearingService {
    * @returns Promise<DataClearingResult>
    */
   async clearAllData(): Promise<DataClearingResult> {
-    console.log('🔍 DataClearingService.clearAllData() called')
     const startTime = performance.now()
     const result: DataClearingResult = {
       success: true,
@@ -55,7 +54,6 @@ export class DataClearingService {
     }
 
     try {
-      console.log('🗑️ Starting comprehensive data clearing...')
 
       // Clear localStorage data
       await this.clearLocalStorageData(result)
@@ -75,9 +73,6 @@ export class DataClearingService {
       const endTime = performance.now()
       result.performanceMetrics.endTime = endTime
       result.performanceMetrics.duration = endTime - startTime
-
-      console.log(`✅ Data clearing completed in ${result.performanceMetrics.duration.toFixed(2)}ms`)
-      console.log('📊 Cleared data:', result.clearedData)
 
       return result
 
@@ -99,8 +94,6 @@ export class DataClearingService {
    */
   private async clearLocalStorageData(result: DataClearingResult): Promise<void> {
     try {
-      console.log('🗑️ Clearing all localStorage data...')
-      
       // Get all localStorage keys
       const keysToRemove = []
       for (let i = 0; i < localStorage.length; i++) {
@@ -120,11 +113,9 @@ export class DataClearingService {
       // Remove all identified keys
       keysToRemove.forEach(key => {
         localStorage.removeItem(key)
-        console.log(`🧹 Removed: ${key}`)
       })
       
       result.clearedData.localStorage = true
-      console.log(`✅ Cleared ${keysToRemove.length} localStorage items`)
     } catch (error) {
       console.warn('⚠️ Failed to clear localStorage:', error)
       result.errors.push(`localStorage clearing failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
@@ -138,7 +129,6 @@ export class DataClearingService {
     try {
       attendeeInfoService.clearAttendeeInfo()
       result.clearedData.attendeeInfo = true
-      console.log('✅ Cleared attendee info cache')
     } catch (error) {
       console.warn('⚠️ Failed to clear attendee info cache:', error)
       result.errors.push(`Attendee info cache clearing failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
@@ -152,7 +142,6 @@ export class DataClearingService {
     try {
       await pwaDataSyncService.clearCache()
       result.clearedData.pwaCache = true
-      console.log('✅ Cleared PWA cached data')
     } catch (error) {
       console.warn('⚠️ Failed to clear PWA cached data:', error)
       result.errors.push(`PWA cache clearing failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
@@ -166,7 +155,6 @@ export class DataClearingService {
     try {
       // Check if IndexedDB is available
       if (!('indexedDB' in window)) {
-        console.log('ℹ️ IndexedDB not available, skipping IndexedDB clearing')
         result.clearedData.indexedDB = true
         return
       }
@@ -196,7 +184,6 @@ export class DataClearingService {
             })
           } else {
             // For mocked environments, just log success
-            console.log(`✅ Cleared IndexedDB database: ${dbName}`)
           }
         } catch (dbError) {
           console.warn(`⚠️ Failed to clear IndexedDB database ${dbName}:`, dbError)
@@ -206,11 +193,6 @@ export class DataClearingService {
       }
 
       result.clearedData.indexedDB = !hasErrors
-      if (hasErrors) {
-        console.warn('⚠️ IndexedDB data clearing completed with errors')
-      } else {
-        console.log('✅ IndexedDB data clearing completed')
-      }
     } catch (error) {
       console.warn('⚠️ Failed to clear IndexedDB data:', error)
       result.errors.push(`IndexedDB clearing failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
@@ -224,19 +206,16 @@ export class DataClearingService {
     try {
       // Check if service worker and caches are available
       if (!('serviceWorker' in navigator) || !('caches' in window)) {
-        console.log('ℹ️ Service worker or caches not available, skipping cache clearing')
         result.clearedData.serviceWorkerCaches = true
         return
       }
 
       // Get all cache names and delete them
       const cacheNames = await caches.keys()
-      console.log(`🔍 Found ${cacheNames.length} caches to clear`)
 
       for (const cacheName of cacheNames) {
         try {
           await caches.delete(cacheName)
-          console.log(`✅ Cleared cache: ${cacheName}`)
         } catch (cacheError) {
           console.warn(`⚠️ Failed to clear cache ${cacheName}:`, cacheError)
           result.errors.push(`Cache ${cacheName} clearing failed: ${cacheError instanceof Error ? cacheError.message : 'Unknown error'}`)
@@ -244,7 +223,6 @@ export class DataClearingService {
       }
 
       result.clearedData.serviceWorkerCaches = true
-      console.log('✅ Service worker caches clearing completed')
     } catch (error) {
       console.warn('⚠️ Failed to clear service worker caches:', error)
       result.errors.push(`Service worker cache clearing failed: ${error instanceof Error ? error.message : 'Unknown error'}`)

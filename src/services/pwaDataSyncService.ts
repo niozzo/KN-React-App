@@ -100,18 +100,14 @@ export class PWADataSyncService {
    */
   private setupEventListeners(): void {
     window.addEventListener('online', () => {
-      console.log('🌐 Online - Checking authentication before sync');
       this.syncStatus.isOnline = true;
       this.startPeriodicSync();
       if (this.isUserAuthenticated()) {
         this.syncAllData();
-      } else {
-        console.log('🔒 Not authenticated, skipping sync');
       }
     });
 
     window.addEventListener('offline', () => {
-      console.log('📱 Offline - Stopping sync');
       this.syncStatus.isOnline = false;
       this.stopPeriodicSync();
     });
@@ -191,7 +187,6 @@ export class PWADataSyncService {
    */
   async syncAllData(): Promise<SyncResult> {
     if (this.syncStatus.syncInProgress) {
-      console.log('⏳ Sync already in progress');
       return {
         success: false,
         syncedTables: [],
@@ -211,17 +206,13 @@ export class PWADataSyncService {
     };
 
     try {
-      console.log('🔄 Starting data synchronization...');
 
       // Validate schema before syncing
-      console.log('🔍 Validating database schema...');
       try {
         const schemaResult = await this.schemaValidator.validateSchema();
         if (!schemaResult.isValid) {
           console.warn('⚠️ Schema validation failed:', schemaResult.errors);
           result.errors.push(`Schema validation failed: ${schemaResult.errors.length} errors found`);
-        } else {
-          console.log('✅ Schema validation passed');
         }
       } catch (schemaError) {
         console.warn('⚠️ Schema validation error:', schemaError);
@@ -247,12 +238,9 @@ export class PWADataSyncService {
       this.syncStatus.pendingChanges = 0;
       this.syncStatus.syncInProgress = false;
       this.saveSyncStatus();
-
-      console.log('✅ Data synchronization completed');
-      console.log(`📊 Synced tables: ${result.syncedTables.join(', ')}`);
       
       if (result.errors.length > 0) {
-        console.warn(`⚠️ Errors: ${result.errors.join(', ')}`);
+        console.warn(`⚠️ Sync completed with errors: ${result.errors.join(', ')}`);
       }
 
     } catch (error) {
@@ -280,8 +268,6 @@ export class PWADataSyncService {
         throw new Error(`No Supabase table configured for: ${tableName}`);
       }
 
-      console.log(`📡 Fetching from Supabase table: ${supabaseTable}`);
-      
       // Query data from Supabase
       const { data, error } = await supabase
         .from(supabaseTable)
@@ -290,14 +276,9 @@ export class PWADataSyncService {
       if (error) {
         throw new Error(`Supabase query failed: ${error.message}`);
       }
-      
-      console.log(`📊 Fetched data for ${tableName}: ${data?.length || 0} records`);
-      console.log(`📊 Sample record for ${tableName}:`, data?.[0] || 'No data');
 
       // Cache the data
       await this.cacheTableData(tableName, data || []);
-      
-      console.log(`✅ ${tableName} synced (${data?.length || 0} records)`);
 
     } catch (error) {
       console.error(`❌ Failed to sync ${tableName}:`, error);
@@ -316,7 +297,6 @@ export class PWADataSyncService {
       let sanitizedData = data;
       if (tableName === 'attendees') {
         sanitizedData = data.map(attendee => sanitizeAttendeeForStorage(attendee));
-        console.log(`🔒 Sanitized ${data.length} attendee records (removed access_code)`);
       }
       
       const cacheData = {
@@ -325,9 +305,7 @@ export class PWADataSyncService {
         version: 1
       };
 
-      console.log(`💾 Caching ${tableName} with ${sanitizedData.length} records`);
       localStorage.setItem(cacheKey, JSON.stringify(cacheData));
-      console.log(`💾 Cached to localStorage with key: ${cacheKey}`);
       
       // Update cache size tracking
       this.updateCacheSize();

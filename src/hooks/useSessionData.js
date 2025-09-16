@@ -99,7 +99,6 @@ export const useSessionData = (options = {}) => {
   const loadSessionData = useCallback(async () => {
     // Don't load data if not authenticated
     if (!isAuthenticated) {
-      console.log('🔒 Not authenticated, skipping session data load');
       setIsLoading(false);
       return;
     }
