@@ -53,6 +53,26 @@ export const useAdminBroadcasts = (options = {}) => {
         
         setBroadcasts(active);
         
+        // Set active broadcast to highest priority if any exist
+        if (active.length > 0) {
+          const priorityOrder = { critical: 4, high: 3, normal: 2, low: 1 };
+          const highestPriority = active.reduce((highest, current) => {
+            if (!highest) return current;
+            const currentPriority = priorityOrder[current.priority] || 0;
+            const highestPriority = priorityOrder[highest.priority] || 0;
+            return currentPriority > highestPriority ? current : highest;
+          }, null);
+          
+          // Only set as active if it's high or critical priority
+          if (highestPriority && (highestPriority.priority === 'high' || highestPriority.priority === 'critical')) {
+            setActiveBroadcast(highestPriority);
+          } else {
+            setActiveBroadcast(null);
+          }
+        } else {
+          setActiveBroadcast(null);
+        }
+        
         // Update localStorage with filtered broadcasts
         if (active.length !== parsed.length) {
           localStorage.setItem('kn_admin_broadcasts', JSON.stringify(active));
@@ -82,9 +102,12 @@ export const useAdminBroadcasts = (options = {}) => {
       return updated;
     });
 
-    // Set as active if high priority
+    // Set as active if high priority, clear if normal/low priority
     if (priority === 'high' || priority === 'critical') {
       setActiveBroadcast(newBroadcast);
+    } else {
+      // For normal/low priority, don't set as active
+      setActiveBroadcast(null);
     }
 
     return newBroadcast;

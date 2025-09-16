@@ -11,13 +11,16 @@ describe('useAdminBroadcasts Hook', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     
-    // Mock localStorage
+    // Mock localStorage with fresh state for each test
+    const mockLocalStorage = {
+      getItem: vi.fn().mockReturnValue(null), // Return null by default (no stored data)
+      setItem: vi.fn(),
+      removeItem: vi.fn(),
+      clear: vi.fn()
+    };
+    
     Object.defineProperty(window, 'localStorage', {
-      value: {
-        getItem: vi.fn(),
-        setItem: vi.fn(),
-        removeItem: vi.fn()
-      },
+      value: mockLocalStorage,
       writable: true
     });
   });
@@ -149,6 +152,9 @@ describe('useAdminBroadcasts Hook', () => {
 
     it('should update active broadcast when higher priority is added', () => {
       const { result } = renderHook(() => useAdminBroadcasts());
+      
+      // First, ensure we start with no active broadcast
+      expect(result.current.activeBroadcast).toBeNull();
       
       act(() => {
         result.current.addBroadcast('Normal message', 'info', 'normal');
