@@ -8,9 +8,21 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import HomePage from '../../pages/HomePage';
 
-// Mock the useSessionData hook
+// Mock the useSessionData hook and its dependencies
 vi.mock('../../hooks/useSessionData', () => ({
   default: vi.fn()
+}));
+
+// Mock the services to prevent import errors
+vi.mock('../../services/agendaService', () => ({
+  agendaService: {
+    getActiveAgendaItems: vi.fn()
+  }
+}));
+
+vi.mock('../../services/dataService', () => ({
+  getCurrentAttendeeData: vi.fn(),
+  getAttendeeSeatAssignments: vi.fn()
 }));
 
 // Mock the TimeOverride component

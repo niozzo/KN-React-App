@@ -62,8 +62,13 @@ describe('useSessionData Hook', () => {
     ]
   };
 
+  let mockStorage = {};
+
   beforeEach(async () => {
     vi.clearAllMocks();
+    
+    // Clear mock storage between tests
+    mockStorage = {};
     
     // Mock successful API responses
     const { agendaService } = await import('../../services/agendaService');
@@ -79,7 +84,6 @@ describe('useSessionData Hook', () => {
     getAttendeeSeatAssignments.mockResolvedValue([]);
     
     // Mock localStorage with actual storage
-    const mockStorage = {};
     Object.defineProperty(window, 'localStorage', {
       value: {
         getItem: vi.fn((key) => mockStorage[key] || null),
