@@ -22,7 +22,27 @@ const isSessionActive = (session, currentTime) => {
   const start = new Date(`${session.date}T${session.start_time}`);
   const end = new Date(`${session.date}T${session.end_time}`);
   
-  return currentTime >= start && currentTime <= end;
+  const isActive = currentTime >= start && currentTime <= end;
+  
+  // Debug logging for the first session
+  if (session.id === '1' || session.title?.includes('Opening')) {
+    console.log('🔍 isSessionActive debug:', {
+      sessionId: session.id,
+      sessionTitle: session.title,
+      sessionDate: session.date,
+      sessionStartTime: session.start_time,
+      sessionEndTime: session.end_time,
+      startDateTime: start.toISOString(),
+      endDateTime: end.toISOString(),
+      currentTime: currentTime.toISOString(),
+      isActive: isActive,
+      currentTimeMs: currentTime.getTime(),
+      startTimeMs: start.getTime(),
+      endTimeMs: end.getTime()
+    });
+  }
+  
+  return isActive;
 };
 
 /**
@@ -58,7 +78,7 @@ const filterSessionsForAttendee = (sessions, attendee) => {
   }
   
   return sessions.filter(session => {
-    if (session.type === 'breakout-session') {
+    if (session.session_type === 'breakout-session') {
       // Only show breakout sessions if attendee is assigned to them
       return attendee.selected_breakouts && 
              attendee.selected_breakouts.includes(session.id);
@@ -138,6 +158,15 @@ export const useSessionData = (options = {}) => {
 
       setSessions(filteredSessions);
       setLastUpdated(new Date());
+      
+      // Debug: Log the first few sessions
+      console.log('📋 Loaded sessions:', filteredSessions.slice(0, 3).map(s => ({
+        id: s.id,
+        title: s.title,
+        date: s.date,
+        start_time: s.start_time,
+        end_time: s.end_time
+      })));
 
       // Determine current and next sessions
       const currentTime = getCurrentTime();
@@ -249,6 +278,82 @@ export const useSessionData = (options = {}) => {
   useEffect(() => {
     cacheSessionData();
   }, [cacheSessionData]);
+
+  // Listen for time override changes and re-evaluate session states
+  useEffect(() => {
+    const handleTimeOverrideChange = () => {
+      // Re-evaluate session states when time override changes
+      const currentTime = getCurrentTime();
+      
+      console.log('🕐 Time override change detected:', {
+        currentTime: currentTime.toISOString(),
+        sessionsCount: sessions.length
+      });
+      
+      // Find current active session
+      const activeSession = sessions.find(session => 
+        isSessionActive(session, currentTime)
+      );
+      
+      // Find next upcoming session
+      const upcomingSession = sessions.find(session => 
+        isSessionUpcoming(session, currentTime)
+      );
+      
+      console.log('🔍 Session evaluation:', {
+        activeSession: activeSession?.id || 'none',
+        upcomingSession: upcomingSession?.id || 'none',
+        currentTime: currentTime.toISOString()
+      });
+      
+      // Update state only if changed (performance optimization)
+      setCurrentSession(prev => {
+        if (prev?.id !== activeSession?.id) {
+          console.log('🔄 Time override: Session state updated', {
+            previous: prev?.id,
+            current: activeSession?.id,
+            time: currentTime.toISOString()
+          });
+          return activeSession;
+        }
+        return prev;
+      });
+      
+      setNextSession(prev => {
+        if (prev?.id !== upcomingSession?.id) {
+          console.log('🔄 Time override: Next session updated', {
+            previous: prev?.id,
+            current: upcomingSession?.id,
+            time: currentTime.toISOString()
+          });
+          return upcomingSession;
+        }
+        return prev;
+      });
+    };
+
+    // Listen for time override changes via localStorage (cross-tab)
+    const handleStorageChange = (e) => {
+      if (e.key === 'kn_time_override') {
+        console.log('📱 Storage event detected for time override');
+        handleTimeOverrideChange();
+      }
+    };
+
+    // Listen for time override changes via custom event (same-tab)
+    const handleTimeOverrideUpdate = () => {
+      console.log('🎯 Custom event detected for time override');
+      handleTimeOverrideChange();
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('timeOverrideChanged', handleTimeOverrideUpdate);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('timeOverrideChanged', handleTimeOverrideUpdate);
+    };
+  }, [sessions]); // Re-run when sessions change to update the closure
 
   // Refresh data manually
   const refresh = useCallback(() => {

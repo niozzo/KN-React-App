@@ -60,8 +60,19 @@ class TimeService {
   static setOverrideTime(dateTime) {
     try {
       localStorage.setItem(this.STORAGE_KEY, dateTime.toISOString());
+      
+      // Emit custom event for same-tab listeners
+      const event = new CustomEvent('timeOverrideChanged', {
+        detail: { newTime: dateTime, action: 'set' }
+      });
+      
+      console.log('🕐 Time override set:', dateTime.toISOString());
+      console.log('📡 Dispatching timeOverrideChanged event:', event);
+      
+      window.dispatchEvent(event);
     } catch (error) {
       console.error('❌ Failed to set override time in localStorage:', error);
+      throw error;
     }
   }
 
@@ -71,8 +82,16 @@ class TimeService {
   static clearOverrideTime() {
     try {
       localStorage.removeItem(this.STORAGE_KEY);
+      
+      // Emit custom event for same-tab listeners
+      window.dispatchEvent(new CustomEvent('timeOverrideChanged', {
+        detail: { newTime: null, action: 'clear' }
+      }));
+      
+      console.log('🕐 Time override cleared');
     } catch (error) {
       console.warn('⚠️ Failed to clear override time from localStorage:', error);
+      throw error;
     }
   }
 

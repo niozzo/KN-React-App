@@ -110,7 +110,28 @@ export class ServerDataSyncService {
             continue;
           }
           
-          const records = data || [];
+          let records = data || [];
+          
+          // Apply data transformation for specific tables
+          if (tableName === 'agenda_items') {
+            try {
+              // Debug: Log raw data structure
+              console.log('🔍 Raw agenda_items data structure:', records[0] ? Object.keys(records[0]) : 'No data');
+              console.log('🔍 First agenda item raw data:', records[0]);
+              
+              // Import and apply AgendaTransformer
+              const { AgendaTransformer } = await import('../transformers/agendaTransformer.js');
+              const agendaTransformer = new AgendaTransformer();
+              records = agendaTransformer.transformArrayFromDatabase(records);
+              records = agendaTransformer.sortAgendaItems(records);
+              console.log(`🔧 Applied AgendaTransformer to ${records.length} agenda items`);
+              console.log('🔍 Transformed first agenda item:', records[0]);
+            } catch (transformError) {
+              console.warn(`⚠️ Failed to transform agenda_items:`, transformError);
+              // Continue with raw data if transformation fails
+            }
+          }
+          
           console.log(`✅ ${tableName} synced (${records.length} records)`);
           
           // Cache the data locally

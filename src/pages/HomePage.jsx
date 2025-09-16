@@ -57,11 +57,19 @@ const HomePage = () => {
 
   // Get the conference start date from the first agenda item
   const getConferenceStartDate = () => {
-    if (!allSessions || allSessions.length === 0) return 'TBD';
-    const firstSession = allSessions[0];
-    if (!firstSession.date) return 'TBD';
+    if (!allSessions || allSessions.length === 0) {
+      return 'TBD';
+    }
     
-    const date = new Date(firstSession.date);
+    const firstSession = allSessions[0];
+    if (!firstSession.date) {
+      return 'TBD';
+    }
+    
+    // Parse date without timezone conversion to avoid day shift
+    const [year, month, day] = firstSession.date.split('-').map(Number);
+    const date = new Date(year, month - 1, day); // month is 0-indexed in Date constructor
+    
     return date.toLocaleDateString('en-US', { 
       month: 'short', 
       day: 'numeric', 
