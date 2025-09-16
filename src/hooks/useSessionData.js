@@ -59,9 +59,8 @@ const filterSessionsForAttendee = (sessions, attendee) => {
   
   return sessions.filter(session => {
     if (session.session_type === 'breakout-session') {
-      // Only show breakout sessions if attendee is assigned to them
-      return attendee.selected_breakouts && 
-             attendee.selected_breakouts.includes(session.id);
+      // TEMPORARY: Hide all breakout sessions until assignment logic is implemented
+      return false;
     } else {
       // Show all other session types (keynote, meal, etc.) to everyone
       return true;

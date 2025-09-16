@@ -1,14 +1,14 @@
 # Session Filtering Architecture
 
-**Version:** 1.0  
+**Version:** 2.0  
 **Last Updated:** 2025-01-16  
-**Status:** ACTIVE - Core Business Logic  
+**Status:** ACTIVE - Core Business Logic
 
 ## Overview
 
-This document defines the **session filtering architecture** for the Knowledge Now React application, specifically how attendees see different types of sessions based on their assignments and the session types.
+This document defines the **simplified session filtering architecture** for the Knowledge Now React application. The logic has been streamlined to only restrict breakout sessions, with all other session types visible to all attendees.
 
-## ⚠️ CRITICAL: Session Type-Based Filtering
+## ⚠️ CRITICAL: Simplified Session Type-Based Filtering
 
 ### **Session Types**
 
@@ -22,8 +22,9 @@ The application distinguishes between two main categories of sessions:
    - `reception` - Reception events
    - `networking` - Networking sessions
 
-2. **Breakout Sessions** - Visible ONLY to assigned attendees
+2. **Breakout Sessions** - Currently HIDDEN from ALL attendees
    - `breakout-session` - Breakout sessions with limited capacity
+   - **TEMPORARY STATE:** All breakout sessions are hidden until proper assignment logic is implemented
 
 ### **Attendee Data Model**
 
@@ -38,7 +39,7 @@ interface Attendee {
 
 ## Session Filtering Logic
 
-### **Core Filtering Algorithm**
+### **Simplified Core Filtering Algorithm**
 
 ```typescript
 const filterSessionsForAttendee = (sessions: AgendaItem[], attendee: Attendee): AgendaItem[] => {
@@ -47,9 +48,9 @@ const filterSessionsForAttendee = (sessions: AgendaItem[], attendee: Attendee): 
   }
   
   return sessions.filter(session => {
-    if (session.type === 'breakout-session') {
-      // Only show breakout sessions if attendee is assigned to them
-      return attendee.selected_breakouts?.includes(session.id) || false;
+    if (session.session_type === 'breakout-session') {
+      // TEMPORARY: Hide all breakout sessions until assignment logic is implemented
+      return false;
     } else {
       // Show all other session types to everyone
       return true;
@@ -58,16 +59,16 @@ const filterSessionsForAttendee = (sessions: AgendaItem[], attendee: Attendee): 
 };
 ```
 
-### **Business Rules**
+### **Simplified Business Rules**
 
 1. **All attendees see general sessions** (keynotes, meals, etc.)
-2. **Only assigned attendees see breakout sessions** (based on `selected_breakouts` array)
-3. **If attendee has no breakout assignments** → sees all general sessions only
-4. **If breakout session ID doesn't exist** → gracefully handled (session not shown)
+2. **No attendees see breakout sessions** (temporary state)
+3. **Simplified logic** - Only session type matters, no complex assignment checking
+4. **Future-ready** - Architecture supports adding assignment logic later
 
 ## Implementation Architecture
 
-### **Data Flow**
+### **Simplified Data Flow**
 
 ```mermaid
 graph TD
@@ -75,7 +76,7 @@ graph TD
     B --> C[Load All Agenda Items]
     C --> D[Filter Sessions by Type]
     D --> E[Show General Sessions to All]
-    D --> F[Show Breakout Sessions to Assigned Only]
+    D --> F[Hide All Breakout Sessions]
     E --> G[HomePage Display]
     F --> G
 ```
@@ -101,18 +102,18 @@ const filterSessionsForAttendee = (sessions, attendee) => {
 };
 ```
 
-### **Corrected Implementation**
+### **Simplified Implementation**
 
 ```typescript
-// ✅ CORRECT - Uses proper data model
+// ✅ SIMPLIFIED - Hide all breakout sessions, show all others
 const filterSessionsForAttendee = (sessions, attendee) => {
   if (!attendee) {
     return sessions;
   }
   
   return sessions.filter(session => {
-    if (session.type === 'breakout-session') {
-      return attendee.selected_breakouts?.includes(session.id) || false;
+    if (session.session_type === 'breakout-session') {
+      return false; // Hide all breakout sessions temporarily
     } else {
       return true; // Show all general sessions
     }
@@ -175,13 +176,21 @@ const hasConferenceStarted = allSessions && allSessions.some(session => {
 
 ## Future Enhancements
 
-1. **Server-side filtering** - Move filtering to API for better performance
-2. **Dynamic session types** - Support for new session types without code changes
-3. **Advanced assignments** - Support for multiple breakout session assignments
-4. **Session conflicts** - Handle overlapping session assignments
+1. **Breakout Session Assignment Logic** - Implement proper assignment checking for breakout sessions
+2. **Server-side filtering** - Move filtering to API for better performance
+3. **Dynamic session types** - Support for new session types without code changes
+4. **Advanced assignments** - Support for multiple breakout session assignments
+5. **Session conflicts** - Handle overlapping session assignments
+
+## Migration Notes
+
+- **Breaking Change:** All breakout sessions are now hidden from all users
+- **Temporary State:** This is a simplified implementation pending proper assignment logic
+- **Backward Compatible:** General sessions continue to work as before
+- **Future Ready:** Architecture supports adding assignment logic without breaking changes
 
 ---
 
-**Architecture Status:** ✅ **VALIDATED**  
+**Architecture Status:** ✅ **SIMPLIFIED & VALIDATED**  
 **Implementation Status:** ✅ **PRODUCTION READY**  
 **Last Validated:** 2025-01-16

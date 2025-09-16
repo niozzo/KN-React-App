@@ -163,7 +163,7 @@ describe('useSessionData Hook', () => {
       expect(result.current.sessions.map(s => s.id)).toEqual(['1', '2', '3']);
     });
 
-    it('should filter breakout sessions correctly', async () => {
+    it('should hide all breakout sessions (simplified logic)', async () => {
       // Create mock sessions with breakout sessions
       const sessionsWithBreakouts = [
         ...mockSessions,
@@ -174,7 +174,7 @@ describe('useSessionData Hook', () => {
           start_time: '14:00:00',
           end_time: '15:00:00',
           location: 'Room B',
-          type: 'breakout-session'
+          session_type: 'breakout-session'
         },
         {
           id: 'breakout-2',
@@ -183,13 +183,13 @@ describe('useSessionData Hook', () => {
           start_time: '14:00:00',
           end_time: '15:00:00',
           location: 'Room C',
-          type: 'breakout-session'
+          session_type: 'breakout-session'
         }
       ];
 
       const attendeeWithBreakoutSelections = {
         ...mockAttendee,
-        selected_breakouts: ['breakout-1'] // Only assigned to breakout-1
+        selected_breakouts: ['breakout-1'] // Even with assignments, breakout sessions should be hidden
       };
 
       // Mock agendaService to return sessions with breakouts
@@ -209,9 +209,112 @@ describe('useSessionData Hook', () => {
         await new Promise(resolve => setTimeout(resolve, 0));
       });
       
-      // Should show all 3 general sessions + 1 assigned breakout session = 4 total
-      expect(result.current.sessions).toHaveLength(4);
-      expect(result.current.sessions.map(s => s.id)).toEqual(['1', '2', '3', 'breakout-1']);
+      // Should show only 3 general sessions - all breakout sessions are hidden
+      expect(result.current.sessions).toHaveLength(3);
+      expect(result.current.sessions.map(s => s.id)).toEqual(['1', '2', '3']);
+      // Verify no breakout sessions are included
+      expect(result.current.sessions.filter(s => s.session_type === 'breakout-session')).toHaveLength(0);
+    });
+
+    it('should show all non-breakout session types to all users', async () => {
+      // Create mock sessions with various session types
+      const sessionsWithVariousTypes = [
+        {
+          id: 'keynote-1',
+          title: 'Opening Keynote',
+          date: '2024-12-19',
+          start_time: '09:00:00',
+          end_time: '10:00:00',
+          location: 'Main Hall',
+          session_type: 'keynote'
+        },
+        {
+          id: 'exec-1',
+          title: 'Executive Presentation',
+          date: '2024-12-19',
+          start_time: '10:30:00',
+          end_time: '11:30:00',
+          location: 'Main Hall',
+          session_type: 'executive-presentation'
+        },
+        {
+          id: 'panel-1',
+          title: 'Panel Discussion',
+          date: '2024-12-19',
+          start_time: '14:00:00',
+          end_time: '15:00:00',
+          location: 'Main Hall',
+          session_type: 'panel-discussion'
+        },
+        {
+          id: 'meal-1',
+          title: 'Lunch',
+          date: '2024-12-19',
+          start_time: '12:00:00',
+          end_time: '13:00:00',
+          location: 'Dining Hall',
+          session_type: 'meal'
+        },
+        {
+          id: 'reception-1',
+          title: 'Welcome Reception',
+          date: '2024-12-19',
+          start_time: '18:00:00',
+          end_time: '20:00:00',
+          location: 'Lobby',
+          session_type: 'reception'
+        },
+        {
+          id: 'networking-1',
+          title: 'Networking Session',
+          date: '2024-12-19',
+          start_time: '15:30:00',
+          end_time: '16:30:00',
+          location: 'Lobby',
+          session_type: 'networking'
+        },
+        {
+          id: 'breakout-1',
+          title: 'Breakout Session',
+          date: '2024-12-19',
+          start_time: '16:00:00',
+          end_time: '17:00:00',
+          location: 'Room A',
+          session_type: 'breakout-session'
+        }
+      ];
+
+      // Mock agendaService to return sessions with various types
+      const { agendaService } = await import('../../services/agendaService');
+      agendaService.getActiveAgendaItems.mockResolvedValue({
+        success: true,
+        data: sessionsWithVariousTypes
+      });
+
+      const { getCurrentAttendeeData, getAttendeeSeatAssignments } = await import('../../services/dataService');
+      getCurrentAttendeeData.mockResolvedValue(mockAttendee);
+      getAttendeeSeatAssignments.mockResolvedValue([]);
+      
+      const { result } = renderHook(() => useSessionData());
+      
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 0));
+      });
+      
+      // Should show all 6 non-breakout sessions
+      expect(result.current.sessions).toHaveLength(6);
+      
+      // Verify all non-breakout session types are included
+      const sessionTypes = result.current.sessions.map(s => s.session_type);
+      expect(sessionTypes).toContain('keynote');
+      expect(sessionTypes).toContain('executive-presentation');
+      expect(sessionTypes).toContain('panel-discussion');
+      expect(sessionTypes).toContain('meal');
+      expect(sessionTypes).toContain('reception');
+      expect(sessionTypes).toContain('networking');
+      
+      // Verify no breakout sessions are included
+      expect(sessionTypes).not.toContain('breakout-session');
     });
   });
 
