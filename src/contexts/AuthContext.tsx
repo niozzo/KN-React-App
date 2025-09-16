@@ -53,11 +53,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Function to clear all cached data on authentication failure
   const clearCachedData = useCallback(() => {
     try {
-      // Clear all kn_cache_ keys from localStorage
+      // Clear all confidential keys from localStorage
       const keysToRemove = []
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i)
-        if (key && key.startsWith('kn_cache_')) {
+        if (key && (
+          key.startsWith('kn_cache_') || // Our cached data
+          key.startsWith('kn_cached_') || // Session data
+          key.startsWith('kn_sync_') || // Sync status
+          key.startsWith('kn_conflicts') || // Conflicts
+          key.startsWith('sb-') || // Supabase auth tokens
+          key.includes('supabase') // Any other Supabase keys
+        )) {
           keysToRemove.push(key)
         }
       }
@@ -205,7 +212,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       // Step 2: Clear authentication state
       console.log('🔐 Step 2: Clearing authentication state...')
-      authSignOut()
+      await authSignOut()
       
       // Step 3: Update React state
       console.log('⚛️ Step 3: Updating React state...')
@@ -235,7 +242,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       // Even if data clearing failed, still clear authentication state
       console.log('🔐 Clearing authentication state despite data clearing failure...')
-      authSignOut()
+      await authSignOut()
       setIsAuthenticated(false)
       setAttendee(null)
       setAttendeeName(null)

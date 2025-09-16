@@ -138,8 +138,17 @@ export const isUserAuthenticated = (): boolean => {
  * Sign out current user
  * @returns Sign out result
  */
-export const signOut = (): { success: boolean; error?: string } => {
+export const signOut = async (): Promise<{ success: boolean; error?: string }> => {
   try {
+    // Sign out from Supabase first to clear auth tokens
+    try {
+      const { signOut: supabaseSignOut } = await import('../lib/supabase')
+      await supabaseSignOut()
+    } catch (supabaseError) {
+      console.warn('⚠️ Supabase sign out failed:', supabaseError)
+      // Continue with local sign out even if Supabase fails
+    }
+    
     currentAttendee = null
     isAuthenticated = false
     
@@ -150,7 +159,6 @@ export const signOut = (): { success: boolean; error?: string } => {
       console.warn('⚠️ Failed to clear auth state from localStorage:', error)
     }
     
-    console.log('👋 Signed out successfully')
     return { success: true }
   } catch (error) {
     console.error('❌ Sign out error:', error)

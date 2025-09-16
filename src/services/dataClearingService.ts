@@ -104,7 +104,9 @@ export class DataClearingService {
           key === this.ATTENDEE_INFO_KEY || // kn_current_attendee_info
           key.startsWith('kn_cached_') || // kn_cached_sessions, etc.
           key.startsWith('kn_sync_') || // kn_sync_status, etc.
-          key.startsWith('kn_conflicts') // kn_conflicts
+          key.startsWith('kn_conflicts') || // kn_conflicts
+          key.startsWith('sb-') || // Supabase auth tokens (sb-iikcgdhztkrexuuqheli-auth-token, etc.)
+          key.includes('supabase') // Any other Supabase-related keys
         )) {
           keysToRemove.push(key)
         }
