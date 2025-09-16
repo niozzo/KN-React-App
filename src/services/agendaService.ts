@@ -17,6 +17,14 @@ export class AgendaService implements IAgendaService {
 
   private async apiGet<T>(path: string): Promise<T> {
     const res = await fetch(path, { credentials: 'include' });
+    
+    // Check content type before parsing to prevent HTML parsing errors
+    const contentType = res.headers.get('content-type');
+    if (!contentType?.includes('application/json')) {
+      console.error(`❌ AgendaService API returned non-JSON content: ${contentType} for path: ${path}`);
+      throw new Error(`Expected JSON but got ${contentType || 'unknown content type'}`);
+    }
+    
     if (!res.ok) {
       throw new Error(`API error ${res.status}`);
     }
@@ -165,6 +173,29 @@ export class AgendaService implements IAgendaService {
       };
     } catch (err) {
       console.error('❌ AgendaService.getActiveAgendaItems error:', err);
+      
+      // Try to fallback to cached data if API fails
+      try {
+        const cachedData = localStorage.getItem('kn_cache_agenda_items');
+        if (cachedData) {
+          const agendaItems = JSON.parse(cachedData);
+          const data = agendaItems
+            .filter((item: any) => item.is_active)
+            .sort((a: any, b: any) => (a.date || '').localeCompare(b.date || ''))
+            .sort((a: any, b: any) => (a.start_time || '').localeCompare(b.start_time || ''));
+          
+          console.log('✅ Using cached agenda items as fallback');
+          return {
+            data,
+            count: data.length,
+            error: null,
+            success: true
+          };
+        }
+      } catch (cacheError) {
+        console.warn('⚠️ Failed to load cached agenda items:', cacheError);
+      }
+      
       return {
         data: [],
         count: 0,

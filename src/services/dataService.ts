@@ -40,6 +40,14 @@ const requireAuthentication = (): void => {
 // Lightweight API client for backend endpoints
 const apiGet = async <T>(path: string): Promise<T> => {
   const response = await fetch(path, { credentials: 'include' })
+  
+  // Check content type before parsing to prevent HTML parsing errors
+  const contentType = response.headers.get('content-type')
+  if (!contentType?.includes('application/json')) {
+    console.error(`❌ API returned non-JSON content: ${contentType} for path: ${path}`)
+    throw new DataServiceError(`Expected JSON but got ${contentType || 'unknown content type'}`, 'INVALID_CONTENT_TYPE')
+  }
+  
   if (!response.ok) {
     // Try to parse structured error to detect backend auth issues
     try {
@@ -52,6 +60,7 @@ const apiGet = async <T>(path: string): Promise<T> => {
     }
     throw new DataServiceError(`API request failed: ${response.status} ${response.statusText}`, 'API_ERROR')
   }
+  
   const json = await response.json()
   // Most endpoints return { success, data }
   return (json?.data ?? json) as T
@@ -88,6 +97,25 @@ export const getCurrentAttendeeData = async (): Promise<Attendee | null> => {
     return data
   } catch (error) {
     console.error('❌ Error fetching current attendee:', error)
+    
+    // Try to fallback to cached data if API fails
+    try {
+      const cachedData = localStorage.getItem('kn_cache_attendees')
+      if (cachedData) {
+        const attendees = JSON.parse(cachedData)
+        const current = (await import('./authService.js')).getCurrentAttendee?.()
+        if (current?.id) {
+          const cachedAttendee = attendees.find((a: Attendee) => a.id === current.id)
+          if (cachedAttendee) {
+            console.log('✅ Using cached attendee data as fallback')
+            return cachedAttendee
+          }
+        }
+      }
+    } catch (cacheError) {
+      console.warn('⚠️ Failed to load cached attendee data:', cacheError)
+    }
+    
     throw new DataServiceError('Failed to fetch current attendee data', 'FETCH_ERROR')
   }
 }
