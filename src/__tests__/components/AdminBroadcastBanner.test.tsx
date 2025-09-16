@@ -33,18 +33,6 @@ describe('AdminBroadcastBanner Component', () => {
       expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     });
 
-    it('should handle empty broadcast state correctly', () => {
-      mockUseAdminBroadcasts.mockReturnValue({
-        activeBroadcast: null,
-        dismissActiveBroadcast: vi.fn()
-      });
-
-      render(<AdminBroadcastBanner />);
-      
-      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-      expect(screen.queryByText('URGENT')).not.toBeInTheDocument();
-      expect(screen.queryByText('Room change')).not.toBeInTheDocument();
-    });
   });
 
   describe('Broadcast Display', () => {
@@ -94,7 +82,7 @@ describe('AdminBroadcastBanner Component', () => {
     it('should display critical priority broadcast', () => {
       const mockBroadcast = {
         id: '1',
-        message: 'URGENT: System maintenance in 5 minutes',
+        message: 'URGENT: Room change for next session',
         type: 'urgent',
         priority: 'critical',
         expiresAt: null
@@ -108,7 +96,7 @@ describe('AdminBroadcastBanner Component', () => {
       render(<AdminBroadcastBanner />);
 
       expect(screen.getByText('URGENT')).toBeInTheDocument();
-      expect(screen.getByText('URGENT: System maintenance in 5 minutes')).toBeInTheDocument();
+      expect(screen.getByText('URGENT: Room change for next session')).toBeInTheDocument();
       expect(screen.getByText('🚨')).toBeInTheDocument();
     });
   });

@@ -7,7 +7,6 @@ import Button from '../components/common/Button';
 import InstallPrompt from '../components/InstallPrompt';
 import useSessionData from '../hooks/useSessionData';
 import TimeOverride from '../components/dev/TimeOverride';
-import AdminBroadcastBanner from '../components/broadcast/AdminBroadcastBanner';
 import TimeService from '../services/timeService';
 
 /**
@@ -174,14 +173,6 @@ const HomePage = () => {
     <PageLayout data-testid="home-page">
       {/* Time Override (Dev/Staging Only) */}
       <TimeOverride />
-      
-      {/* Admin Broadcast Banner */}
-      <AdminBroadcastBanner 
-        showCountdown={true}
-        onDismiss={(broadcast) => {
-          console.log('Broadcast dismissed:', broadcast);
-        }}
-      />
       
       {/* Offline indicator */}
       {isOffline && (

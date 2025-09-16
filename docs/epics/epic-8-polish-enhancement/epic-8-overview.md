@@ -15,6 +15,13 @@
 - **Status**: Planning
 - **File**: `docs/epics/epic-8-polish-enhancement/8.1.advanced-post-login-loading-indicator.md`
 
+### Story 8.2: Admin Broadcast System
+- **Moved from**: Story 2.1 (Epic 2)
+- **Reason**: Broadcast functionality requires proper Admin UI implementation
+- **Priority**: Medium - Enhancement feature
+- **Status**: Planning
+- **File**: `docs/epics/epic-8-polish-enhancement/8.2.admin-broadcast-system.md`
+
 ## Epic Goals
 
 1. **User Experience Polish**: Enhance existing functionality with advanced UI/UX features
