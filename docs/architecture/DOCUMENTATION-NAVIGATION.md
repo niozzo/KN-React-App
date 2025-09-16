@@ -20,6 +20,11 @@
 ### System Architecture
 - **`greenfield-architecture.md`** - Complete system architecture (single source of truth)
 
+### Security Architecture
+- **`security-architecture.md`** - Comprehensive security patterns and practices
+- **`logout-security-architecture.md`** - Logout security and data clearing architecture
+- **`security-validation-report.md`** - Security validation and testing results
+
 ## 📚 **Supporting Documents**
 
 ### Spikes & Implementation
@@ -44,6 +49,11 @@
 1. Read **`greenfield-architecture.md`** for overall system design
 2. Reference **`database-schema.md`** for data model
 
+### To Understand Security:
+1. Read **`security-architecture.md`** for comprehensive security patterns
+2. Reference **`logout-security-architecture.md`** for logout security details
+3. Check **`security-validation-report.md`** for security validation results
+
 ## ✅ **Verification**
 
 All documentation is complete and usable:
@@ -58,4 +68,5 @@ All documentation is complete and usable:
 - **Database questions**: Check `database-schema.md` first
 - **Connection issues**: Follow `ADR-003-vercel-spike-solution.md` and spike deployment guide
 - **Architecture questions**: Reference `greenfield-architecture.md`
+- **Security questions**: Check `security-architecture.md` and `logout-security-architecture.md`
 - **Historical context**: Check `legacy/` directory

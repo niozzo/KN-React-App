@@ -68,6 +68,106 @@ const clearCachedData = useCallback(() => {
 }, [])
 ```
 
+### **Comprehensive Logout Security**
+
+**CRITICAL SECURITY UPDATE (2025-01-16)**: The system now implements comprehensive data clearing on logout to prevent any confidential data from persisting:
+
+```typescript
+// Comprehensive data clearing on logout
+const clearLocalStorageData = async (): Promise<{ success: boolean; error?: string }> => {
+  try {
+    console.log('🧹 Starting comprehensive data clearing...')
+    
+    // Clear all confidential data patterns
+    const keysToRemove = []
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i)
+      if (key && (
+        key.startsWith('kn_cache_') ||        // Our cached data
+        key.startsWith('kn_cached_') ||       // Session data
+        key.startsWith('kn_sync_') ||         // Sync status
+        key.startsWith('kn_conflicts') ||     // Conflicts
+        key.startsWith('sb-') ||              // Supabase auth tokens (dynamic)
+        key.includes('supabase') ||           // Any other Supabase keys
+        key === 'conference_auth' ||          // Authentication state
+        key === 'kn_current_attendee_info'    // Attendee info cache
+      )) {
+        keysToRemove.push(key)
+      }
+    }
+    
+    // Remove all identified keys
+    keysToRemove.forEach(key => {
+      localStorage.removeItem(key)
+      console.log(`🧹 Removed: ${key}`)
+    })
+    
+    // Also clear Supabase authentication
+    try {
+      const { authenticatedSupabase } = await import('../lib/supabase')
+      await authenticatedSupabase.auth.signOut()
+      console.log('🧹 Cleared Supabase authentication')
+    } catch (supabaseError) {
+      console.warn('⚠️ Supabase signOut failed:', supabaseError)
+    }
+    
+    console.log('✅ Comprehensive data clearing completed')
+    return { success: true }
+  } catch (error) {
+    console.error('❌ Error during data clearing:', error)
+    return { success: false, error: error.message }
+  }
+}
+```
+
+**Key Security Features:**
+- **Dynamic Token Clearing**: Handles Supabase tokens with any project ID (`sb-*` pattern)
+- **Comprehensive Pattern Matching**: Clears all confidential data patterns
+- **Supabase Integration**: Explicitly clears Supabase authentication
+- **Future-Proof**: Works with any Supabase project ID changes
+
+### **Background Sync Security**
+
+**CRITICAL SECURITY UPDATE (2025-01-16)**: The system now prevents unauthorized background data syncing when users are logged out:
+
+```typescript
+// Prevent background syncing when not authenticated
+const startPeriodicSync = () => {
+  if (!isUserAuthenticated()) {
+    console.log('🔒 Background sync prevented - user not authenticated')
+    return
+  }
+  
+  // Only start sync if user is authenticated
+  syncInterval = setInterval(async () => {
+    if (isUserAuthenticated()) {
+      await performDataSync()
+    } else {
+      clearInterval(syncInterval)
+    }
+  }, SYNC_INTERVAL)
+}
+
+// Authentication check for background sync
+const isUserAuthenticated = (): boolean => {
+  try {
+    const authData = localStorage.getItem('conference_auth')
+    if (!authData) return false
+    
+    const auth = JSON.parse(authData)
+    return auth.isAuthenticated && auth.attendee?.id
+  } catch {
+    return false
+  }
+}
+```
+
+**Security Benefits:**
+- **No Unauthorized Access**: Background sync only occurs when authenticated
+- **Resource Protection**: Prevents unnecessary API calls when logged out
+- **Privacy Protection**: No data syncing on inactive sessions
+- **Performance Optimization**: Reduces background activity when not needed
+
 ## 🛡️ Security Layers
 
 ### **Layer 1: Authentication Gate**
@@ -85,7 +185,12 @@ const clearCachedData = useCallback(() => {
 - **Implementation**: `clearCachedData()` function
 - **Security Impact**: Prevents data leakage from failed authentication attempts
 
-### **Layer 4: Error Handling**
+### **Layer 4: Background Sync Prevention**
+- **Purpose**: Prevent unauthorized background data syncing
+- **Implementation**: Authentication checks in `useSessionData` and `pwaDataSyncService`
+- **Security Impact**: Prevents data access when user is logged out
+
+### **Layer 5: Error Handling**
 - **Purpose**: Graceful handling of security failures
 - **Implementation**: Comprehensive error handling and logging
 - **Security Impact**: Prevents information disclosure through error messages
@@ -112,6 +217,11 @@ The following data types are protected by the security architecture:
 4. **Seating Assignments** (4 records)
    - Table assignments, seat numbers
    - Venue layout information
+
+5. **Authentication Tokens** (Dynamic)
+   - Supabase authentication tokens (`sb-{PROJECT_ID}-auth-token`)
+   - Session data and refresh tokens
+   - Any Supabase-related localStorage keys
 
 ### **Data Sanitization**
 
@@ -257,6 +367,8 @@ describe('Authentication Data Security', () => {
 - **✅ Zero Data Leakage**: No sensitive data exposed to unauthorized users
 - **✅ Authentication-First**: 100% of data access gated behind authentication
 - **✅ Fail-Safe Cleanup**: All authentication failures trigger data cleanup
+- **✅ Comprehensive Logout**: All confidential data cleared on logout (including dynamic Supabase tokens)
+- **✅ Background Sync Protection**: No unauthorized background data syncing
 - **✅ Comprehensive Testing**: 100% test coverage for security-critical paths
 
 ### **Security Monitoring**
@@ -280,13 +392,16 @@ console.log('✅ All cached data cleared')
 
 ### **Security Audit Checklist**
 
-- [ ] Authentication flow follows security-first pattern
-- [ ] Data sync only occurs after successful authentication
-- [ ] Data cleanup implemented for auth failures
-- [ ] Comprehensive error handling in place
-- [ ] Security tests cover all critical paths
-- [ ] No sensitive data in error messages
-- [ ] Proper logging for security events
+- [x] Authentication flow follows security-first pattern
+- [x] Data sync only occurs after successful authentication
+- [x] Data cleanup implemented for auth failures
+- [x] Comprehensive logout data clearing implemented
+- [x] Dynamic Supabase token clearing (future-proof)
+- [x] Background sync prevention when not authenticated
+- [x] Comprehensive error handling in place
+- [x] Security tests cover all critical paths
+- [x] No sensitive data in error messages
+- [x] Proper logging for security events
 
 ## 🚀 Future Security Enhancements
 
