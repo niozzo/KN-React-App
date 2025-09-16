@@ -8,6 +8,7 @@ import InstallPrompt from '../components/InstallPrompt';
 import useSessionData from '../hooks/useSessionData';
 import TimeOverride from '../components/dev/TimeOverride';
 import AdminBroadcastBanner from '../components/broadcast/AdminBroadcastBanner';
+import TimeService from '../services/timeService';
 
 /**
  * Home Page Component
@@ -47,22 +48,10 @@ const HomePage = () => {
   };
 
   // Determine if conference has started (has any sessions in the past)
-  // Get current time (supports time override for dev/staging)
-  const getCurrentTime = () => {
-    // Check for time override in dev/staging environments or tests
-    if (process.env.NODE_ENV !== 'production' || process.env.NODE_ENV === 'test') {
-      const overrideTime = localStorage.getItem('kn_time_override');
-      if (overrideTime) {
-        return new Date(overrideTime);
-      }
-    }
-    return new Date();
-  };
-
   const hasConferenceStarted = sessions && sessions.some(session => {
     if (!session.start_time || !session.date) return false;
     const sessionStart = new Date(`${session.date}T${session.start_time}`);
-    const now = getCurrentTime();
+    const now = TimeService.getCurrentTime();
     return sessionStart < now;
   });
 

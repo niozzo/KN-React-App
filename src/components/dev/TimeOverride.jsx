@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import TimeService from '../../services/timeService';
 
 /**
  * Time Override Component
@@ -24,11 +25,10 @@ const TimeOverride = () => {
 
   // Load current override state and set defaults
   useEffect(() => {
-    const storedOverride = localStorage.getItem('kn_time_override');
-    if (storedOverride) {
-      const overrideDate = new Date(storedOverride);
-      setOverrideDate(overrideDate.toISOString().split('T')[0]);
-      setOverrideTime(overrideDate.toTimeString().slice(0, 5));
+    const overrideTime = TimeService.getOverrideTime();
+    if (overrideTime) {
+      setOverrideDate(overrideTime.toISOString().split('T')[0]);
+      setOverrideTime(overrideTime.toTimeString().slice(0, 5));
       setIsActive(true);
     } else {
       // Set default values to current date and time
@@ -50,7 +50,7 @@ const TimeOverride = () => {
   const handleSetOverride = () => {
     if (overrideDate && overrideTime) {
       const overrideDateTime = new Date(`${overrideDate}T${overrideTime}`);
-      localStorage.setItem('kn_time_override', overrideDateTime.toISOString());
+      TimeService.setOverrideTime(overrideDateTime);
       setIsActive(true);
       setIsOpen(false);
       
@@ -60,7 +60,7 @@ const TimeOverride = () => {
   };
 
   const handleClearOverride = () => {
-    localStorage.removeItem('kn_time_override');
+    TimeService.clearOverrideTime();
     setIsActive(false);
     setOverrideDate('');
     setOverrideTime('');
@@ -70,11 +70,7 @@ const TimeOverride = () => {
   };
 
   const getCurrentOverrideTime = () => {
-    const storedOverride = localStorage.getItem('kn_time_override');
-    if (storedOverride) {
-      return new Date(storedOverride);
-    }
-    return new Date();
+    return TimeService.getCurrentTime();
   };
 
   const getCurrentRealTime = () => {

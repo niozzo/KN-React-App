@@ -5,6 +5,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import TimeService from '../services/timeService';
 
 /**
  * Format time remaining into human-readable string
@@ -32,18 +33,7 @@ const formatCountdown = (milliseconds) => {
  * @returns {Date} Current time or override time
  */
 const getCurrentTime = () => {
-  // Check for time override in dev/staging environments
-  if (process.env.NODE_ENV !== 'production') {
-    const overrideTime = localStorage.getItem('kn_time_override');
-    if (overrideTime) {
-      const overrideDate = new Date(overrideTime);
-      const now = new Date();
-      const timeDiff = now.getTime() - new Date(overrideTime).getTime();
-      // Return override time + elapsed time since override was set
-      return new Date(overrideDate.getTime() + timeDiff);
-    }
-  }
-  return new Date();
+  return TimeService.getCurrentTime();
 };
 
 /**

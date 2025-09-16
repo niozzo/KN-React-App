@@ -7,6 +7,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { agendaService } from '../services/agendaService.ts';
 import { getCurrentAttendeeData, getAttendeeSeatAssignments } from '../services/dataService';
+import TimeService from '../services/timeService';
 
 /**
  * Determine if a session is currently active
@@ -41,15 +42,7 @@ const isSessionUpcoming = (session, currentTime) => {
  * @returns {Date} Current time or override time
  */
 const getCurrentTime = () => {
-  // Check for time override in dev/staging environments or tests
-  if (process.env.NODE_ENV !== 'production' || process.env.NODE_ENV === 'test') {
-    const overrideTime = localStorage.getItem('kn_time_override');
-    if (overrideTime) {
-      // For testing, just return the override time directly
-      return new Date(overrideTime);
-    }
-  }
-  return new Date();
+  return TimeService.getCurrentTime();
 };
 
 /**
