@@ -5,49 +5,250 @@ import SessionCard from '../components/session/SessionCard';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import InstallPrompt from '../components/InstallPrompt';
+import useSessionData from '../hooks/useSessionData';
+import TimeOverride from '../components/dev/TimeOverride';
+import AdminBroadcastBanner from '../components/broadcast/AdminBroadcastBanner';
 
 /**
  * Home Page Component
  * Main dashboard with Now/Next cards and quick actions
- * Refactored from home.html (587 lines) to ~80 lines
+ * Story 2.1: Now/Next Glance Card - Enhanced with real data integration
  */
 const HomePage = () => {
   const navigate = useNavigate();
   
-  // Mock data - would come from props or API in real implementation
-  const currentSession = {
-    title: "Networking Coffee Break",
-    countdown: "23 minutes left"
-  };
-
-  const nextSession = {
-    title: "Navigating Concurrent & Complex Uncertainty @ Bazooka Candy Brands",
-    time: "10:30 AM",
-    location: "Main conference room",
-    speaker: "Tony Jacobs, Chief Executive Officer & Jocelyn Stahl, Chief Operating Officer"
-  };
+  // Load real session data with offline support
+  const {
+    currentSession,
+    nextSession,
+    attendee,
+    seatAssignments,
+    isLoading,
+    isOffline,
+    error,
+    refresh
+  } = useSessionData({
+    autoRefresh: true,
+    refreshInterval: 300000, // 5 minutes
+    enableOfflineMode: true
+  });
 
   const handleScheduleClick = () => {
     // Navigate to schedule page
     navigate('/schedule#current');
   };
 
+  const handleSessionClick = (session) => {
+    if (session) {
+      // Navigate to schedule page with session focus
+      navigate(`/schedule#session-${session.id}`);
+    }
+  };
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <PageLayout data-testid="home-page">
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Loading your schedule...</p>
+        </div>
+      </PageLayout>
+    );
+  }
+
+  // Show error state
+  if (error && !isOffline) {
+    return (
+      <PageLayout data-testid="home-page">
+        <div className="error-container" style={{
+          textAlign: 'center',
+          padding: 'var(--space-xl)',
+          background: 'var(--red-50)',
+          borderRadius: 'var(--radius-lg)',
+          border: '1px solid var(--red-200)',
+          margin: 'var(--space-lg)'
+        }}>
+          <div style={{ fontSize: '2rem', marginBottom: 'var(--space-sm)' }}>⚠️</div>
+          <h2 style={{ color: 'var(--red-700)', marginBottom: 'var(--space-sm)' }}>
+            Unable to load schedule
+          </h2>
+          <p style={{ color: 'var(--red-600)', marginBottom: 'var(--space-lg)' }}>
+            {error}
+          </p>
+          <Button onClick={refresh} variant="primary">
+            Try Again
+          </Button>
+        </div>
+      </PageLayout>
+    );
+  }
+
+  // Show no assignments state
+  if (!isLoading && attendee && (!currentSession && !nextSession)) {
+    return (
+      <PageLayout data-testid="home-page">
+        <TimeOverride />
+        
+        {isOffline && (
+          <div className="offline-indicator">
+            <span>📱 Offline mode - showing cached data</span>
+          </div>
+        )}
+
+        <section className="now-next-section">
+          <h2 className="section-title">Now & Next</h2>
+          <div className="cards-container">
+            <Card className="no-assignments-card" style={{
+              background: 'var(--blue-50)',
+              border: '2px solid var(--blue-200)',
+              textAlign: 'center',
+              padding: 'var(--space-xl)',
+              gridColumn: '1 / -1'
+            }}>
+              <div className="no-assignments-content">
+                <div style={{ fontSize: '3rem', marginBottom: 'var(--space-md)' }}>📅</div>
+                <h3 style={{ 
+                  color: 'var(--blue-700)', 
+                  marginBottom: 'var(--space-sm)',
+                  fontSize: 'var(--text-xl)'
+                }}>
+                  No Sessions Assigned
+                </h3>
+                <p style={{ 
+                  color: 'var(--blue-600)',
+                  fontSize: 'var(--text-base)',
+                  marginBottom: 'var(--space-lg)',
+                  maxWidth: '400px',
+                  margin: '0 auto var(--space-lg) auto'
+                }}>
+                  You don't have any sessions assigned for today. Check the full schedule to see all available sessions.
+                </p>
+                <div style={{ display: 'flex', gap: 'var(--space-sm)', justifyContent: 'center' }}>
+                  <Button 
+                    variant="primary"
+                    onClick={() => navigate('/schedule')}
+                  >
+                    View Full Schedule
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => navigate('/settings')}
+                  >
+                    Update Preferences
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          </div>
+        </section>
+      </PageLayout>
+    );
+  }
+
   return (
     <PageLayout data-testid="home-page">
+      {/* Time Override (Dev/Staging Only) */}
+      <TimeOverride />
+      
+      {/* Admin Broadcast Banner */}
+      <AdminBroadcastBanner 
+        showCountdown={true}
+        onDismiss={(broadcast) => {
+          console.log('Broadcast dismissed:', broadcast);
+        }}
+      />
+      
+      {/* Offline indicator */}
+      {isOffline && (
+        <div className="offline-indicator">
+          <span>📱 Offline mode - showing cached data</span>
+        </div>
+      )}
+
       {/* Now/Next Section */}
       <section className="now-next-section">
         <h2 className="section-title">Now & Next</h2>
         <div className="cards-container">
-          <SessionCard 
-            session={currentSession} 
-            variant="now"
-            onClick={() => console.log('Current session clicked')}
-          />
-          <SessionCard 
-            session={nextSession} 
-            variant="next"
-            onClick={() => console.log('Next session clicked')}
-          />
+          {currentSession ? (
+            <SessionCard 
+              session={currentSession} 
+              variant="now"
+              onClick={() => handleSessionClick(currentSession)}
+            />
+          ) : (
+            <Card className="no-session-card" style={{
+              background: 'var(--gray-50)',
+              border: '2px dashed var(--gray-300)',
+              textAlign: 'center',
+              padding: 'var(--space-xl)'
+            }}>
+              <div className="no-session-content">
+                <div style={{ fontSize: '2rem', marginBottom: 'var(--space-sm)' }}>☕</div>
+                <h3 style={{ 
+                  color: 'var(--text-secondary)', 
+                  marginBottom: 'var(--space-xs)',
+                  fontSize: 'var(--text-lg)'
+                }}>
+                  Between Sessions
+                </h3>
+                <p style={{ 
+                  color: 'var(--text-tertiary)',
+                  fontSize: 'var(--text-sm)'
+                }}>
+                  Take a break or check your full schedule
+                </p>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => navigate('/schedule')}
+                  style={{ marginTop: 'var(--space-sm)' }}
+                >
+                  View Schedule
+                </Button>
+              </div>
+            </Card>
+          )}
+          
+          {nextSession ? (
+            <SessionCard 
+              session={nextSession} 
+              variant="next"
+              onClick={() => handleSessionClick(nextSession)}
+            />
+          ) : (
+            <Card className="no-session-card" style={{
+              background: 'var(--gray-50)',
+              border: '2px dashed var(--gray-300)',
+              textAlign: 'center',
+              padding: 'var(--space-xl)'
+            }}>
+              <div className="no-session-content">
+                <div style={{ fontSize: '2rem', marginBottom: 'var(--space-sm)' }}>🎉</div>
+                <h3 style={{ 
+                  color: 'var(--text-secondary)', 
+                  marginBottom: 'var(--space-xs)',
+                  fontSize: 'var(--text-lg)'
+                }}>
+                  All Caught Up!
+                </h3>
+                <p style={{ 
+                  color: 'var(--text-tertiary)',
+                  fontSize: 'var(--text-sm)'
+                }}>
+                  No more sessions scheduled for today
+                </p>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => navigate('/schedule')}
+                  style={{ marginTop: 'var(--space-sm)' }}
+                >
+                  View Full Schedule
+                </Button>
+              </div>
+            </Card>
+          )}
         </div>
       </section>
 

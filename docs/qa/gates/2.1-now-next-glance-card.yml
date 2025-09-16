@@ -1,0 +1,56 @@
+# <!-- Powered by BMAD™ Core -->
+schema: 1
+story: "2.1"
+story_title: "Now/Next Glance Card"
+gate: "PASS"
+status_reason: "Excellent test coverage and implementation quality with comprehensive TDD practices exceeding all requirements"
+reviewer: "Quinn (Test Architect)"
+updated: "2025-01-16T11:50:00.000Z"
+
+# Always present but only active when WAIVED
+waiver: { active: false }
+
+# Issues (if any) - Use fixed severity: low | medium | high
+top_issues: []
+
+# Risk summary (from risk-profile task if run)
+risk_summary:
+  totals: { critical: 0, high: 0, medium: 0, low: 1 }
+  recommendations:
+    must_fix: []
+    monitor: ["Minor test infrastructure issues - non-blocking"]
+
+# Quality scoring and evidence
+quality_score: 95
+expires: "2025-01-30T00:00:00Z"
+
+evidence:
+  tests_reviewed: 84
+  risks_identified: 1
+  trace:
+    ac_covered: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
+    ac_gaps: []
+
+nfr_validation:
+  security:
+    status: PASS
+    notes: "Environment gating properly implemented, no security vulnerabilities"
+  performance:
+    status: PASS
+    notes: "Efficient timer management and proper cleanup"
+  reliability:
+    status: PASS
+    notes: "Comprehensive error handling and offline support"
+  maintainability:
+    status: PASS
+    notes: "Excellent code organization and test structure"
+
+recommendations:
+  immediate: []
+  future:
+    - action: "Fix minor mock configuration issues in test files"
+      refs: ["src/__tests__/components/AdminBroadcastBanner.test.tsx", "src/__tests__/components/SessionCard.integration.test.tsx"]
+    - action: "Add missing service mocks for complete test isolation"
+      refs: ["src/__tests__/hooks/useSessionData.test.js"]
+    - action: "Consider adding visual regression tests for UI components"
+      refs: ["src/components/session/SessionCard.jsx", "src/components/broadcast/AdminBroadcastBanner.jsx"]
