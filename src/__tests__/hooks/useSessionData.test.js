@@ -142,14 +142,14 @@ describe('useSessionData Hook', () => {
       expect(result.current.sessions).toEqual([]);
     });
 
-    it('should filter sessions for attendee selections', async () => {
-      const attendeeWithSelections = {
+    it('should show all general sessions and only assigned breakout sessions', async () => {
+      const attendeeWithBreakoutSelections = {
         ...mockAttendee,
-        selected_agenda_items: [{ id: '1' }, { id: '3' }] // Only sessions 1 and 3
+        selected_breakouts: ['breakout-1'] // Only assigned to one breakout session
       };
       
       const { getCurrentAttendeeData, getAttendeeSeatAssignments } = await import('../../services/dataService');
-      getCurrentAttendeeData.mockResolvedValue(attendeeWithSelections);
+      getCurrentAttendeeData.mockResolvedValue(attendeeWithBreakoutSelections);
       getAttendeeSeatAssignments.mockResolvedValue([]);
       
       const { result } = renderHook(() => useSessionData());
@@ -158,8 +158,60 @@ describe('useSessionData Hook', () => {
         await new Promise(resolve => setTimeout(resolve, 0));
       });
       
-      expect(result.current.sessions).toHaveLength(2);
-      expect(result.current.sessions.map(s => s.id)).toEqual(['1', '3']);
+      // Should show all 3 general sessions (keynote, coffee_break, panel) since none are breakout-session type
+      expect(result.current.sessions).toHaveLength(3);
+      expect(result.current.sessions.map(s => s.id)).toEqual(['1', '2', '3']);
+    });
+
+    it('should filter breakout sessions correctly', async () => {
+      // Create mock sessions with breakout sessions
+      const sessionsWithBreakouts = [
+        ...mockSessions,
+        {
+          id: 'breakout-1',
+          title: 'Breakout Session A',
+          date: '2024-12-19',
+          start_time: '14:00:00',
+          end_time: '15:00:00',
+          location: 'Room B',
+          type: 'breakout-session'
+        },
+        {
+          id: 'breakout-2',
+          title: 'Breakout Session B',
+          date: '2024-12-19',
+          start_time: '14:00:00',
+          end_time: '15:00:00',
+          location: 'Room C',
+          type: 'breakout-session'
+        }
+      ];
+
+      const attendeeWithBreakoutSelections = {
+        ...mockAttendee,
+        selected_breakouts: ['breakout-1'] // Only assigned to breakout-1
+      };
+
+      // Mock agendaService to return sessions with breakouts
+      const { agendaService } = await import('../../services/agendaService');
+      agendaService.getActiveAgendaItems.mockResolvedValue({
+        success: true,
+        data: sessionsWithBreakouts
+      });
+
+      const { getCurrentAttendeeData, getAttendeeSeatAssignments } = await import('../../services/dataService');
+      getCurrentAttendeeData.mockResolvedValue(attendeeWithBreakoutSelections);
+      getAttendeeSeatAssignments.mockResolvedValue([]);
+      
+      const { result } = renderHook(() => useSessionData());
+      
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 0));
+      });
+      
+      // Should show all 3 general sessions + 1 assigned breakout session = 4 total
+      expect(result.current.sessions).toHaveLength(4);
+      expect(result.current.sessions.map(s => s.id)).toEqual(['1', '2', '3', 'breakout-1']);
     });
   });
 

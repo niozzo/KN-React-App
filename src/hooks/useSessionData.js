@@ -52,12 +52,20 @@ const getCurrentTime = () => {
  * @returns {Array} Filtered sessions
  */
 const filterSessionsForAttendee = (sessions, attendee) => {
-  if (!attendee || !attendee.selected_agenda_items) {
+  if (!attendee) {
     return sessions;
   }
   
-  const selectedIds = attendee.selected_agenda_items.map(item => item.id);
-  return sessions.filter(session => selectedIds.includes(session.id));
+  return sessions.filter(session => {
+    if (session.type === 'breakout-session') {
+      // Only show breakout sessions if attendee is assigned to them
+      return attendee.selected_breakouts && 
+             attendee.selected_breakouts.includes(session.id);
+    } else {
+      // Show all other session types (keynote, meal, etc.) to everyone
+      return true;
+    }
+  });
 };
 
 /**
@@ -115,11 +123,8 @@ export const useSessionData = (options = {}) => {
       // Store all sessions for conference start date logic
       setAllSessions(allSessionsData);
       
-      // Filter sessions for current attendee if they have selections
-      let filteredSessions = allSessionsData;
-      if (attendeeData && attendeeData.selected_agenda_items) {
-        filteredSessions = filterSessionsForAttendee(allSessionsData, attendeeData);
-      }
+      // Filter sessions for current attendee based on session type and breakout assignments
+      let filteredSessions = filterSessionsForAttendee(allSessionsData, attendeeData);
 
       setSessions(filteredSessions);
       setLastUpdated(new Date());
