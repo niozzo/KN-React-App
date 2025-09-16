@@ -70,7 +70,7 @@ describe('Hybrid Authentication Integration', () => {
 
       // Mock successful data sync for all tables
       const mockTableData = {
-        attendees: [{ id: 1, access_code: '831263', first_name: 'Adam', last_name: 'Garson' }],
+        attendees: [{ id: 1, access_code: '629980', first_name: 'Adam', last_name: 'Garson' }],
         sponsors: [{ id: 1, name: 'Test Sponsor' }],
         agenda_items: [{ id: 1, title: 'Test Session' }],
         dining_options: [{ id: 1, name: 'Test Meal' }],
@@ -100,7 +100,7 @@ describe('Hybrid Authentication Integration', () => {
           return {
             select: vi.fn(() => ({
               eq: vi.fn().mockResolvedValue({
-                data: [{ id: 1, access_code: '831263', first_name: 'Adam', last_name: 'Garson' }],
+                data: [{ id: 1, access_code: '629980', first_name: 'Adam', last_name: 'Garson' }],
                 error: null
               })
             }))
@@ -115,7 +115,7 @@ describe('Hybrid Authentication Integration', () => {
       })
 
       // Test attendee lookup
-      const attendeeResult = await serverDataSyncService.lookupAttendeeByAccessCode('831263')
+      const attendeeResult = await serverDataSyncService.lookupAttendeeByAccessCode('629980')
       expect(attendeeResult.success).toBe(true)
       expect(attendeeResult.attendee).toBeDefined()
       expect(attendeeResult.attendee?.first_name).toBe('Adam')

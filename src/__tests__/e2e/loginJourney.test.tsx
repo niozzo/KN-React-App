@@ -87,7 +87,7 @@ describe('Complete Login Journey', () => {
       // Mock successful attendee lookup
       const mockAttendee = {
         id: 1,
-        access_code: '831263',
+        access_code: '629980',
         first_name: 'Adam',
         last_name: 'Garson',
         email: 'adam@example.com'
@@ -110,7 +110,7 @@ describe('Complete Login Journey', () => {
       const accessCodeInput = screen.getByRole('textbox', { name: 'Enter your 6-character access code' })
       const form = accessCodeInput.closest('form')!
       
-      fireEvent.change(accessCodeInput, { target: { value: '831263' } })
+      fireEvent.change(accessCodeInput, { target: { value: '629980' } })
       fireEvent.submit(form)
 
       // Wait for login process to complete
@@ -127,7 +127,7 @@ describe('Complete Login Journey', () => {
       const mockAuthState = {
         attendee: {
           id: 1,
-          access_code: '831263',
+          access_code: '629980',
           first_name: 'Adam',
           last_name: 'Garson'
         },
@@ -138,7 +138,7 @@ describe('Complete Login Journey', () => {
       // Create a proper mock attendee with all required fields
       const mockAttendee = {
         id: 1,
-        access_code: '831263',
+        access_code: '629980',
         first_name: 'Adam',
         last_name: 'Garson',
         email: 'adam@example.com',
@@ -287,7 +287,7 @@ describe('Complete Login Journey', () => {
       const { authenticateWithAccessCode } = await import('../../services/authService')
       vi.mocked(authenticateWithAccessCode).mockResolvedValue({
         success: true,
-        attendee: { id: 1, access_code: '831263', first_name: 'Adam', last_name: 'Garson' }
+        attendee: { id: 1, access_code: '629980', first_name: 'Adam', last_name: 'Garson' }
       })
 
       // Render the actual login page
@@ -301,7 +301,7 @@ describe('Complete Login Journey', () => {
       const accessCodeInput = screen.getByRole('textbox', { name: 'Enter your 6-character access code' })
       const form = accessCodeInput.closest('form')!
       
-      fireEvent.change(accessCodeInput, { target: { value: '831263' } })
+      fireEvent.change(accessCodeInput, { target: { value: '629980' } })
       fireEvent.submit(form)
 
       // Wait for login process to start
@@ -373,13 +373,13 @@ describe('Complete Login Journey', () => {
       vi.mocked(authenticateWithAccessCode).mockImplementation(() =>
         new Promise(resolve => setTimeout(() => resolve({
           success: true,
-          attendee: { id: 1, access_code: '831263', first_name: 'Adam', last_name: 'Garson' }
+          attendee: { id: 1, access_code: '629980', first_name: 'Adam', last_name: 'Garson' }
         }), 50))
       )
 
       // Execute login flow
       await serverDataSyncService.syncAllData()
-      await authenticateWithAccessCode('831263')
+      await authenticateWithAccessCode('629980')
 
       const endTime = Date.now()
       const totalTime = endTime - startTime
@@ -400,7 +400,7 @@ describe('Complete Login Journey', () => {
       const { authenticateWithAccessCode } = await import('../../services/authService')
       vi.mocked(authenticateWithAccessCode).mockResolvedValue({
         success: true,
-        attendee: { id: 1, access_code: '831263', first_name: 'Adam', last_name: 'Garson' }
+        attendee: { id: 1, access_code: '629980', first_name: 'Adam', last_name: 'Garson' }
       })
 
       // Simulate multiple concurrent login attempts
