@@ -1,6 +1,6 @@
 /**
  * Time Override Component
- * DEV/STAGING ONLY - Allows setting custom date/time for testing
+ * Available in all environments - Allows setting custom date/time for testing
  * Story 2.1: Now/Next Glance Card - Task 8
  */
 
@@ -9,13 +9,10 @@ import TimeService from '../../services/timeService';
 
 /**
  * Time Override Component
- * Only available in development and staging environments
+ * Available in all environments for testing
  */
 const TimeOverride = () => {
-  // Environment check - only show in dev/staging
-  if (process.env.NODE_ENV === 'production') {
-    return null;
-  }
+  // Time override now available in all environments for testing
 
   const [isOpen, setIsOpen] = useState(false);
   const [overrideDateTime, setOverrideDateTime] = useState('');
@@ -80,7 +77,7 @@ const TimeOverride = () => {
       <button
         className={`time-override-toggle ${isActive ? 'active' : ''}`}
         onClick={() => setIsOpen(!isOpen)}
-        title="Time Override (Dev/Staging Only)"
+        title="Time Override (Testing Tool)"
       >
         🕐 {isActive ? 'Edit Dynamic Override' : 'Set Dynamic Override'}
       </button>
@@ -96,7 +93,7 @@ const TimeOverride = () => {
       {isOpen && (
         <div className="time-override-panel">
           <div className="time-override-header">
-            <h4>Time Override (Dev/Staging Only)</h4>
+            <h4>Time Override (Testing Tool)</h4>
             <button 
               className="close-button"
               onClick={() => setIsOpen(false)}
