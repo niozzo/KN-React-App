@@ -3,11 +3,23 @@ import { useNavigate } from 'react-router-dom';
 import Card, { CardHeader, CardContent } from '../common/Card';
 import StatusTag from '../common/StatusTag';
 import useCountdown from '../../hooks/useCountdown';
+import { 
+  isCoffeeBreak, 
+  isMeal, 
+  getSessionCategory, 
+  shouldShowCountdown, 
+  getCountdownPriority,
+  formatSessionTitle,
+  getSessionIcon,
+  getSessionClassName,
+  hasSpecialStyling
+} from '../../utils/sessionUtils';
 
 /**
  * Session Card Component
  * Displays session information with status and countdown
  * Story 2.1: Now/Next Glance Card - Enhanced with real-time countdown
+ * Story 2.2: Coffee Break Treatment - Special countdown and styling for coffee breaks
  */
 const SessionCard = ({
   session,
@@ -28,16 +40,25 @@ const SessionCard = ({
   } = session;
 
   const isNow = variant === 'now';
-  const isMeal = type && ['breakfast', 'lunch', 'dinner', 'coffee_break'].includes(type.toLowerCase());
-  const isCoffeeBreak = title.toLowerCase().includes('coffee') || title.toLowerCase().includes('break');
+  
+  // Use utility functions for session type detection
+  const isCoffeeBreakSession = isCoffeeBreak(session);
+  const isMealSession = isMeal(session);
+  const sessionCategory = getSessionCategory(session);
+  const shouldShowCountdownForSession = shouldShowCountdown(session);
+  const countdownPriority = getCountdownPriority(session);
+  const sessionIcon = getSessionIcon(session);
+  const hasSpecialStylingForSession = hasSpecialStyling(session);
   
   // Calculate end time for countdown
   const endTime = end_time && date ? new Date(`${date}T${end_time}`) : null;
   
   // Use countdown hook for real-time updates
+  // Coffee breaks and meals show countdown when in "Now" status
   const { formattedTime, isActive, minutesRemaining } = useCountdown(endTime, {
     updateInterval: 60000, // Update every minute
-    enabled: isNow && isMeal // Only show countdown for meals in "Now" status
+    enabled: isNow && shouldShowCountdownForSession,
+    isCoffeeBreak: isCoffeeBreakSession // Special handling for coffee breaks
   });
 
   // Format time display
@@ -57,19 +78,39 @@ const SessionCard = ({
   };
 
   // Determine status text and time display
-  const statusText = isNow ? (isMeal && isActive ? formattedTime : 'NOW') : 'Next';
-  const timeDisplay = isNow && isMeal && isActive ? null : formatTimeRange();
+  // Coffee breaks show countdown in time area, not status badge
+  const statusText = isNow ? 'NOW' : 'Next';
+  
+  // Time display logic: show countdown for coffee breaks in "Now" status, otherwise show time range
+  const timeDisplay = isNow && isCoffeeBreakSession && isActive ? formattedTime : formatTimeRange();
+
+  // Build CSS classes for special styling
+  const cardClassName = [
+    className,
+    getSessionClassName(session),
+    isNow ? 'session-card--now' : 'session-card--next',
+    isCoffeeBreakSession ? 'session-card--coffee-break' : '',
+    hasSpecialStylingForSession ? 'session-card--special' : ''
+  ].filter(Boolean).join(' ');
 
   return (
     <Card 
       variant={isNow ? 'now' : 'default'} 
       onClick={onClick}
-      className={className}
+      className={cardClassName}
+      style={isCoffeeBreakSession && isNow ? {
+        // Special styling for coffee breaks in "Now" status
+        background: 'var(--purple-050)',
+        border: '2px solid var(--purple-500)',
+        boxShadow: '0 4px 12px rgba(124, 76, 196, 0.15)'
+      } : undefined}
     >
       <CardHeader className="session-header">
         <div className="session-time-container">
           {timeDisplay && (
-            <div className="session-time">{timeDisplay}</div>
+            <div className="session-time">
+              {timeDisplay}
+            </div>
           )}
           {location && (
             <div className="session-location">{location}</div>
@@ -81,7 +122,9 @@ const SessionCard = ({
       </CardHeader>
       
       <CardContent>
-        <h3 className="session-title">{title}</h3>
+        <h3 className="session-title">
+          {formatSessionTitle(session)}
+        </h3>
         
         {speaker && (
           <div className="session-details">

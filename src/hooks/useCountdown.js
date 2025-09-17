@@ -10,15 +10,28 @@ import TimeService from '../services/timeService';
 /**
  * Format time remaining into human-readable string
  * @param {number} milliseconds - Time remaining in milliseconds
+ * @param {boolean} isCoffeeBreak - Whether this is a coffee break (special formatting)
  * @returns {string} Formatted countdown string
  */
-const formatCountdown = (milliseconds) => {
+const formatCountdown = (milliseconds, isCoffeeBreak = false) => {
   if (milliseconds <= 0) return '0 minutes left';
   
   const totalMinutes = Math.floor(milliseconds / (1000 * 60));
+  const totalSeconds = Math.floor(milliseconds / 1000);
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
+  const seconds = totalSeconds % 60;
   
+  // Coffee break special formatting: show minutes:seconds when under 5 minutes
+  if (isCoffeeBreak && totalMinutes < 5) {
+    if (totalMinutes > 0) {
+      return `${minutes}:${seconds.toString().padStart(2, '0')} left`;
+    } else {
+      return `${seconds} seconds left`;
+    }
+  }
+  
+  // Regular formatting
   if (hours > 0) {
     return `${hours}h ${minutes}m left`;
   } else if (minutes > 0) {
@@ -48,7 +61,8 @@ export const useCountdown = (endTime, options = {}) => {
     onComplete = null,
     onTick = null,
     enabled = true,
-    enableBroadcastIntegration = true
+    enableBroadcastIntegration = true,
+    isCoffeeBreak = false // Special handling for coffee breaks
   } = options;
 
   const [timeRemaining, setTimeRemaining] = useState(0);
@@ -56,6 +70,15 @@ export const useCountdown = (endTime, options = {}) => {
   const [isComplete, setIsComplete] = useState(false);
   const intervalRef = useRef(null);
   const lastUpdateRef = useRef(Date.now());
+
+  // Dynamic update interval for coffee breaks
+  const getUpdateInterval = useCallback(() => {
+    if (!isCoffeeBreak) return updateInterval;
+    
+    const totalMinutes = Math.floor(timeRemaining / (1000 * 60));
+    // Update every second when under 5 minutes for coffee breaks
+    return totalMinutes < 5 ? 1000 : updateInterval;
+  }, [isCoffeeBreak, timeRemaining, updateInterval]);
 
   // Calculate time remaining
   const calculateTimeRemaining = useCallback(() => {
@@ -102,8 +125,9 @@ export const useCountdown = (endTime, options = {}) => {
     // Initial update
     updateCountdown();
 
-    // Set up interval
-    intervalRef.current = setInterval(updateCountdown, updateInterval);
+    // Set up interval with dynamic update rate
+    const currentInterval = getUpdateInterval();
+    intervalRef.current = setInterval(updateCountdown, currentInterval);
 
     return () => {
       if (intervalRef.current) {
@@ -111,7 +135,7 @@ export const useCountdown = (endTime, options = {}) => {
         intervalRef.current = null;
       }
     };
-  }, [enabled, endTime, updateInterval, updateCountdown]);
+  }, [enabled, endTime, updateInterval, updateCountdown, getUpdateInterval]);
 
   // Handle app focus/blur for real-time updates
   useEffect(() => {
@@ -156,7 +180,7 @@ export const useCountdown = (endTime, options = {}) => {
 
   return {
     timeRemaining,
-    formattedTime: formatCountdown(timeRemaining),
+    formattedTime: formatCountdown(timeRemaining, isCoffeeBreak),
     isActive,
     isComplete,
     minutesRemaining: Math.floor(timeRemaining / (1000 * 60)),
