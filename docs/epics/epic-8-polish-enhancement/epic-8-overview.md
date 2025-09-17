@@ -6,7 +6,7 @@
 ## Epic Status
 **PLANNING** - Stories being moved from other epics for future enhancement
 
-## Stories in Epic 8
+## Stories in Epic 8 (3 stories)
 
 ### Story 8.1: Advanced Post-Login Loading Indicator Overlay
 - **Moved from**: Story 1.4 (Epic 1)
@@ -21,6 +21,13 @@
 - **Priority**: Medium - Enhancement feature
 - **Status**: Planning
 - **File**: `docs/epics/epic-8-polish-enhancement/8.2.admin-broadcast-system.md`
+
+### Story 8.3: Conference Feedback Survey Integration
+- **Created**: January 17, 2025
+- **Reason**: Replace placeholder survey link with real feedback system
+- **Priority**: Medium - Enhancement feature
+- **Status**: Planning
+- **File**: `docs/epics/epic-8-polish-enhancement/8.3.conference-feedback-survey.md`
 
 ## Epic Goals
 

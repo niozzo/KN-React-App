@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import PageLayout from '../components/layout/PageLayout';
 import AnimatedNowNextCards from '../components/AnimatedNowNextCards';
+import ConferenceEndedCard from '../components/ConferenceEndedCard';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import InstallPrompt from '../components/InstallPrompt';
@@ -54,6 +55,50 @@ const HomePage = () => {
     const now = TimeService.getCurrentTime();
     return sessionStart < now;
   });
+
+  // Determine if conference has ended (all sessions are in the past)
+  const hasConferenceEnded = React.useMemo(() => {
+    try {
+      // Safety checks
+      if (!allSessions || !Array.isArray(allSessions) || allSessions.length === 0) {
+        return false;
+      }
+
+      const now = TimeService.getCurrentTime();
+      
+      return allSessions.every(session => {
+        // Validate session object
+        if (!session || typeof session !== 'object') {
+          console.warn('Invalid session object:', session);
+          return false;
+        }
+
+        // Check required fields
+        if (!session.end_time || !session.date) {
+          console.warn('Session missing end_time or date:', session);
+          return false;
+        }
+
+        try {
+          const sessionEnd = new Date(`${session.date}T${session.end_time}`);
+          
+          // Validate date
+          if (isNaN(sessionEnd.getTime())) {
+            console.warn('Invalid session end date:', session.end_time, session.date);
+            return false;
+          }
+
+          return sessionEnd < now;
+        } catch (dateError) {
+          console.warn('Error parsing session date:', dateError, session);
+          return false;
+        }
+      });
+    } catch (error) {
+      console.error('Error checking if conference has ended:', error);
+      return false;
+    }
+  }, [allSessions]);
 
   // Get the conference start date from the first agenda item
   const getConferenceStartDate = () => {
@@ -136,9 +181,43 @@ const HomePage = () => {
     );
   }
 
+  // Show conference ended state FIRST - when all sessions are in the past
+  console.log('🔍 HomePage Debug:', {
+    isLoading,
+    hasAttendee: !!attendee,
+    hasConferenceEnded,
+    allSessionsCount: allSessions?.length || 0,
+    currentSession: !!currentSession,
+    nextSession: !!nextSession,
+    hasConferenceStarted
+  });
+  
+  if (!isLoading && attendee && hasConferenceEnded) {
+    return (
+      <PageLayout data-testid="home-page">
+        <TimeOverride />
+        
+        {isOffline && (
+          <div className="offline-indicator">
+            <span>📱 Offline mode - showing cached data</span>
+          </div>
+        )}
+
+        <section className="now-next-section">
+          <h2 className="section-title">
+            Thank you for attending!
+          </h2>
+          <div className="cards-container">
+            <ConferenceEndedCard />
+          </div>
+        </section>
+      </PageLayout>
+    );
+  }
+
   // Show no assignments state - when there are no sessions assigned to this attendee
-  // But only if the conference has started (there are sessions available)
-  if (!isLoading && attendee && (!currentSession && !nextSession) && hasConferenceStarted) {
+  // But only if the conference has started (there are sessions available) AND conference hasn't ended
+  if (!isLoading && attendee && (!currentSession && !nextSession) && hasConferenceStarted && !hasConferenceEnded) {
     return (
       <PageLayout data-testid="home-page">
         <TimeOverride />
@@ -198,6 +277,7 @@ const HomePage = () => {
       </PageLayout>
     );
   }
+
 
   // Show conference not started state - when there are no sessions assigned and conference hasn't started
   // Also show this state if there are no sessions at all (agenda items not loaded)
@@ -278,17 +358,20 @@ const HomePage = () => {
       {/* Now/Next Section */}
       <section className="now-next-section">
         <h2 className="section-title">
-          {shouldShowTomorrowOnly() 
-            ? 'Tomorrow' 
-            : hasConferenceStarted 
-              ? 'Now & Next' 
-              : `Scheduled Start Date: ${getConferenceStartDate()}`
+          {hasConferenceEnded
+            ? 'Thank you for attending!'
+            : shouldShowTomorrowOnly() 
+              ? 'Tomorrow' 
+              : hasConferenceStarted 
+                ? 'Now & Next' 
+                : `Scheduled Start Date: ${getConferenceStartDate()}`
           }
         </h2>
         <AnimatedNowNextCards
           currentSession={currentSession}
           nextSession={nextSession}
           hasConferenceStarted={hasConferenceStarted}
+          hasConferenceEnded={hasConferenceEnded}
           onSessionClick={handleSessionClick}
           tomorrowOnly={shouldShowTomorrowOnly()}
         />

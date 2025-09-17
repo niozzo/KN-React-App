@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import SessionCard from './session/SessionCard';
+import ConferenceEndedCard from './ConferenceEndedCard';
 import Card from './common/Card';
 import Button from './common/Button';
 import { useNavigate } from 'react-router-dom';
@@ -36,6 +37,7 @@ const AnimatedNowNextCards = ({
   currentSession,
   nextSession,
   hasConferenceStarted,
+  hasConferenceEnded = false,
   onSessionClick,
   className = '',
   tomorrowOnly = false
@@ -363,6 +365,17 @@ const AnimatedNowNextCards = ({
 
     return null;
   };
+
+  // Show conference ended card
+  if (hasConferenceEnded) {
+    return (
+      <div className={`animated-now-next-cards ${className}`}>
+        <div className="cards-container">
+          <ConferenceEndedCard />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`animated-now-next-cards ${className} ${isTransitioning ? transitionType : ''}`}>
