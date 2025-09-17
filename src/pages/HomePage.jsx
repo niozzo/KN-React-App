@@ -61,12 +61,14 @@ const HomePage = () => {
     try {
       // Safety checks
       if (!allSessions || !Array.isArray(allSessions) || allSessions.length === 0) {
+        console.log('🔍 hasConferenceEnded: No sessions available');
         return false;
       }
 
       const now = TimeService.getCurrentTime();
+      console.log('🔍 hasConferenceEnded: Current time:', now.toISOString());
       
-      return allSessions.every(session => {
+      const sessionChecks = allSessions.map(session => {
         // Validate session object
         if (!session || typeof session !== 'object') {
           console.warn('Invalid session object:', session);
@@ -88,12 +90,18 @@ const HomePage = () => {
             return false;
           }
 
-          return sessionEnd < now;
+          const isPast = sessionEnd < now;
+          console.log(`🔍 Session "${session.title}": end=${sessionEnd.toISOString()}, isPast=${isPast}`);
+          return isPast;
         } catch (dateError) {
           console.warn('Error parsing session date:', dateError, session);
           return false;
         }
       });
+      
+      const allSessionsEnded = sessionChecks.every(check => check);
+      console.log('🔍 hasConferenceEnded result:', allSessionsEnded);
+      return allSessionsEnded;
     } catch (error) {
       console.error('Error checking if conference has ended:', error);
       return false;
@@ -181,7 +189,7 @@ const HomePage = () => {
     );
   }
 
-  // Show conference ended state FIRST - when all sessions are in the past
+  // Show conference ended state - when all sessions are in the past AND no current/next sessions
   console.log('🔍 HomePage Debug:', {
     isLoading,
     hasAttendee: !!attendee,
@@ -192,7 +200,7 @@ const HomePage = () => {
     hasConferenceStarted
   });
   
-  if (!isLoading && attendee && hasConferenceEnded) {
+  if (!isLoading && attendee && hasConferenceEnded && !currentSession && !nextSession) {
     return (
       <PageLayout data-testid="home-page">
         <TimeOverride />
