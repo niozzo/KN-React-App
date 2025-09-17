@@ -16,7 +16,12 @@ const isNextSessionTomorrow = (nextSession) => {
   const currentTime = TimeService.getCurrentTime();
   const currentDate = currentTime.toISOString().split('T')[0]; // YYYY-MM-DD format
   
-  return nextSession.date !== currentDate;
+  // Calculate tomorrow's date
+  const tomorrow = new Date(currentTime);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowDate = tomorrow.toISOString().split('T')[0]; // YYYY-MM-DD format
+  
+  return nextSession.date === tomorrowDate;
 };
 
 /**

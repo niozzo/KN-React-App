@@ -10,8 +10,10 @@ import {
   PaginatedResponse, 
   AgendaService as IAgendaService 
 } from '../types/database';
+import { serverDataSyncService } from './serverDataSyncService';
 
 export class AgendaService implements IAgendaService {
+  private backgroundRefreshInProgress = false;
   private readonly tableName = 'agenda_items';
   private readonly basePath = '/api/agenda-items';
 
@@ -181,7 +183,6 @@ export class AgendaService implements IAgendaService {
           // If we have cached data, return it but also trigger a background refresh
           if (data.length > 0) {
             // Background refresh to ensure data is up to date
-            console.log('🔄 Triggering background refresh for', data.length, 'cached agenda items');
             this.refreshAgendaItemsInBackground();
             return {
               data,
@@ -195,30 +196,57 @@ export class AgendaService implements IAgendaService {
         console.warn('⚠️ Failed to load cached agenda items:', cacheError);
       }
       
-      // FALLBACK: API call if no cached data exists or cache is empty
-      console.log('🌐 API: No cached agenda items found, fetching from API...');
-      const all = await this.apiGet<AgendaItem[]>(this.basePath);
-      const data = all
-        .filter(item => (item as any).isActive)
-        .sort((a, b) => {
-          // First sort by date
-          const dateComparison = (a.date || '').localeCompare(b.date || '')
-          if (dateComparison !== 0) return dateComparison
+      // FALLBACK: Use serverDataSyncService if no cached data exists or cache is empty
+      console.log('🌐 serverDataSyncService: No cached agenda items found, using serverDataSyncService...');
+      try {
+        const syncResult = await serverDataSyncService.syncAllData();
+        
+        if (syncResult.success && syncResult.syncedTables.includes('agenda_items')) {
+          console.log('🌐 serverDataSyncService: Successfully synced agenda items');
           
-          // Then sort by start time
-          return (a.start_time || '').localeCompare(b.start_time || '')
-        });
-      
-      // Cache the fresh data
-      this.cacheAgendaItems(data);
-      
-      console.log('🌐 API: Fetched', data.length, 'agenda items from API');
-      return {
-        data,
-        count: data.length,
-        error: null,
-        success: true
-      };
+          // Get the fresh data from cache (serverDataSyncService already cached it)
+          const cachedData = localStorage.getItem('kn_cache_agenda_items');
+          if (cachedData) {
+            const cacheObj = JSON.parse(cachedData);
+            const agendaItems = cacheObj.data || cacheObj;
+            const data = agendaItems
+              .filter((item: any) => item.isActive)
+              .sort((a: any, b: any) => {
+                // First sort by date
+                const dateComparison = (a.date || '').localeCompare(b.date || '')
+                if (dateComparison !== 0) return dateComparison
+                
+                // Then sort by start time
+                return (a.start_time || '').localeCompare(b.start_time || '')
+              });
+            
+            console.log('🌐 serverDataSyncService: Retrieved', data.length, 'agenda items from cache');
+            return {
+              data,
+              count: data.length,
+              error: null,
+              success: true
+            };
+          }
+        }
+        
+        // If serverDataSyncService failed, return empty data
+        console.warn('⚠️ serverDataSyncService failed, returning empty agenda items');
+        return {
+          data: [],
+          count: 0,
+          error: 'Failed to sync data',
+          success: false
+        };
+      } catch (syncError) {
+        console.error('❌ serverDataSyncService error:', syncError);
+        return {
+          data: [],
+          count: 0,
+          error: syncError instanceof Error ? syncError.message : 'Unknown error',
+          success: false
+        };
+      }
     } catch (err) {
       console.error('❌ AgendaService.getActiveAgendaItems error:', err);
       return {
@@ -249,29 +277,29 @@ export class AgendaService implements IAgendaService {
 
   /**
    * Refresh agenda items in background without blocking UI
+   * Uses the same serverDataSyncService as login to ensure consistency
    */
   private async refreshAgendaItemsInBackground(): Promise<void> {
-    console.log('🔄 BACKGROUND REFRESH TRIGGERED - 20 second interval (TEMPORARY FOR TESTING)');
+    // Prevent multiple simultaneous background refreshes
+    if (this.backgroundRefreshInProgress) {
+      return;
+    }
+
+    this.backgroundRefreshInProgress = true;
+    
     try {
-      const all = await this.apiGet<AgendaItem[]>(this.basePath);
-      const data = all
-        .filter(item => (item as any).isActive)
-        .sort((a, b) => {
-          const dateComparison = (a.date || '').localeCompare(b.date || '')
-          if (dateComparison !== 0) return dateComparison
-          return (a.start_time || '').localeCompare(b.start_time || '')
-        });
+      // Use the same service that works during login
+      const syncResult = await serverDataSyncService.syncAllData();
       
-      // Only update cache if we got valid data (more than 0 items)
-      // This prevents overwriting good cached data with empty API results
-      if (data.length > 0) {
-        this.cacheAgendaItems(data);
-        console.log('🔄 Background refresh: Updated cache with', data.length, 'agenda items');
+      if (syncResult.success && syncResult.syncedTables.includes('agenda_items')) {
+        // The data is already cached by serverDataSyncService, so we don't need to cache it again
       } else {
-        console.warn('⚠️ Background refresh: API returned 0 agenda items, keeping existing cache');
+        console.warn('⚠️ Background refresh: serverDataSyncService failed, keeping existing cache');
       }
     } catch (error) {
       console.warn('⚠️ Background refresh failed:', error);
+    } finally {
+      this.backgroundRefreshInProgress = false;
     }
   }
 }

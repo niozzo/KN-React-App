@@ -76,7 +76,7 @@ const filterSessionsForAttendee = (sessions, attendee) => {
 export const useSessionData = (options = {}) => {
   const {
     autoRefresh = true,
-    refreshInterval = 20000, // 20 seconds - TEMPORARY FOR TESTING
+    refreshInterval = 300000, // 5 minutes
     enableOfflineMode = true
   } = options;
 
@@ -266,7 +266,6 @@ export const useSessionData = (options = {}) => {
     if (!autoRefresh || isOffline || !isAuthenticated) return;
 
     const interval = setInterval(() => {
-      console.log('🔄 AUTO-REFRESH TRIGGERED - 20 second interval (TEMPORARY FOR TESTING)');
       loadSessionData();
     }, refreshInterval);
 
