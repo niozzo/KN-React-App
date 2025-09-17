@@ -77,6 +77,21 @@ const HomePage = () => {
     });
   };
 
+  // Determine if next session is tomorrow
+  const isNextSessionTomorrow = () => {
+    if (!nextSession || !nextSession.date) return false;
+    
+    const currentTime = TimeService.getCurrentTime();
+    const currentDate = currentTime.toISOString().split('T')[0]; // YYYY-MM-DD format
+    
+    return nextSession.date !== currentDate;
+  };
+
+  // Determine if we should show tomorrow-only mode
+  const shouldShowTomorrowOnly = () => {
+    return hasConferenceStarted && !currentSession && nextSession && isNextSessionTomorrow();
+  };
+
   // Show loading state
   if (isLoading) {
     return (
@@ -180,7 +195,8 @@ const HomePage = () => {
   }
 
   // Show conference not started state - when there are no sessions assigned and conference hasn't started
-  if (!isLoading && attendee && (!currentSession && !nextSession) && !hasConferenceStarted) {
+  // Also show this state if there are no sessions at all (agenda items not loaded)
+  if (!isLoading && attendee && (!currentSession && !nextSession) && (!hasConferenceStarted || allSessions.length === 0)) {
     return (
       <PageLayout data-testid="home-page">
         <TimeOverride />
@@ -257,13 +273,19 @@ const HomePage = () => {
       {/* Now/Next Section */}
       <section className="now-next-section">
         <h2 className="section-title">
-          {hasConferenceStarted ? 'Now & Next' : `Scheduled Start Date: ${getConferenceStartDate()}`}
+          {shouldShowTomorrowOnly() 
+            ? 'Tomorrow' 
+            : hasConferenceStarted 
+              ? 'Now & Next' 
+              : `Scheduled Start Date: ${getConferenceStartDate()}`
+          }
         </h2>
         <AnimatedNowNextCards
           currentSession={currentSession}
           nextSession={nextSession}
           hasConferenceStarted={hasConferenceStarted}
           onSessionClick={handleSessionClick}
+          tomorrowOnly={shouldShowTomorrowOnly()}
         />
       </section>
 

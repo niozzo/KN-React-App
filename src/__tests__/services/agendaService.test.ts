@@ -20,7 +20,11 @@ Object.defineProperty(window, 'localStorage', {
 })
 
 // Mock fetch
-global.fetch = vi.fn()
+global.fetch = vi.fn().mockResolvedValue({
+  ok: true,
+  headers: { get: () => 'application/json' },
+  json: () => Promise.resolve([])
+})
 
 describe('AgendaService', () => {
   let agendaService: AgendaService
@@ -231,6 +235,214 @@ describe('AgendaService', () => {
 
       expect(result.success).toBe(false)
       expect(result.error).toBe('API Error')
+    })
+  })
+
+  describe('Background Refresh Cache Protection', () => {
+    beforeEach(() => {
+      // Mock console methods to track logging
+      vi.spyOn(console, 'log').mockImplementation(() => {})
+      vi.spyOn(console, 'warn').mockImplementation(() => {})
+    })
+
+    afterEach(() => {
+      vi.restoreAllMocks()
+    })
+
+    it('should preserve cache when API returns 0 items', async () => {
+      // Setup: Mock localStorage with valid cached data
+      const validCachedData = {
+        data: [
+          {
+            id: '1',
+            title: 'Valid Session',
+            date: '2024-01-15',
+            start_time: '09:00',
+            end_time: '10:00',
+            isActive: true
+          }
+        ],
+        timestamp: new Date().toISOString(),
+        version: '1.0'
+      }
+      
+      localStorageMock.getItem.mockReturnValue(JSON.stringify(validCachedData))
+      
+      // Mock API to return empty array
+      ;(global.fetch as any).mockResolvedValue({
+        ok: true,
+        headers: { get: () => 'application/json' },
+        json: () => Promise.resolve([])
+      })
+
+      // First call should use cached data and trigger background refresh
+      const result1 = await agendaService.getActiveAgendaItems()
+      expect(result1.success).toBe(true)
+      expect(result1.data).toHaveLength(1)
+      expect(result1.data[0].title).toBe('Valid Session')
+
+      // Wait for background refresh to complete
+      await new Promise(resolve => setTimeout(resolve, 100))
+
+      // Second call should still use cached data (not overwritten)
+      const result2 = await agendaService.getActiveAgendaItems()
+      expect(result2.success).toBe(true)
+      expect(result2.data).toHaveLength(1)
+      expect(result2.data[0].title).toBe('Valid Session')
+
+      // Verify warning was logged
+      expect(console.warn).toHaveBeenCalledWith(
+        '⚠️ Background refresh: API returned 0 agenda items, keeping existing cache'
+      )
+    })
+
+    it('should update cache when API returns valid items', async () => {
+      // Setup: Mock localStorage with valid cached data
+      const validCachedData = {
+        data: [
+          {
+            id: '1',
+            title: 'Old Session',
+            date: '2024-01-15',
+            start_time: '09:00',
+            end_time: '10:00',
+            isActive: true
+          }
+        ],
+        timestamp: new Date().toISOString(),
+        version: '1.0'
+      }
+      
+      localStorageMock.getItem.mockReturnValue(JSON.stringify(validCachedData))
+      
+      // Mock API to return new data
+      const newApiData = [
+        {
+          id: '2',
+          title: 'New Session',
+          date: '2024-01-15',
+          start_time: '10:00',
+          end_time: '11:00',
+          isActive: true
+        }
+      ]
+      
+      ;(global.fetch as any).mockResolvedValue({
+        ok: true,
+        headers: { get: () => 'application/json' },
+        json: () => Promise.resolve(newApiData)
+      })
+
+      // First call should use cached data and trigger background refresh
+      const result1 = await agendaService.getActiveAgendaItems()
+      expect(result1.success).toBe(true)
+      expect(result1.data).toHaveLength(1)
+      expect(result1.data[0].title).toBe('Old Session')
+
+      // Wait for background refresh to complete
+      await new Promise(resolve => setTimeout(resolve, 200))
+
+      // Clear localStorage mock to force fresh read
+      localStorageMock.getItem.mockClear()
+      localStorageMock.getItem.mockReturnValue(JSON.stringify({
+        data: newApiData,
+        timestamp: new Date().toISOString(),
+        version: '1.0'
+      }))
+
+      // Second call should use updated data
+      const result2 = await agendaService.getActiveAgendaItems()
+      expect(result2.success).toBe(true)
+      expect(result2.data).toHaveLength(1)
+      expect(result2.data[0].title).toBe('New Session')
+
+      // Verify success was logged
+      expect(console.log).toHaveBeenCalledWith(
+        '🔄 Background refresh: Updated cache with', 1, 'agenda items'
+      )
+    })
+
+    it('should handle API errors gracefully during background refresh', async () => {
+      // Setup: Mock localStorage with valid cached data
+      const validCachedData = {
+        data: [
+          {
+            id: '1',
+            title: 'Valid Session',
+            date: '2024-01-15',
+            start_time: '09:00',
+            end_time: '10:00',
+            isActive: true
+          }
+        ],
+        timestamp: new Date().toISOString(),
+        version: '1.0'
+      }
+      
+      localStorageMock.getItem.mockReturnValue(JSON.stringify(validCachedData))
+      
+      // Mock API to throw error
+      ;(global.fetch as any).mockRejectedValue(new Error('Network error'))
+
+      // First call should use cached data and trigger background refresh
+      const result1 = await agendaService.getActiveAgendaItems()
+      expect(result1.success).toBe(true)
+      expect(result1.data).toHaveLength(1)
+
+      // Wait for background refresh to complete
+      await new Promise(resolve => setTimeout(resolve, 100))
+
+      // Second call should still use cached data (not affected by API error)
+      const result2 = await agendaService.getActiveAgendaItems()
+      expect(result2.success).toBe(true)
+      expect(result2.data).toHaveLength(1)
+      expect(result2.data[0].title).toBe('Valid Session')
+
+      // Verify error was logged
+      expect(console.warn).toHaveBeenCalledWith(
+        '⚠️ Background refresh failed:', expect.any(Error)
+      )
+    })
+
+    it('should not trigger background refresh when cache is empty', async () => {
+      // Setup: Mock localStorage with empty cached data
+      const emptyCachedData = {
+        data: [],
+        timestamp: new Date().toISOString(),
+        version: '1.0'
+      }
+      
+      localStorageMock.getItem.mockReturnValue(JSON.stringify(emptyCachedData))
+      
+      // Mock API to return valid data
+      const apiData = [
+        {
+          id: '1',
+          title: 'New Session',
+          date: '2024-01-15',
+          start_time: '09:00',
+          end_time: '10:00',
+          isActive: true
+        }
+      ]
+      
+      ;(global.fetch as any).mockResolvedValue({
+        ok: true,
+        headers: { get: () => 'application/json' },
+        json: () => Promise.resolve(apiData)
+      })
+
+      const result = await agendaService.getActiveAgendaItems()
+      
+      // Should fallback to API call (not background refresh)
+      expect(result.success).toBe(true)
+      expect(result.data).toHaveLength(1)
+      expect(result.data[0].title).toBe('New Session')
+      
+      // Should not log background refresh messages
+      expect(console.log).not.toHaveBeenCalledWith(
+        expect.stringContaining('Background refresh')
+      )
     })
   })
 })

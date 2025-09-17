@@ -177,18 +177,25 @@ export class AgendaService implements IAgendaService {
           
           console.log('🏠 LOCALSTORAGE: Using cached agenda items from localStorage');
           console.log('🏠 LOCALSTORAGE: Found', data.length, 'cached agenda items');
-          return {
-            data,
-            count: data.length,
-            error: null,
-            success: true
-          };
+          
+          // If we have cached data, return it but also trigger a background refresh
+          if (data.length > 0) {
+            // Background refresh to ensure data is up to date
+            console.log('🔄 Triggering background refresh for', data.length, 'cached agenda items');
+            this.refreshAgendaItemsInBackground();
+            return {
+              data,
+              count: data.length,
+              error: null,
+              success: true
+            };
+          }
         }
       } catch (cacheError) {
         console.warn('⚠️ Failed to load cached agenda items:', cacheError);
       }
       
-      // FALLBACK: API call if no cached data exists
+      // FALLBACK: API call if no cached data exists or cache is empty
       console.log('🌐 API: No cached agenda items found, fetching from API...');
       const all = await this.apiGet<AgendaItem[]>(this.basePath);
       const data = all
@@ -201,6 +208,10 @@ export class AgendaService implements IAgendaService {
           // Then sort by start time
           return (a.start_time || '').localeCompare(b.start_time || '')
         });
+      
+      // Cache the fresh data
+      this.cacheAgendaItems(data);
+      
       console.log('🌐 API: Fetched', data.length, 'agenda items from API');
       return {
         data,
@@ -216,6 +227,51 @@ export class AgendaService implements IAgendaService {
         error: err instanceof Error ? err.message : 'Unknown error',
         success: false
       };
+    }
+  }
+
+  /**
+   * Cache agenda items in localStorage
+   */
+  private cacheAgendaItems(agendaItems: AgendaItem[]): void {
+    try {
+      const cacheData = {
+        data: agendaItems,
+        timestamp: new Date().toISOString(),
+        version: '1.0'
+      };
+      localStorage.setItem('kn_cache_agenda_items', JSON.stringify(cacheData));
+      console.log('💾 Cached', agendaItems.length, 'agenda items to localStorage');
+    } catch (error) {
+      console.warn('⚠️ Failed to cache agenda items:', error);
+    }
+  }
+
+  /**
+   * Refresh agenda items in background without blocking UI
+   */
+  private async refreshAgendaItemsInBackground(): Promise<void> {
+    console.log('🔄 BACKGROUND REFRESH TRIGGERED - 20 second interval (TEMPORARY FOR TESTING)');
+    try {
+      const all = await this.apiGet<AgendaItem[]>(this.basePath);
+      const data = all
+        .filter(item => (item as any).isActive)
+        .sort((a, b) => {
+          const dateComparison = (a.date || '').localeCompare(b.date || '')
+          if (dateComparison !== 0) return dateComparison
+          return (a.start_time || '').localeCompare(b.start_time || '')
+        });
+      
+      // Only update cache if we got valid data (more than 0 items)
+      // This prevents overwriting good cached data with empty API results
+      if (data.length > 0) {
+        this.cacheAgendaItems(data);
+        console.log('🔄 Background refresh: Updated cache with', data.length, 'agenda items');
+      } else {
+        console.warn('⚠️ Background refresh: API returned 0 agenda items, keeping existing cache');
+      }
+    } catch (error) {
+      console.warn('⚠️ Background refresh failed:', error);
     }
   }
 }

@@ -3,6 +3,21 @@ import SessionCard from './session/SessionCard';
 import Card from './common/Card';
 import Button from './common/Button';
 import { useNavigate } from 'react-router-dom';
+import TimeService from '../services/timeService';
+
+/**
+ * Determine if the next session is on the next day
+ * @param {Object} nextSession - The next session object
+ * @returns {boolean} Whether the next session is tomorrow
+ */
+const isNextSessionTomorrow = (nextSession) => {
+  if (!nextSession || !nextSession.date) return false;
+  
+  const currentTime = TimeService.getCurrentTime();
+  const currentDate = currentTime.toISOString().split('T')[0]; // YYYY-MM-DD format
+  
+  return nextSession.date !== currentDate;
+};
 
 /**
  * Animated Now/Next Cards Component
@@ -17,7 +32,8 @@ const AnimatedNowNextCards = ({
   nextSession,
   hasConferenceStarted,
   onSessionClick,
-  className = ''
+  className = '',
+  tomorrowOnly = false
 }) => {
   const navigate = useNavigate();
   const [previousSessions, setPreviousSessions] = useState({
@@ -87,6 +103,10 @@ const AnimatedNowNextCards = ({
 
   // Render Now card
   const renderNowCard = () => {
+    // In tomorrow-only mode, don't show any Now card
+    if (tomorrowOnly) {
+      return null;
+    }
     
     // During now-to-next animation, show the new current session as Now
     if (currentSession) {
@@ -167,6 +187,8 @@ const AnimatedNowNextCards = ({
 
     // During now-to-next animation, show the old Now card sliding down as Next
     if (isTransitioning && transitionType === 'now-to-next' && previousSessions.current) {
+      const isTomorrow = isNextSessionTomorrow(previousSessions.current);
+      
       return (
         <div 
           className="next-card-wrapper" 
@@ -178,6 +200,22 @@ const AnimatedNowNextCards = ({
             zIndex: 1
           }}
         >
+          {isTomorrow && !tomorrowOnly && (
+            <div 
+              className="tomorrow-title"
+              style={{
+                fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--font-semibold)',
+                color: 'var(--text-secondary)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                marginBottom: 'var(--space-sm)',
+                textAlign: 'left'
+              }}
+            >
+              Tomorrow
+            </div>
+          )}
           <SessionCard 
             session={previousSessions.current} 
             variant="next"
@@ -190,6 +228,8 @@ const AnimatedNowNextCards = ({
 
     // During next-disappear animation, show the old Next card fading out
     if (isTransitioning && transitionType === 'next-disappear' && previousSessions.next) {
+      const isTomorrow = isNextSessionTomorrow(previousSessions.next);
+      
       return (
         <div 
           className="next-card-wrapper" 
@@ -201,6 +241,22 @@ const AnimatedNowNextCards = ({
             zIndex: 0
           }}
         >
+          {isTomorrow && !tomorrowOnly && (
+            <div 
+              className="tomorrow-title"
+              style={{
+                fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--font-semibold)',
+                color: 'var(--text-secondary)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                marginBottom: 'var(--space-sm)',
+                textAlign: 'left'
+              }}
+            >
+              Tomorrow
+            </div>
+          )}
           <SessionCard 
             session={previousSessions.next} 
             variant="next"
@@ -213,17 +269,35 @@ const AnimatedNowNextCards = ({
     
     // Normal state - show current next session
     if (nextSession) {
+      const isTomorrow = isNextSessionTomorrow(nextSession);
+      
       return (
         <div 
           className="next-card-wrapper" 
           ref={nextCardRef}
           style={{
             transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
-            transform: 'translateY(0) scale(1)',
+            transform: tomorrowOnly ? 'translateY(0) scale(1)' : 'translateY(0) scale(1)',
             opacity: 1,
-            zIndex: 1
+            zIndex: tomorrowOnly ? 2 : 1 // Higher z-index when it's the only card
           }}
         >
+          {isTomorrow && !tomorrowOnly && (
+            <div 
+              className="tomorrow-title"
+              style={{
+                fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--font-semibold)',
+                color: 'var(--text-secondary)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                marginBottom: 'var(--space-sm)',
+                textAlign: 'left'
+              }}
+            >
+              Tomorrow
+            </div>
+          )}
           <SessionCard 
             session={nextSession} 
             variant="next"

@@ -19,6 +19,27 @@ vi.mock('../../services/dataService', () => ({
   getAttendeeSeatAssignments: vi.fn()
 }));
 
+vi.mock('../../services/timeService', () => ({
+  default: {
+    getCurrentTime: vi.fn(() => new Date('2024-01-15T10:00:00')),
+    registerSessionBoundaries: vi.fn(),
+    isOverrideActive: vi.fn(() => false)
+  }
+}));
+
+vi.mock('../../contexts/AuthContext', () => ({
+  useAuth: vi.fn(() => ({
+    isAuthenticated: true
+  }))
+}));
+
+// Mock TimeService for the new tests
+const TimeService = {
+  getCurrentTime: vi.fn(() => new Date('2024-01-15T10:00:00')),
+  registerSessionBoundaries: vi.fn(),
+  isOverrideActive: vi.fn(() => false)
+};
+
 describe('useSessionData Hook', () => {
   const mockSessions = [
     {
@@ -483,6 +504,232 @@ describe('useSessionData Hook', () => {
       // Cleanup
       localStorage.removeItem('kn_time_override');
       process.env.NODE_ENV = originalEnv;
+    });
+  });
+
+  describe('Real-time Update State Preservation', () => {
+    beforeEach(() => {
+      // Mock console methods to track logging
+      vi.spyOn(console, 'log').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it('should preserve current session when no active sessions found', async () => {
+      // Setup: Mock sessions that will not be active at current time
+      const pastSessions = [
+        {
+          id: '1',
+          title: 'Past Session',
+          date: '2024-01-15',
+          start_time: '08:00:00',
+          end_time: '09:00:00',
+          type: 'keynote'
+        }
+      ];
+
+      const { agendaService } = await import('../../services/agendaService');
+      agendaService.getActiveAgendaItems.mockResolvedValue({
+        success: true,
+        data: pastSessions,
+        error: null
+      });
+
+      // Mock current time to be after the session
+      const currentTime = new Date('2024-01-15T10:00:00');
+      TimeService.getCurrentTime.mockReturnValue(currentTime);
+
+      const { result } = renderHook(() => useSessionData());
+
+      // Wait for initial load
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      });
+
+      // Should have no current session initially
+      expect(result.current.currentSession).toBe(null);
+      expect(result.current.nextSession).toBe(null);
+
+      // Simulate real-time update (no active sessions found)
+      await act(async () => {
+        // Trigger real-time update by advancing time
+        const newTime = new Date('2024-01-15T11:00:00');
+        TimeService.getCurrentTime.mockReturnValue(newTime);
+        
+        // Wait for real-time update interval
+        await new Promise(resolve => setTimeout(resolve, 1100));
+      });
+
+      // Should preserve null state (not clear existing state)
+      expect(result.current.currentSession).toBe(null);
+      expect(result.current.nextSession).toBe(null);
+    });
+
+    it('should preserve next session when no upcoming sessions found', async () => {
+      // Setup: Mock sessions that are all in the past
+      const pastSessions = [
+        {
+          id: '1',
+          title: 'Past Session 1',
+          date: '2024-01-15',
+          start_time: '08:00:00',
+          end_time: '09:00:00',
+          type: 'keynote'
+        },
+        {
+          id: '2',
+          title: 'Past Session 2',
+          date: '2024-01-15',
+          start_time: '09:00:00',
+          end_time: '10:00:00',
+          type: 'panel'
+        }
+      ];
+
+      const { agendaService } = await import('../../services/agendaService');
+      agendaService.getActiveAgendaItems.mockResolvedValue({
+        success: true,
+        data: pastSessions,
+        error: null
+      });
+
+      // Mock current time to be after all sessions
+      const currentTime = new Date('2024-01-15T11:00:00');
+      TimeService.getCurrentTime.mockReturnValue(currentTime);
+
+      const { result } = renderHook(() => useSessionData());
+
+      // Wait for initial load
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      });
+
+      // Should have no sessions initially
+      expect(result.current.currentSession).toBe(null);
+      expect(result.current.nextSession).toBe(null);
+
+      // Simulate real-time update (no upcoming sessions found)
+      await act(async () => {
+        // Trigger real-time update by advancing time
+        const newTime = new Date('2024-01-15T12:00:00');
+        TimeService.getCurrentTime.mockReturnValue(newTime);
+        
+        // Wait for real-time update interval
+        await new Promise(resolve => setTimeout(resolve, 1100));
+      });
+
+      // Should preserve null state (not clear existing state)
+      expect(result.current.currentSession).toBe(null);
+      expect(result.current.nextSession).toBe(null);
+    });
+
+    it('should update sessions when new ones are found', async () => {
+      // Setup: Mock sessions with one active and one upcoming
+      const sessions = [
+        {
+          id: '1',
+          title: 'Current Session',
+          date: '2024-01-15',
+          start_time: '09:00:00',
+          end_time: '10:00:00',
+          type: 'keynote'
+        },
+        {
+          id: '2',
+          title: 'Next Session',
+          date: '2024-01-15',
+          start_time: '10:00:00',
+          end_time: '11:00:00',
+          type: 'panel'
+        }
+      ];
+
+      const { agendaService } = await import('../../services/agendaService');
+      agendaService.getActiveAgendaItems.mockResolvedValue({
+        success: true,
+        data: sessions,
+        error: null
+      });
+
+      // Mock current time to be during first session
+      const currentTime = new Date('2024-01-15T09:30:00');
+      TimeService.getCurrentTime.mockReturnValue(currentTime);
+
+      const { result } = renderHook(() => useSessionData());
+
+      // Wait for initial load
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      });
+
+      // Should have current and next sessions
+      expect(result.current.currentSession?.id).toBe('1');
+      expect(result.current.nextSession?.id).toBe('2');
+
+      // Simulate real-time update (session transition)
+      await act(async () => {
+        // Advance time to next session
+        const newTime = new Date('2024-01-15T10:30:00');
+        TimeService.getCurrentTime.mockReturnValue(newTime);
+        
+        // Wait for real-time update interval
+        await new Promise(resolve => setTimeout(resolve, 1100));
+      });
+
+      // Should update to new current session
+      expect(result.current.currentSession?.id).toBe('2');
+      expect(result.current.nextSession).toBe(null);
+    });
+
+    it('should not clear sessions when real-time update finds no active sessions', async () => {
+      // Setup: Mock sessions that will become inactive
+      const sessions = [
+        {
+          id: '1',
+          title: 'Temporary Session',
+          date: '2024-01-15',
+          start_time: '09:00:00',
+          end_time: '10:00:00',
+          type: 'keynote'
+        }
+      ];
+
+      const { agendaService } = await import('../../services/agendaService');
+      agendaService.getActiveAgendaItems.mockResolvedValue({
+        success: true,
+        data: sessions,
+        error: null
+      });
+
+      // Mock current time to be during session
+      const currentTime = new Date('2024-01-15T09:30:00');
+      TimeService.getCurrentTime.mockReturnValue(currentTime);
+
+      const { result } = renderHook(() => useSessionData());
+
+      // Wait for initial load
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      });
+
+      // Should have current session
+      expect(result.current.currentSession?.id).toBe('1');
+
+      // Simulate real-time update (session ended)
+      await act(async () => {
+        // Advance time past session end
+        const newTime = new Date('2024-01-15T10:30:00');
+        TimeService.getCurrentTime.mockReturnValue(newTime);
+        
+        // Wait for real-time update interval
+        await new Promise(resolve => setTimeout(resolve, 1100));
+      });
+
+      // Should preserve the session state (not clear it)
+      // This is the key behavior that prevents the UI flash
+      expect(result.current.currentSession?.id).toBe('1');
     });
   });
 });

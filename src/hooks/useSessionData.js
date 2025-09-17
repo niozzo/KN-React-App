@@ -76,7 +76,7 @@ const filterSessionsForAttendee = (sessions, attendee) => {
 export const useSessionData = (options = {}) => {
   const {
     autoRefresh = true,
-    refreshInterval = 300000, // 5 minutes
+    refreshInterval = 20000, // 20 seconds - TEMPORARY FOR TESTING
     enableOfflineMode = true
   } = options;
 
@@ -126,10 +126,15 @@ export const useSessionData = (options = {}) => {
       // Load agenda items
       const agendaResponse = await agendaService.getActiveAgendaItems();
       if (!agendaResponse.success) {
-        throw new Error(agendaResponse.error || 'Failed to load agenda items');
+        console.warn('⚠️ Failed to load agenda items:', agendaResponse.error);
+        // Don't throw error, just use empty array to allow app to continue
+        setAllSessions([]);
+        setSessions([]);
+        setLastUpdated(new Date());
+        return;
       }
 
-      let allSessionsData = agendaResponse.data;
+      let allSessionsData = agendaResponse.data || [];
       
       // Store all sessions for conference start date logic
       setAllSessions(allSessionsData);
@@ -187,7 +192,9 @@ export const useSessionData = (options = {}) => {
         allSessions: allSessionsData.length,
         filteredSessions: filteredSessions.length,
         currentSession: activeSession?.title,
-        nextSession: upcomingSession?.title
+        nextSession: upcomingSession?.title,
+        attendeeId: attendeeData?.id,
+        seatAssignments: seatAssignments.length
       });
 
     } catch (err) {
@@ -259,6 +266,7 @@ export const useSessionData = (options = {}) => {
     if (!autoRefresh || isOffline || !isAuthenticated) return;
 
     const interval = setInterval(() => {
+      console.log('🔄 AUTO-REFRESH TRIGGERED - 20 second interval (TEMPORARY FOR TESTING)');
       loadSessionData();
     }, refreshInterval);
 
@@ -354,6 +362,9 @@ export const useSessionData = (options = {}) => {
       TimeService.startBoundaryMonitoring();
     }
 
+    // Real-time updates should always run for production
+    // Time override is just a dev feature
+
     const handleRealTimeUpdate = () => {
       const currentTime = getCurrentTime();
       
@@ -375,17 +386,24 @@ export const useSessionData = (options = {}) => {
         })[0]; // Get the first (earliest) upcoming session
       
       // Update state only if changed (performance optimization)
+      // Don't clear sessions just because none are currently active - this causes the flash
       setCurrentSession(prev => {
-        if (prev?.id !== activeSession?.id) {
+        // Only update if we found an active session or if we're intentionally clearing
+        if (activeSession && prev?.id !== activeSession?.id) {
           return activeSession;
         }
+        // Don't clear current session if no active session found - keep the last known state
+        // This prevents the flash to "Conference Not Started" state
         return prev;
       });
       
       setNextSession(prev => {
-        if (prev?.id !== upcomingSession?.id) {
+        // Only update if we found an upcoming session or if we're intentionally clearing
+        if (upcomingSession && prev?.id !== upcomingSession?.id) {
           return upcomingSession;
         }
+        // Don't clear next session if no upcoming session found - keep the last known state
+        // This prevents the flash to "Conference Not Started" state
         return prev;
       });
     };
