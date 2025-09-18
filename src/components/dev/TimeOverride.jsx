@@ -117,7 +117,7 @@ const TimeOverride = () => {
 
       {/* Override Panel */}
       {isOpen && (
-        <div className="time-override-panel">
+        <div className="time-override-panel" style={{ backgroundColor: 'white', opacity: 1 }}>
           <div className="time-override-header">
             <h4>Time Override (Testing Tool)</h4>
             <button 
@@ -141,8 +141,17 @@ const TimeOverride = () => {
                     onClick={() => {
                       // Load current start time for editing
                       const startTime = TimeService.getOverrideStartTime();
+                      console.log('Edit Override clicked, startTime:', startTime);
+                      
                       if (startTime) {
                         const dateTimeString = startTime.toISOString().slice(0, 16);
+                        console.log('Setting overrideDateTime to:', dateTimeString);
+                        setOverrideDateTime(dateTimeString);
+                      } else {
+                        // Fallback to current time if no start time found
+                        const now = new Date();
+                        const dateTimeString = now.toISOString().slice(0, 16);
+                        console.log('No start time found, using current time:', dateTimeString);
                         setOverrideDateTime(dateTimeString);
                       }
                       // Switch to edit mode by setting isActive to false temporarily
@@ -169,7 +178,11 @@ const TimeOverride = () => {
                     type="datetime-local"
                     value={overrideDateTime}
                     onChange={(e) => setOverrideDateTime(e.target.value)}
+                    style={{ backgroundColor: 'white', opacity: 1 }}
                   />
+                  <div style={{ fontSize: '10px', color: '#666', marginTop: '4px' }}>
+                    Current value: {overrideDateTime || 'empty'}
+                  </div>
                 </div>
                 
                 <div className="form-info">
