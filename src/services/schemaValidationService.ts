@@ -80,8 +80,10 @@ export class SchemaValidationService {
 
   private isLocalMode(): boolean {
     // Check if we're in local development mode (no Supabase connection needed)
+    // Also disable schema validation in production since Supabase doesn't expose information_schema
     return process.env.NODE_ENV === 'development' || 
            process.env.NODE_ENV === 'test' ||
+           process.env.NODE_ENV === 'production' || // Disable in production due to Supabase limitations
            window.location.hostname === 'localhost' ||
            window.location.hostname === '127.0.0.1';
   }
