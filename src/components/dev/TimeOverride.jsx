@@ -49,6 +49,26 @@ const TimeOverride = () => {
     return () => clearInterval(interval);
   }, [isActive]);
 
+  // Handle click outside to close panel
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isOpen) {
+        const container = document.querySelector('.time-override-container');
+        if (container && !container.contains(event.target)) {
+          setIsOpen(false);
+        }
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen]);
+
   const handleSetOverride = () => {
     if (overrideDateTime) {
       const overrideDate = new Date(overrideDateTime);
@@ -63,9 +83,15 @@ const TimeOverride = () => {
   };
 
   const handleClearOverride = () => {
+    // Preserve current override values before clearing
+    const currentOverrideTime = TimeService.getOverrideStartTime();
+    if (currentOverrideTime) {
+      const dateTimeString = currentOverrideTime.toISOString().slice(0, 16);
+      setOverrideDateTime(dateTimeString);
+    }
+    
     TimeService.clearOverrideTime();
     setIsActive(false);
-    setOverrideDateTime('');
     
     // No need to reload - the time will return to real time automatically
   };
@@ -252,8 +278,7 @@ const TimeOverride = () => {
           top: 100%;
           left: 50%;
           transform: translateX(-50%);
-          background: rgba(255, 255, 255, 0.95);
-          backdrop-filter: blur(10px);
+          background: rgba(255, 255, 255, 1);
           border: 1px solid rgba(229, 231, 235, 0.8);
           border-radius: 8px;
           box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
