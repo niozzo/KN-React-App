@@ -106,7 +106,8 @@ export class DataClearingService {
           key.startsWith('kn_sync_') || // kn_sync_status, etc.
           key.startsWith('kn_conflicts') || // kn_conflicts
           key.startsWith('sb-') || // Supabase auth tokens (sb-iikcgdhztkrexuuqheli-auth-token, etc.)
-          key.includes('supabase') // Any other Supabase-related keys
+          key.includes('supabase') || // Any other Supabase-related keys
+          key.includes('application') // Application database related keys
         )) {
           keysToRemove.push(key)
         }

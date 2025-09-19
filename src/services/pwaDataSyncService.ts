@@ -10,6 +10,7 @@
 import { SchemaValidationService } from './schemaValidationService';
 import { supabase } from '../lib/supabase';
 import { sanitizeAttendeeForStorage } from '../types/attendee';
+import { applicationDb } from './applicationDatabaseService';
 
 export interface SyncStatus {
   isOnline: boolean;
@@ -70,7 +71,11 @@ export class PWADataSyncService {
     dining_options: 'dining_options',
     hotels: 'hotels',
     seating_configurations: 'seating_configurations',
-    user_profiles: 'user_profiles'
+    user_profiles: 'user_profiles',
+    // Application database tables
+    speaker_assignments: 'speaker_assignments',
+    agenda_item_metadata: 'agenda_item_metadata',
+    attendee_metadata: 'attendee_metadata'
   };
 
   constructor() {
@@ -222,12 +227,27 @@ export class PWADataSyncService {
       // Sync each table
       const tables = ['attendees', 'sponsors', 'seat_assignments', 'agenda_items', 'dining_options', 'hotels', 'seating_configurations', 'user_profiles'];
       
+      // Sync application database tables
+      const applicationTables = ['speaker_assignments', 'agenda_item_metadata', 'attendee_metadata'];
+      
       for (const table of tables) {
         try {
           await this.syncTable(table);
           result.syncedTables.push(table);
         } catch (error) {
           const errorMsg = `Failed to sync ${table}: ${error instanceof Error ? error.message : 'Unknown error'}`;
+          result.errors.push(errorMsg);
+          console.error(`❌ ${errorMsg}`);
+        }
+      }
+
+      // Sync application database tables
+      for (const table of applicationTables) {
+        try {
+          await this.syncApplicationTable(table);
+          result.syncedTables.push(table);
+        } catch (error) {
+          const errorMsg = `Failed to sync application table ${table}: ${error instanceof Error ? error.message : 'Unknown error'}`;
           result.errors.push(errorMsg);
           console.error(`❌ ${errorMsg}`);
         }
@@ -287,9 +307,40 @@ export class PWADataSyncService {
   }
 
   /**
+   * Sync application database table
+   */
+  private async syncApplicationTable(tableName: string): Promise<void> {
+    console.log(`🔄 Syncing application table ${tableName}...`);
+
+    try {
+      // Get Supabase table name
+      const supabaseTable = this.tableToSupabaseTable[tableName];
+      if (!supabaseTable) {
+        throw new Error(`No Supabase table configured for: ${tableName}`);
+      }
+
+      // Query data from application database
+      const { data, error } = await applicationDb
+        .from(supabaseTable)
+        .select('*');
+      
+      if (error) {
+        throw new Error(`Application database query failed: ${error.message}`);
+      }
+
+      // Cache the data
+      await this.cacheTableData(tableName, data || []);
+
+    } catch (error) {
+      console.error(`❌ Failed to sync application table ${tableName}:`, error);
+      throw error;
+    }
+  }
+
+  /**
    * Cache table data to IndexedDB
    */
-  private async cacheTableData(tableName: string, data: any[]): Promise<void> {
+  async cacheTableData(tableName: string, data: any[]): Promise<void> {
     try {
       const cacheKey = `${this.CACHE_PREFIX}${tableName}`;
       
@@ -555,9 +606,11 @@ export class PWADataSyncService {
    */
   async getOfflineDataStatus(): Promise<{ [tableName: string]: boolean }> {
     const tables = ['attendees', 'sponsors', 'seat_assignments', 'agenda_items', 'dining_options', 'hotels', 'seating_configurations', 'user_profiles'];
+    const applicationTables = ['speaker_assignments', 'agenda_item_metadata', 'attendee_metadata'];
+    const allTables = [...tables, ...applicationTables];
     const status: { [tableName: string]: boolean } = {};
 
-    for (const table of tables) {
+    for (const table of allTables) {
       try {
         const data = await this.getCachedTableData(table);
         status[table] = data.length > 0;
@@ -575,8 +628,10 @@ export class PWADataSyncService {
   async debugCachedData(): Promise<void> {
     console.log('🔍 Debugging cached data...');
     const tables = ['attendees', 'sponsors', 'seat_assignments', 'agenda_items', 'dining_options', 'hotels', 'seating_configurations', 'user_profiles'];
+    const applicationTables = ['speaker_assignments', 'agenda_item_metadata', 'attendee_metadata'];
+    const allTables = [...tables, ...applicationTables];
     
-    for (const table of tables) {
+    for (const table of allTables) {
       try {
         const data = await this.getCachedTableData(table);
         console.log(`📊 ${table}: ${data.length} records cached`);

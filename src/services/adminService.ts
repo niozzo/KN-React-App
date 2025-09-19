@@ -1,4 +1,5 @@
 import { applicationDbService, SpeakerAssignment } from './applicationDatabaseService';
+import { pwaDataSyncService } from './pwaDataSyncService';
 
 export class AdminService {
   async getAgendaItemsWithAssignments(): Promise<any[]> {
@@ -23,24 +24,20 @@ export class AdminService {
     
     console.log('Loaded agenda items:', agendaItems);
     
-    // Get speaker assignments for each item
-    const itemsWithAssignments = await Promise.all(
-      agendaItems.map(async (item: any) => {
-        try {
-          const assignments = await applicationDbService.getSpeakerAssignments(item.id);
-          return {
-            ...item,
-            speaker_assignments: assignments
-          };
-        } catch (error) {
-          console.warn(`Database assignments failed for agenda item ${item.id}, using empty array:`, error);
-          return {
-            ...item,
-            speaker_assignments: []
-          };
-        }
-      })
-    );
+    // Get speaker assignments from local storage first
+    const speakerAssignments = await pwaDataSyncService.getCachedTableData('speaker_assignments');
+    console.log('Loaded speaker assignments from cache:', speakerAssignments);
+    
+    // Map assignments to agenda items
+    const itemsWithAssignments = agendaItems.map((item: any) => {
+      const assignments = speakerAssignments.filter((assignment: any) => 
+        assignment.agenda_item_id === item.id
+      );
+      return {
+        ...item,
+        speaker_assignments: assignments
+      };
+    });
     
     return itemsWithAssignments;
   }
@@ -87,29 +84,44 @@ export class AdminService {
   }
 
   async assignSpeakerToAgendaItem(agendaItemId: string, attendeeId: string, role: string = 'presenter'): Promise<SpeakerAssignment> {
+    // Create assignment object
+    const assignment: SpeakerAssignment = {
+      id: `local-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      agenda_item_id: agendaItemId,
+      attendee_id: attendeeId,
+      role,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
     try {
-      return await applicationDbService.assignSpeaker(agendaItemId, attendeeId, role);
+      // Try to save to database first
+      const dbAssignment = await applicationDbService.assignSpeaker(agendaItemId, attendeeId, role);
+      
+      // Update local cache with database assignment (which has real ID)
+      await this.updateLocalSpeakerAssignments([dbAssignment]);
+      
+      return dbAssignment;
     } catch (error) {
       console.warn('Database assignment failed, using local assignment:', error);
-      // Return a mock assignment for local storage only
-      return {
-        id: `local-${Date.now()}`,
-        agenda_item_id: agendaItemId,
-        attendee_id: attendeeId,
-        role,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
+      
+      // Save to local storage
+      await this.updateLocalSpeakerAssignments([assignment]);
+      
+      return assignment;
     }
   }
 
   async removeSpeakerFromAgendaItem(assignmentId: string): Promise<void> {
     try {
+      // Try to remove from database first
       await applicationDbService.removeSpeakerAssignment(assignmentId);
     } catch (error) {
       console.warn('Database removal failed, continuing with local removal:', error);
-      // Continue with local removal
     }
+    
+    // Always remove from local storage
+    await this.removeLocalSpeakerAssignment(assignmentId);
   }
 
   async getAvailableAttendees(): Promise<any[]> {
@@ -151,6 +163,47 @@ export class AdminService {
 
   validateAttendeeExists(attendeeId: string, attendees: any[]): boolean {
     return attendees.some(attendee => attendee.id === attendeeId);
+  }
+
+  /**
+   * Update local speaker assignments cache
+   */
+  private async updateLocalSpeakerAssignments(newAssignments: SpeakerAssignment[]): Promise<void> {
+    try {
+      const existingAssignments = await pwaDataSyncService.getCachedTableData('speaker_assignments');
+      
+      // Merge new assignments with existing ones
+      const updatedAssignments = [...existingAssignments];
+      
+      for (const newAssignment of newAssignments) {
+        const existingIndex = updatedAssignments.findIndex(a => a.id === newAssignment.id);
+        if (existingIndex >= 0) {
+          updatedAssignments[existingIndex] = newAssignment;
+        } else {
+          updatedAssignments.push(newAssignment);
+        }
+      }
+      
+      // Update cache
+      await pwaDataSyncService.cacheTableData('speaker_assignments', updatedAssignments);
+    } catch (error) {
+      console.error('Failed to update local speaker assignments:', error);
+    }
+  }
+
+  /**
+   * Remove speaker assignment from local cache
+   */
+  private async removeLocalSpeakerAssignment(assignmentId: string): Promise<void> {
+    try {
+      const existingAssignments = await pwaDataSyncService.getCachedTableData('speaker_assignments');
+      const updatedAssignments = existingAssignments.filter(a => a.id !== assignmentId);
+      
+      // Update cache
+      await pwaDataSyncService.cacheTableData('speaker_assignments', updatedAssignments);
+    } catch (error) {
+      console.error('Failed to remove local speaker assignment:', error);
+    }
   }
 }
 
