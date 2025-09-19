@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda Data Debug Utility</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: #1976d2;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .controls {
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .controls button {
+            background: #1976d2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            font-size: 14px;
+        }
+        .controls button:hover {
+            background: #1565c0;
+        }
+        .controls button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .controls input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-right: 10px;
+            width: 80px;
+        }
+        .status {
+            padding: 10px 20px;
+            background: #e3f2fd;
+            border-left: 4px solid #1976d2;
+            margin: 0;
+        }
+        .error {
+            background: #ffebee;
+            border-left-color: #f44336;
+            color: #c62828;
+        }
+        .success {
+            background: #e8f5e8;
+            border-left-color: #4caf50;
+            color: #2e7d32;
+        }
+        .data-section {
+            padding: 20px;
+        }
+        .data-section h3 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #1976d2;
+            padding-bottom: 10px;
+        }
+        .json-display {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 12px;
+            line-height: 1.4;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .summary-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 4px solid #1976d2;
+        }
+        .summary-card h4 {
+            margin: 0 0 10px 0;
+            color: #1976d2;
+        }
+        .summary-card .value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+        .speaker-analysis {
+            background: #fff3e0;
+            border: 1px solid #ff9800;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .speaker-analysis h4 {
+            margin-top: 0;
+            color: #e65100;
+        }
+        .speaker-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #ffe0b2;
+        }
+        .speaker-item:last-child {
+            border-bottom: none;
+        }
+        .speaker-title {
+            flex: 1;
+            font-weight: 500;
+        }
+        .speaker-value {
+            font-family: monospace;
+            background: #fff;
+            padding: 2px 6px;
+            border-radius: 3px;
+            border: 1px solid #ddd;
+        }
+        .speaker-null { color: #f44336; }
+        .speaker-empty { color: #ff9800; }
+        .speaker-string { color: #4caf50; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Agenda Data Debug Utility</h1>
+            <p>Raw Database Response Viewer for Agenda Items</p>
+        </div>
+        
+        <div class="controls">
+            <button onclick="loadRawData()">Load Raw DB Data</button>
+            <button onclick="loadTransformedData()">Load Transformed Data</button>
+            <button onclick="analyzeSpeakers()">Analyze Speaker Data</button>
+            <input type="number" id="limit" value="10" min="1" max="100" placeholder="Limit">
+            <button onclick="clearData()">Clear</button>
+        </div>
+        
+        <div id="status" class="status" style="display: none;"></div>
+        
+        <div class="data-section">
+            <div id="summary" class="summary" style="display: none;"></div>
+            
+            <div id="speaker-analysis" class="speaker-analysis" style="display: none;">
+                <h4>🎤 Speaker Data Analysis</h4>
+                <div id="speaker-list"></div>
+            </div>
+            
+            <h3>📊 Raw Database Response</h3>
+            <div id="raw-data" class="json-display">Click "Load Raw DB Data" to fetch agenda items from the database...</div>
+            
+            <h3>🔄 Transformed Data Response</h3>
+            <div id="transformed-data" class="json-display">Click "Load Transformed Data" to see the API response...</div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000';
+        
+        function showStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+            
+            if (type === 'success' || type === 'error') {
+                setTimeout(() => {
+                    status.style.display = 'none';
+                }, 5000);
+            }
+        }
+        
+        function formatJSON(obj) {
+            return JSON.stringify(obj, null, 2);
+        }
+        
+        async function loadRawData() {
+            const limit = document.getElementById('limit').value;
+            showStatus('Loading raw database data...', 'info');
+            
+            try {
+                console.log(`Fetching: ${API_BASE}/api/db/table-data?table=agenda_items&limit=${limit}`);
+                const response = await fetch(`${API_BASE}/api/db/table-data?table=agenda_items&limit=${limit}`);
+                
+                console.log('Response status:', response.status);
+                console.log('Response headers:', [...response.headers.entries()]);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const responseText = await response.text();
+                console.log('Raw response text:', responseText.substring(0, 200) + '...');
+                
+                const data = JSON.parse(responseText);
+                console.log('Parsed data:', data);
+                
+                if (!data) {
+                    throw new Error('No data received from server');
+                }
+                
+                if (data.success) {
+                    document.getElementById('raw-data').textContent = formatJSON(data);
+                    showSummary(data);
+                    showStatus(`✅ Loaded ${data.rowCount || 0} agenda items from database`, 'success');
+                } else {
+                    throw new Error(data.error || 'Server returned success: false');
+                }
+            } catch (error) {
+                console.error('Load raw data error:', error);
+                document.getElementById('raw-data').textContent = `Error: ${error.message}\n\nCheck browser console for more details.`;
+                showStatus(`❌ Error loading data: ${error.message}`, 'error');
+            }
+        }
+        
+        async function loadTransformedData() {
+            const limit = document.getElementById('limit').value;
+            showStatus('Loading transformed data...', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/agenda-items?limit=${limit}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('transformed-data').textContent = formatJSON(data);
+                    showStatus(`✅ Loaded ${data.data.length} transformed agenda items`, 'success');
+                } else {
+                    throw new Error(data.error || 'Failed to load transformed data');
+                }
+            } catch (error) {
+                document.getElementById('transformed-data').textContent = `Error: ${error.message}`;
+                showStatus(`❌ Error loading transformed data: ${error.message}`, 'error');
+            }
+        }
+        
+        function showSummary(data) {
+            const summary = document.getElementById('summary');
+            const agendaItems = data && data.data ? data.data : [];
+            
+            if (!Array.isArray(agendaItems)) {
+                console.error('Invalid agenda items data:', agendaItems);
+                return;
+            }
+            
+            const totalItems = agendaItems.length;
+            const withSpeakers = agendaItems.filter(item => 
+                item && item.speaker && typeof item.speaker === 'string' && item.speaker.trim()
+            ).length;
+            const nullSpeakers = agendaItems.filter(item => 
+                item && item.speaker === null
+            ).length;
+            const emptySpeakers = agendaItems.filter(item => 
+                item && typeof item.speaker === 'object' && item.speaker && Object.keys(item.speaker).length === 0
+            ).length;
+            
+            summary.innerHTML = `
+                <div class="summary-card">
+                    <h4>Total Items</h4>
+                    <div class="value">${totalItems}</div>
+                </div>
+                <div class="summary-card">
+                    <h4>With Speaker Names</h4>
+                    <div class="value">${withSpeakers}</div>
+                </div>
+                <div class="summary-card">
+                    <h4>Null Speakers</h4>
+                    <div class="value">${nullSpeakers}</div>
+                </div>
+                <div class="summary-card">
+                    <h4>Empty Object Speakers</h4>
+                    <div class="value">${emptySpeakers}</div>
+                </div>
+            `;
+            summary.style.display = 'grid';
+        }
+        
+        function analyzeSpeakers() {
+            const rawDataText = document.getElementById('raw-data').textContent;
+            
+            try {
+                const data = JSON.parse(rawDataText);
+                const agendaItems = data.data || [];
+                
+                const speakerAnalysis = document.getElementById('speaker-analysis');
+                const speakerList = document.getElementById('speaker-list');
+                
+                let html = '';
+                agendaItems.forEach((item, index) => {
+                    let speakerClass = 'speaker-null';
+                    let speakerValue = 'null';
+                    
+                    if (item.speaker === null) {
+                        speakerClass = 'speaker-null';
+                        speakerValue = 'null';
+                    } else if (typeof item.speaker === 'object' && Object.keys(item.speaker).length === 0) {
+                        speakerClass = 'speaker-empty';
+                        speakerValue = '{}';
+                    } else if (typeof item.speaker === 'string') {
+                        speakerClass = 'speaker-string';
+                        speakerValue = `"${item.speaker}"`;
+                    } else {
+                        speakerValue = JSON.stringify(item.speaker);
+                    }
+                    
+                    html += `
+                        <div class="speaker-item">
+                            <div class="speaker-title">${item.title}</div>
+                            <div class="speaker-value ${speakerClass}">${speakerValue}</div>
+                        </div>
+                    `;
+                });
+                
+                speakerList.innerHTML = html;
+                speakerAnalysis.style.display = 'block';
+                showStatus('✅ Speaker analysis complete', 'success');
+                
+            } catch (error) {
+                showStatus('❌ Please load raw data first', 'error');
+            }
+        }
+        
+        function clearData() {
+            document.getElementById('raw-data').textContent = 'Click "Load Raw DB Data" to fetch agenda items from the database...';
+            document.getElementById('transformed-data').textContent = 'Click "Load Transformed Data" to see the API response...';
+            document.getElementById('summary').style.display = 'none';
+            document.getElementById('speaker-analysis').style.display = 'none';
+            document.getElementById('status').style.display = 'none';
+        }
+        
+        // Test connection on page load
+        window.addEventListener('load', async () => {
+            showStatus('🚀 Debug utility ready. Testing connection...', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/health`);
+                if (response.ok) {
+                    const health = await response.json();
+                    showStatus(`✅ Connected to spike server. Auth: ${health.authOk ? 'OK' : 'Failed'}`, 'success');
+                } else {
+                    showStatus(`⚠️ Spike server responded with status ${response.status}`, 'error');
+                }
+            } catch (error) {
+                showStatus(`❌ Cannot connect to spike server: ${error.message}`, 'error');
+                console.error('Connection test failed:', error);
+            }
+        });
+    </script>
+</body>
+</html>

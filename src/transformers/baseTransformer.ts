@@ -14,6 +14,13 @@ import {
   ValidationRule
 } from '../types/transformation'
 
+export interface SchemaVersion {
+  version: string
+  detectedAt: string
+  fields: string[]
+  confidence: number
+}
+
 export abstract class BaseTransformer<T> implements DataTransformer<T> {
   protected fieldMappings: FieldMapping[]
   protected computedFields: ComputedField[]
@@ -39,6 +46,51 @@ export abstract class BaseTransformer<T> implements DataTransformer<T> {
   }
 
   /**
+   * Detect schema version based on field presence and data types
+   */
+  protected detectSchemaVersion(dbData: any): SchemaVersion {
+    const fields = Object.keys(dbData || {})
+    const version = this.inferVersion(dbData)
+    const confidence = this.calculateConfidence(dbData, version)
+    
+    return {
+      version,
+      detectedAt: new Date().toISOString(),
+      fields,
+      confidence
+    }
+  }
+
+  /**
+   * Infer schema version based on field presence and data types
+   * Override this method in subclasses for specific version detection
+   */
+  protected inferVersion(data: any): string {
+    // Default implementation - can be overridden by subclasses
+    return '1.0.0'
+  }
+
+  /**
+   * Calculate confidence score for version detection
+   */
+  protected calculateConfidence(data: any, version: string): number {
+    // Simple confidence calculation based on expected fields
+    const expectedFields = this.fieldMappings.map(m => m.source)
+    const presentFields = Object.keys(data || {})
+    const matchingFields = expectedFields.filter(field => presentFields.includes(field))
+    
+    return matchingFields.length / expectedFields.length
+  }
+
+  /**
+   * Handle schema evolution - override in subclasses
+   */
+  protected handleSchemaEvolution(dbData: any, schemaVersion: SchemaVersion): any {
+    // Default implementation - no evolution needed
+    return dbData
+  }
+
+  /**
    * Transform data from database format to UI format
    */
   transformFromDatabase(dbData: any): T {
@@ -47,12 +99,21 @@ export abstract class BaseTransformer<T> implements DataTransformer<T> {
         throw this.createError(TransformationErrorCode.VALIDATION_ERROR, 'Database data is null or undefined')
       }
 
+      // Detect schema version and handle evolution
+      const schemaVersion = this.detectSchemaVersion(dbData)
+      const evolvedData = this.handleSchemaEvolution(dbData, schemaVersion)
+      
+      // Log schema version for monitoring
+      if (schemaVersion.confidence < 0.8) {
+        console.warn(`⚠️ Low confidence schema detection for ${this.tableName}:`, schemaVersion)
+      }
+
       const result: any = {}
       const missingFields: string[] = []
       
       // Apply field mappings
       for (const mapping of this.fieldMappings) {
-        const value = this.getFieldValue(dbData, mapping.source)
+        const value = this.getFieldValue(evolvedData, mapping.source)
         if (mapping.required && (value === undefined || value === null)) {
           missingFields.push(mapping.source)
         }
@@ -68,7 +129,7 @@ export abstract class BaseTransformer<T> implements DataTransformer<T> {
       // Apply computed fields
       for (const computedField of this.computedFields) {
         try {
-          result[computedField.name] = computedField.computation(dbData)
+          result[computedField.name] = computedField.computation(evolvedData)
         } catch (computedError) {
           console.warn(`⚠️ Failed to compute field ${computedField.name}:`, computedError)
           result[computedField.name] = null

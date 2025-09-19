@@ -3,7 +3,7 @@
  * Story 1.7: Data Transformation Layer for Schema Evolution
  */
 
-import { BaseTransformer } from './baseTransformer'
+import { BaseTransformer, SchemaVersion } from './baseTransformer'
 import { FieldMapping, ComputedField, ValidationRule } from '../types/transformation'
 import type { Attendee } from '../types/attendee'
 
@@ -13,15 +13,16 @@ export class AttendeeTransformer extends BaseTransformer<Attendee> {
       { source: 'id', target: 'id', type: 'string', required: true },
       { source: 'first_name', target: 'first_name', type: 'string', required: true },
       { source: 'last_name', target: 'last_name', type: 'string', required: true },
-      { source: 'email_address', target: 'email', type: 'string', required: true },
-      { source: 'phone_number', target: 'phone', type: 'string', defaultValue: null },
-      { source: 'company_name', target: 'company', type: 'string', defaultValue: '' },
+      { source: 'email', target: 'email', type: 'string', required: true },
+      { source: 'phone', target: 'phone', type: 'string', defaultValue: null },
+      { source: 'company', target: 'company', type: 'string', defaultValue: '' },
       { source: 'is_active', target: 'isActive', type: 'boolean', defaultValue: true },
       { source: 'created_at', target: 'created_at', type: 'date' },
       { source: 'updated_at', target: 'updated_at', type: 'date' },
       { source: 'selected_breakouts', target: 'selected_breakouts', type: 'array', defaultValue: [] },
       { source: 'hotel_selection', target: 'hotel_selection', type: 'string', defaultValue: null },
-      { source: 'dining_selections', target: 'dining_selections', type: 'array', defaultValue: [] }
+      { source: 'dining_selections', target: 'dining_selections', type: 'array', defaultValue: [] },
+      { source: 'attributes', target: 'attributes', type: 'object', defaultValue: {} }
     ]
 
     const computedFields: ComputedField[] = [
@@ -78,38 +79,110 @@ export class AttendeeTransformer extends BaseTransformer<Attendee> {
    * Handles cases where database schema changes but UI model stays stable
    */
   transformFromDatabase(dbData: any): Attendee {
-    // Handle schema evolution scenarios
-    const evolvedData = this.handleSchemaEvolution(dbData)
-    return super.transformFromDatabase(evolvedData)
+    // Schema evolution is now handled in the base class
+    return super.transformFromDatabase(dbData)
   }
 
   /**
-   * Handle database schema evolution
-   * This method can be updated when database schema changes
+   * Override version detection for attendee-specific schema evolution
    */
-  private handleSchemaEvolution(dbData: any): any {
+  protected inferVersion(data: any): string {
+    // Detect schema version based on field presence and data types
+    if (data.email_address && !data.email) {
+      return '1.0.0' // Legacy schema with email_address
+    }
+    
+    if (data.phone_number && !data.phone) {
+      return '1.1.0' // Schema with phone_number
+    }
+    
+    if (data.company_name && !data.company) {
+      return '1.2.0' // Schema with company_name
+    }
+    
+    if (data.is_active && typeof data.is_active === 'string') {
+      return '1.3.0' // Schema with string boolean fields
+    }
+    
+    return '2.0.0' // Current schema
+  }
+
+  /**
+   * Handle database schema evolution with version-aware processing
+   */
+  protected handleSchemaEvolution(dbData: any, schemaVersion: SchemaVersion): any {
     const evolved = { ...dbData }
-
-    // Example: Handle field rename from email_address to email
-    if (evolved.email && !evolved.email_address) {
-      evolved.email_address = evolved.email
+    
+    console.log(`🔄 Attendee schema evolution: ${schemaVersion.version} (confidence: ${schemaVersion.confidence})`)
+    
+    switch (schemaVersion.version) {
+      case '1.0.0':
+        // Handle field rename from email_address to email
+        if (evolved.email_address && !evolved.email) {
+          evolved.email = evolved.email_address
+        }
+        break
+        
+      case '1.1.0':
+        // Handle field rename from phone_number to phone
+        if (evolved.phone_number && !evolved.phone) {
+          evolved.phone = evolved.phone_number
+        }
+        break
+        
+      case '1.2.0':
+        // Handle field rename from company_name to company
+        if (evolved.company_name && !evolved.company) {
+          evolved.company = evolved.company_name
+        }
+        break
+        
+      case '1.3.0':
+        // Handle string boolean fields
+        if (typeof evolved.is_active === 'string') {
+          evolved.is_active = evolved.is_active === 'true' || evolved.is_active === '1'
+        }
+        break
+        
+      case '2.0.0':
+        // Current schema - no changes needed
+        break
+        
+      default:
+        console.warn(`⚠️ Unknown attendee schema version: ${schemaVersion.version}`)
     }
-
-    // Example: Handle field addition (new fields are ignored by UI)
-    // Database might add internal_notes, audit_trail, etc.
-    // These are automatically ignored by field mapping
-
-    // Example: Handle field removal with default values
-    if (!evolved.phone_number && !evolved.phone) {
-      evolved.phone_number = null // Will be mapped to phone with defaultValue
-    }
-
-    // Example: Handle type changes
-    if (typeof evolved.is_active === 'string') {
-      evolved.is_active = evolved.is_active === 'true' || evolved.is_active === '1'
-    }
-
+    
+    // Handle common data type issues
+    this.handleCommonDataTypes(evolved)
+    
     return evolved
+  }
+
+  /**
+   * Handle common data type issues across all versions
+   */
+  private handleCommonDataTypes(evolved: any): void {
+    // Handle null/undefined values
+    if (evolved.phone === null || evolved.phone === undefined) {
+      evolved.phone = null
+    }
+    
+    if (evolved.company === null || evolved.company === undefined) {
+      evolved.company = ''
+    }
+    
+    // Handle empty objects
+    if (evolved.dining_selections && typeof evolved.dining_selections === 'object' && Object.keys(evolved.dining_selections).length === 0) {
+      evolved.dining_selections = []
+    }
+    
+    if (evolved.selected_breakouts && typeof evolved.selected_breakouts === 'object' && Object.keys(evolved.selected_breakouts).length === 0) {
+      evolved.selected_breakouts = []
+    }
+    
+    if (evolved.attributes && typeof evolved.attributes === 'object' && Object.keys(evolved.attributes).length === 0) {
+      evolved.attributes = {}
+    }
   }
 
   /**

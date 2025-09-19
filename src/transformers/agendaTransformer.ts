@@ -3,7 +3,7 @@
  * Story 1.7: Data Transformation Layer for Schema Evolution
  */
 
-import { BaseTransformer } from './baseTransformer'
+import { BaseTransformer, SchemaVersion } from './baseTransformer'
 import { FieldMapping, ComputedField, ValidationRule } from '../types/transformation'
 import type { AgendaItem } from '../types/agenda'
 
@@ -18,7 +18,7 @@ export class AgendaTransformer extends BaseTransformer<AgendaItem> {
       { source: 'end_time', target: 'end_time', type: 'string', required: true },
       { source: 'location', target: 'location', type: 'string', defaultValue: '' },
       { source: 'type', target: 'session_type', type: 'string', defaultValue: 'general' },
-      { source: 'speaker', target: 'speaker_name', type: 'object', defaultValue: null },
+      { source: 'speaker', target: 'speaker_name', type: 'string', defaultValue: '' },
       { source: 'capacity', target: 'capacity', type: 'number', defaultValue: null },
       { source: 'registered_count', target: 'registered_count', type: 'number', defaultValue: 0 },
       { source: 'attendee_selection', target: 'attendee_selection', type: 'string', defaultValue: 'everyone' },
@@ -69,31 +69,24 @@ export class AgendaTransformer extends BaseTransformer<AgendaItem> {
         computation: (data: any) => {
           const speaker = data.speaker
           
-          // Handle null/undefined
+          // Handle different data types
           if (speaker === null || speaker === undefined) {
             return ''
           }
           
-          // Handle empty object {} (current database structure)
+          // Handle empty object {}
           if (typeof speaker === 'object' && Object.keys(speaker).length === 0) {
             return ''
           }
           
-          // Handle string values (if database is updated)
+          // Handle string values
           if (typeof speaker === 'string' && speaker.trim()) {
             return speaker.trim()
           }
           
-          // Handle structured speaker object (if it contains speaker data)
-          if (typeof speaker === 'object' && speaker !== null) {
-            // Check for common speaker object properties
-            if (speaker.name) return speaker.name
-            if (speaker.speaker_name) return speaker.speaker_name
-            if (speaker.full_name) return speaker.full_name
-            if (speaker.title) return speaker.title
-            
-            // If it's a non-empty object but no recognized properties, return empty
-            return ''
+          // Handle object with name property (in case it's structured data)
+          if (typeof speaker === 'object' && speaker.name) {
+            return speaker.name
           }
           
           return ''
@@ -138,34 +131,83 @@ export class AgendaTransformer extends BaseTransformer<AgendaItem> {
   }
 
   /**
-   * Transform agenda data with schema evolution support
+   * Override version detection for agenda-specific schema evolution
    */
-  transformFromDatabase(dbData: any): AgendaItem {
-    const evolvedData = this.handleSchemaEvolution(dbData)
-    return super.transformFromDatabase(evolvedData)
+  protected inferVersion(data: any): string {
+    // Detect schema version based on speaker field characteristics
+    if (data.speaker_name && !data.speaker) {
+      return '2.0.0' // New schema with renamed speaker field
+    }
+    
+    if (data.speaker && typeof data.speaker === 'object' && data.speaker !== null) {
+      return '1.5.0' // Schema with object-based speaker field
+    }
+    
+    if (data.speaker && typeof data.speaker === 'string') {
+      return '1.2.0' // Schema with string speaker field
+    }
+    
+    if (data.speaker === null || data.speaker === undefined) {
+      return '1.1.0' // Schema with null speaker field
+    }
+    
+    return '1.0.0' // Legacy schema
   }
 
   /**
-   * Handle database schema evolution for agenda items
+   * Handle schema evolution for agenda items
    */
-  private handleSchemaEvolution(dbData: any): any {
+  protected handleSchemaEvolution(dbData: any, schemaVersion: SchemaVersion): any {
     const evolved = { ...dbData }
-
-    // Handle field rename from type to session_type
-    if (evolved.type && !evolved.session_type) {
-      evolved.session_type = evolved.type
+    
+    console.log(`🔄 Agenda schema evolution: ${schemaVersion.version} (confidence: ${schemaVersion.confidence})`)
+    
+    switch (schemaVersion.version) {
+      case '1.0.0':
+        // Legacy schema - no changes needed
+        break
+        
+      case '1.1.0':
+        // Handle null speaker field - already handled by computed field
+        break
+        
+      case '1.2.0':
+        // Handle string speaker field - already handled by computed field
+        break
+        
+      case '1.5.0':
+        // Handle object-based speaker field
+        if (evolved.speaker && typeof evolved.speaker === 'object' && evolved.speaker !== null) {
+          // Extract speaker name from object if it has a name property
+          if (evolved.speaker.name) {
+            evolved.speaker = evolved.speaker.name
+          } else {
+            // If it's an empty object, set to null
+            evolved.speaker = null
+          }
+        }
+        break
+        
+      case '2.0.0':
+        // Handle renamed speaker field
+        if (evolved.speaker_name && !evolved.speaker) {
+          evolved.speaker = evolved.speaker_name
+        }
+        break
+        
+      default:
+        console.warn(`⚠️ Unknown agenda schema version: ${schemaVersion.version}`)
     }
-
-    // Handle type changes for boolean fields
-    if (typeof evolved.is_active === 'string') {
-      evolved.is_active = evolved.is_active === 'true' || evolved.is_active === '1'
-    }
-
-    if (typeof evolved.has_seating === 'string') {
-      evolved.has_seating = evolved.has_seating === 'true' || evolved.has_seating === '1'
-    }
-
+    
     return evolved
+  }
+
+  /**
+   * Transform agenda data with schema evolution support
+   */
+  transformFromDatabase(dbData: any): AgendaItem {
+    // Schema evolution is now handled in the base class
+    return super.transformFromDatabase(dbData)
   }
 
   /**

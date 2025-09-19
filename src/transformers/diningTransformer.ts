@@ -3,7 +3,7 @@
  * Story 1.7: Data Transformation Layer for Schema Evolution
  */
 
-import { BaseTransformer } from './baseTransformer'
+import { BaseTransformer, SchemaVersion } from './baseTransformer'
 import { FieldMapping, ComputedField, ValidationRule } from '../types/transformation'
 import type { DiningOption } from '../types/dining'
 
@@ -13,35 +13,32 @@ export class DiningTransformer extends BaseTransformer<DiningOption> {
       { source: 'id', target: 'id', type: 'string', required: true },
       { source: 'name', target: 'name', type: 'string', required: true },
       { source: 'description', target: 'description', type: 'string', defaultValue: '' },
-      { source: 'date', target: 'date', type: 'string', required: true },
-      { source: 'time', target: 'time', type: 'string', required: true },
-      { source: 'location', target: 'location', type: 'string', defaultValue: '' },
-      { source: 'meal_type', target: 'meal_type', type: 'string', defaultValue: 'lunch' },
-      { source: 'dietary_options', target: 'dietary_options', type: 'array', defaultValue: [] },
-      { source: 'max_capacity', target: 'max_capacity', type: 'number', defaultValue: null },
+      { source: 'type', target: 'type', type: 'string', defaultValue: 'lunch' },
+      { source: 'capacity', target: 'capacity', type: 'number', defaultValue: null },
       { source: 'price', target: 'price', type: 'number', defaultValue: 0 },
-      { source: 'is_active', target: 'isActive', type: 'boolean', defaultValue: true },
-      { source: 'created_at', target: 'created_at', type: 'date' },
-      { source: 'updated_at', target: 'updated_at', type: 'date' }
+      { source: 'dietary', target: 'dietary', type: 'array', defaultValue: [] },
+      { source: 'tables', target: 'tables', type: 'array', defaultValue: [] },
+      { source: 'is_active', target: 'is_active', type: 'boolean', defaultValue: true },
+      { source: 'display_order', target: 'display_order', type: 'number', defaultValue: 0 },
+      { source: 'created_at', target: 'created_at', type: 'date' }
     ]
 
     const computedFields: ComputedField[] = [
       {
         name: 'displayName',
-        sourceFields: ['name', 'meal_type', 'date'],
+        sourceFields: ['name', 'type'],
         computation: (data: any) => {
           const name = data.name || ''
-          const mealType = data.meal_type || ''
-          const date = data.date || ''
-          return `${name} (${mealType}) - ${date}`
+          const type = data.type || ''
+          return `${name} (${type})`
         },
         type: 'string'
       },
       {
         name: 'hasCapacity',
-        sourceFields: ['max_capacity'],
+        sourceFields: ['capacity'],
         computation: (data: any) => {
-          return data.max_capacity !== null && data.max_capacity > 0
+          return data.capacity !== null && data.capacity > 0
         },
         type: 'boolean'
       },
@@ -55,9 +52,9 @@ export class DiningTransformer extends BaseTransformer<DiningOption> {
       },
       {
         name: 'dietaryInfo',
-        sourceFields: ['dietary_options'],
+        sourceFields: ['dietary'],
         computation: (data: any) => {
-          const options = data.dietary_options || []
+          const options = data.dietary || []
           return Array.isArray(options) ? options.join(', ') : ''
         },
         type: 'string'
@@ -66,25 +63,7 @@ export class DiningTransformer extends BaseTransformer<DiningOption> {
 
     const validationRules: ValidationRule[] = [
       {
-        field: 'date',
-        rule: (value: any) => {
-          if (!value) return false
-          const date = new Date(value)
-          return !isNaN(date.getTime())
-        },
-        message: 'Invalid date format'
-      },
-      {
-        field: 'time',
-        rule: (value: any) => {
-          if (!value) return false
-          const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/
-          return timeRegex.test(value)
-        },
-        message: 'Invalid time format (HH:MM)'
-      },
-      {
-        field: 'meal_type',
+        field: 'type',
         rule: (value: any) => {
           if (!value) return true
           const validTypes = ['breakfast', 'lunch', 'dinner', 'snack', 'beverage']
@@ -99,6 +78,14 @@ export class DiningTransformer extends BaseTransformer<DiningOption> {
           return typeof value === 'number' && value >= 0
         },
         message: 'Price must be a non-negative number'
+      },
+      {
+        field: 'capacity',
+        rule: (value: any) => {
+          if (value === null || value === undefined) return true
+          return typeof value === 'number' && value >= 0
+        },
+        message: 'Capacity must be a non-negative number'
       }
     ]
 
@@ -109,47 +96,125 @@ export class DiningTransformer extends BaseTransformer<DiningOption> {
    * Transform dining data with schema evolution support
    */
   transformFromDatabase(dbData: any): DiningOption {
-    const evolvedData = this.handleSchemaEvolution(dbData)
-    return super.transformFromDatabase(evolvedData)
+    // Schema evolution is now handled in the base class
+    return super.transformFromDatabase(dbData)
   }
 
   /**
-   * Handle database schema evolution for dining options
+   * Override version detection for dining-specific schema evolution
    */
-  private handleSchemaEvolution(dbData: any): any {
+  protected inferVersion(data: any): string {
+    // Detect schema version based on field presence and data types
+    if (data.meal_type && !data.type) {
+      return '2.0.0' // New schema with meal_type
+    }
+    
+    if (data.max_capacity && !data.capacity) {
+      return '1.5.0' // Schema with max_capacity
+    }
+    
+    if (data.dietary_options && !data.dietary) {
+      return '1.3.0' // Schema with dietary_options
+    }
+    
+    if (data.price && typeof data.price === 'string') {
+      return '1.2.0' // Schema with string price
+    }
+    
+    if (data.is_active && typeof data.is_active === 'string') {
+      return '1.1.0' // Schema with string boolean fields
+    }
+    
+    return '1.0.0' // Legacy schema
+  }
+
+  /**
+   * Handle database schema evolution for dining options with version-aware processing
+   */
+  protected handleSchemaEvolution(dbData: any, schemaVersion: SchemaVersion): any {
     const evolved = { ...dbData }
-
-    // Example: Handle field rename from type to meal_type
-    if (evolved.type && !evolved.meal_type) {
-      evolved.meal_type = evolved.type
+    
+    console.log(`🔄 Dining schema evolution: ${schemaVersion.version} (confidence: ${schemaVersion.confidence})`)
+    
+    switch (schemaVersion.version) {
+      case '1.0.0':
+        // Legacy schema - no changes needed
+        break
+        
+      case '1.1.0':
+        // Handle string boolean fields
+        if (typeof evolved.is_active === 'string') {
+          evolved.is_active = evolved.is_active === 'true' || evolved.is_active === '1'
+        }
+        break
+        
+      case '1.2.0':
+        // Handle string price field
+        if (typeof evolved.price === 'string') {
+          const price = parseFloat(evolved.price)
+          evolved.price = isNaN(price) ? 0 : price
+        }
+        break
+        
+      case '1.3.0':
+        // Handle dietary_options field
+        if (evolved.dietary_options && !evolved.dietary) {
+          evolved.dietary = evolved.dietary_options
+        }
+        break
+        
+      case '1.5.0':
+        // Handle max_capacity field
+        if (evolved.max_capacity && !evolved.capacity) {
+          evolved.capacity = evolved.max_capacity
+        }
+        break
+        
+      case '2.0.0':
+        // Handle meal_type field
+        if (evolved.meal_type && !evolved.type) {
+          evolved.type = evolved.meal_type
+        }
+        break
+        
+      default:
+        console.warn(`⚠️ Unknown dining schema version: ${schemaVersion.version}`)
     }
+    
+    // Handle common data type issues
+    this.handleCommonDataTypes(evolved)
+    
+    return evolved
+  }
 
-    // Example: Handle field rename from capacity to max_capacity
-    if (evolved.capacity !== undefined && evolved.max_capacity === undefined) {
-      evolved.max_capacity = evolved.capacity
+  /**
+   * Handle common data type issues across all versions
+   */
+  private handleCommonDataTypes(evolved: any): void {
+    // Handle null/undefined values
+    if (evolved.capacity === null || evolved.capacity === undefined) {
+      evolved.capacity = null
     }
-
-    // Example: Handle field rename from dietary to dietary_options
-    if (evolved.dietary && !evolved.dietary_options) {
-      evolved.dietary_options = Array.isArray(evolved.dietary) ? evolved.dietary : [evolved.dietary]
+    
+    if (evolved.price === null || evolved.price === undefined) {
+      evolved.price = 0
     }
-
-    // Example: Handle type changes
-    if (typeof evolved.is_active === 'string') {
-      evolved.is_active = evolved.is_active === 'true' || evolved.is_active === '1'
+    
+    // Handle empty objects
+    if (evolved.tables && typeof evolved.tables === 'object' && Object.keys(evolved.tables).length === 0) {
+      evolved.tables = []
     }
-
+    
+    // Handle type conversions
+    if (typeof evolved.capacity === 'string') {
+      const capacity = parseInt(evolved.capacity)
+      evolved.capacity = isNaN(capacity) ? null : capacity
+    }
+    
     if (typeof evolved.price === 'string') {
       const price = parseFloat(evolved.price)
       evolved.price = isNaN(price) ? 0 : price
     }
-
-    if (typeof evolved.max_capacity === 'string') {
-      const capacity = parseInt(evolved.max_capacity)
-      evolved.max_capacity = isNaN(capacity) ? null : capacity
-    }
-
-    return evolved
   }
 
   /**
