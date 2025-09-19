@@ -21,6 +21,7 @@ import { useNavigate } from 'react-router-dom';
 import { SpeakerAssignmentComponent } from './SpeakerAssignment';
 import { adminService } from '../services/adminService';
 import { SpeakerAssignment } from '../services/applicationDatabaseService';
+import { dataInitializationService } from '../services/dataInitializationService';
 
 interface AdminPageProps {
   onLogout: () => void;
@@ -34,6 +35,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onLogout }) => {
   const [error, setError] = useState('');
   const [editingTitle, setEditingTitle] = useState<string | null>(null);
   const [titleValue, setTitleValue] = useState('');
+  const [requiresAuth, setRequiresAuth] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -43,19 +45,39 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onLogout }) => {
     try {
       setLoading(true);
       setError('');
+      setRequiresAuth(false);
 
-      // Load agenda items with assignments
+      // Step 1: Ensure data is loaded (follows authentication-first pattern)
+      console.log('🔄 Initializing admin data...');
+      const initResult = await dataInitializationService.ensureDataLoaded();
+      
+      if (!initResult.success) {
+        if (initResult.requiresAuthentication) {
+          setRequiresAuth(true);
+          setError('Please log in to access the admin panel.');
+          return;
+        } else {
+          setError(initResult.error || 'Failed to load conference data.');
+          return;
+        }
+      }
+
+      if (!initResult.hasData) {
+        setError('No conference data found. Please load your conference data first.');
+        return;
+      }
+
+      // Step 2: Load agenda items with assignments
+      console.log('📋 Loading agenda items...');
       const itemsWithAssignments = await adminService.getAgendaItemsWithAssignments();
       setAgendaItems(itemsWithAssignments);
 
-      // Load available attendees
+      // Step 3: Load available attendees
+      console.log('👥 Loading attendees...');
       const availableAttendees = await adminService.getAvailableAttendees();
       setAttendees(availableAttendees);
 
-      // Check if we have both agenda items and attendees
-      if (itemsWithAssignments.length === 0 && availableAttendees.length === 0) {
-        setError('No conference data found. Please load your conference data first.');
-      }
+      console.log('✅ Admin data loaded successfully');
 
     } catch (err) {
       setError('Failed to load admin data. Please try again.');
@@ -107,6 +129,15 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onLogout }) => {
     );
   };
 
+  const handleRefreshData = async () => {
+    console.log('🔄 Refreshing data...');
+    await loadData();
+  };
+
+  const handleGoToLogin = () => {
+    navigate('/');
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
@@ -130,7 +161,21 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onLogout }) => {
 
       <Box sx={{ p: 3 }}>
         {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
+          <Alert 
+            severity={requiresAuth ? "warning" : "error"} 
+            sx={{ mb: 3 }}
+            action={
+              requiresAuth ? (
+                <Button color="inherit" size="small" onClick={handleGoToLogin}>
+                  Go to Login
+                </Button>
+              ) : (
+                <Button color="inherit" size="small" onClick={handleRefreshData}>
+                  Refresh Data
+                </Button>
+              )
+            }
+          >
             {error}
           </Alert>
         )}
@@ -164,7 +209,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onLogout }) => {
               <Button
                 variant="outlined"
                 size="large"
-                onClick={() => window.location.reload()}
+                onClick={handleRefreshData}
               >
                 Refresh Data
               </Button>

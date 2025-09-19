@@ -108,18 +108,10 @@ export default defineConfig({
     esbuild: {
       target: 'es2020'
     },
-    // Completely disable snapshot testing to fix infrastructure issues
+    // Snapshot configuration
     snapshotFormat: {
       printBasicPrototype: false
     },
-    // Disable snapshot testing completely
-    snapshotSerializers: [],
-    // Disable snapshot functionality entirely
-    snapshotOptions: {
-      threshold: 0
-    },
-    // Disable snapshot state management
-    snapshotState: null,
     // Memory optimization settings - Use threads for better performance
     pool: 'threads',
     poolOptions: {

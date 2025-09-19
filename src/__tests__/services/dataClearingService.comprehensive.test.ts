@@ -7,8 +7,8 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
-// Import test setup
-import '../setup/testSetup'
+// Import test setup - temporarily disabled to debug
+// import '../setup/testSetup'
 
 // Import after mocking
 import { dataClearingService } from '../../services/dataClearingService'
@@ -22,13 +22,6 @@ describe('DataClearingService - Comprehensive Tests', () => {
 
   beforeEach(async () => {
     vi.clearAllMocks()
-    
-    // Get mocked services
-    const { attendeeInfoService } = await import('../../services/attendeeInfoService')
-    const { pwaDataSyncService } = await import('../../services/pwaDataSyncService')
-    
-    mockAttendeeInfoService = attendeeInfoService
-    mockPWADataSyncService = pwaDataSyncService
     
     // Setup mock implementations
     mockLocalStorage = {
@@ -63,9 +56,6 @@ describe('DataClearingService - Comprehensive Tests', () => {
     mockIndexedDB.deleteDatabase.mockReturnValue({})
     mockCaches.keys.mockResolvedValue([])
     mockCaches.delete.mockResolvedValue(true)
-    
-    mockAttendeeInfoService.clearAttendeeInfo.mockResolvedValue(undefined)
-    mockPWADataSyncService.clearCache.mockResolvedValue(undefined)
   })
 
   describe('Error Scenarios', () => {
@@ -73,6 +63,16 @@ describe('DataClearingService - Comprehensive Tests', () => {
       mockLocalStorage.removeItem.mockImplementation(() => {
         throw new Error('localStorage quota exceeded')
       })
+
+      // Debug: Check if the mock is working
+      console.log('Mock localStorage:', typeof localStorage)
+      console.log('Mock removeItem:', typeof localStorage.removeItem)
+      
+      try {
+        localStorage.removeItem('test')
+      } catch (e) {
+        console.log('Mock error caught:', e.message)
+      }
 
       const result = await dataClearingService.clearAllData()
 

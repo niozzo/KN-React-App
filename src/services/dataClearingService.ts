@@ -121,6 +121,7 @@ export class DataClearingService {
       result.clearedData.localStorage = true
     } catch (error) {
       console.warn('⚠️ Failed to clear localStorage:', error)
+      result.clearedData.localStorage = false
       result.errors.push(`localStorage clearing failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
@@ -134,6 +135,7 @@ export class DataClearingService {
       result.clearedData.attendeeInfo = true
     } catch (error) {
       console.warn('⚠️ Failed to clear attendee info cache:', error)
+      result.clearedData.attendeeInfo = false
       result.errors.push(`Attendee info cache clearing failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
@@ -147,6 +149,7 @@ export class DataClearingService {
       result.clearedData.pwaCache = true
     } catch (error) {
       console.warn('⚠️ Failed to clear PWA cached data:', error)
+      result.clearedData.pwaCache = false
       result.errors.push(`PWA cache clearing failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
@@ -198,6 +201,7 @@ export class DataClearingService {
       result.clearedData.indexedDB = !hasErrors
     } catch (error) {
       console.warn('⚠️ Failed to clear IndexedDB data:', error)
+      result.clearedData.indexedDB = false
       result.errors.push(`IndexedDB clearing failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
@@ -228,6 +232,7 @@ export class DataClearingService {
       result.clearedData.serviceWorkerCaches = true
     } catch (error) {
       console.warn('⚠️ Failed to clear service worker caches:', error)
+      result.clearedData.serviceWorkerCaches = false
       result.errors.push(`Service worker cache clearing failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
