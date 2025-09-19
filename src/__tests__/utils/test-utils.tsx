@@ -195,16 +195,19 @@ export const resetAllMocks = () => {
 }
 
 /**
- * Setup standard service mocks
+ * Setup standard service mocks using dependency injection
  * Call this in beforeEach to set up consistent service mocks
  */
 export const setupServiceMocks = async () => {
-  // Mock common services with standard implementations
-  const { agendaService } = await import('../../services/agendaService')
-  const { dataService } = await import('../../services/dataService')
-  const { timeService } = await import('../../services/timeService')
+  // Import the service factory
+  const { ServiceFactory, createMockAgendaService, createMockDataService, createMockTimeService } = await import('./service-factory')
   
-  // Setup standard mock implementations
+  // Create mock services with standard data
+  const agendaService = createMockAgendaService()
+  const dataService = createMockDataService()
+  const timeService = createMockTimeService()
+  
+  // Setup standard mock implementations with test data
   agendaService.getActiveAgendaItems = vi.fn().mockResolvedValue({
     success: true,
     data: mockAgendaItems,
@@ -215,9 +218,15 @@ export const setupServiceMocks = async () => {
   dataService.getAttendeeSeatAssignments = vi.fn().mockResolvedValue([])
   
   timeService.getCurrentTime = vi.fn().mockReturnValue(new Date())
-  timeService.registerSessionBoundaries = vi.fn()
-  timeService.stopBoundaryMonitoring = vi.fn()
   timeService.isOverrideActive = vi.fn().mockReturnValue(false)
+  timeService.getOverrideTime = vi.fn().mockReturnValue(null)
+  
+  // Inject services into factory
+  ServiceFactory.injectServices({
+    agendaService,
+    dataService,
+    timeService
+  })
 }
 
 // ============================================================================
@@ -326,14 +335,19 @@ export const waitForElement = async (
 // ============================================================================
 
 /**
- * Clean up after tests
+ * Clean up after tests with improved isolation
  * Call this in afterEach to ensure clean test state
  */
-export const cleanupAfterTest = () => {
+export const cleanupAfterTest = async () => {
+  // Clear all mocks and timers
   vi.clearAllMocks()
   vi.clearAllTimers()
   
-  // Clear DOM
+  // Reset service factory
+  const { ServiceFactory } = await import('./service-factory')
+  ServiceFactory.reset()
+  
+  // Clear DOM completely
   document.body.innerHTML = ''
   document.head.innerHTML = ''
   
@@ -346,24 +360,30 @@ export const cleanupAfterTest = () => {
   }
   
   // Clear any remaining event listeners
-  window.removeEventListener('beforeunload', () => {})
-  window.removeEventListener('unload', () => {})
-  window.removeEventListener('online', () => {})
-  window.removeEventListener('offline', () => {})
+  const events = ['beforeunload', 'unload', 'online', 'offline', 'focus', 'blur']
+  events.forEach(event => {
+    window.removeEventListener(event, () => {})
+    document.removeEventListener(event, () => {})
+  })
   
   // Clear service worker registrations
   if (navigator.serviceWorker) {
     navigator.serviceWorker.getRegistrations = vi.fn().mockResolvedValue([])
   }
   
-  // Force cleanup of any pending async operations
-  vi.clearAllTimers()
-  
-  // Clear any remaining intervals/timeouts
+  // Clear any remaining intervals/timeouts with better cleanup
   const highestTimeoutId = setTimeout(() => {}, 0)
   for (let i = 0; i < highestTimeoutId; i++) {
     clearTimeout(i)
     clearInterval(i)
+  }
+  
+  // Clear any pending promises
+  await new Promise(resolve => setTimeout(resolve, 0))
+  
+  // Reset global state
+  if (global.gc) {
+    global.gc()
   }
 }
 

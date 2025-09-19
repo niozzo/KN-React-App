@@ -2,15 +2,44 @@ import '@testing-library/jest-dom'
 import { beforeAll, afterEach, afterAll, vi } from 'vitest'
 import { cleanupAfterTest } from './utils/test-utils'
 
+// Mock Supabase to avoid module resolution issues
+vi.mock('@supabase/supabase-js', () => ({
+  createClient: vi.fn(() => ({
+    auth: {
+      getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null }),
+      signInWithPassword: vi.fn(),
+      signOut: vi.fn()
+    },
+    from: vi.fn(() => ({
+      select: vi.fn().mockReturnThis(),
+      insert: vi.fn().mockReturnThis(),
+      update: vi.fn().mockReturnThis(),
+      delete: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({ data: null, error: null }),
+      then: vi.fn().mockResolvedValue({ data: [], error: null })
+    }))
+  }))
+}));
+
+// Mock serverDataSyncService to prevent module resolution issues
+vi.mock('../services/serverDataSyncService', () => ({
+  serverDataSyncService: {
+    syncAllData: vi.fn(),
+    getCachedData: vi.fn(),
+    clearCache: vi.fn()
+  }
+}));
+
 // Global test setup
 beforeAll(() => {
   // Setup global test environment
   // Add any global setup that needs to happen once
 })
 
-afterEach(() => {
-  // Use standardized cleanup utility
-  cleanupAfterTest()
+afterEach(async () => {
+  // Use standardized cleanup utility with improved isolation
+  await cleanupAfterTest()
 })
 
 afterAll(() => {

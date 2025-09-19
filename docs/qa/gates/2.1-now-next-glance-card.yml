@@ -1,56 +1,97 @@
-# <!-- Powered by BMAD™ Core -->
+# Quality Gate Decision for Story 2.1: Now/Next Glance Card
+# Test Strategy Review - Comprehensive Analysis
+
 schema: 1
 story: "2.1"
 story_title: "Now/Next Glance Card"
-gate: "PASS"
-status_reason: "Excellent test coverage and implementation quality with comprehensive TDD practices exceeding all requirements"
+gate: "CONCERNS"
+status_reason: "Excellent test coverage and implementation quality, but critical test infrastructure issues need addressing for long-term maintainability"
 reviewer: "Quinn (Test Architect)"
-updated: "2025-01-16T11:50:00.000Z"
+updated: "2025-01-16T20:47:00Z"
 
-# Always present but only active when WAIVED
+# Gate decision based on test infrastructure concerns
 waiver: { active: false }
 
-# Issues (if any) - Use fixed severity: low | medium | high
-top_issues: []
+# Critical issues identified
+top_issues:
+  - id: "TEST-INFRA-001"
+    severity: high
+    finding: "Complex service mocking dependencies causing test brittleness"
+    suggested_action: "Implement dependency injection pattern for better testability"
+  - id: "TEST-INFRA-002"
+    severity: high
+    finding: "Module resolution issues with TypeScript imports in vitest"
+    suggested_action: "Update vitest configuration for proper TypeScript module resolution"
+  - id: "TEST-INFRA-003"
+    severity: medium
+    finding: "Snapshot testing infrastructure is broken"
+    suggested_action: "Implement proper snapshot testing strategy or disable completely"
+  - id: "TEST-INFRA-004"
+    severity: medium
+    finding: "Test isolation problems affecting reliability"
+    suggested_action: "Improve test isolation with better cleanup strategies"
 
-# Risk summary (from risk-profile task if run)
+# Risk assessment
 risk_summary:
-  totals: { critical: 0, high: 0, medium: 0, low: 1 }
+  totals: { critical: 0, high: 2, medium: 2, low: 0 }
   recommendations:
-    must_fix: []
-    monitor: ["Minor test infrastructure issues - non-blocking"]
+    must_fix:
+      - "Fix vitest module resolution configuration"
+      - "Simplify service mocking with dependency injection"
+    monitor:
+      - "Test isolation improvements"
+      - "Snapshot testing infrastructure"
 
-# Quality scoring and evidence
-quality_score: 95
+# Quality metrics
+quality_score: 75
 expires: "2025-01-30T00:00:00Z"
 
+# Evidence of review
 evidence:
-  tests_reviewed: 84
-  risks_identified: 1
+  tests_reviewed: 66
+  risks_identified: 4
   trace:
-    ac_covered: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
+    ac_covered: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]
     ac_gaps: []
 
+# NFR validation
 nfr_validation:
   security:
     status: PASS
-    notes: "Environment gating properly implemented, no security vulnerabilities"
+    notes: "Environment gating properly implemented for time override feature"
   performance:
     status: PASS
-    notes: "Efficient timer management and proper cleanup"
+    notes: "Good performance practices with efficient timer management"
   reliability:
-    status: PASS
-    notes: "Comprehensive error handling and offline support"
+    status: CONCERNS
+    notes: "Test infrastructure issues may affect reliability"
   maintainability:
-    status: PASS
-    notes: "Excellent code organization and test structure"
+    status: CONCERNS
+    notes: "Complex mocking dependencies make tests difficult to maintain"
 
+# Recommendations
 recommendations:
-  immediate: []
+  immediate:
+    - action: "Fix vitest module resolution configuration"
+      refs: ["vitest.config.ts"]
+    - action: "Simplify service mocking with dependency injection"
+      refs: ["src/__tests__/hooks/useSessionData.time-override.test.tsx"]
+    - action: "Resolve snapshot testing infrastructure issues"
+      refs: ["vitest.config.ts"]
+    - action: "Improve test isolation and cleanup"
+      refs: ["src/__tests__/setup.ts", "src/__tests__/utils/test-utils.tsx"]
   future:
-    - action: "Fix minor mock configuration issues in test files"
-      refs: ["src/__tests__/components/AdminBroadcastBanner.test.tsx", "src/__tests__/components/SessionCard.integration.test.tsx"]
-    - action: "Add missing service mocks for complete test isolation"
-      refs: ["src/__tests__/hooks/useSessionData.test.js"]
-    - action: "Consider adding visual regression tests for UI components"
-      refs: ["src/components/session/SessionCard.jsx", "src/components/broadcast/AdminBroadcastBanner.jsx"]
+    - action: "Implement test architecture patterns"
+      refs: ["src/__tests__/"]
+    - action: "Add performance testing infrastructure"
+      refs: ["src/__tests__/"]
+    - action: "Create test quality metrics"
+      refs: ["src/__tests__/"]
+    - action: "Improve test documentation"
+      refs: ["src/__tests__/"]
+
+# Gate history
+history:
+  - at: "2025-01-16T20:47:00Z"
+    gate: CONCERNS
+    note: "Test strategy review - infrastructure issues identified"

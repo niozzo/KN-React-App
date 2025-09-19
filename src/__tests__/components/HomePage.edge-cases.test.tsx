@@ -5,6 +5,17 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+// Hoisted mocks to ensure they're applied before any imports
+const mockServerDataSyncService = vi.hoisted(() => ({
+  serverDataSyncService: {
+    syncAllData: vi.fn(),
+    getCachedData: vi.fn(),
+    clearCache: vi.fn()
+  }
+}));
+
+vi.mock('../../services/serverDataSyncService', () => mockServerDataSyncService);
+
 // Mock Supabase client first to prevent import errors
 vi.mock('@supabase/supabase-js', () => ({
   createClient: vi.fn()
@@ -23,14 +34,6 @@ vi.mock('../../services/attendeeInfoService', () => ({
   }
 }));
 
-// Mock serverDataSyncService to prevent import errors
-vi.mock('../../services/serverDataSyncService', () => ({
-  serverDataSyncService: {
-    syncAllData: vi.fn(),
-    getCachedData: vi.fn(),
-    clearCache: vi.fn()
-  }
-}));
 
 // Mock the database types to prevent import errors
 vi.mock('../../types/database', () => ({

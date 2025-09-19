@@ -67,7 +67,12 @@ export default defineConfig({
     alias: {
       '@': '/Users/nickiozzo/Documents/GitHub/KN-React-App/src'
     },
-    extensions: ['.ts', '.tsx', '.js', '.jsx']
+    extensions: ['.ts', '.tsx', '.js', '.jsx'],
+    // Fix TypeScript module resolution
+    conditions: ['import', 'module', 'browser', 'default'],
+    mainFields: ['module', 'jsnext:main', 'jsnext', 'main'],
+    // Better module resolution for TypeScript
+    preserveSymlinks: false
   },
   test: {
     globals: true,
@@ -77,18 +82,40 @@ export default defineConfig({
     include: [
       'src/__tests__/**/*.{test,spec}.{js,ts,tsx}'
     ],
-    // Disable snapshots to fix vitest issues
+    // Fix TypeScript module resolution in tests
+    server: {
+      deps: {
+        inline: ['@testing-library/jest-dom', '@testing-library/react'],
+        external: ['@supabase/supabase-js']
+      }
+    },
+    // Force proper TypeScript module resolution
+    alias: {
+      '@': '/Users/nickiozzo/Documents/GitHub/KN-React-App/src'
+    },
+    // Better module resolution for TypeScript
+    resolve: {
+      alias: {
+        '@': '/Users/nickiozzo/Documents/GitHub/KN-React-App/src'
+      },
+      extensions: ['.ts', '.tsx', '.js', '.jsx']
+    },
+    // Proper TypeScript support
+    typecheck: {
+      enabled: false // Disable typechecking in tests for performance
+    },
+    // Completely disable snapshot testing to fix infrastructure issues
     snapshotFormat: {
       printBasicPrototype: false
     },
     // Disable snapshot testing completely
     snapshotSerializers: [],
-    // Disable snapshot state management
-    snapshotState: null,
     // Disable snapshot functionality entirely
     snapshotOptions: {
       threshold: 0
     },
+    // Disable snapshot state management
+    snapshotState: null,
     // Memory optimization settings - Use threads for better performance
     pool: 'threads',
     poolOptions: {
@@ -113,12 +140,6 @@ export default defineConfig({
     // Memory and performance optimizations
     passWithNoTests: true,
     logHeapUsage: false,
-    // Reduce memory usage
-    server: {
-      deps: {
-        inline: ['@testing-library/jest-dom']
-      }
-    },
     // Suppress console output during tests
     onConsoleLog(log, type) {
       if (type === 'stderr' && log.includes('Multiple GoTrueClient instances')) {
