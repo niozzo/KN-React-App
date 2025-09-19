@@ -15,16 +15,14 @@ import { BrowserRouter } from 'react-router-dom';
 import HomePage from '../../pages/HomePage';
 import TimeService from '../../services/timeService';
 
-// Hoisted mocks to ensure they're applied before any imports
-const mockServerDataSyncService = vi.hoisted(() => ({
+// Mock serverDataSyncService
+vi.mock('../../services/serverDataSyncService', () => ({
   serverDataSyncService: {
     syncAllData: vi.fn(),
-    getCachedData: vi.fn(),
+    getCachedTableData: vi.fn(),
     clearCache: vi.fn()
   }
 }));
-
-vi.mock('../../services/serverDataSyncService', () => mockServerDataSyncService);
 
 // Mock the useSessionData hook and its dependencies
 vi.mock('../../hooks/useSessionData', () => ({

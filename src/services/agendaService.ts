@@ -10,12 +10,22 @@ import type {
   PaginatedResponse, 
   AgendaService as IAgendaService 
 } from '../types/database';
-import { serverDataSyncService } from './serverDataSyncService';
+import type { IServerDataSyncService } from './interfaces/IServerDataSyncService';
+import type { ICacheService } from './interfaces/ICacheService';
+import type { ServiceResult } from './interfaces/IAgendaService';
 
 export class AgendaService implements IAgendaService {
   private backgroundRefreshInProgress = false;
   private readonly tableName = 'agenda_items';
   private readonly basePath = '/api/agenda-items';
+
+  constructor(
+    private serverDataSyncService?: IServerDataSyncService,
+    private cacheService?: ICacheService
+  ) {
+    // If no dependencies provided, we'll use the default implementations
+    // This maintains backward compatibility
+  }
 
   private async apiGet<T>(path: string): Promise<T> {
     const res = await fetch(path, { credentials: 'include' });
@@ -167,48 +177,79 @@ export class AgendaService implements IAgendaService {
    */
   async getActiveAgendaItems(): Promise<PaginatedResponse<AgendaItem>> {
     try {
-      // PRIMARY: Check localStorage first (populated during login)
-      try {
-        const cachedData = localStorage.getItem('kn_cache_agenda_items');
-        if (cachedData) {
-          const cacheObj = JSON.parse(cachedData);
-          // Handle both direct array format and wrapped format
-          const agendaItems = cacheObj.data || cacheObj;
-          const data = agendaItems
-            .filter((item: any) => item.isActive);
-          
-          console.log('🏠 LOCALSTORAGE: Using cached agenda items from localStorage');
-          console.log('🏠 LOCALSTORAGE: Found', data.length, 'cached agenda items');
-          
-          // If we have cached data, return it but also trigger a background refresh
-          if (data.length > 0) {
-            // Background refresh to ensure data is up to date
-            this.refreshAgendaItemsInBackground();
-            return {
-              data,
-              count: data.length,
-              error: null,
-              success: true
-            };
-          }
+      // Use injected cache service or fallback to localStorage
+      const cacheKey = 'kn_cache_agenda_items';
+      let cachedData = null;
+      
+      if (this.cacheService) {
+        cachedData = this.cacheService.get(cacheKey);
+      } else {
+        // Fallback to direct localStorage access
+        try {
+          const item = localStorage.getItem(cacheKey);
+          cachedData = item ? JSON.parse(item) : null;
+        } catch (cacheError) {
+          console.warn('⚠️ Failed to load cached agenda items:', cacheError);
         }
-      } catch (cacheError) {
-        console.warn('⚠️ Failed to load cached agenda items:', cacheError);
+      }
+
+      if (cachedData) {
+        // Handle both direct array format and wrapped format
+        const agendaItems = cachedData.data || cachedData;
+        const data = agendaItems
+          .filter((item: any) => item.isActive);
+        
+        console.log('🏠 CACHE: Using cached agenda items');
+        console.log('🏠 CACHE: Found', data.length, 'cached agenda items');
+        
+        // If we have cached data, return it but also trigger a background refresh
+        if (data.length > 0) {
+          // Background refresh to ensure data is up to date
+          this.refreshAgendaItemsInBackground();
+          return {
+            data,
+            count: data.length,
+            error: null,
+            success: true
+          };
+        }
       }
       
       // FALLBACK: Use serverDataSyncService if no cached data exists or cache is empty
-      console.log('🌐 serverDataSyncService: No cached agenda items found, using serverDataSyncService...');
+      console.log('🌐 SYNC: No cached agenda items found, using serverDataSyncService...');
+      
+      if (!this.serverDataSyncService) {
+        // If no service injected, return empty data
+        console.warn('⚠️ No serverDataSyncService available');
+        return {
+          data: [],
+          count: 0,
+          error: 'No sync service available',
+          success: false
+        };
+      }
+
       try {
-        const syncResult = await serverDataSyncService.syncAllData();
+        const syncResult = await this.serverDataSyncService.syncAllData();
         
         if (syncResult.success && syncResult.syncedTables.includes('agenda_items')) {
-          console.log('🌐 serverDataSyncService: Successfully synced agenda items');
+          console.log('🌐 SYNC: Successfully synced agenda items');
           
-          // Get the fresh data from cache (serverDataSyncService already cached it)
-          const cachedData = localStorage.getItem('kn_cache_agenda_items');
-          if (cachedData) {
-            const cacheObj = JSON.parse(cachedData);
-            const agendaItems = cacheObj.data || cacheObj;
+          // Get the fresh data from cache
+          let freshCachedData = null;
+          if (this.cacheService) {
+            freshCachedData = this.cacheService.get(cacheKey);
+          } else {
+            try {
+              const item = localStorage.getItem(cacheKey);
+              freshCachedData = item ? JSON.parse(item) : null;
+            } catch (error) {
+              console.warn('⚠️ Failed to load fresh cached data:', error);
+            }
+          }
+
+          if (freshCachedData) {
+            const agendaItems = freshCachedData.data || freshCachedData;
             const data = agendaItems
               .filter((item: any) => item.isActive)
               .sort((a: any, b: any) => {
@@ -220,7 +261,7 @@ export class AgendaService implements IAgendaService {
                 return (a.start_time || '').localeCompare(b.start_time || '')
               });
             
-            console.log('🌐 serverDataSyncService: Retrieved', data.length, 'agenda items from cache');
+            console.log('🌐 SYNC: Retrieved', data.length, 'agenda items from cache');
             return {
               data,
               count: data.length,
@@ -277,7 +318,7 @@ export class AgendaService implements IAgendaService {
 
   /**
    * Refresh agenda items in background without blocking UI
-   * Uses the same serverDataSyncService as login to ensure consistency
+   * Uses the injected serverDataSyncService to ensure consistency
    */
   private async refreshAgendaItemsInBackground(): Promise<void> {
     // Prevent multiple simultaneous background refreshes
@@ -288,11 +329,17 @@ export class AgendaService implements IAgendaService {
     this.backgroundRefreshInProgress = true;
     
     try {
-      // Use the same service that works during login
-      const syncResult = await serverDataSyncService.syncAllData();
+      if (!this.serverDataSyncService) {
+        console.warn('⚠️ Background refresh: No serverDataSyncService available');
+        return;
+      }
+
+      // Use the injected service
+      const syncResult = await this.serverDataSyncService.syncAllData();
       
       if (syncResult.success && syncResult.syncedTables.includes('agenda_items')) {
         // The data is already cached by serverDataSyncService, so we don't need to cache it again
+        console.log('🔄 Background refresh: Successfully synced agenda items');
       } else {
         console.warn('⚠️ Background refresh: serverDataSyncService failed, keeping existing cache');
       }

@@ -48,7 +48,8 @@ describe('AgendaService - New Architecture', () => {
       // Verify cache was used
       expect(mockCacheService.get).toHaveBeenCalledWith('kn_cache_agenda_items')
       
-      // Note: sync service might be called for background refresh, which is expected behavior
+      // Verify sync service was not called
+      expect(mockServerDataSyncService.syncAllData).not.toHaveBeenCalled()
     })
 
     it('should fallback to sync service when cache is empty', async () => {
@@ -152,10 +153,8 @@ describe('AgendaService - New Architecture', () => {
 
       const result = await agendaService.getActiveAgendaItems()
 
-      // The current implementation doesn't handle cache service errors gracefully
-      // It will throw the error and return a failure result
-      expect(result.success).toBe(false)
-      expect(result.error).toBe('Cache error')
+      // Should fallback to sync service
+      expect(mockServerDataSyncService.syncAllData).toHaveBeenCalled()
     })
 
     it('should handle sync service exceptions', async () => {

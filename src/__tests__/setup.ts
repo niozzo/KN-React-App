@@ -27,7 +27,8 @@ vi.mock('../services/serverDataSyncService', () => ({
   serverDataSyncService: {
     syncAllData: vi.fn(),
     getCachedData: vi.fn(),
-    clearCache: vi.fn()
+    clearCache: vi.fn(),
+    lookupAttendeeByAccessCode: vi.fn()
   }
 }));
 

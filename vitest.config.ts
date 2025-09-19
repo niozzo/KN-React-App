@@ -78,7 +78,6 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/__tests__/setup.ts'],
-    teardownFiles: ['./src/__tests__/teardown.ts'],
     include: [
       'src/__tests__/**/*.{test,spec}.{js,ts,tsx}'
     ],
@@ -89,17 +88,8 @@ export default defineConfig({
         external: ['@supabase/supabase-js']
       }
     },
-    // Force proper TypeScript module resolution
-    alias: {
-      '@': '/Users/nickiozzo/Documents/GitHub/KN-React-App/src'
-    },
-    // Better module resolution for TypeScript
-    resolve: {
-      alias: {
-        '@': '/Users/nickiozzo/Documents/GitHub/KN-React-App/src'
-      },
-      extensions: ['.ts', '.tsx', '.js', '.jsx']
-    },
+    // Mock modules globally
+    mockReset: true,
     // Proper TypeScript support
     typecheck: {
       enabled: false // Disable typechecking in tests for performance

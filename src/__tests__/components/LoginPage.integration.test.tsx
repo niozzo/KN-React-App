@@ -16,14 +16,43 @@ import React from 'react'
 
 // Mock the auth service
 vi.mock('../../services/authService', () => ({
-  getAuthStatus: vi.fn(),
+  getAuthStatus: vi.fn().mockReturnValue({
+    isAuthenticated: false,
+    attendee: null
+  }),
   authenticateWithAccessCode: vi.fn()
 }))
 
 // Mock the server data sync service
 vi.mock('../../services/serverDataSyncService', () => ({
   serverDataSyncService: {
-    syncAllData: vi.fn()
+    syncAllData: vi.fn().mockResolvedValue({
+      success: true,
+      syncedTables: ['attendees', 'agenda_items'],
+      errors: [],
+      totalRecords: 10
+    })
+  }
+}))
+
+// Mock attendeeInfoService
+vi.mock('../../services/attendeeInfoService', () => ({
+  attendeeInfoService: {
+    getAttendeeName: vi.fn().mockReturnValue(null),
+    extractAttendeeInfo: vi.fn(),
+    storeAttendeeInfo: vi.fn()
+  }
+}))
+
+// Mock dataClearingService
+vi.mock('../../services/dataClearingService', () => ({
+  dataClearingService: {
+    clearAllData: vi.fn().mockResolvedValue({
+      success: true,
+      errors: [],
+      performanceMetrics: { duration: 100 }
+    }),
+    verifyDataCleared: vi.fn().mockResolvedValue(true)
   }
 }))
 
