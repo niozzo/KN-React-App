@@ -1,0 +1,132 @@
+// Application Database Service
+import { createClient } from '@supabase/supabase-js';
+
+const APPLICATION_DB_URL = import.meta.env.VITE_APPLICATION_DB_URL;
+const APPLICATION_DB_ANON_KEY = import.meta.env.VITE_APPLICATION_DB_ANON_KEY;
+const APPLICATION_DB_SERVICE_KEY = import.meta.env.VITE_APPLICATION_DB_SERVICE_KEY;
+
+if (!APPLICATION_DB_URL || !APPLICATION_DB_ANON_KEY) {
+  throw new Error('Missing application database environment variables');
+}
+
+// Use anon key for read operations
+export const applicationDb = createClient(APPLICATION_DB_URL, APPLICATION_DB_ANON_KEY);
+
+// Use service role key for admin operations (if available)
+export const adminDb = APPLICATION_DB_SERVICE_KEY 
+  ? createClient(APPLICATION_DB_URL, APPLICATION_DB_SERVICE_KEY)
+  : applicationDb; // Fallback to anon key if service key not available
+
+// Debug logging
+console.log('Service role key available:', !!APPLICATION_DB_SERVICE_KEY);
+console.log('Using admin client for writes:', adminDb !== applicationDb);
+console.log('Environment variables:', {
+  hasUrl: !!APPLICATION_DB_URL,
+  hasAnonKey: !!APPLICATION_DB_ANON_KEY,
+  hasServiceKey: !!APPLICATION_DB_SERVICE_KEY,
+  serviceKeyLength: APPLICATION_DB_SERVICE_KEY?.length || 0
+});
+
+export interface SpeakerAssignment {
+  id: string;
+  agenda_item_id: string;
+  attendee_id: string;
+  role: 'presenter' | 'co-presenter' | 'moderator' | 'panelist';
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AgendaItemMetadata {
+  id: string;
+  title: string;
+  start_time?: string;
+  end_time?: string;
+  last_synced: string;
+}
+
+export interface AttendeeMetadata {
+  id: string;
+  name: string;
+  email?: string;
+  last_synced: string;
+}
+
+export class ApplicationDatabaseService {
+  // Speaker Assignment Methods
+  async getSpeakerAssignments(agendaItemId: string): Promise<SpeakerAssignment[]> {
+    const { data, error } = await applicationDb
+      .from('speaker_assignments')
+      .select('*')
+      .eq('agenda_item_id', agendaItemId);
+    
+    if (error) throw error;
+    return data || [];
+  }
+
+  async assignSpeaker(agendaItemId: string, attendeeId: string, role: string = 'presenter'): Promise<SpeakerAssignment> {
+    const { data, error } = await adminDb
+      .from('speaker_assignments')
+      .insert({
+        agenda_item_id: agendaItemId,
+        attendee_id: attendeeId,
+        role
+      })
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  }
+
+  async removeSpeakerAssignment(assignmentId: string): Promise<void> {
+    const { error } = await adminDb
+      .from('speaker_assignments')
+      .delete()
+      .eq('id', assignmentId);
+    
+    if (error) throw error;
+  }
+
+  // Metadata Management Methods
+  async syncAgendaItemMetadata(agendaItem: any): Promise<void> {
+    const { error } = await adminDb
+      .from('agenda_item_metadata')
+      .upsert({
+        id: agendaItem.id,
+        title: agendaItem.title,
+        start_time: agendaItem.start_time,
+        end_time: agendaItem.end_time,
+        last_synced: new Date().toISOString()
+      });
+    
+    if (error) throw error;
+  }
+
+  async syncAttendeeMetadata(attendee: any): Promise<void> {
+    const { error } = await adminDb
+      .from('attendee_metadata')
+      .upsert({
+        id: attendee.id,
+        name: attendee.name,
+        email: attendee.email,
+        last_synced: new Date().toISOString()
+      });
+    
+    if (error) throw error;
+  }
+
+  // Bulk Operations
+  async syncAllMetadata(agendaItems: any[], attendees: any[]): Promise<void> {
+    // Sync agenda items
+    for (const item of agendaItems) {
+      await this.syncAgendaItemMetadata(item);
+    }
+    
+    // Sync attendees
+    for (const attendee of attendees) {
+      await this.syncAttendeeMetadata(attendee);
+    }
+  }
+}
+
+export const applicationDbService = new ApplicationDatabaseService();

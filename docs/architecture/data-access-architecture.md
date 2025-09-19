@@ -8,6 +8,8 @@
 
 This document defines the **mandatory data access patterns** for the Knowledge Now React application to prevent infrastructure issues and ensure proper separation between local development and production environments.
 
+**NEW (2025-01-16)**: Multi-Project Supabase Strategy for Application Data Management
+
 ## ⚠️ CRITICAL: Environment-Based Data Access
 
 ### **Local Development Mode**
@@ -17,17 +19,49 @@ This document defines the **mandatory data access patterns** for the Knowledge N
 - **Schema Validation**: Uses expected schemas, no live database queries
 
 ### **Production Mode**
-- **Data Source**: Authenticated Supabase API
+- **External Data Source**: Authenticated Supabase API (conference data)
+- **Application Data Source**: Separate Supabase project (speaker assignments, metadata)
 - **Database**: Direct Supabase connections with RLS
 - **Authentication**: Full authentication flow
 - **Schema Validation**: Live database schema validation
 
 ## Data Access Layers
 
-### **1. Service Layer Architecture**
+### **1. Multi-Project Supabase Architecture**
+
+**NEW (2025-01-16)**: Application Database Strategy
+
+```mermaid
+graph TD
+    A[React Application] --> B[External Data Service]
+    A --> C[Application Data Service]
+    
+    B --> D[External Supabase Project]
+    B --> E[Conference Data]
+    B --> F[Attendees, Agenda Items]
+    
+    C --> G[Application Supabase Project]
+    C --> H[Speaker Assignments]
+    C --> I[Metadata Cache]
+    
+    D --> J[Read-Only Access]
+    G --> K[Full CRUD Access]
+    
+    style D fill:#e3f2fd
+    style G fill:#f3e5f5
+    style E fill:#e8f5e8
+    style H fill:#fff3e0
+```
+
+**Database Projects:**
+- **External Project**: `iikcgdhztkrexuuqheli.supabase.co` (conference data)
+- **Application Project**: `kn-react-app-application-data.supabase.co` (speaker assignments)
+- **Future Projects**: Additional Supabase projects as needed
+
+### **2. Service Layer Architecture**
 
 ```typescript
-// ✅ CORRECT: Environment-aware service layer
+// ✅ CORRECT: Environment-aware service layer with dual database support
 class DataService {
   private isLocalMode(): boolean {
     return process.env.NODE_ENV === 'development' || 
@@ -41,6 +75,43 @@ class DataService {
       return this.getLocalData();
     }
     return this.getProductionData();
+  }
+}
+
+// ✅ NEW: Application Database Service
+class ApplicationDatabaseService {
+  private applicationDb: SupabaseClient;
+  
+  constructor() {
+    this.applicationDb = createClient(
+      process.env.VITE_APPLICATION_DB_URL!,
+      process.env.VITE_APPLICATION_DB_ANON_KEY!
+    );
+  }
+
+  async getSpeakerAssignments(agendaItemId: string): Promise<SpeakerAssignment[]> {
+    const { data, error } = await this.applicationDb
+      .from('speaker_assignments')
+      .select('*')
+      .eq('agenda_item_id', agendaItemId);
+    
+    if (error) throw error;
+    return data || [];
+  }
+
+  async assignSpeaker(agendaItemId: string, attendeeId: string, role: string = 'presenter'): Promise<SpeakerAssignment> {
+    const { data, error } = await this.applicationDb
+      .from('speaker_assignments')
+      .insert({
+        agenda_item_id: agendaItemId,
+        attendee_id: attendeeId,
+        role
+      })
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
   }
 }
 ```

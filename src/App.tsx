@@ -12,6 +12,7 @@ import InstallPrompt from './components/InstallPrompt'
 import OfflinePage from './components/OfflinePage'
 import { pwaService } from './services/pwaService'
 import { AuthProvider, withAuth, LoginPage } from './contexts/AuthContext'
+import { AdminApp } from './components/AdminApp'
 
 // Component to handle scroll restoration
 function ScrollToTop() {
@@ -58,6 +59,7 @@ function App() {
           <Route path="/settings" element={<ProtectedSettingsPage />} />
           <Route path="/bio" element={<ProtectedBioPage />} />
           <Route path="/seat-map" element={<ProtectedSeatMapPage />} />
+          <Route path="/admin" element={<AdminApp />} />
           <Route path="/offline" element={<OfflinePage />} />
         </Routes>
       </div>
