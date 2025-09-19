@@ -149,7 +149,7 @@ private handleSchemaEvolution(dbData: any): any {
 ## 📚 Documentation Updates
 
 ### **Updated Documents:**
-- `docs/stories/1.7.data-transformation-layer-schema-evolution-COMPLETE.md` - Story status updated to COMPLETED
+- `docs/stories/1.7 COMPLETE data-transformation-layer-schema-evolution.md` - Story status updated to COMPLETED
 - `docs/PROJECT-STATUS.md` - Epic 1 updated to include Story 1.7
 - `docs/testing/Testing-Standards.md` - New testing standards documented
 - `docs/testing/TDD-Setup-Guide.md` - Updated with test output standards
