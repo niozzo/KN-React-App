@@ -74,6 +74,16 @@ export default defineConfig({
     // Better module resolution for TypeScript
     preserveSymlinks: false
   },
+  esbuild: {
+    target: 'es2020',
+    // Enable TypeScript parameter properties
+    tsconfigRaw: {
+      compilerOptions: {
+        experimentalDecorators: true,
+        useDefineForClassFields: false
+      }
+    }
+  },
   test: {
     globals: true,
     environment: 'jsdom',
@@ -93,6 +103,10 @@ export default defineConfig({
     // Proper TypeScript support
     typecheck: {
       enabled: false // Disable typechecking in tests for performance
+    },
+    // Enable TypeScript compilation for tests
+    esbuild: {
+      target: 'es2020'
     },
     // Completely disable snapshot testing to fix infrastructure issues
     snapshotFormat: {

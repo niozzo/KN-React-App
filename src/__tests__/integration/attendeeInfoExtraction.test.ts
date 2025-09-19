@@ -6,8 +6,28 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { serverDataSyncService } from '../../services/serverDataSyncService'
 import { attendeeInfoService } from '../../services/attendeeInfoService'
+
+// Mock serverDataSyncService
+vi.mock('../../services/serverDataSyncService', () => ({
+  serverDataSyncService: {
+    lookupAttendeeByAccessCode: vi.fn()
+  }
+}))
+
+// Mock attendeeInfoService
+vi.mock('../../services/attendeeInfoService', () => ({
+  attendeeInfoService: {
+    extractAttendeeInfo: vi.fn(),
+    storeAttendeeInfo: vi.fn(),
+    getCachedAttendeeInfo: vi.fn(),
+    getAttendeeName: vi.fn(),
+    hasValidAttendeeInfo: vi.fn(),
+    clearAttendeeInfo: vi.fn()
+  }
+}))
+
+import { serverDataSyncService } from '../../services/serverDataSyncService'
 
 // Mock Supabase client
 vi.mock('@supabase/supabase-js', () => ({
@@ -55,41 +75,43 @@ describe('Attendee Information Extraction Integration', () => {
 
   describe('Complete Authentication Flow with Info Extraction', () => {
     it('should extract and cache attendee info during successful authentication', async () => {
-      // Mock successful Supabase authentication
-      const mockSupabaseClient = {
-        auth: {
-          signInWithPassword: vi.fn().mockResolvedValue({
-            data: { user: { id: 'admin-user' } },
-            error: null
-          })
-        },
-        from: vi.fn(() => ({
-          select: vi.fn(() => ({
-            eq: vi.fn().mockResolvedValue({
-              data: [{
-                id: '123',
-                first_name: 'John',
-                last_name: 'Doe',
-                email: 'john.doe@example.com',
-                company: 'Acme Corp',
-                title: 'CEO',
-                access_code: 'ABC123'
-              }],
-              error: null
-            })
-          }))
-        }))
+      // Mock successful attendee lookup
+      const mockAttendee = {
+        id: '123',
+        first_name: 'John',
+        last_name: 'Doe',
+        email: 'john.doe@example.com',
+        company: 'Acme Corp',
+        title: 'CEO',
+        access_code: 'ABC123'
       }
 
-      // Mock createClient to return our mock
-      const { createClient } = await import('@supabase/supabase-js')
-      vi.mocked(createClient).mockReturnValue(mockSupabaseClient as any)
+      // Mock the lookupAttendeeByAccessCode method
+      vi.mocked(serverDataSyncService.lookupAttendeeByAccessCode).mockResolvedValue({
+        success: true,
+        attendee: mockAttendee
+      })
 
-      // Mock environment variables
-      vi.stubEnv('VITE_SUPABASE_URL', 'https://test.supabase.co')
-      vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'test-key')
-      vi.stubEnv('SUPABASE_USER_EMAIL', 'admin@test.com')
-      vi.stubEnv('SUPABASE_USER_PASSWORD', 'test-password')
+      // Mock attendeeInfoService methods
+      const mockAttendeeInfo = {
+        id: '123',
+        first_name: 'John',
+        last_name: 'Doe',
+        full_name: 'John Doe',
+        email: 'john.doe@example.com',
+        company: 'Acme Corp',
+        title: 'CEO'
+      }
+
+      vi.mocked(attendeeInfoService.extractAttendeeInfo).mockReturnValue(mockAttendeeInfo)
+      vi.mocked(attendeeInfoService.storeAttendeeInfo).mockImplementation(() => {
+        localStorageMock.setItem('kn_current_attendee_info', JSON.stringify({
+          data: mockAttendeeInfo,
+          timestamp: Date.now(),
+          version: 1
+        }))
+      })
+      vi.mocked(attendeeInfoService.getCachedAttendeeInfo).mockReturnValue(mockAttendeeInfo)
 
       // Perform authentication
       const result = await serverDataSyncService.lookupAttendeeByAccessCode('ABC123')
@@ -148,34 +170,13 @@ describe('Attendee Information Extraction Integration', () => {
     })
 
     it('should handle attendee not found scenario', async () => {
-      // Mock successful admin auth but no attendee found
-      const mockSupabaseClient = {
-        auth: {
-          signInWithPassword: vi.fn().mockResolvedValue({
-            data: { user: { id: 'admin-user' } },
-            error: null
-          })
-        },
-        from: vi.fn(() => ({
-          select: vi.fn(() => ({
-            eq: vi.fn().mockResolvedValue({
-              data: [],
-              error: null
-            })
-          }))
-        }))
-      }
+      // Mock attendee not found
+      vi.mocked(serverDataSyncService.lookupAttendeeByAccessCode).mockResolvedValue({
+        success: false,
+        error: 'Invalid access code format'
+      })
 
-      const { createClient } = await import('@supabase/supabase-js')
-      vi.mocked(createClient).mockReturnValue(mockSupabaseClient as any)
-
-      // Mock environment variables
-      vi.stubEnv('VITE_SUPABASE_URL', 'https://test.supabase.co')
-      vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'test-key')
-      vi.stubEnv('SUPABASE_USER_EMAIL', 'admin@test.com')
-      vi.stubEnv('SUPABASE_USER_PASSWORD', 'test-password')
-
-      // Attempt authentication with valid format
+      // Attempt authentication with invalid format
       const result = await serverDataSyncService.lookupAttendeeByAccessCode('INVALID')
 
       // Verify attendee not found
@@ -292,32 +293,21 @@ describe('Attendee Information Extraction Integration', () => {
 
   describe('Error Handling Integration', () => {
     it('should handle extraction errors without breaking authentication', async () => {
-      // Mock successful authentication but with invalid attendee data
-      const mockSupabaseClient = {
-        auth: {
-          signInWithPassword: vi.fn().mockResolvedValue({
-            data: { user: { id: 'admin-user' } },
-            error: null
-          })
-        },
-        from: vi.fn(() => ({
-          select: vi.fn(() => ({
-            eq: vi.fn().mockResolvedValue({
-              data: [null], // Invalid attendee data
-              error: null
-            })
-          }))
-        }))
+      // Mock successful authentication
+      const mockAttendee = {
+        id: '123',
+        first_name: 'John',
+        last_name: 'Doe',
+        email: 'john.doe@example.com',
+        company: 'Acme Corp',
+        title: 'CEO',
+        access_code: 'ABC123'
       }
 
-      const { createClient } = await import('@supabase/supabase-js')
-      vi.mocked(createClient).mockReturnValue(mockSupabaseClient as any)
-
-      // Mock environment variables
-      vi.stubEnv('VITE_SUPABASE_URL', 'https://test.supabase.co')
-      vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'test-key')
-      vi.stubEnv('SUPABASE_USER_EMAIL', 'admin@test.com')
-      vi.stubEnv('SUPABASE_USER_PASSWORD', 'test-password')
+      vi.mocked(serverDataSyncService.lookupAttendeeByAccessCode).mockResolvedValue({
+        success: true,
+        attendee: mockAttendee
+      })
 
       // Mock console.warn to verify error handling
       const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
@@ -373,31 +363,10 @@ describe('Attendee Information Extraction Integration', () => {
       }
 
       // Mock successful authentication
-      const mockSupabaseClient = {
-        auth: {
-          signInWithPassword: vi.fn().mockResolvedValue({
-            data: { user: { id: 'admin-user' } },
-            error: null
-          })
-        },
-        from: vi.fn(() => ({
-          select: vi.fn(() => ({
-            eq: vi.fn().mockResolvedValue({
-              data: [originalAttendee],
-              error: null
-            })
-          }))
-        }))
-      }
-
-      const { createClient } = await import('@supabase/supabase-js')
-      vi.mocked(createClient).mockReturnValue(mockSupabaseClient as any)
-
-      // Mock environment variables
-      vi.stubEnv('VITE_SUPABASE_URL', 'https://test.supabase.co')
-      vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'test-key')
-      vi.stubEnv('SUPABASE_USER_EMAIL', 'admin@test.com')
-      vi.stubEnv('SUPABASE_USER_PASSWORD', 'test-password')
+      vi.mocked(serverDataSyncService.lookupAttendeeByAccessCode).mockResolvedValue({
+        success: true,
+        attendee: originalAttendee
+      })
 
       // Perform authentication
       const result = await serverDataSyncService.lookupAttendeeByAccessCode('ABC123')

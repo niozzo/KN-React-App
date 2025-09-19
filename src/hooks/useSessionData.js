@@ -6,7 +6,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { agendaService } from '../services/agendaService.ts';
-import { getCurrentAttendeeData, getAttendeeSeatAssignments } from '../services/dataService';
+import { getCurrentAttendeeData, getAttendeeSeatAssignments } from '../services/dataService.ts';
 import TimeService from '../services/timeService';
 import { useAuth } from '../contexts/AuthContext';
 

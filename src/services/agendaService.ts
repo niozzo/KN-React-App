@@ -19,10 +19,15 @@ export class AgendaService implements IAgendaService {
   private readonly tableName = 'agenda_items';
   private readonly basePath = '/api/agenda-items';
 
+  private serverDataSyncService?: IServerDataSyncService;
+  private cacheService?: ICacheService;
+
   constructor(
-    private serverDataSyncService?: IServerDataSyncService,
-    private cacheService?: ICacheService
+    serverDataSyncService?: IServerDataSyncService,
+    cacheService?: ICacheService
   ) {
+    this.serverDataSyncService = serverDataSyncService;
+    this.cacheService = cacheService;
     // If no dependencies provided, we'll use the default implementations
     // This maintains backward compatibility
   }
