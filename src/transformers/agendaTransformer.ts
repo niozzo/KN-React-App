@@ -68,27 +68,33 @@ export class AgendaTransformer extends BaseTransformer<AgendaItem> {
         sourceFields: ['speaker'],
         computation: (data: any) => {
           const speaker = data.speaker
-          
+          console.log('🔍 SpeakerInfo computation - input speaker:', speaker, 'type:', typeof speaker)
+
           // Handle different data types
           if (speaker === null || speaker === undefined) {
+            console.log('🔍 SpeakerInfo: null/undefined, returning empty string')
             return ''
           }
-          
+
           // Handle empty object {}
           if (typeof speaker === 'object' && Object.keys(speaker).length === 0) {
+            console.log('🔍 SpeakerInfo: empty object, returning empty string')
             return ''
           }
-          
+
           // Handle string values
           if (typeof speaker === 'string' && speaker.trim()) {
+            console.log('🔍 SpeakerInfo: string value, returning:', speaker.trim())
             return speaker.trim()
           }
-          
+
           // Handle object with name property (in case it's structured data)
           if (typeof speaker === 'object' && speaker.name) {
+            console.log('🔍 SpeakerInfo: object with name, returning:', speaker.name)
             return speaker.name
           }
-          
+
+          console.log('🔍 SpeakerInfo: fallback, returning empty string')
           return ''
         },
         type: 'string'
@@ -181,10 +187,8 @@ export class AgendaTransformer extends BaseTransformer<AgendaItem> {
           // Extract speaker name from object if it has a name property
           if (evolved.speaker.name) {
             evolved.speaker = evolved.speaker.name
-          } else {
-            // If it's an empty object, set to null
-            evolved.speaker = null
           }
+          // Leave empty objects as-is for computed field to handle
         }
         break
         
