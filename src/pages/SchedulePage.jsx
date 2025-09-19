@@ -64,7 +64,7 @@ const SchedulePage = () => {
           title: 'Digital Transformation in Manufacturing',
           time: '9:00 AM - 10:00 AM',
           location: 'Grand Ballroom A',
-          speaker: 'Sarah Chen, CTO at TechCorp',
+          speakerInfo: 'Sarah Chen, CTO at TechCorp',
           status: 'current',
           seatInfo: {
             table: 'Table 12',
@@ -124,7 +124,7 @@ const SchedulePage = () => {
           title: 'Apax Closing Address',
           time: '9:00 AM - 10:00 AM',
           location: 'Grand Ballroom A',
-          speaker: 'Michael Smith, Managing Partner',
+          speakerInfo: 'Michael Smith, Managing Partner',
           status: 'upcoming',
           seatInfo: {
             table: 'Table 12',
@@ -234,17 +234,17 @@ const SchedulePage = () => {
                   <h3 className="session-title">{session.title}</h3>
                   
                   <div className="session-details">
-                    {session.speaker && (
+                    {session.speakerInfo && (
                       <div className="session-detail">
                         <a 
-                          href={`/bio?speaker=${encodeURIComponent(session.speaker)}`}
+                          href={`/bio?speaker=${encodeURIComponent(session.speakerInfo)}`}
                           className="speaker-link"
                           onClick={(e) => {
                             e.preventDefault();
-                            console.log('Navigate to speaker bio:', session.speaker);
+                            console.log('Navigate to speaker bio:', session.speakerInfo);
                           }}
                         >
-                          {session.speaker}
+                          {session.speakerInfo}
                         </a>
                       </div>
                     )}
