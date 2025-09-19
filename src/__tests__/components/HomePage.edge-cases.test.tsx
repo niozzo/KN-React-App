@@ -5,14 +5,6 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// Mock the database types first to prevent import errors
-vi.mock('../../types/database', () => ({
-  AgendaItem: {},
-  DatabaseResponse: {},
-  PaginatedResponse: {},
-  AgendaService: {}
-}));
-
 // Mock the services to prevent import errors
 vi.mock('../../services/agendaService', () => ({
   agendaService: {
@@ -23,6 +15,14 @@ vi.mock('../../services/agendaService', () => ({
     updateAgendaItem: vi.fn(),
     deleteAgendaItem: vi.fn()
   }
+}));
+
+// Mock the database types to prevent import errors
+vi.mock('../../types/database', () => ({
+  AgendaItem: {},
+  DatabaseResponse: {},
+  PaginatedResponse: {},
+  AgendaService: {}
 }));
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';

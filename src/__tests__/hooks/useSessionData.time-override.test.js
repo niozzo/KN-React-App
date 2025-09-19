@@ -66,7 +66,7 @@ describe('useSessionData Hook - Time Override Integration', () => {
     selected_breakouts: []
   };
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
     
     // Mock localStorage

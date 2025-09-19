@@ -37,7 +37,17 @@ describe('TimeService Edge Cases', () => {
     it('should handle override time at exact session start', () => {
       process.env.NODE_ENV = 'development';
       const sessionStart = new Date('2024-12-19T09:00:00.000Z');
-      global.localStorage.getItem.mockReturnValue(sessionStart.toISOString());
+      
+      // Mock localStorage to return null for dynamic override keys, and sessionStart for static override
+      global.localStorage.getItem.mockImplementation((key) => {
+        if (key === 'kn_time_override_start' || key === 'kn_time_override_offset') {
+          return null;
+        }
+        if (key === 'kn_time_override') {
+          return sessionStart.toISOString();
+        }
+        return null;
+      });
 
       const result = TimeService.getCurrentTime();
 
@@ -48,7 +58,17 @@ describe('TimeService Edge Cases', () => {
     it('should handle override time at exact session end', () => {
       process.env.NODE_ENV = 'development';
       const sessionEnd = new Date('2024-12-19T09:30:00.000Z');
-      global.localStorage.getItem.mockReturnValue(sessionEnd.toISOString());
+      
+      // Mock localStorage to return null for dynamic override keys, and sessionEnd for static override
+      global.localStorage.getItem.mockImplementation((key) => {
+        if (key === 'kn_time_override_start' || key === 'kn_time_override_offset') {
+          return null;
+        }
+        if (key === 'kn_time_override') {
+          return sessionEnd.toISOString();
+        }
+        return null;
+      });
 
       const result = TimeService.getCurrentTime();
 
