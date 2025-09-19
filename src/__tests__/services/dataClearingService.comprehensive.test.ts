@@ -60,25 +60,20 @@ describe('DataClearingService - Comprehensive Tests', () => {
 
   describe('Error Scenarios', () => {
     it('should handle localStorage errors gracefully', async () => {
-      mockLocalStorage.removeItem.mockImplementation(() => {
+      // Mock localStorage.removeItem to throw an error
+      const originalRemoveItem = localStorage.removeItem
+      localStorage.removeItem = vi.fn().mockImplementation(() => {
         throw new Error('localStorage quota exceeded')
       })
-
-      // Debug: Check if the mock is working
-      console.log('Mock localStorage:', typeof localStorage)
-      console.log('Mock removeItem:', typeof localStorage.removeItem)
-      
-      try {
-        localStorage.removeItem('test')
-      } catch (e) {
-        console.log('Mock error caught:', e.message)
-      }
 
       const result = await dataClearingService.clearAllData()
 
       expect(result.success).toBe(true) // Should still succeed overall
       expect(result.clearedData.localStorage).toBe(false)
       expect(result.errors).toContain('localStorage clearing failed: localStorage quota exceeded')
+      
+      // Restore original function
+      localStorage.removeItem = originalRemoveItem
     })
 
     it('should handle IndexedDB errors gracefully', async () => {
