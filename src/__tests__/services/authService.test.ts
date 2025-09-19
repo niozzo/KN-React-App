@@ -18,17 +18,24 @@ import {
 } from '../../services/authService'
 
 // Mock Supabase client
-vi.mock('../../lib/supabase', () => ({
-  supabase: {
-    from: vi.fn(() => ({
-      select: vi.fn(() => ({
-        eq: vi.fn(() => ({
-          single: vi.fn()
+vi.mock('../../lib/supabase', async () => {
+  const actual = await vi.importActual('../../lib/supabase')
+  return {
+    ...actual,
+    supabase: {
+      from: vi.fn(() => ({
+        select: vi.fn(() => ({
+          eq: vi.fn(() => ({
+            single: vi.fn()
+          }))
         }))
-      }))
-    }))
+      })),
+      auth: {
+        signOut: vi.fn(() => Promise.resolve({ error: null }))
+      }
+    }
   }
-}))
+})
 
 describe('Authentication Service', () => {
   beforeEach(() => {

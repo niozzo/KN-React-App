@@ -8,10 +8,26 @@ beforeAll(() => {
 
 afterEach(() => {
   // Cleanup after each test
+  vi.clearAllMocks()
+  vi.clearAllTimers()
+  
+  // Clean up service worker mocks
+  if (navigator.serviceWorker) {
+    navigator.serviceWorker.getRegistrations = vi.fn().mockResolvedValue([])
+  }
+  
+  // Clear DOM
+  document.body.innerHTML = ''
 })
 
 afterAll(() => {
   // Cleanup after all tests
+  vi.restoreAllMocks()
+  
+  // Force garbage collection if available
+  if (global.gc) {
+    global.gc()
+  }
 })
 
 // Mock PWA APIs

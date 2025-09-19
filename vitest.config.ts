@@ -67,10 +67,48 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/__tests__/setup.ts'],
+    teardownFiles: ['./src/__tests__/teardown.ts'],
     include: [
-      'src/__tests__/**/*.{test,spec}.{js,ts,tsx}',
       'src/__tests__/**/*.{test,spec}.{js,ts,tsx}'
     ],
+    // Memory optimization settings - Use forks for better isolation
+    pool: 'forks',
+    poolOptions: {
+      forks: {
+        singleFork: false,
+        maxForks: 2,
+        minForks: 1
+      }
+    },
+    // Limit concurrency to prevent hanging
+    maxConcurrency: 2,
+    // Test isolation
+    isolate: true,
+    // Shorter timeouts to prevent hanging
+    testTimeout: 5000,
+    hookTimeout: 5000,
+    // Add bail to stop on first failure
+    bail: 10,
+    // Performance optimizations
+    silent: true,
+    reporter: ['default'],
+    // Suppress console output during tests
+    onConsoleLog(log, type) {
+      if (type === 'stderr' && log.includes('Multiple GoTrueClient instances')) {
+        return false; // Suppress Supabase warnings
+      }
+      if (log.includes('🔍') || log.includes('🔄') || log.includes('❌') || log.includes('⚠️')) {
+        return false; // Suppress verbose service logging
+      }
+      // Suppress massive HTML dumps from LoginPage tests
+      if (log.includes('Here are the accessible roles:') || 
+          log.includes('Ignored nodes: comments, script, style') ||
+          log.includes('Name "KnowledgeNow 2025"') ||
+          log.includes('Name "Enter your 6-character access code"')) {
+        return false;
+      }
+      return true;
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

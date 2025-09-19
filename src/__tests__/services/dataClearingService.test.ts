@@ -36,9 +36,18 @@ describe('DataClearingService - Basic Tests', () => {
       setItem: vi.fn(),
       removeItem: vi.fn(),
       clear: vi.fn(),
-      length: 0,
-      key: vi.fn()
+      length: 3, // Simulate 3 items in localStorage
+      key: vi.fn((index) => {
+        const keys = ['conference_auth', 'kn_cache_attendees', 'kn_current_attendee_info']
+        return keys[index] || null
+      })
     }
+    
+    // Apply localStorage mock to global
+    Object.defineProperty(window, 'localStorage', {
+      value: mockLocalStorage,
+      writable: true
+    })
     
     mockIndexedDB = {
       deleteDatabase: vi.fn()
