@@ -18,7 +18,7 @@ export class AgendaTransformer extends BaseTransformer<AgendaItem> {
       { source: 'end_time', target: 'end_time', type: 'string', required: true },
       { source: 'location', target: 'location', type: 'string', defaultValue: '' },
       { source: 'type', target: 'session_type', type: 'string', defaultValue: 'general' },
-      { source: 'speaker', target: 'speaker_name', type: 'string', defaultValue: '' },
+      { source: 'speaker', target: 'speaker_name', type: 'object', defaultValue: null },
       { source: 'capacity', target: 'capacity', type: 'number', defaultValue: null },
       { source: 'registered_count', target: 'registered_count', type: 'number', defaultValue: 0 },
       { source: 'attendee_selection', target: 'attendee_selection', type: 'string', defaultValue: 'everyone' },
@@ -69,24 +69,31 @@ export class AgendaTransformer extends BaseTransformer<AgendaItem> {
         computation: (data: any) => {
           const speaker = data.speaker
           
-          // Handle different data types
+          // Handle null/undefined
           if (speaker === null || speaker === undefined) {
             return ''
           }
           
-          // Handle empty object {}
+          // Handle empty object {} (current database structure)
           if (typeof speaker === 'object' && Object.keys(speaker).length === 0) {
             return ''
           }
           
-          // Handle string values
+          // Handle string values (if database is updated)
           if (typeof speaker === 'string' && speaker.trim()) {
             return speaker.trim()
           }
           
-          // Handle object with name property (in case it's structured data)
-          if (typeof speaker === 'object' && speaker.name) {
-            return speaker.name
+          // Handle structured speaker object (if it contains speaker data)
+          if (typeof speaker === 'object' && speaker !== null) {
+            // Check for common speaker object properties
+            if (speaker.name) return speaker.name
+            if (speaker.speaker_name) return speaker.speaker_name
+            if (speaker.full_name) return speaker.full_name
+            if (speaker.title) return speaker.title
+            
+            // If it's a non-empty object but no recognized properties, return empty
+            return ''
           }
           
           return ''
