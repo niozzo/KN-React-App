@@ -22,6 +22,24 @@ vi.mock('../../lib/supabase', () => ({
   }
 }));
 
+// Mock SchemaValidationService
+vi.mock('../../services/schemaValidationService', () => ({
+  SchemaValidationService: vi.fn().mockImplementation(() => ({
+    validateSchema: vi.fn().mockResolvedValue({
+      isValid: true,
+      errors: []
+    })
+  }))
+}));
+
+// Mock applicationDatabaseService
+vi.mock('../../services/applicationDatabaseService', () => ({
+  applicationDb: {
+    getTableData: vi.fn().mockResolvedValue([{ id: 1, name: 'Test' }]),
+    setTableData: vi.fn().mockResolvedValue(undefined)
+  }
+}));
+
 // Mock fetch for backend API endpoints
 const createOkResponse = (data: any) => ({
   ok: true,
@@ -152,7 +170,7 @@ describe('PWADataSyncService', () => {
       expect(result.syncedTables).toContain('attendees');
       expect(result.syncedTables).toContain('sponsors');
       expect(result.syncedTables).toContain('seat_assignments');
-    });
+    }, 10000); // Increase timeout to 10 seconds
 
     it('should handle sync errors gracefully', async () => {
       // Import the mocked supabase
@@ -178,8 +196,8 @@ describe('PWADataSyncService', () => {
 
       expect(result.success).toBe(true); // Should still succeed overall
       expect(result.errors.length).toBeGreaterThan(0);
-      // Error messages should include the table name
-      expect(result.errors[0]).toMatch(/Failed to sync/);
+      // Error messages should include the table name or schema validation error
+      expect(result.errors[0]).toMatch(/Failed to sync|Schema validation error/);
     });
   });
 

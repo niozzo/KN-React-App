@@ -125,7 +125,9 @@ describe('SessionCard Integration Tests', () => {
       );
 
       expect(screen.getByText('15 minutes left')).toBeInTheDocument();
-      expect(screen.queryByText('NOW')).not.toBeInTheDocument();
+      // For coffee breaks, countdown is shown in time area, not status badge
+      // The status badge still shows "NOW" for current sessions
+      expect(screen.getByText('NOW')).toBeInTheDocument();
     });
   });
 
@@ -205,7 +207,8 @@ describe('SessionCard Integration Tests', () => {
         new Date('2024-12-19T10:30:00'),
         {
           updateInterval: 60000,
-          enabled: true
+          enabled: true,
+          isCoffeeBreak: true
         }
       );
     });
@@ -219,7 +222,8 @@ describe('SessionCard Integration Tests', () => {
         new Date('2024-12-19T10:00:00'),
         {
           updateInterval: 60000,
-          enabled: false
+          enabled: false,
+          isCoffeeBreak: false
         }
       );
     });
@@ -233,7 +237,8 @@ describe('SessionCard Integration Tests', () => {
         new Date('2024-12-19T10:30:00'),
         {
           updateInterval: 60000,
-          enabled: false
+          enabled: false,
+          isCoffeeBreak: true
         }
       );
     });

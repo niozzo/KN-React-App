@@ -35,6 +35,7 @@ const SessionCard = ({
     date,
     location,
     speakerInfo,
+    speaker, // Support both speakerInfo and speaker for backward compatibility
     seatInfo,
     type
   } = session;
@@ -126,19 +127,19 @@ const SessionCard = ({
           {formatSessionTitle(session)}
         </h3>
         
-        {speakerInfo && (
+        {(speakerInfo || speaker) && (
           <div className="session-details">
             <div className="session-detail">
               <a 
-                href={`/bio?speaker=${encodeURIComponent(speakerInfo)}`}
+                href={`/bio?speaker=${encodeURIComponent(speakerInfo || speaker)}`}
                 className="speaker-link"
                 onClick={(e) => {
                   e.stopPropagation();
                   // Handle navigation to bio page
-                  console.log('Navigate to speaker bio:', speakerInfo);
+                  console.log('Navigate to speaker bio:', speakerInfo || speaker);
                 }}
               >
-                {speakerInfo}
+                {speakerInfo || speaker}
               </a>
             </div>
           </div>

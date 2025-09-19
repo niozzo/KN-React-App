@@ -15,9 +15,13 @@ export const isCoffeeBreak = (session) => {
     return false;
   }
 
-  // Must be a meal type session
+  // Check if it's explicitly a coffee break type
+  const isCoffeeBreakType = session.type && session.type.toLowerCase() === 'coffee_break';
+  
+  // Must be a meal type session OR coffee break type
   const isMealType = session.session_type === 'meal' || 
-                     (session.type && session.type.toLowerCase() === 'meal');
+                     (session.type && session.type.toLowerCase() === 'meal') ||
+                     isCoffeeBreakType;
 
   // Title must contain "Coffee Break" (case insensitive)
   const hasCoffeeBreakInTitle = session.title.toLowerCase().includes('coffee break');
