@@ -155,13 +155,7 @@ describe('LoginPage - Integration Tests', () => {
     })
 
     it('should complete full failed login flow with error display', async () => {
-      // Mock successful data sync but failed authentication
-      vi.mocked(serverDataSyncService.syncAllData).mockResolvedValue({
-        success: true,
-        syncedTables: ['attendees', 'sponsors'],
-        totalRecords: 100,
-        errors: []
-      })
+      // Mock failed authentication - data sync should NOT be called
       vi.mocked(authenticateWithAccessCode).mockResolvedValue({
         success: false,
         error: 'Invalid access code'
@@ -187,8 +181,9 @@ describe('LoginPage - Integration Tests', () => {
         expect(screen.getByText('Invalid access code. Please try again or ask at the registration desk for help.')).toBeInTheDocument()
       }, { timeout: 3000 })
 
-      // Verify services were called
-      expect(vi.mocked(serverDataSyncService.syncAllData)).toHaveBeenCalled()
+      // Verify services were called correctly
+      // Data sync should NOT be called when authentication fails
+      expect(vi.mocked(serverDataSyncService.syncAllData)).not.toHaveBeenCalled()
       expect(vi.mocked(authenticateWithAccessCode)).toHaveBeenCalledWith(TEST_DATA.INVALID_ACCESS_CODE)
     })
 

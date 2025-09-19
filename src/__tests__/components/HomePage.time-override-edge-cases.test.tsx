@@ -20,10 +20,23 @@ vi.mock('../../hooks/useSessionData', () => ({
   default: vi.fn()
 }));
 
+// Mock the database types first to prevent import errors
+vi.mock('../../types/database', () => ({
+  AgendaItem: {},
+  DatabaseResponse: {},
+  PaginatedResponse: {},
+  AgendaService: {}
+}));
+
 // Mock the services to prevent import errors
 vi.mock('../../services/agendaService', () => ({
   agendaService: {
-    getActiveAgendaItems: vi.fn()
+    getActiveAgendaItems: vi.fn(),
+    getAgendaItems: vi.fn(),
+    getAgendaItemById: vi.fn(),
+    createAgendaItem: vi.fn(),
+    updateAgendaItem: vi.fn(),
+    deleteAgendaItem: vi.fn()
   }
 }));
 

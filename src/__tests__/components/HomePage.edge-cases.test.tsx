@@ -4,6 +4,26 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+// Mock the database types first to prevent import errors
+vi.mock('../../types/database', () => ({
+  AgendaItem: {},
+  DatabaseResponse: {},
+  PaginatedResponse: {},
+  AgendaService: {}
+}));
+
+// Mock the services to prevent import errors
+vi.mock('../../services/agendaService', () => ({
+  agendaService: {
+    getActiveAgendaItems: vi.fn(),
+    getAgendaItems: vi.fn(),
+    getAgendaItemById: vi.fn(),
+    createAgendaItem: vi.fn(),
+    updateAgendaItem: vi.fn(),
+    deleteAgendaItem: vi.fn()
+  }
+}));
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import HomePage from '../../pages/HomePage';
@@ -11,13 +31,6 @@ import HomePage from '../../pages/HomePage';
 // Mock the useSessionData hook and its dependencies
 vi.mock('../../hooks/useSessionData', () => ({
   default: vi.fn()
-}));
-
-// Mock the services to prevent import errors
-vi.mock('../../services/agendaService', () => ({
-  agendaService: {
-    getActiveAgendaItems: vi.fn()
-  }
 }));
 
 vi.mock('../../services/dataService', () => ({

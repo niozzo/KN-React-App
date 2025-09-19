@@ -37,7 +37,9 @@ vi.mock('../../services/timeService', () => ({
     getCurrentTime: vi.fn(),
     isOverrideActive: vi.fn(),
     getOverrideTime: vi.fn(),
-    getDynamicOverrideTime: vi.fn()
+    getDynamicOverrideTime: vi.fn(),
+    registerSessionBoundaries: vi.fn(),
+    stopBoundaryMonitoring: vi.fn()
   }
 }));
 

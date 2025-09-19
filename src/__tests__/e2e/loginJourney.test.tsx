@@ -12,7 +12,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { AuthProvider, LoginPage } from '../../contexts/AuthContext'
 import { serverDataSyncService } from '../../services/serverDataSyncService'
-import { getAuthStatus } from '../../services/authService'
+import { getAuthStatus, authenticateWithAccessCode } from '../../services/authService'
 
 // Mock the server data sync service
 vi.mock('../../services/serverDataSyncService', () => ({
@@ -94,7 +94,7 @@ describe('Complete Login Journey', () => {
       }
 
       vi.mocked(serverDataSyncService.syncAllData).mockResolvedValue(mockSyncResult)
-      vi.mocked(serverDataSyncService.lookupAttendeeByAccessCode).mockResolvedValue({
+      vi.mocked(authenticateWithAccessCode).mockResolvedValue({
         success: true,
         attendee: mockAttendee
       })
@@ -344,14 +344,15 @@ describe('Complete Login Journey', () => {
       fireEvent.change(accessCodeInput, { target: { value: 'INVALID' } })
       fireEvent.submit(form)
 
-      // Wait for login process to complete
+      // Wait for login process to complete and error to appear
       await waitFor(() => {
-        expect(serverDataSyncService.syncAllData).toHaveBeenCalled()
+        expect(screen.getByText('Invalid access code. Please try again or ask at the registration desk for help.')).toBeInTheDocument()
       })
 
-      // Verify error was handled
-      // Note: syncAllData may be called multiple times due to the login flow
-      expect(serverDataSyncService.syncAllData).toHaveBeenCalled()
+      // Verify error was handled correctly
+      // Data sync should NOT be called when authentication fails
+      expect(serverDataSyncService.syncAllData).not.toHaveBeenCalled()
+      expect(authenticateWithAccessCode).toHaveBeenCalledWith('INVALID')
     })
   })
 
