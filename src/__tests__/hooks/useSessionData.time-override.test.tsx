@@ -15,6 +15,15 @@ import { useSessionData } from '../../hooks/useSessionData';
 import TimeService from '../../services/timeService';
 import { AuthProvider } from '../../contexts/AuthContext';
 
+// Mock TimeService
+vi.mock('../../services/timeService', () => ({
+  default: {
+    getCurrentTime: vi.fn(),
+    isOverrideActive: vi.fn(),
+    getOverrideTime: vi.fn()
+  }
+}));
+
 // Mock the services
 vi.mock('../../services/agendaService', () => ({
   agendaService: {
@@ -74,8 +83,13 @@ describe('useSessionData Hook - Time Override Integration', () => {
     selected_breakouts: []
   };
 
+  let mockStorage = {};
+
   beforeEach(async () => {
     vi.clearAllMocks();
+    
+    // Clear mock storage between tests
+    mockStorage = {};
     
     // Mock localStorage
     global.localStorage = {
@@ -90,15 +104,31 @@ describe('useSessionData Hook - Time Override Integration', () => {
 
     // Mock successful service responses
     const { agendaService } = await import('../../services/agendaService');
-    const dataService = await import('../../services/dataService');
+    const { getCurrentAttendeeData, getAttendeeSeatAssignments } = await import('../../services/dataService');
     
-    vi.mocked(agendaService.getActiveAgendaItems).mockResolvedValue({
+    agendaService.getActiveAgendaItems.mockResolvedValue({
       success: true,
-      data: mockSessions
+      data: mockSessions,
+      error: null
     });
 
-    vi.mocked(dataService.getCurrentAttendeeData).mockResolvedValue(mockAttendee);
-    vi.mocked(dataService.getAttendeeSeatAssignments).mockResolvedValue([]);
+    getCurrentAttendeeData.mockResolvedValue(mockAttendee);
+    getAttendeeSeatAssignments.mockResolvedValue([]);
+
+    // Mock TimeService to return real time by default
+    vi.mocked(TimeService.getCurrentTime).mockReturnValue(new Date());
+    vi.mocked(TimeService.isOverrideActive).mockReturnValue(false);
+    vi.mocked(TimeService.getOverrideTime).mockReturnValue(null);
+
+    // Mock localStorage with actual storage
+    Object.defineProperty(window, 'localStorage', {
+      value: {
+        getItem: vi.fn((key) => mockStorage[key] || null),
+        setItem: vi.fn((key, value) => { mockStorage[key] = value; }),
+        removeItem: vi.fn((key) => { delete mockStorage[key]; })
+      },
+      writable: true
+    });
   });
 
   afterEach(() => {
@@ -111,7 +141,11 @@ describe('useSessionData Hook - Time Override Integration', () => {
     it('should detect current session when override time is during session', async () => {
       // Set override time to 9:05 AM (during first session)
       const overrideTime = new Date('2024-12-19T09:05:00');
-      global.localStorage.getItem.mockReturnValue(overrideTime.toISOString());
+      
+      // Mock TimeService to return override time
+      vi.mocked(TimeService.getCurrentTime).mockReturnValue(overrideTime);
+      vi.mocked(TimeService.isOverrideActive).mockReturnValue(true);
+      vi.mocked(TimeService.getOverrideTime).mockReturnValue(overrideTime);
 
       const { result } = renderHook(() => useSessionData(), {
         wrapper: TestWrapper
@@ -128,7 +162,11 @@ describe('useSessionData Hook - Time Override Integration', () => {
     it('should detect no current session when override time is between sessions', async () => {
       // Set override time to 9:45 AM (between sessions)
       const overrideTime = new Date('2024-12-19T09:45:00');
-      global.localStorage.getItem.mockReturnValue(overrideTime.toISOString());
+      
+      // Mock TimeService to return override time
+      vi.mocked(TimeService.getCurrentTime).mockReturnValue(overrideTime);
+      vi.mocked(TimeService.isOverrideActive).mockReturnValue(true);
+      vi.mocked(TimeService.getOverrideTime).mockReturnValue(overrideTime);
 
       const { result } = renderHook(() => useSessionData(), {
         wrapper: TestWrapper
@@ -145,7 +183,11 @@ describe('useSessionData Hook - Time Override Integration', () => {
     it('should detect next session when override time is before first session', async () => {
       // Set override time to 8:30 AM (before first session)
       const overrideTime = new Date('2024-12-19T08:30:00');
-      global.localStorage.getItem.mockReturnValue(overrideTime.toISOString());
+      
+      // Mock TimeService to return override time
+      vi.mocked(TimeService.getCurrentTime).mockReturnValue(overrideTime);
+      vi.mocked(TimeService.isOverrideActive).mockReturnValue(true);
+      vi.mocked(TimeService.getOverrideTime).mockReturnValue(overrideTime);
 
       const { result } = renderHook(() => useSessionData(), {
         wrapper: TestWrapper
@@ -162,7 +204,11 @@ describe('useSessionData Hook - Time Override Integration', () => {
     it('should detect no sessions when override time is after last session', async () => {
       // Set override time to 12:00 PM (after last session)
       const overrideTime = new Date('2024-12-19T12:00:00');
-      global.localStorage.getItem.mockReturnValue(overrideTime.toISOString());
+      
+      // Mock TimeService to return override time
+      vi.mocked(TimeService.getCurrentTime).mockReturnValue(overrideTime);
+      vi.mocked(TimeService.isOverrideActive).mockReturnValue(true);
+      vi.mocked(TimeService.getOverrideTime).mockReturnValue(overrideTime);
 
       const { result } = renderHook(() => useSessionData(), {
         wrapper: TestWrapper
@@ -181,7 +227,11 @@ describe('useSessionData Hook - Time Override Integration', () => {
     it('should handle override time at exact session start', async () => {
       // Set override time to exact start of first session
       const overrideTime = new Date('2024-12-19T09:00:00');
-      global.localStorage.getItem.mockReturnValue(overrideTime.toISOString());
+      
+      // Mock TimeService to return override time
+      vi.mocked(TimeService.getCurrentTime).mockReturnValue(overrideTime);
+      vi.mocked(TimeService.isOverrideActive).mockReturnValue(true);
+      vi.mocked(TimeService.getOverrideTime).mockReturnValue(overrideTime);
 
       const { result } = renderHook(() => useSessionData(), {
         wrapper: TestWrapper

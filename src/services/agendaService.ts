@@ -4,7 +4,7 @@
  */
 
 // Reads must go through server-side authenticated endpoints
-import { 
+import type { 
   AgendaItem, 
   DatabaseResponse, 
   PaginatedResponse, 

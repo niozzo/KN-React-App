@@ -12,7 +12,10 @@ import TimeService from '../../services/timeService';
  * Available in all environments for testing
  */
 const TimeOverride = () => {
-  // Time override now available in all environments for testing
+  // Don't render in production environment
+  if (process.env.NODE_ENV === 'production') {
+    return null;
+  }
 
   const [isOpen, setIsOpen] = useState(false);
   const [overrideDateTime, setOverrideDateTime] = useState('');
@@ -25,11 +28,11 @@ const TimeOverride = () => {
     setIsActive(isOverrideActive);
     
     if (isOverrideActive) {
-      // Load existing override start time for editing
-      const startTime = TimeService.getOverrideStartTime();
-      if (startTime) {
+      // Load existing override time for editing
+      const overrideTime = TimeService.getOverrideTime();
+      if (overrideTime) {
         // Convert to datetime-local format (YYYY-MM-DDTHH:MM)
-        const dateTimeString = startTime.toISOString().slice(0, 16);
+        const dateTimeString = overrideTime.toISOString().slice(0, 16);
         setOverrideDateTime(dateTimeString);
       }
     } else {
@@ -52,13 +55,9 @@ const TimeOverride = () => {
   const handleSetOverride = () => {
     if (overrideDateTime) {
       const overrideDate = new Date(overrideDateTime);
-      // Set seconds to 50 and use our updated TimeService
-      overrideDate.setSeconds(50);
       TimeService.setOverrideTime(overrideDate);
       setIsActive(true);
       setIsOpen(false);
-      
-      // No need to reload - the time will advance automatically
     }
   };
 
@@ -83,7 +82,7 @@ const TimeOverride = () => {
       </button>
       
       {/* Current Time Display */}
-      <div className="current-time-display">
+      <div className="current-time-display" data-testid="current-time-display">
         <div className="current-time-value">
           {currentTime.toLocaleString()}
         </div>
@@ -113,10 +112,10 @@ const TimeOverride = () => {
                   <button 
                     className="edit-override-button"
                     onClick={() => {
-                      // Load current start time for editing
-                      const startTime = TimeService.getOverrideStartTime();
-                      if (startTime) {
-                        const dateTimeString = startTime.toISOString().slice(0, 16);
+                      // Load current override time for editing
+                      const overrideTime = TimeService.getOverrideTime();
+                      if (overrideTime) {
+                        const dateTimeString = overrideTime.toISOString().slice(0, 16);
                         setOverrideDateTime(dateTimeString);
                       }
                       // Switch to edit mode by setting isActive to false temporarily

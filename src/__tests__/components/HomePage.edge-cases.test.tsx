@@ -5,6 +5,41 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+// Mock Supabase client first to prevent import errors
+vi.mock('@supabase/supabase-js', () => ({
+  createClient: vi.fn()
+}));
+
+// Mock attendee types to prevent import errors
+vi.mock('../../types/attendee', () => ({
+  sanitizeAttendeeForStorage: vi.fn()
+}));
+
+// Mock attendeeInfoService to prevent import errors
+vi.mock('../../services/attendeeInfoService', () => ({
+  attendeeInfoService: {
+    getCurrentAttendeeData: vi.fn(),
+    getAttendeeSeatAssignments: vi.fn()
+  }
+}));
+
+// Mock serverDataSyncService to prevent import errors
+vi.mock('../../services/serverDataSyncService', () => ({
+  serverDataSyncService: {
+    syncAllData: vi.fn(),
+    getCachedData: vi.fn(),
+    clearCache: vi.fn()
+  }
+}));
+
+// Mock the database types to prevent import errors
+vi.mock('../../types/database', () => ({
+  AgendaItem: {},
+  DatabaseResponse: {},
+  PaginatedResponse: {},
+  AgendaService: {}
+}));
+
 // Mock the services to prevent import errors
 vi.mock('../../services/agendaService', () => ({
   agendaService: {
@@ -15,14 +50,6 @@ vi.mock('../../services/agendaService', () => ({
     updateAgendaItem: vi.fn(),
     deleteAgendaItem: vi.fn()
   }
-}));
-
-// Mock the database types to prevent import errors
-vi.mock('../../types/database', () => ({
-  AgendaItem: {},
-  DatabaseResponse: {},
-  PaginatedResponse: {},
-  AgendaService: {}
 }));
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';

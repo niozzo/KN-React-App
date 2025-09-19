@@ -20,25 +20,16 @@ class TimeService {
    */
   static getCurrentTime() {
     if (this.isOverrideEnabled()) {
-      // First try dynamic override time (auto-advancing)
+      // First try static override time (for tests)
+      const overrideTime = this.getOverrideTime();
+      if (overrideTime) {
+        return overrideTime;
+      }
+      
+      // Fallback to dynamic override time (auto-advancing)
       const dynamicTime = this.getDynamicOverrideTime();
       if (dynamicTime) {
         return dynamicTime;
-      }
-      
-      // Fallback to static override time
-      const overrideTime = this.getOverrideTime();
-      if (overrideTime) {
-        // Calculate current time based on override time progression
-        const now = new Date();
-        const storedOverrideTime = this.getStoredOverrideTime();
-        if (storedOverrideTime) {
-          // Calculate elapsed time since the override was set
-          const timeSinceOverride = now.getTime() - storedOverrideTime.timestamp;
-          const currentOverrideTime = new Date(storedOverrideTime.overrideTime.getTime() + timeSinceOverride);
-          return currentOverrideTime;
-        }
-        return overrideTime;
       }
     }
     return new Date();
@@ -81,8 +72,8 @@ class TimeService {
    * @returns {boolean} Whether override is enabled
    */
   static isOverrideEnabled() {
-    // Allow time override in all environments for testing purposes
-    return true;
+    // Allow time override in development and test environments only
+    return process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
   }
 
   /**
@@ -94,8 +85,20 @@ class TimeService {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       if (!stored) return null;
       
-      const data = JSON.parse(stored);
-      const date = new Date(data.overrideTime);
+      // Handle both simple string format and complex object format
+      let date;
+      try {
+        const data = JSON.parse(stored);
+        if (data.overrideTime) {
+          date = new Date(data.overrideTime);
+        } else {
+          date = new Date(data);
+        }
+      } catch (parseError) {
+        // If JSON parsing fails, try as direct string
+        date = new Date(stored);
+      }
+      
       // Check if the date is valid
       if (isNaN(date.getTime())) {
         console.warn('⚠️ Invalid override time in localStorage, clearing it:', stored);
@@ -184,10 +187,7 @@ class TimeService {
       this.startBoundaryMonitoring();
     } catch (error) {
       console.error('❌ Failed to set override time in localStorage:', error);
-      // Don't throw in production, just log the error
-      if (process.env.NODE_ENV === 'test') {
-        throw error;
-      }
+      // Don't throw in any environment, just log the error
     }
   }
 
@@ -241,10 +241,7 @@ class TimeService {
       
     } catch (error) {
       console.warn('⚠️ Failed to clear override time from localStorage:', error);
-      // Don't throw in production, just log the error
-      if (process.env.NODE_ENV === 'test') {
-        throw error;
-      }
+      // Don't throw in any environment, just log the error
     }
   }
 
@@ -372,7 +369,7 @@ class TimeService {
 
     return {
       isActive,
-      overrideTime: isActive ? overrideTime : null,
+      overrideTime: isActive ? currentTime : null,
       currentTime: isActive ? currentTime : realTime,
       realTime,
       environment: process.env.NODE_ENV

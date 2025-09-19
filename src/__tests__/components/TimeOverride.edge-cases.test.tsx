@@ -14,6 +14,18 @@ import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import TimeOverride from '../../components/dev/TimeOverride';
 import TimeService from '../../services/timeService';
 
+// Mock TimeService
+vi.mock('../../services/timeService', () => ({
+  default: {
+    isOverrideActive: vi.fn(),
+    getCurrentTime: vi.fn(),
+    getOverrideTime: vi.fn(),
+    setOverrideTime: vi.fn(),
+    clearOverrideTime: vi.fn(),
+    getOverrideStartTime: vi.fn()
+  }
+}));
+
 describe('TimeOverride Component Edge Cases', () => {
   const originalEnv = process.env.NODE_ENV;
   const originalLocalStorage = global.localStorage;
@@ -31,6 +43,14 @@ describe('TimeOverride Component Edge Cases', () => {
 
     // Set development environment
     process.env.NODE_ENV = 'development';
+
+    // Default TimeService mocks
+    vi.mocked(TimeService.isOverrideActive).mockReturnValue(false);
+    vi.mocked(TimeService.getCurrentTime).mockReturnValue(new Date());
+    vi.mocked(TimeService.getOverrideTime).mockReturnValue(null);
+    vi.mocked(TimeService.setOverrideTime).mockImplementation(() => {});
+    vi.mocked(TimeService.clearOverrideTime).mockImplementation(() => {});
+    vi.mocked(TimeService.getOverrideStartTime).mockReturnValue(null);
   });
 
   afterEach(() => {
@@ -42,7 +62,11 @@ describe('TimeOverride Component Edge Cases', () => {
   describe('Time Display Not Updating When Override Active', () => {
     it('should display static override time when override is active', () => {
       const overrideTime = new Date('2024-12-19T09:05:00');
-      global.localStorage.getItem.mockReturnValue(overrideTime.toISOString());
+      
+      // Mock TimeService to return override time
+      vi.mocked(TimeService.isOverrideActive).mockReturnValue(true);
+      vi.mocked(TimeService.getCurrentTime).mockReturnValue(overrideTime);
+      vi.mocked(TimeService.getOverrideTime).mockReturnValue(overrideTime);
 
       render(<TimeOverride />);
 
@@ -52,7 +76,11 @@ describe('TimeOverride Component Edge Cases', () => {
 
     it('should not update time display when override is active', async () => {
       const overrideTime = new Date('2024-12-19T09:05:00');
-      global.localStorage.getItem.mockReturnValue(overrideTime.toISOString());
+      
+      // Mock TimeService to return override time
+      vi.mocked(TimeService.isOverrideActive).mockReturnValue(true);
+      vi.mocked(TimeService.getCurrentTime).mockReturnValue(overrideTime);
+      vi.mocked(TimeService.getOverrideTime).mockReturnValue(overrideTime);
 
       render(<TimeOverride />);
 
@@ -69,7 +97,11 @@ describe('TimeOverride Component Edge Cases', () => {
     });
 
     it('should show real time when override is not active', () => {
-      global.localStorage.getItem.mockReturnValue(null);
+      const realTime = new Date('2024-12-19T10:00:00');
+      
+      // Mock TimeService to return real time
+      vi.mocked(TimeService.isOverrideActive).mockReturnValue(false);
+      vi.mocked(TimeService.getCurrentTime).mockReturnValue(realTime);
 
       render(<TimeOverride />);
 
@@ -79,12 +111,19 @@ describe('TimeOverride Component Edge Cases', () => {
     });
 
     it('should update real time display when override is not active', async () => {
-      global.localStorage.getItem.mockReturnValue(null);
+      const initialTime = new Date('2024-12-19T10:00:00');
+      const updatedTime = new Date('2024-12-19T10:00:01');
+      
+      // Mock TimeService to return real time
+      vi.mocked(TimeService.isOverrideActive).mockReturnValue(false);
+      vi.mocked(TimeService.getCurrentTime)
+        .mockReturnValueOnce(initialTime)
+        .mockReturnValue(updatedTime);
 
       render(<TimeOverride />);
 
       const timeDisplay = screen.getByTestId('current-time-display');
-      const initialTime = timeDisplay.textContent;
+      const initialTimeText = timeDisplay.textContent;
 
       // Wait for time to update
       await act(async () => {
@@ -92,7 +131,7 @@ describe('TimeOverride Component Edge Cases', () => {
       });
 
       // Time should have updated (real time)
-      expect(timeDisplay.textContent).not.toBe(initialTime);
+      expect(timeDisplay.textContent).not.toBe(initialTimeText);
     });
   });
 
