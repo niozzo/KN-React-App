@@ -7,6 +7,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
+import { applicationDb } from './applicationDatabaseService';
 import { sanitizeAttendeeForStorage } from '../types/attendee';
 import { attendeeInfoService } from './attendeeInfoService';
 
@@ -33,6 +34,13 @@ export class ServerDataSyncService {
     'hotels',
     'seating_configurations',
     'user_profiles'
+  ];
+
+  // Application database tables (from separate Supabase project)
+  private readonly applicationTablesToSync = [
+    'speaker_assignments',
+    'agenda_item_metadata', 
+    'attendee_metadata'
   ];
 
          constructor() {
@@ -142,6 +150,38 @@ export class ServerDataSyncService {
           
         } catch (error) {
           const errorMsg = `Failed to sync ${tableName}: ${error instanceof Error ? error.message : 'Unknown error'}`;
+          console.error(`❌ ${errorMsg}`);
+          result.errors.push(errorMsg);
+        }
+      }
+      
+      // Sync application database tables
+      console.log('🔄 Syncing application database tables...');
+      for (const tableName of this.applicationTablesToSync) {
+        try {
+          console.log(`🔄 Syncing application table ${tableName}...`);
+          
+          const { data, error } = await applicationDb
+            .from(tableName)
+            .select('*');
+          
+          if (error) {
+            console.error(`❌ Failed to sync application table ${tableName}:`, error.message);
+            result.errors.push(`Failed to sync application table ${tableName}: ${error.message}`);
+            continue;
+          }
+          
+          const records = data || [];
+          console.log(`✅ Application table ${tableName} synced (${records.length} records)`);
+          
+          // Cache the data locally
+          await this.cacheTableData(tableName, records);
+          
+          result.syncedTables.push(tableName);
+          result.totalRecords += records.length;
+          
+        } catch (error) {
+          const errorMsg = `Failed to sync application table ${tableName}: ${error instanceof Error ? error.message : 'Unknown error'}`;
           console.error(`❌ ${errorMsg}`);
           result.errors.push(errorMsg);
         }
