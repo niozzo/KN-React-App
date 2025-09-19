@@ -1,46 +1,17 @@
 import { afterEach, afterAll, vi } from 'vitest'
+import { cleanupAfterTest } from './utils/test-utils'
 
 // Global test teardown for memory management
 afterEach(() => {
-  // Clear all mocks to prevent memory leaks
-  vi.clearAllMocks()
+  // Use standardized cleanup utility
+  cleanupAfterTest()
   
-  // Clear all timers (setTimeout, setInterval, etc.)
-  vi.clearAllTimers()
+  // Additional cleanup specific to teardown
   vi.useRealTimers()
-  
-  // Clean up DOM completely
-  document.body.innerHTML = ''
-  document.head.innerHTML = ''
-  
-  // Clear localStorage and sessionStorage
-  localStorage.clear()
-  sessionStorage.clear()
-  
-  // Clear any remaining event listeners
-  window.removeEventListener('beforeunload', () => {})
-  window.removeEventListener('unload', () => {})
-  window.removeEventListener('online', () => {})
-  window.removeEventListener('offline', () => {})
   
   // Reset any global state
   if (window.workbox) {
     window.workbox.removeEventListener = vi.fn()
-  }
-  
-  // Clear service worker registrations
-  if (navigator.serviceWorker) {
-    navigator.serviceWorker.getRegistrations = vi.fn().mockResolvedValue([])
-  }
-  
-  // Force cleanup of any pending async operations
-  vi.clearAllTimers()
-  
-  // Clear any remaining intervals/timeouts
-  const highestTimeoutId = setTimeout(() => {}, 0)
-  for (let i = 0; i < highestTimeoutId; i++) {
-    clearTimeout(i)
-    clearInterval(i)
   }
 })
 

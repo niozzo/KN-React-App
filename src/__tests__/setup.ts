@@ -1,23 +1,16 @@
 import '@testing-library/jest-dom'
 import { beforeAll, afterEach, afterAll, vi } from 'vitest'
+import { cleanupAfterTest } from './utils/test-utils'
 
 // Global test setup
 beforeAll(() => {
   // Setup global test environment
+  // Add any global setup that needs to happen once
 })
 
 afterEach(() => {
-  // Cleanup after each test
-  vi.clearAllMocks()
-  vi.clearAllTimers()
-  
-  // Clean up service worker mocks
-  if (navigator.serviceWorker) {
-    navigator.serviceWorker.getRegistrations = vi.fn().mockResolvedValue([])
-  }
-  
-  // Clear DOM
-  document.body.innerHTML = ''
+  // Use standardized cleanup utility
+  cleanupAfterTest()
 })
 
 afterAll(() => {
