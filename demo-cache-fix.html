@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cache Validation Fix Demo</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .demo-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .demo-section h3 {
+            color: #333;
+            margin-top: 0;
+        }
+        .demo-section h4 {
+            color: #666;
+            margin-bottom: 10px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button.danger {
+            background: #dc3545;
+        }
+        button.danger:hover {
+            background: #c82333;
+        }
+        button.success {
+            background: #28a745;
+        }
+        button.success:hover {
+            background: #218838;
+        }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .code {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Cache Validation Fix Demo</h1>
+    <p>This demo shows how the cache validation fixes work in Story 2.1c.</p>
+
+    <div class="demo-section">
+        <h3>📊 Current Cache Status</h3>
+        <div id="cacheStatus" class="status">Loading...</div>
+        <button onclick="checkCacheStatus()">Refresh Status</button>
+        <button onclick="clearAllCache()" class="danger">Clear All Cache</button>
+    </div>
+
+    <div class="demo-section">
+        <h3>🧪 Test 1: Cache with No Active Items</h3>
+        <p>Simulates the scenario where cache has data but no currently active sessions.</p>
+        <button onclick="testCacheWithNoActiveItems()">Run Test</button>
+        <div id="test1Result" class="log" style="display: none;"></div>
+    </div>
+
+    <div class="demo-section">
+        <h3>🧪 Test 2: Future Timestamp Detection</h3>
+        <p>Simulates corrupted cache with future timestamps (time override issue).</p>
+        <button onclick="testFutureTimestamp()">Run Test</button>
+        <div id="test2Result" class="log" style="display: none;"></div>
+    </div>
+
+    <div class="demo-section">
+        <h3>🧪 Test 3: Graceful Fallback</h3>
+        <p>Simulates server failure with existing cache data.</p>
+        <button onclick="testGracefulFallback()">Run Test</button>
+        <div id="test3Result" class="log" style="display: none;"></div>
+    </div>
+
+    <div class="demo-section">
+        <h3>🔍 Debug Tools</h3>
+        <h4>Check Specific Cache Entries:</h4>
+        <button onclick="checkAgendaCache()">Agenda Cache</button>
+        <button onclick="checkSyncStatus()">Sync Status</button>
+        <button onclick="checkSessionCache()">Session Cache</button>
+        
+        <h4>Simulate Scenarios:</h4>
+        <button onclick="simulateFutureTimestamp()" class="warning">Set Future Timestamp</button>
+        <button onclick="simulateCorruptedCache()" class="warning">Corrupt Cache Data</button>
+        <button onclick="simulateEmptyCache()" class="warning">Empty Cache</button>
+        
+        <div id="debugOutput" class="log" style="display: none;"></div>
+    </div>
+
+    <div class="demo-section">
+        <h3>📝 Console Logs</h3>
+        <p>Open browser dev tools (F12) and check the Console tab for detailed logs.</p>
+        <div class="code">
+            Look for these log patterns:<br>
+            🏠 CACHE: Using cached agenda items<br>
+            ⚠️ Future timestamp detected in cache, clearing...<br>
+            🏠 CACHE: Loading sessions from cache as fallback<br>
+            🌐 SYNC: No cached agenda items found, using serverDataSyncService...
+        </div>
+    </div>
+
+    <script>
+        function log(message, testId = null) {
+            console.log(message);
+            if (testId) {
+                const element = document.getElementById(testId);
+                if (element) {
+                    element.style.display = 'block';
+                    element.innerHTML += message + '<br>';
+                }
+            }
+        }
+
+        function checkCacheStatus() {
+            const agendaCache = localStorage.getItem('kn_cache_agenda_items');
+            const syncStatus = localStorage.getItem('kn_sync_status');
+            const sessionCache = localStorage.getItem('kn_cached_sessions');
+            
+            let status = '<strong>Cache Status:</strong><br>';
+            status += `Agenda Cache: ${agendaCache ? '✅ Present' : '❌ Missing'}<br>`;
+            status += `Sync Status: ${syncStatus ? '✅ Present' : '❌ Missing'}<br>`;
+            status += `Session Cache: ${sessionCache ? '✅ Present' : '❌ Missing'}<br>`;
+            
+            if (agendaCache) {
+                try {
+                    const parsed = JSON.parse(agendaCache);
+                    const itemCount = parsed.data ? parsed.data.length : 0;
+                    const activeCount = parsed.data ? parsed.data.filter(item => item.isActive).length : 0;
+                    status += `<br><strong>Agenda Data:</strong><br>`;
+                    status += `Total Items: ${itemCount}<br>`;
+                    status += `Active Items: ${activeCount}<br>`;
+                    status += `Timestamp: ${parsed.timestamp || 'N/A'}<br>`;
+                } catch (e) {
+                    status += `<br>⚠️ Error parsing agenda cache<br>`;
+                }
+            }
+            
+            document.getElementById('cacheStatus').innerHTML = status;
+        }
+
+        function clearAllCache() {
+            const keys = Object.keys(localStorage);
+            const cacheKeys = keys.filter(key => key.startsWith('kn_'));
+            cacheKeys.forEach(key => localStorage.removeItem(key));
+            log('🗑️ All cache cleared', null);
+            checkCacheStatus();
+        }
+
+        function testCacheWithNoActiveItems() {
+            log('🧪 Test 1: Cache with No Active Items', 'test1Result');
+            log('Creating cache with inactive items...', 'test1Result');
+            
+            const testData = {
+                data: [
+                    { id: '1', title: 'Past Session', isActive: false, date: '2024-01-01', start_time: '09:00' },
+                    { id: '2', title: 'Future Session', isActive: false, date: '2024-12-31', start_time: '10:00' }
+                ],
+                timestamp: new Date().toISOString(),
+                version: '1.0'
+            };
+            
+            localStorage.setItem('kn_cache_agenda_items', JSON.stringify(testData));
+            log('✅ Cache created with 2 inactive items', 'test1Result');
+            log('Expected: App should use cache even with no active items', 'test1Result');
+            log('Check the main app - it should not show "Conference Not Started"', 'test1Result');
+        }
+
+        function testFutureTimestamp() {
+            log('🧪 Test 2: Future Timestamp Detection', 'test2Result');
+            log('Setting future timestamp in sync status...', 'test2Result');
+            
+            const futureTime = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+            const syncStatus = {
+                isOnline: true,
+                lastSync: futureTime,
+                pendingChanges: 0,
+                syncInProgress: false
+            };
+            
+            localStorage.setItem('kn_sync_status', JSON.stringify(syncStatus));
+            log('✅ Future timestamp set: ' + futureTime, 'test2Result');
+            log('Expected: Cache should be cleared on next sync', 'test2Result');
+            log('Check console for "Future timestamp detected" warning', 'test2Result');
+        }
+
+        function testGracefulFallback() {
+            log('🧪 Test 3: Graceful Fallback', 'test3Result');
+            log('Creating session cache for fallback...', 'test3Result');
+            
+            const sessionData = {
+                sessions: [
+                    { id: '1', title: 'Cached Session', isActive: true, date: '2024-01-01', start_time: '09:00' }
+                ],
+                currentSession: null,
+                nextSession: { id: '1', title: 'Cached Session' },
+                lastUpdated: new Date().toISOString()
+            };
+            
+            localStorage.setItem('kn_cached_sessions', JSON.stringify(sessionData));
+            log('✅ Session cache created', 'test3Result');
+            log('Expected: App should fall back to cache if server fails', 'test3Result');
+            log('Simulate network failure and refresh the app', 'test3Result');
+        }
+
+        function checkAgendaCache() {
+            const cache = localStorage.getItem('kn_cache_agenda_items');
+            log('📊 Agenda Cache:', 'debugOutput');
+            log(cache ? JSON.stringify(JSON.parse(cache), null, 2) : 'No cache found', 'debugOutput');
+        }
+
+        function checkSyncStatus() {
+            const status = localStorage.getItem('kn_sync_status');
+            log('📊 Sync Status:', 'debugOutput');
+            log(status ? JSON.stringify(JSON.parse(status), null, 2) : 'No status found', 'debugOutput');
+        }
+
+        function checkSessionCache() {
+            const cache = localStorage.getItem('kn_cached_sessions');
+            log('📊 Session Cache:', 'debugOutput');
+            log(cache ? JSON.stringify(JSON.parse(cache), null, 2) : 'No cache found', 'debugOutput');
+        }
+
+        function simulateFutureTimestamp() {
+            const futureTime = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+            const syncStatus = {
+                isOnline: true,
+                lastSync: futureTime,
+                pendingChanges: 0,
+                syncInProgress: false
+            };
+            localStorage.setItem('kn_sync_status', JSON.stringify(syncStatus));
+            log('⚠️ Future timestamp simulated: ' + futureTime, 'debugOutput');
+        }
+
+        function simulateCorruptedCache() {
+            const corruptedData = {
+                data: [{ id: '1', title: 'Test' }],
+                timestamp: 9999999999999, // Future timestamp
+                version: '1.0'
+            };
+            localStorage.setItem('kn_cache_agenda_items', JSON.stringify(corruptedData));
+            log('⚠️ Corrupted cache simulated with future timestamp', 'debugOutput');
+        }
+
+        function simulateEmptyCache() {
+            localStorage.removeItem('kn_cache_agenda_items');
+            localStorage.removeItem('kn_sync_status');
+            localStorage.removeItem('kn_cached_sessions');
+            log('⚠️ All cache cleared to simulate empty state', 'debugOutput');
+        }
+
+        // Initialize
+        checkCacheStatus();
+    </script>
+</body>
+</html>
