@@ -215,12 +215,15 @@ export class AdminService {
   ): Promise<void> {
     try {
       console.log('🔄 Reordering speakers for agenda item:', agendaItemId);
+      console.log('🔄 Speakers to reorder:', reorderedSpeakers.map(s => ({ id: s.id, name: s.attendee_name || s.attendee_id, currentOrder: s.display_order })));
       
       // Update database with new order
       const speakerOrders = reorderedSpeakers.map((speaker, index) => ({
         id: speaker.id,
         display_order: index + 1
       }));
+      
+      console.log('🔄 New speaker orders:', speakerOrders);
       
       await applicationDbService.reorderSpeakersForAgendaItem(agendaItemId, speakerOrders);
       
@@ -233,10 +236,16 @@ export class AdminService {
       
       await this.updateLocalSpeakerAssignments(updatedSpeakers);
       
-      console.log('✅ Speaker reordering completed');
+      console.log('✅ Speaker reordering completed successfully');
       
     } catch (error) {
       console.error('❌ Failed to reorder speakers:', error);
+      console.error('❌ Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        agendaItemId,
+        speakerCount: reorderedSpeakers.length
+      });
       throw error;
     }
   }

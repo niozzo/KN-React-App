@@ -106,6 +106,8 @@ export class ApplicationDatabaseService {
    * Update speaker display order
    */
   async updateSpeakerOrder(speakerId: string, displayOrder: number): Promise<void> {
+    console.log(`🔄 Updating speaker ${speakerId} to order ${displayOrder}`);
+    
     const { error } = await adminDb
       .from('speaker_assignments')
       .update({ 
@@ -114,7 +116,12 @@ export class ApplicationDatabaseService {
       })
       .eq('id', speakerId);
     
-    if (error) throw error;
+    if (error) {
+      console.error(`❌ Failed to update speaker ${speakerId} order:`, error);
+      throw error;
+    }
+    
+    console.log(`✅ Updated speaker ${speakerId} to order ${displayOrder}`);
   }
 
   /**
