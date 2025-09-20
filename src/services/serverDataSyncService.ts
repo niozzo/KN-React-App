@@ -199,7 +199,7 @@ export class ServerDataSyncService {
   }
 
   /**
-   * Cache table data to localStorage
+   * Cache table data using unified cache service
    */
   private async cacheTableData(tableName: string, data: any[]): Promise<void> {
     try {
@@ -211,17 +211,12 @@ export class ServerDataSyncService {
         sanitizedData = data.map(attendee => sanitizeAttendeeForStorage(attendee));
         console.log(`🔒 Sanitized ${data.length} attendee records (removed access_code)`);
       }
-      
-      const cacheData = {
-        data: sanitizedData,
-        timestamp: Date.now(),
-        version: 1,
-        source: 'server-sync'
-      };
 
-      console.log(`💾 Caching ${tableName} with ${sanitizedData.length} records`);
-      localStorage.setItem(cacheKey, JSON.stringify(cacheData));
-      console.log(`💾 Cached to localStorage with key: ${cacheKey}`);
+      // Use unified cache service for consistent caching
+      const { unifiedCacheService } = await import('./unifiedCacheService');
+      await unifiedCacheService.set(cacheKey, sanitizedData);
+      
+      console.log(`💾 Cached ${tableName} with ${sanitizedData.length} records using unified cache`);
       
     } catch (error) {
       console.error(`❌ Failed to cache ${tableName}:`, error);
@@ -230,19 +225,23 @@ export class ServerDataSyncService {
   }
 
   /**
-   * Get cached table data
+   * Get cached table data using unified cache service
    */
   async getCachedTableData<T>(tableName: string): Promise<T[]> {
     try {
       const cacheKey = `kn_cache_${tableName}`;
-      const cached = localStorage.getItem(cacheKey);
       
-      if (!cached) {
+      // Use unified cache service for consistent data retrieval
+      const { unifiedCacheService } = await import('./unifiedCacheService');
+      const cachedData = await unifiedCacheService.get(cacheKey);
+      
+      if (!cachedData) {
         return [];
       }
 
-      const cacheData = JSON.parse(cached);
-      return cacheData.data || [];
+      // Handle both direct array format and wrapped format
+      const data = cachedData.data || cachedData;
+      return Array.isArray(data) ? data : [];
       
     } catch (error) {
       console.error(`❌ Failed to get cached ${tableName}:`, error);
@@ -251,18 +250,15 @@ export class ServerDataSyncService {
   }
 
   /**
-   * Clear all cached data
+   * Clear all cached data using unified cache service
    */
   async clearCache(): Promise<void> {
     try {
-      const keys = Object.keys(localStorage);
-      const cacheKeys = keys.filter(key => key.startsWith('kn_cache_'));
-      
-      cacheKeys.forEach(key => {
-        localStorage.removeItem(key);
-      });
+      // Use unified cache service for consistent cache clearing
+      const { unifiedCacheService } = await import('./unifiedCacheService');
+      await unifiedCacheService.clear();
 
-      console.log('🗑️ Server sync cache cleared');
+      console.log('🗑️ Server sync cache cleared using unified cache service');
     } catch (error) {
       console.error('❌ Failed to clear cache:', error);
       throw error;
