@@ -260,10 +260,33 @@ export class AgendaService implements IAgendaService {
           .filter((item: any) => item.isActive);
         
         console.log('🏠 CACHE: Using cached agenda items');
-        console.log('🏠 CACHE: Found', filteredItems.length, 'cached agenda items');
+        console.log('🏠 CACHE: Found', agendaItems.length, 'total cached agenda items');
+        console.log('🏠 CACHE: Found', filteredItems.length, 'active cached agenda items');
         
-        // If we have cached data, enrich with speaker data and return
-        if (filteredItems.length > 0) {
+        // Check for future timestamps (cache corruption detection)
+        if (cachedData.timestamp) {
+          const now = Date.now();
+          const cacheTime = new Date(cachedData.timestamp).getTime();
+          if (cacheTime > now) {
+            console.warn('⚠️ Future timestamp detected in agenda cache, clearing...');
+            localStorage.removeItem(cacheKey);
+            // Fall through to server sync
+          } else if (agendaItems.length > 0) {
+            // ✅ FIX: Check if cache exists (has data), not just if filtered items exist
+            // Enrich with speaker data
+            const enrichedData = await this.enrichWithSpeakerData(filteredItems);
+            
+            // Background refresh to ensure data is up to date
+            this.refreshAgendaItemsInBackground();
+            return {
+              data: enrichedData,
+              count: enrichedData.length,
+              error: null,
+              success: true
+            };
+          }
+        } else if (agendaItems.length > 0) {
+          // ✅ FIX: Check if cache exists (has data), not just if filtered items exist
           // Enrich with speaker data
           const enrichedData = await this.enrichWithSpeakerData(filteredItems);
           

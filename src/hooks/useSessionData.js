@@ -69,6 +69,24 @@ const filterSessionsForAttendee = (sessions, attendee) => {
 };
 
 /**
+ * Load session data from cache
+ * @returns {Array} Cached session data
+ */
+const loadFromCache = () => {
+  try {
+    const cachedData = localStorage.getItem('kn_cached_sessions');
+    if (cachedData) {
+      const parsed = JSON.parse(cachedData);
+      return parsed.sessions || [];
+    }
+    return [];
+  } catch (error) {
+    console.warn('⚠️ Failed to load cached sessions:', error);
+    return [];
+  }
+};
+
+/**
  * useSessionData Hook
  * @param {Object} options - Configuration options
  * @returns {Object} Session data state and utilities
@@ -127,7 +145,22 @@ export const useSessionData = (options = {}) => {
       const agendaResponse = await agendaService.getActiveAgendaItems();
       if (!agendaResponse.success) {
         console.warn('⚠️ Failed to load agenda items:', agendaResponse.error);
-        // Don't throw error, just use empty array to allow app to continue
+        
+        // ✅ FIX: Try to load from cache as fallback
+        try {
+          const cachedSessions = loadFromCache();
+          if (cachedSessions.length > 0) {
+            console.log('🏠 CACHE: Loading sessions from cache as fallback');
+            setAllSessions(cachedSessions);
+            setSessions(filterSessionsForAttendee(cachedSessions, attendeeData));
+            setLastUpdated(new Date());
+            return;
+          }
+        } catch (cacheError) {
+          console.warn('⚠️ Failed to load from cache:', cacheError);
+        }
+        
+        // Only set empty arrays if no cache available
         setAllSessions([]);
         setSessions([]);
         setLastUpdated(new Date());

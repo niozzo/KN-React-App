@@ -200,6 +200,11 @@ export class PWADataSyncService {
       };
     }
 
+    // Validate cache health before syncing
+    if (!this.validateCacheHealth()) {
+      console.warn('⚠️ Cache health validation failed, proceeding with fresh sync');
+    }
+
     this.syncStatus.syncInProgress = true;
     this.saveSyncStatus();
 
@@ -430,8 +435,41 @@ export class PWADataSyncService {
       return false;
     }
 
-    const age = Date.now() - cacheData.timestamp;
+    // Check for future timestamps (cache corruption detection)
+    const now = Date.now();
+    if (cacheData.timestamp > now) {
+      console.warn('⚠️ Future timestamp detected in cache data, marking as invalid');
+      return false;
+    }
+
+    const age = now - cacheData.timestamp;
     return age < this.cacheConfig.maxAge;
+  }
+
+  /**
+   * Validate cache health and detect corruption
+   * Story 2.1c: Fix Cache Validation Logic
+   */
+  private validateCacheHealth(): boolean {
+    try {
+      const syncStatus = localStorage.getItem(this.SYNC_STATUS_KEY);
+      if (syncStatus) {
+        const status = JSON.parse(syncStatus);
+        const lastSync = new Date(status.lastSync);
+        const now = new Date();
+        
+        // Check for future timestamps (time override issue)
+        if (lastSync > now) {
+          console.warn('⚠️ Future timestamp detected in cache, clearing...');
+          this.clearCache();
+          return false;
+        }
+      }
+      return true;
+    } catch (error) {
+      console.warn('⚠️ Cache validation failed:', error);
+      return false;
+    }
   }
 
   /**
