@@ -1,6 +1,7 @@
 /**
  * Cache Monitoring Service
  * Story 2.1d: Implement Comprehensive Logging Strategy
+ * Story 2.1e2: Advanced Monitoring Dashboard
  * 
  * Provides centralized logging and metrics collection for cache operations
  */
@@ -13,6 +14,8 @@ export interface CacheMetrics {
   stateResets: number;
   totalOperations: number;
   averageResponseTime: number;
+  totalDataSize?: number;
+  lastUpdated?: string;
 }
 
 export interface LogEntry {
@@ -32,7 +35,9 @@ export class CacheMonitoringService {
     syncFailures: 0,
     stateResets: 0,
     totalOperations: 0,
-    averageResponseTime: 0
+    averageResponseTime: 0,
+    totalDataSize: 0,
+    lastUpdated: new Date().toISOString()
   };
 
   private responseTimes: number[] = [];
@@ -71,6 +76,8 @@ export class CacheMonitoringService {
   logCacheHit(cacheKey: string, dataSize: number, responseTime?: number): void {
     this.metrics.cacheHits++;
     this.metrics.totalOperations++;
+    this.metrics.totalDataSize! += dataSize;
+    this.metrics.lastUpdated = new Date().toISOString();
     
     if (responseTime) {
       this.responseTimes.push(responseTime);
@@ -96,6 +103,7 @@ export class CacheMonitoringService {
   logCacheMiss(cacheKey: string, reason: string, responseTime?: number): void {
     this.metrics.cacheMisses++;
     this.metrics.totalOperations++;
+    this.metrics.lastUpdated = new Date().toISOString();
     
     if (responseTime) {
       this.responseTimes.push(responseTime);
@@ -121,6 +129,7 @@ export class CacheMonitoringService {
   logCacheCorruption(cacheKey: string, error: string, data?: any): void {
     this.metrics.cacheCorruptions++;
     this.metrics.totalOperations++;
+    this.metrics.lastUpdated = new Date().toISOString();
 
     this.log({
       level: 'error',
@@ -141,6 +150,7 @@ export class CacheMonitoringService {
   logSyncFailure(operation: string, error: string, context?: any): void {
     this.metrics.syncFailures++;
     this.metrics.totalOperations++;
+    this.metrics.lastUpdated = new Date().toISOString();
 
     this.log({
       level: 'error',
@@ -161,6 +171,7 @@ export class CacheMonitoringService {
   logStateReset(component: string, reason: string, previousState?: any): void {
     this.metrics.stateResets++;
     this.metrics.totalOperations++;
+    this.metrics.lastUpdated = new Date().toISOString();
 
     this.log({
       level: 'warn',
@@ -238,7 +249,9 @@ export class CacheMonitoringService {
       syncFailures: 0,
       stateResets: 0,
       totalOperations: 0,
-      averageResponseTime: 0
+      averageResponseTime: 0,
+      totalDataSize: 0,
+      lastUpdated: new Date().toISOString()
     };
     this.responseTimes = [];
   }

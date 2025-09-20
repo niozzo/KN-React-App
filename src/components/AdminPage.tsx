@@ -16,12 +16,13 @@ import {
   ListItemText,
   Divider
 } from '@mui/material';
-import { ArrowBack as ArrowBackIcon, Save as SaveIcon, Home as HomeIcon } from '@mui/icons-material';
+import { ArrowBack as ArrowBackIcon, Save as SaveIcon, Home as HomeIcon, Dashboard as DashboardIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { SpeakerAssignmentComponent } from './SpeakerAssignment';
 import { adminService } from '../services/adminService';
 import { SpeakerAssignment } from '../services/applicationDatabaseService';
 import { dataInitializationService } from '../services/dataInitializationService';
+import CacheHealthDashboard from './CacheHealthDashboard';
 
 interface AdminPageProps {
   onLogout: () => void;
@@ -36,6 +37,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onLogout }) => {
   const [editingTitle, setEditingTitle] = useState<string | null>(null);
   const [titleValue, setTitleValue] = useState('');
   const [requiresAuth, setRequiresAuth] = useState(false);
+  const [showDashboard, setShowDashboard] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -156,6 +158,19 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onLogout }) => {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             Speaker Management Admin
           </Typography>
+          <Button
+            color="inherit"
+            startIcon={<DashboardIcon />}
+            onClick={() => setShowDashboard(!showDashboard)}
+            sx={{ 
+              backgroundColor: showDashboard ? 'rgba(255,255,255,0.2)' : 'transparent',
+              '&:hover': {
+                backgroundColor: 'rgba(255,255,255,0.1)'
+              }
+            }}
+          >
+            Cache Health
+          </Button>
         </Toolbar>
       </AppBar>
 
@@ -275,6 +290,20 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onLogout }) => {
               </React.Fragment>
             ))}
           </List>
+        )}
+
+        {/* Cache Health Dashboard */}
+        {showDashboard && (
+          <Box sx={{ mt: 3 }}>
+            <Card>
+              <CardContent>
+                <Typography variant="h5" gutterBottom>
+                  Cache Health Dashboard
+                </Typography>
+                <CacheHealthDashboard isVisible={true} />
+              </CardContent>
+            </Card>
+          </Box>
         )}
       </Box>
     </Box>
