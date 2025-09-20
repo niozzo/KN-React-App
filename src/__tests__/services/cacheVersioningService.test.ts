@@ -137,6 +137,8 @@ describe('CacheVersioningService', () => {
     });
 
     it('should not need refresh for fresh entry', () => {
+      // Ensure the entry is truly fresh by creating it just now
+      const freshEntry = service.createCacheEntry([{ id: 1, name: 'Test' }]);
       const needsRefresh = service.needsRefresh(freshEntry);
       expect(needsRefresh).toBe(false);
     });

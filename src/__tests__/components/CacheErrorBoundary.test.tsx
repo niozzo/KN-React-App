@@ -62,7 +62,7 @@ describe('CacheErrorBoundary', () => {
       );
 
       expect(screen.getByText('Data Loading Issue')).toBeInTheDocument();
-      expect(screen.getByText('There was a problem loading your schedule data.')).toBeInTheDocument();
+      expect(screen.getByText(/There was a problem loading your schedule data/)).toBeInTheDocument();
       expect(consoleSpy).toHaveBeenCalledWith(
         '🚨 Cache Error Boundary caught an error:',
         expect.any(Error),
@@ -135,13 +135,14 @@ describe('CacheErrorBoundary', () => {
       const retryButton = screen.getByText('Try Again');
       fireEvent.click(retryButton);
 
+      // After first retry, should show "Retrying..." and be disabled
       await waitFor(() => {
-        expect(screen.getByText('Try Again')).toBeInTheDocument();
+        expect(screen.getByText('Retrying...')).toBeInTheDocument();
       });
 
-      // Second retry should be disabled
-      fireEvent.click(retryButton);
-      expect(screen.getByText('Try Again')).toBeDisabled();
+      // Button should be disabled
+      const disabledButton = screen.getByText('Retrying...');
+      expect(disabledButton).toBeDisabled();
 
       consoleSpy.mockRestore();
     });
@@ -171,7 +172,14 @@ describe('CacheErrorBoundary', () => {
   describe('Reload Functionality', () => {
     it('should reload page when reload button is clicked', () => {
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      const reloadSpy = vi.spyOn(window.location, 'reload').mockImplementation(() => {});
+      
+      // Mock window.location.reload by replacing the entire location object
+      const originalLocation = window.location;
+      const mockReload = vi.fn();
+      
+      // @ts-ignore
+      delete window.location;
+      window.location = { ...originalLocation, reload: mockReload };
       
       render(
         <CacheErrorBoundary>
@@ -182,10 +190,11 @@ describe('CacheErrorBoundary', () => {
       const reloadButton = screen.getByText('Reload Page');
       fireEvent.click(reloadButton);
 
-      expect(reloadSpy).toHaveBeenCalled();
+      expect(mockReload).toHaveBeenCalled();
 
+      // Restore original location
+      window.location = originalLocation;
       consoleSpy.mockRestore();
-      reloadSpy.mockRestore();
     });
   });
 

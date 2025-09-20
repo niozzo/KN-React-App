@@ -136,8 +136,14 @@ export default defineConfig({
     // Memory and performance optimizations
     passWithNoTests: true,
     logHeapUsage: false,
-    // Suppress console output during tests
+    // Allow console output for debugging but suppress verbose test output
     onConsoleLog(log, type) {
+      // Always allow console output in development mode for debugging
+      if (process.env.NODE_ENV === 'development') {
+        return true;
+      }
+      
+      // Suppress only specific verbose output in production/test mode
       if (type === 'stderr' && log.includes('Multiple GoTrueClient instances')) {
         return false; // Suppress Supabase warnings
       }

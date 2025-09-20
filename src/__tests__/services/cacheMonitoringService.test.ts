@@ -6,7 +6,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { CacheMonitoringService, cacheMonitoringService } from '../../services/cacheMonitoringService';
 
-// Mock console methods
+// Mock console methods for testing without affecting global console
 const consoleSpy = {
   log: vi.fn(),
   warn: vi.fn(),
@@ -14,10 +14,13 @@ const consoleSpy = {
   debug: vi.fn()
 };
 
-// Mock console
-Object.defineProperty(global, 'console', {
-  value: consoleSpy
-});
+// Store original console methods
+const originalConsole = {
+  log: console.log,
+  warn: console.warn,
+  error: console.error,
+  debug: console.debug
+};
 
 describe('CacheMonitoringService', () => {
   let service: CacheMonitoringService;
@@ -26,7 +29,22 @@ describe('CacheMonitoringService', () => {
     vi.clearAllMocks();
     // Set to debug level to ensure all logs are output
     process.env.NODE_ENV = 'development';
+    
+    // Mock console methods for this test
+    console.log = consoleSpy.log;
+    console.warn = consoleSpy.warn;
+    console.error = consoleSpy.error;
+    console.debug = consoleSpy.debug;
+    
     service = new CacheMonitoringService();
+  });
+
+  afterEach(() => {
+    // Restore original console methods
+    console.log = originalConsole.log;
+    console.warn = originalConsole.warn;
+    console.error = originalConsole.error;
+    console.debug = originalConsole.debug;
   });
 
   describe('Cache Hit Logging', () => {

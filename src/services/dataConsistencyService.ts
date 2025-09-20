@@ -57,8 +57,6 @@ export class DataConsistencyService {
     // Check for error state inconsistencies
     this.checkErrorStateInconsistencies(cacheState, uiState, issues, recommendations);
 
-    console.log('🔍 Validation issues found:', issues);
-
     // Filter out recent duplicate issues
     const filteredIssues = this.filterDuplicateIssues(issues);
 
@@ -66,10 +64,10 @@ export class DataConsistencyService {
     severity = this.determineSeverity(filteredIssues);
 
     return {
-      isConsistent: issues.length === 0, // Use original issues for consistency
-      issues: issues, // Use original issues for now to debug
+      isConsistent: filteredIssues.length === 0,
+      issues: filteredIssues,
       timestamp: new Date().toISOString(),
-      severity: this.determineSeverity(issues), // Use original issues for severity
+      severity: severity,
       recommendations
     };
   }
@@ -121,7 +119,6 @@ export class DataConsistencyService {
     // Check cache timestamps
     if (cacheState.lastSync) {
       const syncTime = new Date(cacheState.lastSync);
-      console.log('🔍 Checking cache timestamp:', { lastSync: cacheState.lastSync, syncTime, now, isFuture: syncTime > now });
       if (syncTime > now) {
         issues.push('Cache contains future sync timestamp');
         recommendations.push('Clear cache and re-sync data');
@@ -140,7 +137,7 @@ export class DataConsistencyService {
     // Check agenda item timestamps
     if (cacheState.agendaItems) {
       const futureItems = cacheState.agendaItems.filter((item: any) => {
-        if (item.start_time) {
+        if (item.date && item.start_time) {
           const startTime = new Date(`${item.date}T${item.start_time}`);
           return startTime > now;
         }
@@ -234,8 +231,8 @@ export class DataConsistencyService {
   private determineSeverity(issues: string[]): 'low' | 'medium' | 'high' | 'critical' {
     if (issues.length === 0) return 'low';
     
-    const criticalKeywords = ['future timestamp', 'integrity check failed', 'critical error'];
-    const highKeywords = ['data mismatch', 'sync failed', 'stale data', 'count mismatch'];
+    const criticalKeywords = ['future timestamp', 'future sync timestamp', 'future update timestamp', 'integrity check failed', 'critical error'];
+    const highKeywords = ['data mismatch', 'sync failed', 'stale data', 'count mismatch', 'stale cache', 'stale ui', 'cache data is stale', 'ui data is stale', 'cache has agenda data', 'ui has sessions', 'attendee count mismatch'];
     const mediumKeywords = ['loading state', 'error state'];
     
     for (const issue of issues) {
@@ -253,7 +250,6 @@ export class DataConsistencyService {
         return 'medium';
       }
     }
-    
     return 'low';
   }
 
