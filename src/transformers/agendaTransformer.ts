@@ -205,13 +205,7 @@ export class AgendaTransformer extends BaseTransformer<AgendaItem> {
    */
   transformFromDatabase(dbData: any): AgendaItem {
     // Schema evolution is now handled in the base class
-    const result = super.transformFromDatabase(dbData)
-    
-    // Force isActive to true for all agenda items
-    // The database may have is_active: false, but we want all agenda items to be active
-    result.isActive = true
-    
-    return result
+    return super.transformFromDatabase(dbData)
   }
 
   /**
