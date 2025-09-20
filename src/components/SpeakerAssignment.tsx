@@ -7,10 +7,12 @@ import {
   IconButton,
   Typography,
   Alert,
-  CircularProgress
+  CircularProgress,
+  Divider
 } from '@mui/material';
-import { Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import { Add as AddIcon, Delete as DeleteIcon, Reorder as ReorderIcon } from '@mui/icons-material';
 import { SpeakerAssignment } from '../services/applicationDatabaseService';
+import { SpeakerOrdering } from './SpeakerOrdering';
 
 interface SpeakerAssignmentProps {
   agendaItemId: string;
@@ -28,6 +30,8 @@ export const SpeakerAssignmentComponent: React.FC<SpeakerAssignmentProps> = ({
   const [selectedAttendee, setSelectedAttendee] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isOrderingMode, setIsOrderingMode] = useState(false);
+  const [reorderingLoading, setReorderingLoading] = useState(false);
 
   const handleAddAssignment = async () => {
     if (!selectedAttendee) return;
@@ -96,25 +100,80 @@ export const SpeakerAssignmentComponent: React.FC<SpeakerAssignmentProps> = ({
     return 'Unknown';
   };
 
+  const handleReorderSpeakers = async (reorderedSpeakers: SpeakerAssignment[]) => {
+    setReorderingLoading(true);
+    setError('');
+
+    try {
+      const { adminService } = await import('../services/adminService');
+      await adminService.reorderSpeakers(agendaItemId, reorderedSpeakers);
+      
+      // Update local state
+      onAssignmentsChange(reorderedSpeakers);
+      
+    } catch (err) {
+      setError('Failed to reorder speakers. Please try again.');
+      console.error('Error reordering speakers:', err);
+    } finally {
+      setReorderingLoading(false);
+    }
+  };
+
+  const toggleOrderingMode = () => {
+    setIsOrderingMode(!isOrderingMode);
+    setError('');
+  };
+
   return (
     <Box>
-      <Typography variant="subtitle2" gutterBottom>
-        Speaker Assignments ({assignments.length}/10)
-      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Typography variant="subtitle2">
+          Speaker Assignments ({assignments.length}/10)
+        </Typography>
+        
+        {assignments.length > 1 && (
+          <IconButton
+            onClick={toggleOrderingMode}
+            size="small"
+            color={isOrderingMode ? 'primary' : 'default'}
+            sx={{ ml: 1 }}
+          >
+            <ReorderIcon />
+          </IconButton>
+        )}
+      </Box>
 
       {/* Current Assignments */}
-      <Box sx={{ mb: 2, minHeight: 40 }}>
-        {assignments.map((assignment) => (
-          <Chip
-            key={assignment.id}
-            label={getAttendeeName(assignment.attendee_id)}
-            onDelete={() => handleRemoveAssignment(assignment.id)}
-            deleteIcon={<DeleteIcon />}
-            disabled={loading}
-            sx={{ mr: 1, mb: 1 }}
+      {isOrderingMode ? (
+        <Box sx={{ mb: 2 }}>
+          <SpeakerOrdering
+            speakers={assignments.map(assignment => ({
+              ...assignment,
+              attendee_name: getAttendeeName(assignment.attendee_id)
+            }))}
+            onReorder={handleReorderSpeakers}
+            disabled={reorderingLoading}
           />
-        ))}
-      </Box>
+          {reorderingLoading && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+              <CircularProgress size={24} />
+            </Box>
+          )}
+        </Box>
+      ) : (
+        <Box sx={{ mb: 2, minHeight: 40 }}>
+          {assignments.map((assignment) => (
+            <Chip
+              key={assignment.id}
+              label={getAttendeeName(assignment.attendee_id)}
+              onDelete={() => handleRemoveAssignment(assignment.id)}
+              deleteIcon={<DeleteIcon />}
+              disabled={loading}
+              sx={{ mr: 1, mb: 1 }}
+            />
+          ))}
+        </Box>
+      )}
 
       {/* Add New Assignment */}
       {availableAttendees.length === 0 ? (

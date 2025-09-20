@@ -30,9 +30,9 @@ export class AdminService {
     
     // Map assignments to agenda items
     const itemsWithAssignments = agendaItems.map((item: any) => {
-      const assignments = speakerAssignments.filter((assignment: any) => 
-        assignment.agenda_item_id === item.id
-      );
+      const assignments = speakerAssignments
+        .filter((assignment: any) => assignment.agenda_item_id === item.id)
+        .sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0));
       return {
         ...item,
         speaker_assignments: assignments
@@ -203,6 +203,41 @@ export class AdminService {
       await pwaDataSyncService.cacheTableData('speaker_assignments', updatedAssignments);
     } catch (error) {
       console.error('Failed to remove local speaker assignment:', error);
+    }
+  }
+
+  /**
+   * Reorder speakers for an agenda item
+   */
+  async reorderSpeakers(
+    agendaItemId: string, 
+    reorderedSpeakers: SpeakerAssignment[]
+  ): Promise<void> {
+    try {
+      console.log('🔄 Reordering speakers for agenda item:', agendaItemId);
+      
+      // Update database with new order
+      const speakerOrders = reorderedSpeakers.map((speaker, index) => ({
+        id: speaker.id,
+        display_order: index + 1
+      }));
+      
+      await applicationDbService.reorderSpeakersForAgendaItem(agendaItemId, speakerOrders);
+      
+      // Update local cache with new order
+      const updatedSpeakers = reorderedSpeakers.map((speaker, index) => ({
+        ...speaker,
+        display_order: index + 1,
+        updated_at: new Date().toISOString()
+      }));
+      
+      await this.updateLocalSpeakerAssignments(updatedSpeakers);
+      
+      console.log('✅ Speaker reordering completed');
+      
+    } catch (error) {
+      console.error('❌ Failed to reorder speakers:', error);
+      throw error;
     }
   }
 }

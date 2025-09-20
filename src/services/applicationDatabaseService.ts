@@ -32,6 +32,7 @@ export interface SpeakerAssignment {
   agenda_item_id: string;
   attendee_id: string;
   role: 'presenter' | 'co-presenter' | 'moderator' | 'panelist';
+  display_order: number; // NEW: Order within agenda item (1, 2, 3, etc.)
   created_at: string;
   updated_at: string;
 }
@@ -57,19 +58,33 @@ export class ApplicationDatabaseService {
     const { data, error } = await applicationDb
       .from('speaker_assignments')
       .select('*')
-      .eq('agenda_item_id', agendaItemId);
+      .eq('agenda_item_id', agendaItemId)
+      .order('display_order', { ascending: true });
     
     if (error) throw error;
     return data || [];
   }
 
   async assignSpeaker(agendaItemId: string, attendeeId: string, role: string = 'presenter'): Promise<SpeakerAssignment> {
+    // Get the next display_order value for this agenda item
+    const { data: existingAssignments } = await adminDb
+      .from('speaker_assignments')
+      .select('display_order')
+      .eq('agenda_item_id', agendaItemId)
+      .order('display_order', { ascending: false })
+      .limit(1);
+    
+    const nextOrder = existingAssignments && existingAssignments.length > 0 
+      ? (existingAssignments[0].display_order || 0) + 1 
+      : 1;
+
     const { data, error } = await adminDb
       .from('speaker_assignments')
       .insert({
         agenda_item_id: agendaItemId,
         attendee_id: attendeeId,
-        role
+        role,
+        display_order: nextOrder
       })
       .select()
       .single();
@@ -85,6 +100,34 @@ export class ApplicationDatabaseService {
       .eq('id', assignmentId);
     
     if (error) throw error;
+  }
+
+  /**
+   * Update speaker display order
+   */
+  async updateSpeakerOrder(speakerId: string, displayOrder: number): Promise<void> {
+    const { error } = await adminDb
+      .from('speaker_assignments')
+      .update({ 
+        display_order: displayOrder,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', speakerId);
+    
+    if (error) throw error;
+  }
+
+  /**
+   * Reorder all speakers for an agenda item
+   */
+  async reorderSpeakersForAgendaItem(
+    agendaItemId: string,
+    speakerOrders: { id: string; display_order: number }[]
+  ): Promise<void> {
+    // Update each speaker's display_order
+    for (const speakerOrder of speakerOrders) {
+      await this.updateSpeakerOrder(speakerOrder.id, speakerOrder.display_order);
+    }
   }
 
   // Metadata Management Methods

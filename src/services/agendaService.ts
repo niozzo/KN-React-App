@@ -13,6 +13,7 @@ import type {
 import type { IServerDataSyncService } from './interfaces/IServerDataSyncService';
 import type { ICacheService } from './interfaces/ICacheService';
 import type { ServiceResult } from './interfaces/IAgendaService';
+import { pwaDataSyncService } from './pwaDataSyncService';
 
 export class AgendaService implements IAgendaService {
   private backgroundRefreshInProgress = false;
@@ -178,6 +179,60 @@ export class AgendaService implements IAgendaService {
   }
 
   /**
+   * Enrich agenda items with speaker information
+   */
+  private async enrichWithSpeakerData(agendaItems: any[]): Promise<any[]> {
+    try {
+      // Get speaker assignments from cache
+      const speakerAssignments = await pwaDataSyncService.getCachedTableData('speaker_assignments');
+      
+      // Get attendees from cache for name lookup
+      const attendees = await pwaDataSyncService.getCachedTableData('attendees');
+      
+      // Create attendee lookup map
+      const attendeeMap = new Map();
+      attendees.forEach((attendee: any) => {
+        attendeeMap.set(attendee.id, attendee);
+      });
+      
+      // Enrich each agenda item with ordered speakers
+      return agendaItems.map(item => {
+        const speakers = speakerAssignments
+          .filter((assignment: any) => assignment.agenda_item_id === item.id)
+          .sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0))
+          .map((assignment: any) => {
+            const attendee = attendeeMap.get(assignment.attendee_id);
+            const name = attendee ? 
+              (attendee.name || `${attendee.first_name || ''} ${attendee.last_name || ''}`.trim()) :
+              `Speaker ${assignment.attendee_id}`;
+            
+            return {
+              id: assignment.id,
+              name,
+              role: assignment.role,
+              display_order: assignment.display_order
+            };
+          });
+        
+        // Create speakerInfo string for backward compatibility
+        const speakerInfo = speakers.length > 0 ? 
+          speakers.map(s => s.name).join(', ') : 
+          null;
+        
+        return {
+          ...item,
+          speakers,
+          speakerInfo // For backward compatibility with existing components
+        };
+      });
+      
+    } catch (error) {
+      console.warn('⚠️ Failed to enrich agenda items with speaker data:', error);
+      return agendaItems; // Return original items if enrichment fails
+    }
+  }
+
+  /**
    * Get active agenda items only
    */
   async getActiveAgendaItems(): Promise<PaginatedResponse<AgendaItem>> {
@@ -201,19 +256,22 @@ export class AgendaService implements IAgendaService {
       if (cachedData) {
         // Handle both direct array format and wrapped format
         const agendaItems = cachedData.data || cachedData;
-        const data = agendaItems
+        const filteredItems = agendaItems
           .filter((item: any) => item.isActive);
         
         console.log('🏠 CACHE: Using cached agenda items');
-        console.log('🏠 CACHE: Found', data.length, 'cached agenda items');
+        console.log('🏠 CACHE: Found', filteredItems.length, 'cached agenda items');
         
-        // If we have cached data, return it but also trigger a background refresh
-        if (data.length > 0) {
+        // If we have cached data, enrich with speaker data and return
+        if (filteredItems.length > 0) {
+          // Enrich with speaker data
+          const enrichedData = await this.enrichWithSpeakerData(filteredItems);
+          
           // Background refresh to ensure data is up to date
           this.refreshAgendaItemsInBackground();
           return {
-            data,
-            count: data.length,
+            data: enrichedData,
+            count: enrichedData.length,
             error: null,
             success: true
           };
@@ -255,7 +313,7 @@ export class AgendaService implements IAgendaService {
 
           if (freshCachedData) {
             const agendaItems = freshCachedData.data || freshCachedData;
-            const data = agendaItems
+            const filteredItems = agendaItems
               .filter((item: any) => item.isActive)
               .sort((a: any, b: any) => {
                 // First sort by date
@@ -266,10 +324,13 @@ export class AgendaService implements IAgendaService {
                 return (a.start_time || '').localeCompare(b.start_time || '')
               });
             
-            console.log('🌐 SYNC: Retrieved', data.length, 'agenda items from cache');
+            // Enrich with speaker data
+            const enrichedData = await this.enrichWithSpeakerData(filteredItems);
+            
+            console.log('🌐 SYNC: Retrieved', enrichedData.length, 'agenda items from cache');
             return {
-              data,
-              count: data.length,
+              data: enrichedData,
+              count: enrichedData.length,
               error: null,
               success: true
             };
