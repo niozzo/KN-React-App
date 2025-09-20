@@ -5,9 +5,11 @@
 import { ServiceContainer } from './ServiceContainer';
 import { AgendaService } from './agendaService';
 import { serverDataSyncService } from './serverDataSyncService';
+import { unifiedCacheService } from './unifiedCacheService';
 import type { IAgendaService } from './interfaces/IAgendaService';
 import type { IServerDataSyncService } from './interfaces/IServerDataSyncService';
 import type { ICacheService } from './interfaces/ICacheService';
+import type { IUnifiedCacheService } from './interfaces/IUnifiedCacheService';
 
 export class ServiceFactory {
   private static container = ServiceContainer.getInstance();
@@ -18,6 +20,7 @@ export class ServiceFactory {
   static createAgendaService(dependencies?: {
     serverDataSyncService?: IServerDataSyncService;
     cacheService?: ICacheService;
+    unifiedCache?: IUnifiedCacheService;
   }): IAgendaService {
     const serverSyncService = dependencies?.serverDataSyncService || 
       this.container.get<IServerDataSyncService>('serverDataSyncService');
@@ -25,7 +28,9 @@ export class ServiceFactory {
     const cacheService = dependencies?.cacheService || 
       this.container.get<ICacheService>('cacheService');
 
-    return new AgendaService(serverSyncService, cacheService);
+    const unifiedCache = dependencies?.unifiedCache || unifiedCacheService;
+
+    return new AgendaService(serverSyncService, cacheService, unifiedCache);
   }
 
   /**
@@ -34,8 +39,9 @@ export class ServiceFactory {
   static initializeDefaultServices(): void {
     // Register default services
     this.container.register('serverDataSyncService', serverDataSyncService);
+    this.container.register('unifiedCacheService', unifiedCacheService);
     
-    // Register a simple cache service implementation
+    // Register a simple cache service implementation for backward compatibility
     this.container.register('cacheService', {
       get: (key: string) => {
         try {

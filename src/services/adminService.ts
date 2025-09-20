@@ -1,25 +1,28 @@
 import { applicationDbService, SpeakerAssignment } from './applicationDatabaseService';
 import { pwaDataSyncService } from './pwaDataSyncService';
+import { unifiedCacheService } from './unifiedCacheService';
 
 export class AdminService {
   async getAgendaItemsWithAssignments(): Promise<any[]> {
-    // Get agenda items from local storage - check both possible keys
+    // Get agenda items from unified cache service
     let agendaItems = [];
     
-    // Try kn_cache_agenda_items first (your current structure)
-    const cachedData = localStorage.getItem('kn_cache_agenda_items');
-    if (cachedData) {
-      try {
-        const parsed = JSON.parse(cachedData);
-        agendaItems = parsed.data || parsed || [];
-      } catch (error) {
-        console.error('Error parsing kn_cache_agenda_items:', error);
+    try {
+      // Try kn_cache_agenda_items first (current structure)
+      const cachedData = await unifiedCacheService.get('kn_cache_agenda_items');
+      if (cachedData) {
+        agendaItems = cachedData.data || cachedData || [];
       }
-    }
-    
-    // Fallback to agendaItems if kn_cache_agenda_items is empty
-    if (agendaItems.length === 0) {
-      agendaItems = JSON.parse(localStorage.getItem('agendaItems') || '[]');
+      
+      // Fallback to legacy agendaItems if kn_cache_agenda_items is empty
+      if (agendaItems.length === 0) {
+        const legacyData = await unifiedCacheService.get('agendaItems');
+        if (legacyData) {
+          agendaItems = legacyData.data || legacyData || [];
+        }
+      }
+    } catch (error) {
+      console.error('Error loading agenda items from unified cache:', error);
     }
     
     console.log('Loaded agenda items:', agendaItems);

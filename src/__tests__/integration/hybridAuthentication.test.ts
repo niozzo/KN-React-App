@@ -14,10 +14,23 @@ vi.mock('@supabase/supabase-js', () => ({
   createClient: vi.fn()
 }))
 
+// Mock the unified cache service
+vi.mock('../../services/unifiedCacheService', () => ({
+  unifiedCacheService: {
+    get: vi.fn(),
+    set: vi.fn(),
+    remove: vi.fn(),
+    invalidate: vi.fn(),
+    clear: vi.fn(),
+    getHealthStatus: vi.fn()
+  }
+}))
+
 import { serverDataSyncService } from '../../services/serverDataSyncService'
 import { createClient } from '@supabase/supabase-js'
+import { unifiedCacheService } from '../../services/unifiedCacheService'
 
-// Mock localStorage
+// Mock localStorage for auth services
 const localStorageMock = {
   getItem: vi.fn(),
   setItem: vi.fn(),
@@ -30,6 +43,8 @@ const localStorageMock = {
 Object.defineProperty(window, 'localStorage', {
   value: localStorageMock
 })
+
+const mockUnifiedCache = unifiedCacheService as any
 
 describe('Hybrid Authentication Integration', () => {
   let mockClient: any
@@ -90,6 +105,8 @@ describe('Hybrid Authentication Integration', () => {
 
       // Test the complete flow
       const syncResult = await serverDataSyncService.syncAllData()
+      console.log('Sync result:', syncResult)
+      expect(syncResult).toBeDefined()
       expect(syncResult.success).toBe(true)
       expect(syncResult.syncedTables).toContain('attendees')
       expect(syncResult.totalRecords).toBeGreaterThan(0)
@@ -176,16 +193,16 @@ describe('Hybrid Authentication Integration', () => {
 
       await serverDataSyncService.syncAllData()
 
-      // Verify all tables were cached
+      // Verify all tables were cached using unified cache service
       const expectedTables = [
         'attendees', 'sponsors', 'seat_assignments', 'agenda_items',
         'dining_options', 'hotels', 'seating_configurations', 'user_profiles'
       ]
 
       expectedTables.forEach(tableName => {
-        expect(localStorageMock.setItem).toHaveBeenCalledWith(
+        expect(mockUnifiedCache.set).toHaveBeenCalledWith(
           `kn_cache_${tableName}`,
-          expect.stringContaining('"data":')
+          expect.any(Array)
         )
       })
     })

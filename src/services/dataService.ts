@@ -11,6 +11,7 @@
 // NOTE: All data access must go through server-side authenticated endpoints
 // to comply with RLS. Do not use the Supabase anon client from the browser.
 import { isUserAuthenticated } from './authService'
+import { unifiedCacheService } from './unifiedCacheService'
 import type { Attendee } from '../types/attendee'
 import type { AgendaItem } from '../types/agenda'
 import type { Sponsor } from '../types/sponsor'
@@ -115,17 +116,16 @@ export const getCurrentAttendeeData = async (): Promise<Attendee | null> => {
     const current = (await import('./authService.js')).getCurrentAttendee?.()
     if (!current?.id) return null
     
-    // PRIMARY: Check localStorage first (populated during login)
+    // PRIMARY: Check unified cache first (populated during login)
     try {
-      const cachedData = localStorage.getItem('kn_cache_attendees')
+      const cachedData = await unifiedCacheService.get('kn_cache_attendees')
       if (cachedData) {
-        const cacheObj = JSON.parse(cachedData)
         // Handle both direct array format and wrapped format
-        const attendees = cacheObj.data || cacheObj
+        const attendees = cachedData.data || cachedData
         const cachedAttendee = attendees.find((a: Attendee) => a.id === current.id)
         if (cachedAttendee) {
-          console.log('🏠 LOCALSTORAGE: Using cached attendee data from localStorage')
-          console.log('🏠 LOCALSTORAGE: Found attendee:', { id: cachedAttendee.id, name: `${cachedAttendee.first_name} ${cachedAttendee.last_name}` })
+          console.log('🏠 CACHE: Using cached attendee data from unified cache')
+          console.log('🏠 CACHE: Found attendee:', { id: cachedAttendee.id, name: `${cachedAttendee.first_name} ${cachedAttendee.last_name}` })
           return cachedAttendee
         }
       }
@@ -180,15 +180,14 @@ export const getAllAgendaItems = async (): Promise<AgendaItem[]> => {
   requireAuthentication()
   
   try {
-    // PRIMARY: Check localStorage first (populated during login)
+    // PRIMARY: Check unified cache first (populated during login)
     try {
-      const cachedData = localStorage.getItem('kn_cache_agenda_items')
+      const cachedData = await unifiedCacheService.get('kn_cache_agenda_items')
       if (cachedData) {
-        const cacheObj = JSON.parse(cachedData)
         // Handle both direct array format and wrapped format
-        const agendaItems = cacheObj.data || cacheObj
+        const agendaItems = cachedData.data || cachedData
         if (Array.isArray(agendaItems) && agendaItems.length > 0) {
-          console.log('✅ Using cached agenda items from localStorage')
+          console.log('✅ Using cached agenda items from unified cache')
           return [...agendaItems]
         }
       }

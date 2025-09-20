@@ -5,6 +5,8 @@
  * Provides easy access to logged-in attendee's basic information
  */
 
+import { unifiedCacheService } from './unifiedCacheService';
+
 export interface AttendeeInfo {
   id: string;
   first_name: string;
@@ -58,7 +60,7 @@ export class AttendeeInfoService {
    * Store attendee information in cache (sanitized version)
    * This removes sensitive information like access_code
    */
-  storeAttendeeInfo(attendeeInfo: AttendeeInfo): void {
+  async storeAttendeeInfo(attendeeInfo: AttendeeInfo): Promise<void> {
     try {
       const sanitizedInfo: CachedAttendeeInfo = {
         id: attendeeInfo.id,
@@ -70,14 +72,8 @@ export class AttendeeInfoService {
         title: attendeeInfo.title
       };
 
-      const cacheData = {
-        data: sanitizedInfo,
-        timestamp: Date.now(),
-        version: 1,
-        source: 'attendee-info-service'
-      };
-
-      localStorage.setItem(this.CACHE_KEY, JSON.stringify(cacheData));
+      // Use unified cache service for consistent caching
+      await unifiedCacheService.set(this.CACHE_KEY, sanitizedInfo);
       console.log('✅ Attendee info cached:', sanitizedInfo.full_name);
     } catch (error) {
       console.error('❌ Failed to cache attendee info:', error);
@@ -88,23 +84,15 @@ export class AttendeeInfoService {
   /**
    * Get cached attendee information
    */
-  getCachedAttendeeInfo(): CachedAttendeeInfo | null {
+  async getCachedAttendeeInfo(): Promise<CachedAttendeeInfo | null> {
     try {
-      const cached = localStorage.getItem(this.CACHE_KEY);
+      const cached = await unifiedCacheService.get(this.CACHE_KEY);
       if (!cached) {
         return null;
       }
 
-      const cacheData = JSON.parse(cached);
-      
-      // Check if cache is expired
-      if (Date.now() - cacheData.timestamp > this.CACHE_EXPIRY) {
-        console.log('⚠️ Attendee info cache expired, clearing...');
-        this.clearAttendeeInfo();
-        return null;
-      }
-
-      return cacheData.data || null;
+      // Unified cache service handles expiration automatically
+      return cached.data || cached || null;
     } catch (error) {
       console.error('❌ Failed to get cached attendee info:', error);
       return null;
@@ -114,8 +102,8 @@ export class AttendeeInfoService {
   /**
    * Get attendee name (first and last name)
    */
-  getAttendeeName(): { first_name: string; last_name: string; full_name: string } | null {
-    const info = this.getCachedAttendeeInfo();
+  async getAttendeeName(): Promise<{ first_name: string; last_name: string; full_name: string } | null> {
+    const info = await this.getCachedAttendeeInfo();
     if (!info) {
       return null;
     }
@@ -137,9 +125,9 @@ export class AttendeeInfoService {
   /**
    * Clear cached attendee information
    */
-  clearAttendeeInfo(): void {
+  async clearAttendeeInfo(): Promise<void> {
     try {
-      localStorage.removeItem(this.CACHE_KEY);
+      await unifiedCacheService.remove(this.CACHE_KEY);
       console.log('🗑️ Attendee info cache cleared');
     } catch (error) {
       console.error('❌ Failed to clear attendee info cache:', error);
@@ -149,16 +137,16 @@ export class AttendeeInfoService {
   /**
    * Check if attendee info is cached and valid
    */
-  hasValidAttendeeInfo(): boolean {
-    const info = this.getCachedAttendeeInfo();
+  async hasValidAttendeeInfo(): Promise<boolean> {
+    const info = await this.getCachedAttendeeInfo();
     return info !== null && !!info.id && !!info.first_name && !!info.last_name;
   }
 
   /**
    * Update attendee information (useful for profile updates)
    */
-  updateAttendeeInfo(updates: Partial<CachedAttendeeInfo>): void {
-    const currentInfo = this.getCachedAttendeeInfo();
+  async updateAttendeeInfo(updates: Partial<CachedAttendeeInfo>): Promise<void> {
+    const currentInfo = await this.getCachedAttendeeInfo();
     if (!currentInfo) {
       throw new Error('No cached attendee info to update');
     }
@@ -171,7 +159,7 @@ export class AttendeeInfoService {
         : currentInfo.full_name
     };
 
-    this.storeAttendeeInfo(updatedInfo as AttendeeInfo);
+    await this.storeAttendeeInfo(updatedInfo as AttendeeInfo);
   }
 }
 

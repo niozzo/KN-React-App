@@ -8,6 +8,7 @@
 import { pwaDataSyncService } from './pwaDataSyncService';
 import { serverDataSyncService } from './serverDataSyncService';
 import { getAuthStatus } from './authService';
+import { unifiedCacheService } from './unifiedCacheService';
 
 export interface DataInitializationResult {
   success: boolean;
@@ -35,7 +36,7 @@ export class DataInitializationService {
       }
 
       // Step 2: Check if data already exists in localStorage
-      const hasCachedData = this.hasCachedData();
+      const hasCachedData = await this.hasCachedData();
       if (hasCachedData) {
         console.log('✅ Data already cached, admin panel ready');
         return {
@@ -74,28 +75,25 @@ export class DataInitializationService {
   }
 
   /**
-   * Check if required data exists in localStorage
+   * Check if required data exists in unified cache
    */
-  private hasCachedData(): boolean {
+  private async hasCachedData(): Promise<boolean> {
     try {
       // Check for agenda items (required for admin panel)
-      const agendaData = localStorage.getItem('kn_cache_agenda_items');
+      const agendaData = await unifiedCacheService.get('kn_cache_agenda_items');
       if (!agendaData) {
         return false;
       }
 
       // Check for attendees (required for admin panel)
-      const attendeeData = localStorage.getItem('kn_cache_attendees');
+      const attendeeData = await unifiedCacheService.get('kn_cache_attendees');
       if (!attendeeData) {
         return false;
       }
 
-      // Parse and validate data structure
-      const agendaItems = JSON.parse(agendaData);
-      const attendees = JSON.parse(attendeeData);
-      
-      const agendaArray = agendaItems.data || agendaItems || [];
-      const attendeeArray = attendees.data || attendees || [];
+      // Validate data structure
+      const agendaArray = agendaData.data || agendaData || [];
+      const attendeeArray = attendeeData.data || attendeeData || [];
 
       // Ensure we have actual data, not just empty arrays
       return agendaArray.length > 0 && attendeeArray.length > 0;
