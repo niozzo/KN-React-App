@@ -15,6 +15,7 @@ import type { ICacheService } from './interfaces/ICacheService';
 import type { ServiceResult } from './interfaces/IAgendaService';
 import { pwaDataSyncService } from './pwaDataSyncService';
 import { cacheMonitoringService } from './cacheMonitoringService';
+import { cacheVersioningService, type CacheEntry } from './cacheVersioningService';
 
 export class AgendaService implements IAgendaService {
   private backgroundRefreshInProgress = false;
@@ -290,20 +291,43 @@ export class AgendaService implements IAgendaService {
           sessionId
         });
         
-        // Check for future timestamps (cache corruption detection)
-        if (cachedData.timestamp) {
-          const now = Date.now();
-          const cacheTime = new Date(cachedData.timestamp).getTime();
-          if (cacheTime > now) {
-            console.warn('⚠️ Future timestamp detected in agenda cache, clearing...');
-            cacheMonitoringService.logCacheCorruption(cacheKey, 'Future timestamp detected', {
-              cacheTime: new Date(cacheTime).toISOString(),
-              currentTime: new Date(now).toISOString(),
-              timeDifference: cacheTime - now
+        // ✅ NEW: Use cache versioning service for validation
+        let cacheEntry: CacheEntry;
+        let validationResult;
+        
+        try {
+          // Migrate old cache format if needed
+          cacheEntry = cacheVersioningService.migrateCacheEntry(cachedData) || 
+                      cacheVersioningService.createCacheEntry(agendaItems);
+          
+          // Validate cache entry
+          validationResult = cacheVersioningService.validateCacheEntry(cacheEntry);
+          
+          console.log('🔍 CACHE VALIDATION:', {
+            isValid: validationResult.isValid,
+            isExpired: validationResult.isExpired,
+            isVersionValid: validationResult.isVersionValid,
+            isChecksumValid: validationResult.isChecksumValid,
+            age: Math.round(validationResult.age / 1000) + 's',
+            issues: validationResult.issues
+          });
+          
+          if (!validationResult.isValid) {
+            console.warn('⚠️ Cache validation failed:', validationResult.issues);
+            cacheMonitoringService.logCacheCorruption(cacheKey, `Validation failed: ${validationResult.issues?.join(', ')}`, {
+              validationResult,
+              cacheEntry
             });
             localStorage.removeItem(cacheKey);
             // Fall through to server sync
           } else if (agendaItems.length > 0) {
+            // Check if cache needs refresh
+            const needsRefresh = cacheVersioningService.needsRefresh(cacheEntry);
+            if (needsRefresh) {
+              console.log('🔄 Cache needs refresh, triggering background sync');
+              this.refreshAgendaItemsInBackground();
+            }
+            
             // ✅ FIX: Check if cache exists (has data), not just if filtered items exist
             const responseTime = Date.now() - startTime;
             cacheMonitoringService.logCacheHit(cacheKey, JSON.stringify(cachedData).length, responseTime);
@@ -311,8 +335,6 @@ export class AgendaService implements IAgendaService {
             // Enrich with speaker data
             const enrichedData = await this.enrichWithSpeakerData(filteredItems);
             
-            // Background refresh to ensure data is up to date
-            this.refreshAgendaItemsInBackground();
             return {
               data: enrichedData,
               count: enrichedData.length,
@@ -320,22 +342,14 @@ export class AgendaService implements IAgendaService {
               success: true
             };
           }
-        } else if (agendaItems.length > 0) {
-          // ✅ FIX: Check if cache exists (has data), not just if filtered items exist
-          const responseTime = Date.now() - startTime;
-          cacheMonitoringService.logCacheHit(cacheKey, JSON.stringify(cachedData).length, responseTime);
-          
-          // Enrich with speaker data
-          const enrichedData = await this.enrichWithSpeakerData(filteredItems);
-          
-          // Background refresh to ensure data is up to date
-          this.refreshAgendaItemsInBackground();
-          return {
-            data: enrichedData,
-            count: enrichedData.length,
-            error: null,
-            success: true
-          };
+        } catch (versioningError) {
+          console.warn('⚠️ Cache versioning validation failed:', versioningError);
+          cacheMonitoringService.logCacheCorruption(cacheKey, `Versioning error: ${versioningError.message}`, {
+            error: versioningError,
+            cachedData
+          });
+          localStorage.removeItem(cacheKey);
+          // Fall through to server sync
         }
       }
       

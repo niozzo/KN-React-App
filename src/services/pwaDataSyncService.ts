@@ -12,6 +12,7 @@ import { supabase } from '../lib/supabase';
 import { sanitizeAttendeeForStorage } from '../types/attendee';
 import { applicationDb } from './applicationDatabaseService';
 import { cacheMonitoringService } from './cacheMonitoringService';
+import { cacheVersioningService, type CacheEntry } from './cacheVersioningService';
 
 export interface SyncStatus {
   isOnline: boolean;
@@ -413,13 +414,19 @@ export class PWADataSyncService {
         sanitizedData = data.map(attendee => sanitizeAttendeeForStorage(attendee));
       }
       
-      const cacheData = {
-        data: sanitizedData,
-        timestamp: Date.now(),
-        version: 1
-      };
+      // ✅ NEW: Use cache versioning service for proper cache entry creation
+      const cacheEntry = cacheVersioningService.createCacheEntry(sanitizedData);
+      
+      // Log cache operation
+      console.log(`💾 Caching ${tableName} with versioning:`, {
+        tableName,
+        recordCount: sanitizedData.length,
+        version: cacheEntry.version,
+        ttl: Math.round(cacheEntry.ttl / 1000) + 's',
+        checksum: cacheEntry.checksum
+      });
 
-      localStorage.setItem(cacheKey, JSON.stringify(cacheData));
+      localStorage.setItem(cacheKey, JSON.stringify(cacheEntry));
       
       // Update cache size tracking
       this.updateCacheSize();
