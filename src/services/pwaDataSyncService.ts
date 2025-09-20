@@ -11,6 +11,7 @@ import { SchemaValidationService } from './schemaValidationService';
 import { supabase } from '../lib/supabase';
 import { sanitizeAttendeeForStorage } from '../types/attendee';
 import { applicationDb } from './applicationDatabaseService';
+import { cacheMonitoringService } from './cacheMonitoringService';
 
 export interface SyncStatus {
   isOnline: boolean;
@@ -119,7 +120,25 @@ export class PWADataSyncService {
 
     // Sync when page becomes visible (only if authenticated)
     document.addEventListener('visibilitychange', () => {
-      if (!document.hidden && this.syncStatus.isOnline && this.isUserAuthenticated()) {
+      const willSync = !document.hidden && this.syncStatus.isOnline && this.isUserAuthenticated();
+      
+      // Log visibility change with sync decision
+      console.log('👁️ VISIBILITY CHANGE:', {
+        hidden: document.hidden,
+        isOnline: this.syncStatus.isOnline,
+        isAuthenticated: this.isUserAuthenticated(),
+        willSync,
+        timestamp: new Date().toISOString(),
+        lastSync: this.syncStatus.lastSync
+      });
+      
+      cacheMonitoringService.logVisibilityChange(document.hidden, willSync, {
+        isOnline: this.syncStatus.isOnline,
+        isAuthenticated: this.isUserAuthenticated(),
+        lastSync: this.syncStatus.lastSync
+      });
+      
+      if (willSync) {
         this.syncAllData();
       }
     });
@@ -191,7 +210,10 @@ export class PWADataSyncService {
    * Sync all data tables
    */
   async syncAllData(): Promise<SyncResult> {
+    const sessionId = cacheMonitoringService.getSessionId();
+    
     if (this.syncStatus.syncInProgress) {
+      cacheMonitoringService.logSyncFailure('syncAllData', 'Sync already in progress', { sessionId });
       return {
         success: false,
         syncedTables: [],
@@ -203,8 +225,10 @@ export class PWADataSyncService {
     // Validate cache health before syncing
     if (!this.validateCacheHealth()) {
       console.warn('⚠️ Cache health validation failed, proceeding with fresh sync');
+      cacheMonitoringService.logCacheCorruption('sync_health_check', 'Cache health validation failed', { sessionId });
     }
 
+    console.log('🌐 SYNC: Starting sync operation', { sessionId, timestamp: new Date().toISOString() });
     this.syncStatus.syncInProgress = true;
     this.saveSyncStatus();
 
@@ -264,14 +288,26 @@ export class PWADataSyncService {
       this.syncStatus.syncInProgress = false;
       this.saveSyncStatus();
       
+      console.log('🌐 SYNC: Sync completed', {
+        success: result.success,
+        syncedTables: result.syncedTables.length,
+        errors: result.errors.length,
+        sessionId,
+        timestamp: new Date().toISOString()
+      });
+      
       if (result.errors.length > 0) {
         console.warn(`⚠️ Sync completed with errors: ${result.errors.join(', ')}`);
+        result.errors.forEach(error => {
+          cacheMonitoringService.logSyncFailure('syncAllData', error, { sessionId, syncedTables: result.syncedTables });
+        });
       }
 
     } catch (error) {
       console.error('❌ Sync failed:', error);
       result.success = false;
       result.errors.push(error instanceof Error ? error.message : 'Unknown error');
+      cacheMonitoringService.logSyncFailure('syncAllData', error.message, { sessionId, error });
     } finally {
       this.syncStatus.syncInProgress = false;
       this.saveSyncStatus();

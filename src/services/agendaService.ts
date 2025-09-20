@@ -14,6 +14,7 @@ import type { IServerDataSyncService } from './interfaces/IServerDataSyncService
 import type { ICacheService } from './interfaces/ICacheService';
 import type { ServiceResult } from './interfaces/IAgendaService';
 import { pwaDataSyncService } from './pwaDataSyncService';
+import { cacheMonitoringService } from './cacheMonitoringService';
 
 export class AgendaService implements IAgendaService {
   private backgroundRefreshInProgress = false;
@@ -236,10 +237,22 @@ export class AgendaService implements IAgendaService {
    * Get active agenda items only
    */
   async getActiveAgendaItems(): Promise<PaginatedResponse<AgendaItem>> {
+    const startTime = Date.now();
+    const sessionId = cacheMonitoringService.getSessionId();
+    
     try {
       // Use injected cache service or fallback to localStorage
       const cacheKey = 'kn_cache_agenda_items';
       let cachedData = null;
+      
+      // Log cache access attempt
+      console.log('🔍 CACHE DEBUG:', {
+        cacheKey,
+        sessionId,
+        timestamp: new Date().toISOString(),
+        userAgent: navigator.userAgent,
+        hasCacheService: !!this.cacheService
+      });
       
       if (this.cacheService) {
         cachedData = this.cacheService.get(cacheKey);
@@ -250,6 +263,7 @@ export class AgendaService implements IAgendaService {
           cachedData = item ? JSON.parse(item) : null;
         } catch (cacheError) {
           console.warn('⚠️ Failed to load cached agenda items:', cacheError);
+          cacheMonitoringService.logCacheCorruption(cacheKey, cacheError.message, { error: cacheError });
         }
       }
 
@@ -259,9 +273,22 @@ export class AgendaService implements IAgendaService {
         const filteredItems = agendaItems
           .filter((item: any) => item.isActive);
         
+        // Log cache state details
         console.log('🏠 CACHE: Using cached agenda items');
         console.log('🏠 CACHE: Found', agendaItems.length, 'total cached agenda items');
         console.log('🏠 CACHE: Found', filteredItems.length, 'active cached agenda items');
+        
+        // Log detailed cache state
+        console.log('🔍 CACHE DEBUG:', {
+          cacheKey: 'kn_cache_agenda_items',
+          hasCachedData: !!cachedData,
+          cachedDataKeys: cachedData ? Object.keys(cachedData) : [],
+          totalItems: agendaItems.length,
+          filteredItemsCount: filteredItems.length,
+          timestamp: new Date().toISOString(),
+          userAgent: navigator.userAgent,
+          sessionId
+        });
         
         // Check for future timestamps (cache corruption detection)
         if (cachedData.timestamp) {
@@ -269,10 +296,18 @@ export class AgendaService implements IAgendaService {
           const cacheTime = new Date(cachedData.timestamp).getTime();
           if (cacheTime > now) {
             console.warn('⚠️ Future timestamp detected in agenda cache, clearing...');
+            cacheMonitoringService.logCacheCorruption(cacheKey, 'Future timestamp detected', {
+              cacheTime: new Date(cacheTime).toISOString(),
+              currentTime: new Date(now).toISOString(),
+              timeDifference: cacheTime - now
+            });
             localStorage.removeItem(cacheKey);
             // Fall through to server sync
           } else if (agendaItems.length > 0) {
             // ✅ FIX: Check if cache exists (has data), not just if filtered items exist
+            const responseTime = Date.now() - startTime;
+            cacheMonitoringService.logCacheHit(cacheKey, JSON.stringify(cachedData).length, responseTime);
+            
             // Enrich with speaker data
             const enrichedData = await this.enrichWithSpeakerData(filteredItems);
             
@@ -287,6 +322,9 @@ export class AgendaService implements IAgendaService {
           }
         } else if (agendaItems.length > 0) {
           // ✅ FIX: Check if cache exists (has data), not just if filtered items exist
+          const responseTime = Date.now() - startTime;
+          cacheMonitoringService.logCacheHit(cacheKey, JSON.stringify(cachedData).length, responseTime);
+          
           // Enrich with speaker data
           const enrichedData = await this.enrichWithSpeakerData(filteredItems);
           
@@ -303,10 +341,15 @@ export class AgendaService implements IAgendaService {
       
       // FALLBACK: Use serverDataSyncService if no cached data exists or cache is empty
       console.log('🌐 SYNC: No cached agenda items found, using serverDataSyncService...');
+      cacheMonitoringService.logCacheMiss(cacheKey, 'No cached data available', Date.now() - startTime);
       
       if (!this.serverDataSyncService) {
         // If no service injected, return empty data
         console.warn('⚠️ No serverDataSyncService available');
+        cacheMonitoringService.logSyncFailure('getActiveAgendaItems', 'No serverDataSyncService available', {
+          cacheKey,
+          sessionId
+        });
         return {
           data: [],
           count: 0,
@@ -320,6 +363,7 @@ export class AgendaService implements IAgendaService {
         
         if (syncResult.success && syncResult.syncedTables.includes('agenda_items')) {
           console.log('🌐 SYNC: Successfully synced agenda items');
+          cacheMonitoringService.logCacheHit(cacheKey, 'Fresh data from sync', Date.now() - startTime);
           
           // Get the fresh data from cache
           let freshCachedData = null;
@@ -331,6 +375,7 @@ export class AgendaService implements IAgendaService {
               freshCachedData = item ? JSON.parse(item) : null;
             } catch (error) {
               console.warn('⚠️ Failed to load fresh cached data:', error);
+              cacheMonitoringService.logCacheCorruption(cacheKey, 'Failed to load fresh data', { error: error.message });
             }
           }
 
@@ -362,6 +407,11 @@ export class AgendaService implements IAgendaService {
         
         // If serverDataSyncService failed, return empty data
         console.warn('⚠️ serverDataSyncService failed, returning empty agenda items');
+        cacheMonitoringService.logSyncFailure('getActiveAgendaItems', 'Sync failed', {
+          cacheKey,
+          sessionId,
+          syncResult
+        });
         return {
           data: [],
           count: 0,
@@ -370,6 +420,11 @@ export class AgendaService implements IAgendaService {
         };
       } catch (syncError) {
         console.error('❌ serverDataSyncService error:', syncError);
+        cacheMonitoringService.logSyncFailure('getActiveAgendaItems', syncError.message, {
+          cacheKey,
+          sessionId,
+          error: syncError
+        });
         return {
           data: [],
           count: 0,
@@ -379,6 +434,11 @@ export class AgendaService implements IAgendaService {
       }
     } catch (err) {
       console.error('❌ AgendaService.getActiveAgendaItems error:', err);
+      cacheMonitoringService.logSyncFailure('getActiveAgendaItems', err.message, {
+        cacheKey: 'kn_cache_agenda_items',
+        sessionId,
+        error: err
+      });
       return {
         data: [],
         count: 0,

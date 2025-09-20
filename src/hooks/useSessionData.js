@@ -9,6 +9,7 @@ import { agendaService } from '../services/agendaService.ts';
 import { getCurrentAttendeeData, getAttendeeSeatAssignments } from '../services/dataService.ts';
 import TimeService from '../services/timeService';
 import { useAuth } from '../contexts/AuthContext';
+import { cacheMonitoringService } from '../services/cacheMonitoringService.ts';
 
 /**
  * Determine if a session is currently active
@@ -114,15 +115,19 @@ export const useSessionData = (options = {}) => {
 
   // Load session data
   const loadSessionData = useCallback(async () => {
+    const sessionId = cacheMonitoringService.getSessionId();
+    
     // Don't load data if not authenticated
     if (!isAuthenticated) {
       console.log('🔄 useSessionData: Not authenticated, skipping data load');
+      cacheMonitoringService.logStateTransition('useSessionData', { authenticated: false }, { authenticated: false }, 'skipped');
       setIsLoading(false);
       return;
     }
 
     try {
       console.log('🔄 useSessionData: Starting data load...');
+      cacheMonitoringService.logStateTransition('useSessionData', { loading: false }, { loading: true }, 'start');
       setIsLoading(true);
       setError(null);
 
@@ -145,12 +150,14 @@ export const useSessionData = (options = {}) => {
       const agendaResponse = await agendaService.getActiveAgendaItems();
       if (!agendaResponse.success) {
         console.warn('⚠️ Failed to load agenda items:', agendaResponse.error);
+        cacheMonitoringService.logStateTransition('useSessionData', { agendaLoaded: false }, { agendaLoaded: false, error: agendaResponse.error }, 'agenda-failed');
         
         // ✅ FIX: Try to load from cache as fallback
         try {
           const cachedSessions = loadFromCache();
           if (cachedSessions.length > 0) {
             console.log('🏠 CACHE: Loading sessions from cache as fallback');
+            cacheMonitoringService.logStateTransition('useSessionData', { sessions: [] }, { sessions: cachedSessions }, 'cache-fallback');
             setAllSessions(cachedSessions);
             setSessions(filterSessionsForAttendee(cachedSessions, attendeeData));
             setLastUpdated(new Date());
@@ -158,9 +165,11 @@ export const useSessionData = (options = {}) => {
           }
         } catch (cacheError) {
           console.warn('⚠️ Failed to load from cache:', cacheError);
+          cacheMonitoringService.logCacheCorruption('kn_cached_sessions', cacheError.message, { error: cacheError });
         }
         
         // Only set empty arrays if no cache available
+        cacheMonitoringService.logStateTransition('useSessionData', { sessions: [] }, { sessions: [] }, 'empty-fallback');
         setAllSessions([]);
         setSessions([]);
         setLastUpdated(new Date());
@@ -174,6 +183,21 @@ export const useSessionData = (options = {}) => {
       
       // Filter sessions for current attendee based on session type and breakout assignments
       let filteredSessions = filterSessionsForAttendee(allSessionsData, attendeeData);
+
+      // Log state transition with detailed data
+      console.log('🔄 STATE TRANSITION:', {
+        allSessionsCount: allSessionsData.length,
+        filteredSessionsCount: filteredSessions.length,
+        attendeeId: attendeeData?.id,
+        timestamp: new Date().toISOString(),
+        loadingSource: 'server'
+      });
+      
+      cacheMonitoringService.logStateTransition('useSessionData', 
+        { sessions: [], allSessions: [] }, 
+        { sessions: filteredSessions, allSessions: allSessionsData }, 
+        'server-success'
+      );
 
       setSessions(filteredSessions);
       setLastUpdated(new Date());
@@ -232,6 +256,7 @@ export const useSessionData = (options = {}) => {
 
     } catch (err) {
       console.error('❌ Error loading session data:', err);
+      cacheMonitoringService.logStateTransition('useSessionData', { error: null }, { error: err.message }, 'error');
       setError(err.message);
       
       // Try to load from cache if offline
@@ -240,6 +265,7 @@ export const useSessionData = (options = {}) => {
           const cachedData = localStorage.getItem('kn_cached_sessions');
           if (cachedData) {
             const parsed = JSON.parse(cachedData);
+            cacheMonitoringService.logStateTransition('useSessionData', { sessions: [] }, { sessions: parsed.sessions || [] }, 'offline-cache');
             setSessions(parsed.sessions || []);
             setCurrentSession(parsed.currentSession || null);
             setNextSession(parsed.nextSession || null);
@@ -247,9 +273,11 @@ export const useSessionData = (options = {}) => {
           }
         } catch (cacheErr) {
           console.warn('⚠️ Failed to load cached session data:', cacheErr);
+          cacheMonitoringService.logCacheCorruption('kn_cached_sessions', cacheErr.message, { error: cacheErr });
         }
       }
     } finally {
+      cacheMonitoringService.logStateTransition('useSessionData', { loading: true }, { loading: false }, 'complete');
       setIsLoading(false);
     }
   }, [enableOfflineMode, isOffline, isAuthenticated]);
