@@ -24,17 +24,29 @@ export class AdminService {
     
     console.log('Loaded agenda items:', agendaItems);
     
+    // Get edited titles from application database metadata
+    const agendaItemMetadata = await pwaDataSyncService.getCachedTableData('agenda_item_metadata');
+    console.log('Loaded agenda item metadata from cache:', agendaItemMetadata);
+    
     // Get speaker assignments from local storage first
     const speakerAssignments = await pwaDataSyncService.getCachedTableData('speaker_assignments');
     console.log('Loaded speaker assignments from cache:', speakerAssignments);
     
-    // Map assignments to agenda items
+    // Map assignments to agenda items and override titles with edited versions
     const itemsWithAssignments = agendaItems.map((item: any) => {
+      // Find any edited metadata for this agenda item
+      const metadata = agendaItemMetadata.find((meta: any) => meta.id === item.id);
+      
+      // Override title if it was edited in the application database
+      const finalTitle = metadata?.title || item.title;
+      
       const assignments = speakerAssignments
         .filter((assignment: any) => assignment.agenda_item_id === item.id)
         .sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0));
+      
       return {
         ...item,
+        title: finalTitle, // Use edited title if available
         speaker_assignments: assignments
       };
     });

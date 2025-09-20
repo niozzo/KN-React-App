@@ -11,22 +11,119 @@ export default defineConfig({
       devOptions: {
         enabled: false  // Disable PWA in development to prevent interference
       },
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.png', 'icons/*'],
       manifest: {
-        name: 'KnowledgeNow 2025',
-        short_name: 'KN2025',
-        description: 'KnowledgeNow 2025 conference companion app for seamless event management',
-        theme_color: '#1976d2',
-        background_color: '#ffffff',
+        name: 'Apax KnowledgeNow 2025 App',
+        short_name: 'KnowledgeNow 2025',
+        description: 'Apax KnowledgeNow 2025 - Conference PWA Application',
+        start_url: '/',
         display: 'standalone',
+        background_color: '#FFFFFF',
+        theme_color: '#9468CE',
         orientation: 'portrait-primary',
         scope: '/',
-        start_url: '/',
+        lang: 'en',
+        categories: ['business', 'productivity', 'utilities'],
         icons: [
           {
-            src: 'icon.svg',
+            src: '/icons/icon-72x72.png',
+            sizes: '72x72',
+            type: 'image/png',
+            purpose: 'any'
+          },
+          {
+            src: '/icons/icon-96x96.png',
+            sizes: '96x96',
+            type: 'image/png',
+            purpose: 'any'
+          },
+          {
+            src: '/icons/icon-144x144.png',
+            sizes: '144x144',
+            type: 'image/png',
+            purpose: 'any'
+          },
+          {
+            src: '/icons/icon-152x152.png',
+            sizes: '152x152',
+            type: 'image/png',
+            purpose: 'any'
+          },
+          {
+            src: '/icons/icon-180x180.png',
+            sizes: '180x180',
+            type: 'image/png',
+            purpose: 'any'
+          },
+          {
+            src: '/icons/icon-192x192.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'any'
+          },
+          {
+            src: '/icons/icon-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any'
+          },
+          {
+            src: '/icons/masked-icon.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable'
+          },
+          {
+            src: '/icons/icon.svg',
             sizes: 'any',
-            type: 'image/svg+xml'
+            type: 'image/svg+xml',
+            purpose: 'any'
+          }
+        ],
+        screenshots: [
+          {
+            src: '/screenshots/mobile-390x844.png',
+            sizes: '390x844',
+            type: 'image/png',
+            form_factor: 'narrow'
+          },
+          {
+            src: '/screenshots/tablet-768x1024.png',
+            sizes: '768x1024',
+            type: 'image/png',
+            form_factor: 'wide'
+          },
+          {
+            src: '/screenshots/desktop-1280x720.png',
+            sizes: '1280x720',
+            type: 'image/png',
+            form_factor: 'wide'
+          }
+        ],
+        shortcuts: [
+          {
+            name: 'View Schedule',
+            short_name: 'Schedule',
+            description: 'View the conference schedule',
+            url: '/schedule',
+            icons: [
+              {
+                src: '/icons/icon-96x96.png',
+                sizes: '96x96'
+              }
+            ]
+          },
+          {
+            name: 'Meet People',
+            short_name: 'Meet',
+            description: 'Connect with other attendees',
+            url: '/meet',
+            icons: [
+              {
+                src: '/icons/icon-96x96.png',
+                sizes: '96x96'
+              }
+            ]
           }
         ]
       },
