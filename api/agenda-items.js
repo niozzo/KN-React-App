@@ -3,33 +3,11 @@
  * Story 2.1: Now/Next Glance Card - API Fallback Implementation
  */
 
-import { createClient } from '@supabase/supabase-js'
+import { getAuthenticatedClient } from './supabaseClient.js'
 import { AgendaTransformer } from '../src/transformers/agendaTransformer.js'
-
-// Supabase configuration
-const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
 // Create transformer instance
 const agendaTransformer = new AgendaTransformer()
-
-// Authentication function
-async function getAuthenticatedClient() {
-  const supabaseClient = createClient(supabaseUrl, supabaseKey)
-  
-  // Authenticate with stored credentials
-  const { data, error } = await supabaseClient.auth.signInWithPassword({
-    email: process.env.SUPABASE_USER_EMAIL || 'ishan.gammampila@apax.com',
-    password: process.env.SUPABASE_USER_PASSWORD || 'xx8kRx#tn@R?'
-  })
-  
-  if (error) {
-    console.error('❌ Authentication failed:', error.message)
-    throw new Error('AUTHENTICATION_REQUIRED')
-  }
-  
-  return supabaseClient
-}
 
 // Fetch table rows helper
 async function fetchTableRows(tableName, limit = 100) {
@@ -54,6 +32,16 @@ async function fetchTableRows(tableName, limit = 100) {
 
 // Main API handler
 export default async function handler(req, res) {
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end()
+  }
+  
   // Only allow GET requests
   if (req.method !== 'GET') {
     return res.status(405).json({
@@ -70,10 +58,22 @@ export default async function handler(req, res) {
     const { data: rawData, error } = await fetchTableRows('agenda_items', limit)
     
     if (error) {
+      console.error('❌ Database error:', error.message)
       return res.status(500).json({
         success: false,
         data: null,
         error: error.message,
+        timestamp: new Date().toISOString()
+      })
+    }
+
+    // Validate data before transformation
+    if (!rawData || !Array.isArray(rawData)) {
+      console.error('❌ Invalid data format received from database')
+      return res.status(500).json({
+        success: false,
+        data: null,
+        error: 'Invalid data format received from database',
         timestamp: new Date().toISOString()
       })
     }
@@ -107,6 +107,7 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('❌ API: Unexpected error:', error.message)
+    console.error('❌ Stack trace:', error.stack)
     return res.status(500).json({
       success: false,
       data: null,

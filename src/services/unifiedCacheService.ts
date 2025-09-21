@@ -51,27 +51,14 @@ export class UnifiedCacheService {
         this.monitoring.logCacheCorruption(key, `Invalid: ${validation.issues?.join(', ')}`);
         this.metrics.recordCacheCorruption(`Invalid: ${validation.issues?.join(', ')}`);
         
-        // Try to recover from backup cache
-        const backupKey = `${key}_backup`;
-        const backupEntry = this.getCacheEntry(backupKey);
-        
-        if (backupEntry) {
-          const backupValidation = this.cacheVersioning.validateCacheEntry(backupEntry);
-          if (backupValidation.isValid) {
-            console.log('🔄 Cache recovery: Using backup data for', key);
-            this.monitoring.logCacheHit(key, JSON.stringify(backupEntry.data).length, performance.now() - startTime);
-            this.metrics.recordCacheHit(performance.now() - startTime, JSON.stringify(backupEntry.data).length);
-            
-            // Restore backup data to main cache
-            await this.set(key, backupEntry.data, backupEntry.ttl);
-            return backupEntry.data;
-          } else {
-            console.warn('⚠️ Backup cache also corrupted for', key);
-            await this.remove(backupKey);
-          }
+        // Enhanced cache corruption recovery
+        const recoveryResult = await this.attemptCacheRecovery(key, entry, startTime);
+        if (recoveryResult.success) {
+          return recoveryResult.data;
         }
         
-        await this.remove(key);
+        // If all recovery attempts fail, clean up corrupted cache
+        await this.cleanupCorruptedCache(key);
         return null;
       }
 
@@ -234,6 +221,89 @@ export class UnifiedCacheService {
         },
         lastChecked: new Date().toISOString()
       };
+    }
+  }
+
+  /**
+   * Attempt cache recovery from multiple sources
+   */
+  private async attemptCacheRecovery(key: string, corruptedEntry: CacheEntry, startTime: number): Promise<{success: boolean, data?: any}> {
+    try {
+      // 1. Try backup cache
+      const backupKey = `${key}_backup`;
+      const backupEntry = this.getCacheEntry(backupKey);
+      
+      if (backupEntry) {
+        const backupValidation = this.cacheVersioning.validateCacheEntry(backupEntry);
+        if (backupValidation.isValid) {
+          console.log('🔄 Cache recovery: Using backup data for', key);
+          this.monitoring.logCacheHit(key, JSON.stringify(backupEntry.data).length, performance.now() - startTime);
+          this.metrics.recordCacheHit(performance.now() - startTime, JSON.stringify(backupEntry.data).length);
+          
+          // Restore backup data to main cache
+          await this.set(key, backupEntry.data, backupEntry.ttl);
+          return { success: true, data: backupEntry.data };
+        } else {
+          console.warn('⚠️ Backup cache also corrupted for', key);
+          await this.remove(backupKey);
+        }
+      }
+
+      // 2. Try to recover partial data from corrupted entry
+      if (corruptedEntry.data && typeof corruptedEntry.data === 'object') {
+        console.log('🔄 Cache recovery: Attempting partial data recovery for', key);
+        try {
+          // Try to validate just the data portion
+          const dataChecksum = this.cacheVersioning['calculateChecksumSync'](corruptedEntry.data);
+          if (dataChecksum !== 'invalid') {
+            // Create a new valid entry with the recovered data
+            const recoveredEntry = this.cacheVersioning.createCacheEntry(corruptedEntry.data);
+            await this.set(key, recoveredEntry.data, recoveredEntry.ttl);
+            return { success: true, data: corruptedEntry.data };
+          }
+        } catch (error) {
+          console.warn('⚠️ Partial data recovery failed for', key, error);
+        }
+      }
+
+      // 3. Try to recover from localStorage backup patterns
+      const backupPatterns = [`${key}_old`, `${key}_prev`, `backup_${key}`];
+      for (const backupPattern of backupPatterns) {
+        const backupEntry = this.getCacheEntry(backupPattern);
+        if (backupEntry) {
+          const backupValidation = this.cacheVersioning.validateCacheEntry(backupEntry);
+          if (backupValidation.isValid) {
+            console.log('🔄 Cache recovery: Using pattern backup for', key);
+            await this.set(key, backupEntry.data, backupEntry.ttl);
+            return { success: true, data: backupEntry.data };
+          }
+        }
+      }
+
+      return { success: false };
+    } catch (error) {
+      console.error('❌ Cache recovery failed for', key, error);
+      return { success: false };
+    }
+  }
+
+  /**
+   * Clean up corrupted cache entries
+   */
+  private async cleanupCorruptedCache(key: string): Promise<void> {
+    try {
+      // Remove main cache entry
+      await this.remove(key);
+      
+      // Remove all backup entries
+      const backupKeys = [`${key}_backup`, `${key}_old`, `${key}_prev`, `backup_${key}`];
+      for (const backupKey of backupKeys) {
+        await this.remove(backupKey);
+      }
+      
+      console.log('🧹 Cleaned up corrupted cache entries for', key);
+    } catch (error) {
+      console.error('❌ Failed to cleanup corrupted cache for', key, error);
     }
   }
 

@@ -40,7 +40,7 @@ export class CacheVersioningService {
       version,
       timestamp: new Date().toISOString(),
       ttl: entryTTL,
-      checksum: this.calculateChecksum(data)
+      checksum: this.calculateChecksumSync(data)
     };
   }
 
@@ -53,7 +53,7 @@ export class CacheVersioningService {
     const age = now - entryTime;
     const isExpired = age > entry.ttl;
     const isVersionValid = entry.version === this.CACHE_VERSION;
-    const isChecksumValid = entry.checksum === this.calculateChecksum(entry.data);
+    const isChecksumValid = entry.checksum === this.calculateChecksumSync(entry.data);
     
     const issues: string[] = [];
     
@@ -75,7 +75,7 @@ export class CacheVersioningService {
       isVersionValid,
       isChecksumValid,
       age,
-      issues
+      issues: issues.length > 0 ? issues : undefined
     };
   }
 
@@ -110,23 +110,104 @@ export class CacheVersioningService {
   }
 
   /**
-   * Calculate checksum for data integrity validation
+   * Calculate checksum for data integrity validation (synchronous)
+   * Enhanced with more robust hashing and error handling
    */
-  private calculateChecksum(data: any): string {
+  private calculateChecksumSync(data: any): string {
     try {
-      const jsonString = JSON.stringify(data, Object.keys(data).sort());
-      // Use a more robust hash function
-      let hash = 5381; // DJB2 hash seed
-      for (let i = 0; i < jsonString.length; i++) {
-        hash = ((hash << 5) + hash) + jsonString.charCodeAt(i);
-      }
-      // Add timestamp component for uniqueness
-      const timestamp = Date.now().toString(16).slice(-4);
-      return Math.abs(hash).toString(16).padStart(8, '0').slice(0, 12) + timestamp;
+      // Normalize data for consistent hashing
+      const normalizedData = this.normalizeDataForHashing(data);
+      const jsonString = JSON.stringify(normalizedData);
+      
+      // Use DJB2 hash for synchronous operation
+      return this.calculateDJB2Checksum(jsonString);
     } catch (error) {
       console.warn('⚠️ Failed to calculate checksum:', error);
-      return 'invalid';
+      // Return a deterministic fallback based on data type and size
+      return this.calculateFallbackChecksum(data);
     }
+  }
+
+  /**
+   * Calculate checksum for data integrity validation (asynchronous)
+   * Enhanced with more robust hashing and error handling
+   */
+  private async calculateChecksum(data: any): Promise<string> {
+    try {
+      // Normalize data for consistent hashing
+      const normalizedData = this.normalizeDataForHashing(data);
+      const jsonString = JSON.stringify(normalizedData);
+      
+      // Use crypto.subtle for more robust hashing if available
+      if (typeof crypto !== 'undefined' && crypto.subtle) {
+        return await this.calculateWebCryptoChecksum(jsonString);
+      }
+      
+      // Fallback to DJB2 hash with improved implementation
+      return this.calculateDJB2Checksum(jsonString);
+    } catch (error) {
+      console.warn('⚠️ Failed to calculate checksum:', error);
+      // Return a deterministic fallback based on data type and size
+      return this.calculateFallbackChecksum(data);
+    }
+  }
+
+  /**
+   * Normalize data for consistent hashing
+   */
+  private normalizeDataForHashing(data: any): any {
+    if (data === null || data === undefined) return data;
+    
+    if (Array.isArray(data)) {
+      return data.map(item => this.normalizeDataForHashing(item)).sort();
+    }
+    
+    if (typeof data === 'object') {
+      const normalized: any = {};
+      Object.keys(data).sort().forEach(key => {
+        normalized[key] = this.normalizeDataForHashing(data[key]);
+      });
+      return normalized;
+    }
+    
+    return data;
+  }
+
+  /**
+   * Calculate checksum using Web Crypto API
+   */
+  private async calculateWebCryptoChecksum(jsonString: string): Promise<string> {
+    try {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(jsonString);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 16);
+    } catch (error) {
+      console.warn('⚠️ Web Crypto checksum failed, falling back to DJB2:', error);
+      return this.calculateDJB2Checksum(jsonString);
+    }
+  }
+
+  /**
+   * Calculate checksum using DJB2 hash algorithm
+   */
+  private calculateDJB2Checksum(jsonString: string): string {
+    let hash = 5381;
+    for (let i = 0; i < jsonString.length; i++) {
+      hash = ((hash << 5) + hash) + jsonString.charCodeAt(i);
+    }
+    return Math.abs(hash).toString(16).padStart(8, '0');
+  }
+
+  /**
+   * Calculate fallback checksum for error cases
+   */
+  private calculateFallbackChecksum(data: any): string {
+    const dataType = Array.isArray(data) ? 'array' : typeof data;
+    const dataSize = JSON.stringify(data).length;
+    const timestamp = Date.now().toString(16).slice(-4);
+    return `${dataType}_${dataSize}_${timestamp}`;
   }
 
   /**
