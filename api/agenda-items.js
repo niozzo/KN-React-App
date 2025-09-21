@@ -1,6 +1,6 @@
 /**
  * Agenda Items API Endpoint with Data Transformation
- * Story 1.7: Data Transformation Layer for Schema Evolution
+ * Story 2.1: Now/Next Glance Card - API Fallback Implementation
  */
 
 import { createClient } from '@supabase/supabase-js'
@@ -78,31 +78,11 @@ export default async function handler(req, res) {
       })
     }
 
-    // Debug: Log raw database data
-    console.log('🔍 Raw database data for first agenda item:', rawData[0] ? {
-      id: rawData[0].id,
-      title: rawData[0].title,
-      date: rawData[0].date,
-      start_time: rawData[0].start_time,
-      end_time: rawData[0].end_time
-    } : 'No data');
-
     // Transform data using the transformation layer
     let transformedData
     try {
       transformedData = agendaTransformer.transformArrayFromDatabase(rawData)
-      // Sort agenda items by date and time
-      transformedData = agendaTransformer.sortAgendaItems(transformedData)
       console.log(`✅ Transformed ${transformedData.length} agenda items`)
-      
-      // Debug: Log transformed data for first item
-      console.log('🔍 Transformed data for first agenda item:', transformedData[0] ? {
-        id: transformedData[0].id,
-        title: transformedData[0].title,
-        date: transformedData[0].date,
-        start_time: transformedData[0].start_time,
-        end_time: transformedData[0].end_time
-      } : 'No data');
     } catch (transformError) {
       console.error('❌ Transformation failed:', transformError)
       return res.status(500).json({

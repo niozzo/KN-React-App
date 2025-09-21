@@ -287,9 +287,71 @@ const HomePage = () => {
   }
 
 
+  // Show data loading error state - when we have an error or no sessions due to loading failure
+  if (!isLoading && attendee && (error || allSessions.length === 0)) {
+    return (
+      <PageLayout data-testid="home-page">
+        <TimeOverride />
+        
+        {isOffline && (
+          <div className="offline-indicator">
+            <span>📱 Offline mode - showing cached data</span>
+          </div>
+        )}
+
+        <section className="now-next-section">
+          <h2 className="section-title">Unable to Load Schedule</h2>
+          <div className="cards-container">
+            <Card className="data-loading-error-card" style={{
+              background: 'var(--red-50)',
+              border: '2px solid var(--red-200)',
+              textAlign: 'center',
+              padding: 'var(--space-xl)',
+              gridColumn: '1 / -1'
+            }}>
+              <div className="data-loading-error-content">
+                <div style={{ fontSize: '3rem', marginBottom: 'var(--space-md)' }}>⚠️</div>
+                <h3 style={{ 
+                  color: 'var(--red-700)', 
+                  marginBottom: 'var(--space-sm)',
+                  fontSize: 'var(--text-xl)'
+                }}>
+                  Schedule Unavailable
+                </h3>
+                <p style={{ 
+                  color: 'var(--red-600)',
+                  fontSize: 'var(--text-base)',
+                  marginBottom: 'var(--space-lg)',
+                  maxWidth: '400px',
+                  margin: '0 auto var(--space-lg) auto'
+                }}>
+                  {error || 'Unable to load conference schedule. Please check your connection and try again.'}
+                </p>
+                <div style={{ display: 'flex', gap: 'var(--space-sm)', justifyContent: 'center' }}>
+                  <Button 
+                    variant="primary"
+                    onClick={refresh}
+                  >
+                    Retry
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => navigate('/schedule')}
+                  >
+                    View Full Schedule
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          </div>
+        </section>
+      </PageLayout>
+    );
+  }
+
   // Show conference not started state - when there are no sessions assigned and conference hasn't started
-  // Also show this state if there are no sessions at all (agenda items not loaded)
-  if (!isLoading && attendee && (!currentSession && !nextSession) && (!hasConferenceStarted || allSessions.length === 0)) {
+  // Only show this state if we have successfully loaded sessions but conference hasn't started
+  if (!isLoading && attendee && !error && allSessions.length > 0 && (!currentSession && !nextSession) && !hasConferenceStarted) {
     return (
       <PageLayout data-testid="home-page">
         <TimeOverride />

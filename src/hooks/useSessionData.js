@@ -146,40 +146,98 @@ export const useSessionData = (options = {}) => {
         }
       }
 
-      // Load agenda items
-      const agendaResponse = await agendaService.getActiveAgendaItems();
-      if (!agendaResponse.success) {
-        console.warn('⚠️ Failed to load agenda items:', agendaResponse.error);
-        cacheMonitoringService.logStateTransition('useSessionData', { agendaLoaded: false }, { agendaLoaded: false, error: agendaResponse.error }, 'agenda-failed');
-        
-        // ✅ FIX: Try to load from cache as fallback
-        try {
-          const cachedSessions = loadFromCache();
-          if (cachedSessions.length > 0) {
-            console.log('🏠 CACHE: Loading sessions from cache as fallback');
-            cacheMonitoringService.logStateTransition('useSessionData', { sessions: [] }, { sessions: cachedSessions }, 'cache-fallback');
-            setAllSessions(cachedSessions);
-            setSessions(filterSessionsForAttendee(cachedSessions, attendeeData));
-            setLastUpdated(new Date());
-            return;
-          }
-        } catch (cacheError) {
-          console.warn('⚠️ Failed to load from cache:', cacheError);
-          cacheMonitoringService.logCacheCorruption('kn_cached_sessions', cacheError.message, { error: cacheError });
+      // Progressive data loading: Try cache first, then server, then fallback
+      let allSessionsData = [];
+      let loadSource = 'unknown';
+      
+      // Step 1: Try to load from cache first (fastest)
+      try {
+        const cachedSessions = loadFromCache();
+        if (cachedSessions.length > 0) {
+          console.log('🏠 CACHE: Loading sessions from cache (progressive step 1)');
+          allSessionsData = cachedSessions;
+          loadSource = 'cache';
+          cacheMonitoringService.logStateTransition('useSessionData', { sessions: [] }, { sessions: cachedSessions }, 'cache-primary');
         }
-        
-        // Only set empty arrays if no cache available
-        cacheMonitoringService.logStateTransition('useSessionData', { sessions: [] }, { sessions: [] }, 'empty-fallback');
+      } catch (cacheError) {
+        console.warn('⚠️ Cache load failed:', cacheError);
+        cacheMonitoringService.logCacheCorruption('kn_cached_sessions', cacheError.message, { error: cacheError });
+      }
+      
+      // Step 2: If no cache data, try server (if cache failed or empty)
+      if (allSessionsData.length === 0) {
+        try {
+          console.log('🌐 SERVER: Loading agenda items from server (progressive step 2)');
+          const agendaResponse = await agendaService.getActiveAgendaItems();
+          
+          if (agendaResponse.success && agendaResponse.data && agendaResponse.data.length > 0) {
+            allSessionsData = agendaResponse.data;
+            loadSource = 'server';
+            console.log('🌐 SERVER: Successfully loaded sessions from server');
+            cacheMonitoringService.logStateTransition('useSessionData', { sessions: [] }, { sessions: allSessionsData }, 'server-success');
+          } else {
+            console.warn('⚠️ Server returned no data:', agendaResponse.error);
+            cacheMonitoringService.logStateTransition('useSessionData', { agendaLoaded: false }, { agendaLoaded: false, error: agendaResponse.error }, 'server-empty');
+          }
+        } catch (serverError) {
+          console.warn('⚠️ Server load failed:', serverError);
+          cacheMonitoringService.logStateTransition('useSessionData', { agendaLoaded: false }, { agendaLoaded: false, error: serverError.message }, 'server-failed');
+        }
+      }
+      
+      // Step 3: If still no data, try localStorage fallback
+      if (allSessionsData.length === 0) {
+        try {
+          const localStorageData = localStorage.getItem('kn_cached_sessions');
+          if (localStorageData) {
+            const parsed = JSON.parse(localStorageData);
+            if (parsed.sessions && parsed.sessions.length > 0) {
+              allSessionsData = parsed.sessions;
+              loadSource = 'localStorage';
+              console.log('🏠 LOCALSTORAGE: Loading sessions from localStorage fallback');
+              cacheMonitoringService.logStateTransition('useSessionData', { sessions: [] }, { sessions: allSessionsData }, 'localStorage-fallback');
+            }
+          }
+        } catch (localStorageError) {
+          console.warn('⚠️ localStorage fallback failed:', localStorageError);
+        }
+      }
+      
+      // Step 4: If still no data, set error state
+      if (allSessionsData.length === 0) {
+        const errorMessage = 'Unable to load conference schedule from any source';
+        console.error('❌ All data sources failed:', errorMessage);
+        cacheMonitoringService.logStateTransition('useSessionData', { sessions: [] }, { sessions: [], error: errorMessage }, 'all-sources-failed');
+        setError(errorMessage);
         setAllSessions([]);
         setSessions([]);
         setLastUpdated(new Date());
         return;
       }
-
-      let allSessionsData = agendaResponse.data || [];
+      
+      console.log(`✅ Progressive loading successful from ${loadSource}:`, {
+        sessionsCount: allSessionsData.length,
+        loadSource,
+        timestamp: new Date().toISOString()
+      });
       
       // Store all sessions for conference start date logic
       setAllSessions(allSessionsData);
+      
+      // If we loaded from cache, refresh from server in background
+      if (loadSource === 'cache' || loadSource === 'localStorage') {
+        console.log('🔄 BACKGROUND: Refreshing data from server in background');
+        agendaService.getActiveAgendaItems().then(response => {
+          if (response.success && response.data && response.data.length > 0) {
+            console.log('🔄 BACKGROUND: Server refresh successful, updating cache');
+            setAllSessions(response.data);
+            setSessions(filterSessionsForAttendee(response.data, attendeeData));
+            setLastUpdated(new Date());
+          }
+        }).catch(err => {
+          console.warn('🔄 BACKGROUND: Server refresh failed:', err);
+        });
+      }
       
       // Filter sessions for current attendee based on session type and breakout assignments
       let filteredSessions = filterSessionsForAttendee(allSessionsData, attendeeData);

@@ -50,6 +50,27 @@ export class UnifiedCacheService {
       if (!validation.isValid) {
         this.monitoring.logCacheCorruption(key, `Invalid: ${validation.issues?.join(', ')}`);
         this.metrics.recordCacheCorruption(`Invalid: ${validation.issues?.join(', ')}`);
+        
+        // Try to recover from backup cache
+        const backupKey = `${key}_backup`;
+        const backupEntry = this.getCacheEntry(backupKey);
+        
+        if (backupEntry) {
+          const backupValidation = this.cacheVersioning.validateCacheEntry(backupEntry);
+          if (backupValidation.isValid) {
+            console.log('🔄 Cache recovery: Using backup data for', key);
+            this.monitoring.logCacheHit(key, JSON.stringify(backupEntry.data).length, performance.now() - startTime);
+            this.metrics.recordCacheHit(performance.now() - startTime, JSON.stringify(backupEntry.data).length);
+            
+            // Restore backup data to main cache
+            await this.set(key, backupEntry.data, backupEntry.ttl);
+            return backupEntry.data;
+          } else {
+            console.warn('⚠️ Backup cache also corrupted for', key);
+            await this.remove(backupKey);
+          }
+        }
+        
         await this.remove(key);
         return null;
       }
@@ -87,6 +108,10 @@ export class UnifiedCacheService {
     try {
       const entry = this.cacheVersioning.createCacheEntry(data, ttl);
       localStorage.setItem(key, JSON.stringify(entry));
+      
+      // Create backup copy for corruption recovery
+      const backupKey = `${key}_backup`;
+      localStorage.setItem(backupKey, JSON.stringify(entry));
       
       const dataSize = JSON.stringify(data).length;
       const duration = performance.now() - startTime;

@@ -285,13 +285,63 @@ export class AgendaService implements IAgendaService {
     console.log('🌐 SYNC: No cached agenda items found, using serverDataSyncService...');
     
     if (!this.serverDataSyncService) {
-      console.warn('⚠️ No serverDataSyncService available');
-      return {
-        data: [],
-        count: 0,
-        error: 'No sync service available',
-        success: false
-      };
+      console.warn('⚠️ No serverDataSyncService available, trying direct API fallback...');
+      
+      // Fallback to direct API call
+      try {
+        const response = await fetch('/api/agenda-items', { 
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+        }
+        
+        const contentType = response.headers.get('content-type');
+        if (!contentType?.includes('application/json')) {
+          throw new Error(`Expected JSON but got ${contentType || 'unknown content type'}`);
+        }
+        
+        const result = await response.json();
+        const agendaItems = result.data || result;
+        
+        if (Array.isArray(agendaItems) && agendaItems.length > 0) {
+          console.log('🌐 API FALLBACK: Successfully fetched agenda items from API');
+          
+          // Cache the data for future use
+          await this.unifiedCache!.set('kn_cache_agenda_items', agendaItems);
+          
+          const filteredItems = agendaItems
+            .filter((item: any) => item.isActive)
+            .sort((a: any, b: any) => {
+              const dateComparison = (a.date || '').localeCompare(b.date || '');
+              if (dateComparison !== 0) return dateComparison;
+              return (a.start_time || '').localeCompare(b.start_time || '');
+            });
+          
+          const enrichedData = await this.enrichWithSpeakerData(filteredItems);
+          
+          return {
+            data: enrichedData,
+            count: enrichedData.length,
+            error: null,
+            success: true
+          };
+        } else {
+          throw new Error('No agenda items returned from API');
+        }
+      } catch (apiError) {
+        console.error('❌ API FALLBACK: Direct API call failed:', apiError);
+        return {
+          data: [],
+          count: 0,
+          error: `API fallback failed: ${apiError instanceof Error ? apiError.message : 'Unknown error'}`,
+          success: false
+        };
+      }
     }
 
     try {
