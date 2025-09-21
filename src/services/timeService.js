@@ -72,8 +72,8 @@ class TimeService {
    * @returns {boolean} Whether override is enabled
    */
   static isOverrideEnabled() {
-    // Allow time override in development and test environments only
-    return process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
+    // Allow time override in all environments for testing
+    return true;
   }
 
   /**
@@ -375,6 +375,11 @@ class TimeService {
       environment: process.env.NODE_ENV
     };
   }
+}
+
+// Expose TimeService globally for console access in production
+if (typeof window !== 'undefined') {
+  window.TimeService = TimeService;
 }
 
 export default TimeService;
