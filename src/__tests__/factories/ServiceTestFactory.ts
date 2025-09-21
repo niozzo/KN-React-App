@@ -69,12 +69,38 @@ export class ServiceTestFactory {
     const PWADataSyncService = vi.fn().mockImplementation(() => ({
       isLocalMode: vi.fn().mockReturnValue(true),
       getCacheTTL: vi.fn().mockReturnValue(86400000),
+      getSyncStatus: vi.fn().mockReturnValue({
+        isOnline: true,
+        lastSync: new Date().toISOString(),
+        pendingChanges: 0,
+        syncInProgress: false
+      }),
       syncAllData: vi.fn().mockResolvedValue({
         success: true,
-        syncedTables: ['test_table'],
+        syncedTables: ['attendees', 'sponsors', 'seat_assignments', 'agenda_items', 'dining_options', 'hotels'],
         errors: [],
         conflicts: []
       }),
+      cacheTableData: vi.fn().mockResolvedValue(undefined),
+      getCachedTableData: vi.fn().mockResolvedValue([]),
+      forceSync: vi.fn().mockResolvedValue({
+        success: true,
+        syncedTables: ['attendees', 'sponsors', 'seat_assignments'],
+        errors: [],
+        conflicts: []
+      }),
+      clearCache: vi.fn().mockResolvedValue(undefined),
+      getOfflineDataStatus: vi.fn().mockResolvedValue({
+        attendees: true,
+        sponsors: false,
+        seat_assignments: true,
+        agenda_items: false,
+        dining_options: false,
+        hotels: false,
+        seating_configurations: false,
+        user_profiles: false
+      }),
+      resolveConflict: vi.fn().mockResolvedValue(true),
       dependencies: mockDependencies
     }));
 

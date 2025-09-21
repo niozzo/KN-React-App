@@ -7,7 +7,7 @@
  */
 
 import { supabase } from '../lib/supabase';
-import { BaseService } from './baseService.js';
+import { BaseService } from './baseService';
 
 export interface SchemaValidationResult {
   isValid: boolean;

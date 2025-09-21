@@ -7,13 +7,13 @@
  */
 
 // All data reads must go through backend endpoints protected by RLS-aware auth
-import { SchemaValidationService } from './schemaValidationService.js';
+import { SchemaValidationService } from './schemaValidationService';
 import { supabase } from '../lib/supabase';
 import { sanitizeAttendeeForStorage } from '../types/attendee';
 import { applicationDb } from './applicationDatabaseService';
 import { cacheMonitoringService } from './cacheMonitoringService';
 import { cacheVersioningService, type CacheEntry } from './cacheVersioningService';
-import { BaseService } from './baseService.js';
+import { BaseService } from './baseService';
 
 export interface SyncStatus {
   isOnline: boolean;

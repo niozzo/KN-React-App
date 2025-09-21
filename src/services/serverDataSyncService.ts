@@ -10,8 +10,8 @@ import { createClient } from '@supabase/supabase-js';
 import { applicationDb } from './applicationDatabaseService';
 import { sanitizeAttendeeForStorage } from '../types/attendee';
 import { attendeeInfoService } from './attendeeInfoService';
-import { BaseService } from './baseService.js';
-import { supabaseClientService } from './supabaseClientService.js';
+import { BaseService } from './baseService';
+import { supabaseClientService } from './supabaseClientService';
 
 export interface ServerSyncResult {
   success: boolean;

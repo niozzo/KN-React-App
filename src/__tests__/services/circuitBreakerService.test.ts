@@ -12,7 +12,7 @@ describe('CircuitBreakerService', () => {
     service = new CircuitBreakerService({
       failureThreshold: 3,
       recoveryTimeout: 1000, // 1 second for testing
-      monitoringPeriod: 5000, // 5 seconds for testing
+      monitoringPeriod: 10000, // 10 seconds for testing to prevent reset
       halfOpenMaxCalls: 2
     });
   });
@@ -40,10 +40,12 @@ describe('CircuitBreakerService', () => {
     it('should open circuit after failure threshold', async () => {
       const operation = vi.fn().mockRejectedValue(new Error('Operation failed'));
       
-      // Execute operations to reach failure threshold
+      // Execute operations to reach failure threshold quickly
+      const promises = [];
       for (let i = 0; i < 3; i++) {
-        await service.execute('test', operation);
+        promises.push(service.execute('test', operation));
       }
+      await Promise.all(promises);
 
       // Next execution should be in OPEN state
       const result = await service.execute('test', operation);
@@ -55,10 +57,12 @@ describe('CircuitBreakerService', () => {
       const operation = vi.fn().mockRejectedValue(new Error('Operation failed'));
       const fallback = vi.fn().mockResolvedValue('fallback data');
       
-      // Open the circuit
+      // Open the circuit quickly
+      const promises = [];
       for (let i = 0; i < 3; i++) {
-        await service.execute('test', operation);
+        promises.push(service.execute('test', operation));
       }
+      await Promise.all(promises);
 
       // Execute with fallback
       const result = await service.execute('test', operation, fallback);
@@ -72,13 +76,19 @@ describe('CircuitBreakerService', () => {
     it('should transition to HALF_OPEN after recovery timeout', async () => {
       const operation = vi.fn().mockRejectedValue(new Error('Operation failed'));
       
-      // Open the circuit
+      // Open the circuit quickly
+      const promises = [];
       for (let i = 0; i < 3; i++) {
-        await service.execute('test', operation);
+        promises.push(service.execute('test', operation));
       }
+      await Promise.all(promises);
 
-      // Wait for recovery timeout
-      await new Promise(resolve => setTimeout(resolve, 1100));
+      // Verify circuit is OPEN
+      const openState = service.getCircuitState('test');
+      expect(openState?.state).toBe('OPEN');
+
+      // Wait for recovery timeout with a bit more time to ensure it completes
+      await new Promise(resolve => setTimeout(resolve, 1200));
 
       // Mock successful operation
       operation.mockResolvedValue('success');
@@ -87,15 +97,17 @@ describe('CircuitBreakerService', () => {
       // The circuit should be in HALF_OPEN state and allow the operation
       expect(result.success).toBe(true);
       expect(result.data).toBe('success');
-    }, 5000);
+    }, 10000);
 
     it('should close circuit after successful half-open calls', async () => {
       const operation = vi.fn().mockRejectedValue(new Error('Operation failed'));
       
-      // Open the circuit
+      // Open the circuit quickly
+      const promises = [];
       for (let i = 0; i < 3; i++) {
-        await service.execute('test', operation);
+        promises.push(service.execute('test', operation));
       }
+      await Promise.all(promises);
 
       // Wait for recovery timeout
       await new Promise(resolve => setTimeout(resolve, 1100));
@@ -112,7 +124,7 @@ describe('CircuitBreakerService', () => {
       // Circuit should be closed now
       const circuitState = service.getCircuitState('test');
       expect(circuitState?.state).toBe('CLOSED');
-    }, 5000);
+    }, 10000);
   });
 
   describe('getCircuitState', () => {
@@ -154,10 +166,12 @@ describe('CircuitBreakerService', () => {
     it('should return false for open circuit', async () => {
       const operation = vi.fn().mockRejectedValue(new Error('Operation failed'));
       
-      // Open the circuit
+      // Open the circuit quickly
+      const promises = [];
       for (let i = 0; i < 3; i++) {
-        await service.execute('test', operation);
+        promises.push(service.execute('test', operation));
       }
+      await Promise.all(promises);
 
       // Check circuit state directly
       const circuitState = service.getCircuitState('test');

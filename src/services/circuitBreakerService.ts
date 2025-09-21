@@ -66,17 +66,29 @@ export class CircuitBreakerService {
     }
 
     // Execute based on circuit state
+    let result: CircuitBreakerResult<T>;
     switch (circuit.state) {
       case 'OPEN':
-        return this.handleOpenCircuit(circuit, fallback);
+        result = await this.handleOpenCircuit(circuit, fallback);
+        break;
       
       case 'HALF_OPEN':
-        return this.handleHalfOpenCircuit(circuit, operation, fallback);
+        result = await this.handleHalfOpenCircuit(circuit, operation, fallback);
+        break;
       
       case 'CLOSED':
       default:
-        return this.handleClosedCircuit(circuit, operation, fallback);
+        result = await this.handleClosedCircuit(circuit, operation, fallback);
+        break;
     }
+
+    // Check if circuit should be opened after execution (for CLOSED state)
+    if (circuit.state === 'CLOSED' && this.shouldOpenCircuit(circuit, Date.now())) {
+      circuit.state = 'OPEN';
+      circuit.nextAttemptTime = Date.now() + this.config.recoveryTimeout;
+    }
+
+    return result;
   }
 
   /**
@@ -246,8 +258,8 @@ export class CircuitBreakerService {
     try {
       const data = await operation();
       
-      // Reset failure count on success
-      if (circuit.failureCount > 0) {
+      // Only reset failure count if circuit is in CLOSED state
+      if (circuit.state === 'CLOSED' && circuit.failureCount > 0) {
         circuit.failureCount = Math.max(0, circuit.failureCount - 1);
       }
       
