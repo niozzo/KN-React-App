@@ -148,6 +148,26 @@ export class CacheMonitoringService {
   }
 
   /**
+   * Log cache repair with details
+   */
+  logCacheRepair(cacheKey: string, reason: string): void {
+    this.metrics.totalOperations++;
+    this.metrics.lastUpdated = new Date().toISOString();
+
+    this.log({
+      level: 'info',
+      category: 'cache',
+      message: 'Cache repair successful',
+      data: {
+        cacheKey,
+        reason,
+        repairCount: this.metrics.totalOperations
+      },
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  /**
    * Log sync failure with details
    */
   logSyncFailure(operation: string, error: string, context?: any): void {

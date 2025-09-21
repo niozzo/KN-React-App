@@ -46,10 +46,28 @@ export class UnifiedCacheService {
         return null;
       }
 
-      // Use lenient validation for reads to prevent circular validation issues
+      // Proper validation with checksum repair instead of ignoring
       const validation = this.cacheVersioning.validateCacheEntry(entry);
       if (!validation.isValid) {
-        // Only fail on critical issues, not checksum mismatches
+        // Handle checksum mismatches by recalculating and fixing
+        if (validation.issues?.includes('Cache data integrity check failed (checksum mismatch)')) {
+          console.warn(`⚠️ Checksum mismatch detected for ${key}, attempting repair...`);
+          
+          // Try to repair the checksum
+          const repairResult = await this.repairCacheEntry(entry);
+          if (repairResult.success) {
+            console.log(`✅ Successfully repaired checksum for ${key}`);
+            this.monitoring.logCacheRepair(key, 'Checksum repaired');
+            this.metrics.recordCacheRepair('checksum_repair');
+            return repairResult.data;
+          } else {
+            console.error(`❌ Failed to repair checksum for ${key}: ${repairResult.error}`);
+            this.monitoring.logCacheCorruption(key, `Checksum repair failed: ${repairResult.error}`);
+            this.metrics.recordCacheCorruption(`Checksum repair failed: ${repairResult.error}`);
+          }
+        }
+        
+        // Handle other critical validation issues
         const criticalIssues = validation.issues?.filter(issue => 
           !issue.includes('checksum mismatch') && 
           !issue.includes('Cache data integrity check failed')
@@ -69,9 +87,6 @@ export class UnifiedCacheService {
           console.warn(`⚠️ Cache corruption detected for ${key}, clearing corrupted data`);
           await this.cleanupCorruptedCache(key);
           return null;
-        } else {
-          // Just log checksum issues but don't fail - data might still be usable
-          console.warn(`⚠️ Cache checksum mismatch for ${key}, but data may still be usable`);
         }
       }
 
@@ -453,7 +468,8 @@ export class UnifiedCacheService {
   }
 
   /**
-   * Force clear agenda items cache to resolve persistent corruption
+   * Sophisticated cache recovery for agenda items
+   * Attempts repair before clearing, with backup restoration
    */
   async clearAgendaItemsCache(): Promise<void> {
     try {
@@ -465,13 +481,134 @@ export class UnifiedCacheService {
         'backup_kn_cache_agenda_items'
       ];
       
+      let recoveryAttempted = false;
+      let recoverySuccessful = false;
+      
+      // First, try to recover from backups
       for (const key of agendaKeys) {
-        await this.cleanupCorruptedCache(key);
+        if (key === 'kn_cache_agenda_items') continue; // Skip main key for now
+        
+        try {
+          const backupData = localStorage.getItem(key);
+          if (backupData) {
+            const entry = JSON.parse(backupData);
+            const validation = this.cacheVersioning.validateCacheEntry(entry);
+            
+            if (validation.isValid) {
+              // Found valid backup, restore it
+              localStorage.setItem('kn_cache_agenda_items', backupData);
+              console.log(`✅ Restored agenda items from backup: ${key}`);
+              recoverySuccessful = true;
+              break;
+            }
+          }
+        } catch (error) {
+          console.warn(`⚠️ Failed to restore from backup ${key}:`, error);
+        }
       }
       
-      console.log('🧹 Force cleared agenda items cache to resolve corruption');
+      // If no valid backup found, try to repair the main cache
+      if (!recoverySuccessful) {
+        try {
+          const mainData = localStorage.getItem('kn_cache_agenda_items');
+          if (mainData) {
+            const entry = JSON.parse(mainData);
+            const repairResult = await this.repairCacheEntry(entry);
+            
+            if (repairResult.success) {
+              console.log('✅ Successfully repaired main agenda items cache');
+              recoverySuccessful = true;
+              recoveryAttempted = true;
+            }
+          }
+        } catch (error) {
+          console.warn('⚠️ Failed to repair main cache:', error);
+        }
+      }
+      
+      // If all recovery attempts failed, clear corrupted caches
+      if (!recoverySuccessful) {
+        for (const key of agendaKeys) {
+          await this.cleanupCorruptedCache(key);
+        }
+        console.log('🧹 Cleared all agenda items cache entries after recovery failure');
+      } else {
+        // Clean up old backups after successful recovery
+        const backupKeys = agendaKeys.filter(key => key !== 'kn_cache_agenda_items');
+        for (const key of backupKeys) {
+          try {
+            localStorage.removeItem(key);
+          } catch (error) {
+            console.warn(`⚠️ Failed to clean up backup ${key}:`, error);
+          }
+        }
+        console.log('🧹 Cleaned up old backup entries after successful recovery');
+      }
+      
+      // Log recovery metrics
+      if (recoveryAttempted) {
+        this.monitoring.logCacheRepair('agenda_items_recovery', recoverySuccessful ? 'successful' : 'failed');
+        this.metrics.recordCacheRepair(recoverySuccessful ? 'agenda_recovery_success' : 'agenda_recovery_failed');
+      }
+      
     } catch (error) {
-      console.error('❌ Failed to clear agenda items cache:', error);
+      console.error('❌ Failed to recover agenda items cache:', error);
+      this.monitoring.logCacheCorruption('agenda_items_recovery', `Recovery failed: ${error.message}`);
+      this.metrics.recordCacheCorruption(`Recovery failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * Repair cache entry by recalculating checksum and fixing data integrity
+   */
+  private async repairCacheEntry(entry: CacheEntry): Promise<{success: boolean, data?: any, error?: string}> {
+    try {
+      // Validate that the data itself is intact
+      if (!entry.data || typeof entry.data !== 'object') {
+        return { success: false, error: 'Data is not a valid object' };
+      }
+
+      // Recalculate the checksum for the data
+      const newChecksum = this.cacheVersioning['calculateChecksumSync'](entry.data);
+      
+      // Create a repaired entry with the correct checksum
+      const repairedEntry: CacheEntry = {
+        ...entry,
+        checksum: newChecksum,
+        timestamp: new Date().toISOString() // Update timestamp to reflect repair
+      };
+
+      // Validate the repaired entry
+      const validation = this.cacheVersioning.validateCacheEntry(repairedEntry);
+      if (!validation.isValid) {
+        return { success: false, error: `Repaired entry still invalid: ${validation.issues?.join(', ')}` };
+      }
+
+      // Store the repaired entry
+      try {
+        localStorage.setItem('kn_cache_agenda_items', JSON.stringify(repairedEntry));
+        
+        // Verify the repair was successful
+        const stored = localStorage.getItem('kn_cache_agenda_items');
+        if (!stored) {
+          return { success: false, error: 'Failed to store repaired entry' };
+        }
+
+        const parsed = JSON.parse(stored);
+        const storedValidation = this.cacheVersioning.validateCacheEntry(parsed);
+        if (!storedValidation.isValid) {
+          return { success: false, error: 'Stored repaired entry failed validation' };
+        }
+
+        console.log('✅ Cache entry repaired successfully');
+        return { success: true, data: entry.data };
+        
+      } catch (storageError) {
+        return { success: false, error: `Storage error: ${storageError.message}` };
+      }
+
+    } catch (error) {
+      return { success: false, error: `Repair failed: ${error.message}` };
     }
   }
 

@@ -78,6 +78,15 @@ export class CacheMetricsService {
   }
 
   /**
+   * Record cache repair with details
+   */
+  recordCacheRepair(repairType: string): void {
+    this.metrics.lastUpdated = new Date().toISOString();
+    this.storeHistoricalData('cache_repair', 1);
+    this.updateHealthStatus();
+  }
+
+  /**
    * Record sync failure
    */
   recordSyncFailure(): void {
