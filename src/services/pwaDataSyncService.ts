@@ -436,8 +436,8 @@ export class PWADataSyncService extends BaseService {
   /**
    * Sync application database table
    */
-  private async syncApplicationTable(tableName: string): Promise<void> {
-    console.log(`🔄 Syncing application table ${tableName}...`);
+  async syncApplicationTable(tableName: string): Promise<void> {
+    console.log(`🔄 PWA Data Sync: Syncing application table ${tableName}...`);
 
     try {
       // Get Supabase table name
@@ -446,20 +446,27 @@ export class PWADataSyncService extends BaseService {
         throw new Error(`No Supabase table configured for: ${tableName}`);
       }
 
+      console.log(`📊 PWA Data Sync: Querying ${supabaseTable} from application database...`);
+
       // Query data from application database
       const { data, error } = await applicationDb
         .from(supabaseTable)
         .select('*');
       
       if (error) {
+        console.error(`❌ PWA Data Sync: Application database query failed for ${tableName}:`, error);
         throw new Error(`Application database query failed: ${error.message}`);
       }
 
+      console.log(`📊 PWA Data Sync: Retrieved ${data?.length || 0} records from ${supabaseTable}`);
+
       // Cache the data
       await this.cacheTableData(tableName, data || []);
+      
+      console.log(`✅ PWA Data Sync: Successfully synced ${tableName} with ${data?.length || 0} records`);
 
     } catch (error) {
-      console.error(`❌ Failed to sync application table ${tableName}:`, error);
+      console.error(`❌ PWA Data Sync: Failed to sync application table ${tableName}:`, error);
       throw error;
     }
   }

@@ -22,6 +22,7 @@ import { SpeakerAssignmentComponent } from './SpeakerAssignment';
 import { adminService } from '../services/adminService';
 import { SpeakerAssignment } from '../services/applicationDatabaseService';
 import { dataInitializationService } from '../services/dataInitializationService';
+import { pwaDataSyncService } from '../services/pwaDataSyncService';
 import CacheHealthDashboard from './CacheHealthDashboard';
 import { ValidationRules } from '../utils/validationUtils';
 
@@ -162,6 +163,35 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onLogout }) => {
     await loadData();
   };
 
+  const handleForceSyncApplicationDb = async () => {
+    try {
+      console.log('🔄 Force syncing application database...');
+      setLoading(true);
+      setError('');
+      
+      // Force sync application database tables
+      const applicationTables = ['speaker_assignments', 'agenda_item_metadata', 'attendee_metadata'];
+      
+      for (const tableName of applicationTables) {
+        try {
+          await pwaDataSyncService.syncApplicationTable(tableName);
+          console.log(`✅ Synced ${tableName}`);
+        } catch (error) {
+          console.warn(`⚠️ Failed to sync ${tableName}:`, error);
+        }
+      }
+      
+      // Reload data after sync
+      await loadData();
+      
+    } catch (error) {
+      setError('Failed to sync application database. Please try again.');
+      console.error('Error syncing application database:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleGoToLogin = () => {
     navigate('/');
   };
@@ -184,6 +214,13 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onLogout }) => {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             Speaker Management Admin
           </Typography>
+          <Button
+            color="inherit"
+            onClick={handleForceSyncApplicationDb}
+            sx={{ mr: 1 }}
+          >
+            Sync App DB
+          </Button>
           <Button
             color="inherit"
             startIcon={<DashboardIcon />}
