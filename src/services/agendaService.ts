@@ -191,7 +191,7 @@ export class AgendaService implements IAgendaService {
   }
 
   /**
-   * Enrich agenda items with speaker information
+   * Enrich agenda items with speaker information and admin title overrides
    */
   private async enrichWithSpeakerData(agendaItems: any[]): Promise<any[]> {
     try {
@@ -201,14 +201,23 @@ export class AgendaService implements IAgendaService {
       // Get attendees from cache for name lookup
       const attendees = await pwaDataSyncService.getCachedTableData('attendees');
       
+      // Get edited titles from application database metadata
+      const agendaItemMetadata = await pwaDataSyncService.getCachedTableData('agenda_item_metadata');
+      
       // Create attendee lookup map
       const attendeeMap = new Map();
       attendees.forEach((attendee: any) => {
         attendeeMap.set(attendee.id, attendee);
       });
       
-      // Enrich each agenda item with ordered speakers
+      // Enrich each agenda item with ordered speakers and title overrides
       return agendaItems.map(item => {
+        // Find any edited metadata for this agenda item
+        const metadata = agendaItemMetadata.find((meta: any) => meta.id === item.id);
+        
+        // Override title if it was edited in the application database
+        const finalTitle = (metadata as any)?.title || item.title;
+        
         const speakers = speakerAssignments
           .filter((assignment: any) => assignment.agenda_item_id === item.id)
           .sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0))
@@ -250,6 +259,7 @@ export class AgendaService implements IAgendaService {
         
         return {
           ...item,
+          title: finalTitle, // Use edited title if available
           speakers,
           speakerInfo // For backward compatibility with existing components
         };
