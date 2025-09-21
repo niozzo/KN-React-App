@@ -135,68 +135,93 @@ const SessionCard = React.memo(({
               {speakers && speakers.length > 0 ? (
                 // Display each speaker on a separate line using speakers array
                 speakers.map((speaker, index) => (
-                  <a 
+                  <div 
                     key={speaker.id || index}
-                    href={`/bio?speaker=${encodeURIComponent(speaker.name)}`}
-                    className="speaker-link"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      // Handle navigation to speaker bio
-                      console.log('Navigate to speaker bio:', speaker.name);
-                    }}
                     style={{ 
                       display: 'block', 
-                      marginBottom: '4px',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis'
+                      marginBottom: '8px',
+                      width: '100%'
                     }}
                   >
-                    {speaker.name}
-                  </a>
+                    <a 
+                      href={`/bio?speaker=${encodeURIComponent(speaker.name)}`}
+                      className="speaker-link"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Handle navigation to speaker bio
+                        console.log('Navigate to speaker bio:', speaker.name);
+                      }}
+                      style={{ 
+                        display: 'block', 
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        width: '100%'
+                      }}
+                    >
+                      {speaker.name}
+                    </a>
+                  </div>
                 ))
               ) : speakerInfo ? (
                 // Fallback to speakerInfo if speakers array not available
                 speakerInfo.split(', ').map((speakerName, index) => (
-                  <a 
+                  <div 
                     key={index}
-                    href={`/bio?speaker=${encodeURIComponent(speakerName.trim())}`}
+                    style={{ 
+                      display: 'block', 
+                      marginBottom: '8px',
+                      width: '100%'
+                    }}
+                  >
+                    <a 
+                      href={`/bio?speaker=${encodeURIComponent(speakerName.trim())}`}
+                      className="speaker-link"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Handle navigation to speaker bio
+                        console.log('Navigate to speaker bio:', speakerName.trim());
+                      }}
+                      style={{ 
+                        display: 'block', 
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        width: '100%'
+                      }}
+                    >
+                      {speakerName.trim()}
+                    </a>
+                  </div>
+                ))
+              ) : (
+                // Fallback for single speaker
+                <div 
+                  style={{ 
+                    display: 'block', 
+                    marginBottom: '8px',
+                    width: '100%'
+                  }}
+                >
+                  <a 
+                    href={`/bio?speaker=${encodeURIComponent(speaker)}`}
                     className="speaker-link"
                     onClick={(e) => {
                       e.stopPropagation();
                       // Handle navigation to speaker bio
-                      console.log('Navigate to speaker bio:', speakerName.trim());
+                      console.log('Navigate to speaker bio:', speaker);
                     }}
                     style={{ 
-                      display: 'block', 
-                      marginBottom: '4px',
+                      display: 'block',
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
-                      textOverflow: 'ellipsis'
+                      textOverflow: 'ellipsis',
+                      width: '100%'
                     }}
                   >
-                    {speakerName.trim()}
+                    {speaker}
                   </a>
-                ))
-              ) : (
-                // Fallback for single speaker
-                <a 
-                  href={`/bio?speaker=${encodeURIComponent(speaker)}`}
-                  className="speaker-link"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    // Handle navigation to speaker bio
-                    console.log('Navigate to speaker bio:', speaker);
-                  }}
-                  style={{ 
-                    display: 'block',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis'
-                  }}
-                >
-                  {speaker}
-                </a>
+                </div>
               )}
             </div>
           </div>
