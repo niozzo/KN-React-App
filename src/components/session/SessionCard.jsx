@@ -141,7 +141,7 @@ const SessionCard = React.memo(({
                   // Parse the speaker name to extract name and title
                   const nameParts = speaker.name.split(', ');
                   const speakerName = nameParts[0] || speaker.name;
-                  const speakerTitle = nameParts[1] || '';
+                  const speakerTitle = nameParts.slice(1).join(', ') || '';
                   
                   // DEBUG: Log parsed name and title for RCA
                   console.log('RCA DEBUG (SessionCard): Parsed speakerName:', speakerName, 'speakerTitle:', speakerTitle);
@@ -200,7 +200,7 @@ const SessionCard = React.memo(({
                   // Parse the speaker name to extract name and title
                   const nameParts = speakerName.trim().split(', ');
                   const speakerNameOnly = nameParts[0] || speakerName.trim();
-                  const speakerTitle = nameParts[1] || '';
+                  const speakerTitle = nameParts.slice(1).join(', ') || '';
                   
                   return (
                     <div 
