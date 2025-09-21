@@ -35,6 +35,7 @@ const SessionCard = React.memo(({
     end_time,
     date,
     location,
+    speakers,
     speakerInfo,
     speaker, // Support both speakerInfo and speaker for backward compatibility
     seatInfo,
@@ -128,11 +129,28 @@ const SessionCard = React.memo(({
           {formatSessionTitle(session)}
         </h3>
         
-        {(speakerInfo || speaker) && (
+        {(speakers && speakers.length > 0) || speakerInfo || speaker ? (
           <div className="session-details">
             <div className="session-detail">
-              {speakerInfo ? (
-                // Display each speaker on a separate line
+              {speakers && speakers.length > 0 ? (
+                // Display each speaker on a separate line using speakers array
+                speakers.map((speaker, index) => (
+                  <a 
+                    key={speaker.id || index}
+                    href={`/bio?speaker=${encodeURIComponent(speaker.name)}`}
+                    className="speaker-link"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // Handle navigation to speaker bio
+                      console.log('Navigate to speaker bio:', speaker.name);
+                    }}
+                    style={{ display: 'block', marginBottom: '4px' }}
+                  >
+                    {speaker.name}
+                  </a>
+                ))
+              ) : speakerInfo ? (
+                // Fallback to speakerInfo if speakers array not available
                 speakerInfo.split(', ').map((speakerName, index) => (
                   <a 
                     key={index}
@@ -164,7 +182,7 @@ const SessionCard = React.memo(({
               )}
             </div>
           </div>
-        )}
+        ) : null}
         
         {seatInfo && (
           <div 
