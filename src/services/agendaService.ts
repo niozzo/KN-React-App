@@ -214,9 +214,19 @@ export class AgendaService implements IAgendaService {
           .sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0))
           .map((assignment: any) => {
             const attendee = attendeeMap.get(assignment.attendee_id);
-            const name = attendee ? 
-              (attendee.name || `${attendee.first_name || ''} ${attendee.last_name || ''}`.trim()) :
-              `Speaker ${assignment.attendee_id}`;
+            let name = '';
+            
+            if (attendee) {
+              // Format as "First Name Last Name, Title"
+              const firstName = attendee.first_name || '';
+              const lastName = attendee.last_name || '';
+              const title = attendee.title || '';
+              
+              const fullName = `${firstName} ${lastName}`.trim();
+              name = title ? `${fullName}, ${title}` : fullName;
+            } else {
+              name = `Speaker ${assignment.attendee_id}`;
+            }
             
             return {
               id: assignment.id,

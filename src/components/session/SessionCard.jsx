@@ -131,17 +131,37 @@ const SessionCard = React.memo(({
         {(speakerInfo || speaker) && (
           <div className="session-details">
             <div className="session-detail">
-              <a 
-                href={`/bio?speaker=${encodeURIComponent(speakerInfo || speaker)}`}
-                className="speaker-link"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  // Handle navigation to bio page
-                  console.log('Navigate to speaker bio:', speakerInfo || speaker);
-                }}
-              >
-                {speakerInfo || speaker}
-              </a>
+              {speakerInfo ? (
+                // Display each speaker on a separate line
+                speakerInfo.split(', ').map((speakerName, index) => (
+                  <a 
+                    key={index}
+                    href={`/bio?speaker=${encodeURIComponent(speakerName.trim())}`}
+                    className="speaker-link"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // Handle navigation to speaker bio
+                      console.log('Navigate to speaker bio:', speakerName.trim());
+                    }}
+                    style={{ display: 'block', marginBottom: '4px' }}
+                  >
+                    {speakerName.trim()}
+                  </a>
+                ))
+              ) : (
+                // Fallback for single speaker
+                <a 
+                  href={`/bio?speaker=${encodeURIComponent(speaker)}`}
+                  className="speaker-link"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // Handle navigation to speaker bio
+                    console.log('Navigate to speaker bio:', speaker);
+                  }}
+                >
+                  {speaker}
+                </a>
+              )}
             </div>
           </div>
         )}
