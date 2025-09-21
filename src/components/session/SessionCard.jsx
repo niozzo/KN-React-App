@@ -131,7 +131,7 @@ const SessionCard = React.memo(({
         
         {(speakers && speakers.length > 0) || speakerInfo || speaker ? (
           <div className="session-details">
-            <div className="session-detail">
+            <div className="session-detail" style={{ display: 'block' }}>
               {speakers && speakers.length > 0 ? (
                 // Display each speaker on a separate line using speakers array
                 speakers.map((speaker, index) => (
