@@ -217,13 +217,20 @@ export class AgendaService implements IAgendaService {
             let name = '';
             
             if (attendee) {
-              // Format as "First Name Last Name, Title"
+              // Format as "First Name Last Name, Title at Company" (matching mockup)
               const firstName = attendee.first_name || '';
               const lastName = attendee.last_name || '';
               const title = attendee.title || '';
+              const company = attendee.company || '';
               
               const fullName = `${firstName} ${lastName}`.trim();
-              name = title ? `${fullName}, ${title}` : fullName;
+              if (title && company) {
+                name = `${fullName}, ${title} at ${company}`;
+              } else if (title) {
+                name = `${fullName}, ${title}`;
+              } else {
+                name = fullName;
+              }
             } else {
               name = `Speaker ${assignment.attendee_id}`;
             }
