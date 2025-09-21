@@ -1,6 +1,7 @@
 /**
  * Supabase Client for API endpoints
- * Implements singleton pattern to prevent multiple client instances
+ * DEPRECATED: Use src/services/supabaseClientService.ts instead
+ * This file is kept for backward compatibility but should be migrated
  */
 
 import { createClient } from '@supabase/supabase-js'
@@ -17,8 +18,11 @@ const AUTH_CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
 
 /**
  * Get authenticated Supabase client (singleton)
+ * @deprecated Use src/services/supabaseClientService.ts instead
  */
 export async function getAuthenticatedClient() {
+  console.warn('⚠️ DEPRECATED: api/supabaseClient.js is deprecated. Use src/services/supabaseClientService.ts instead');
+  
   const now = Date.now()
   
   // Return cached client if still valid

@@ -58,6 +58,7 @@ export class ServerDataSyncService extends BaseService {
 
   /**
    * Get authenticated Supabase client with admin credentials
+   * Uses singleton service to prevent multiple GoTrueClient instances
    */
   private async getAuthenticatedClient() {
     // Return cached client if already authenticated
@@ -65,22 +66,16 @@ export class ServerDataSyncService extends BaseService {
       return this.authenticatedClient;
     }
     
-    // Use singleton client service to prevent multiple instances
-    if (this.isLocalMode()) {
-      console.log('🏠 Local mode: Using singleton Supabase client');
-      this.authenticatedClient = supabaseClientService.getClient();
-      return this.authenticatedClient;
-    }
-    
     console.log('🔐 Authenticating with Supabase admin credentials...');
     
-    const supabaseClient = createClient(this.supabaseUrl, this.supabaseKey);
+    // Always use singleton service to prevent multiple instances
+    const baseClient = supabaseClientService.getClient();
     
     if (!this.adminEmail || !this.adminPassword) {
       throw new Error('Admin credentials not configured. Please set VITE_SUPABASE_USER_EMAIL and VITE_SUPABASE_USER_PASSWORD');
     }
     
-    const { error } = await supabaseClient.auth.signInWithPassword({
+    const { error } = await baseClient.auth.signInWithPassword({
       email: this.adminEmail,
       password: this.adminPassword
     });
@@ -92,9 +87,9 @@ export class ServerDataSyncService extends BaseService {
     
     console.log('✅ Admin authenticated successfully');
     
-    // Cache the authenticated client
-    this.authenticatedClient = supabaseClient;
-    return supabaseClient;
+    // Cache the authenticated client (same instance as base client)
+    this.authenticatedClient = baseClient;
+    return baseClient;
   }
 
   /**

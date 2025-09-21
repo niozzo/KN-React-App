@@ -102,21 +102,23 @@ export class PWADataSyncService extends BaseService {
 
   /**
    * Get cache TTL for specific table based on environment and data type
+   * Fixed TTL management to prevent premature expiration
    */
   private getCacheTTL(tableName: string): number {
-    const baseTTL = this.isLocalMode() ? 24 * 60 * 60 * 1000 : 5 * 60 * 1000;
+    // Use consistent TTL regardless of environment to prevent confusion
+    const baseTTL = 24 * 60 * 60 * 1000; // 24 hours base TTL
     
-    // Different TTLs for different data types
+    // Different TTLs for different data types with more generous timeouts
     const ttlOverrides: Record<string, number> = {
-      'agenda_items': 5 * 60 * 1000, // 5 minutes for dynamic data
-      'attendees': 24 * 60 * 60 * 1000, // 24 hours for static data
-      'speaker_assignments': 24 * 60 * 60 * 1000, // 24 hours for static data
-      'sponsors': 24 * 60 * 60 * 1000, // 24 hours for static data
-      'seat_assignments': 24 * 60 * 60 * 1000, // 24 hours for static data
-      'dining_options': 24 * 60 * 60 * 1000, // 24 hours for static data
-      'hotels': 24 * 60 * 60 * 1000, // 24 hours for static data
-      'seating_configurations': 24 * 60 * 60 * 1000, // 24 hours for static data
-      'user_profiles': 24 * 60 * 60 * 1000, // 24 hours for static data
+      'agenda_items': 2 * 60 * 60 * 1000, // 2 hours for dynamic data (was 5 minutes)
+      'attendees': 7 * 24 * 60 * 60 * 1000, // 7 days for static data (was 24 hours)
+      'speaker_assignments': 7 * 24 * 60 * 60 * 1000, // 7 days for static data
+      'sponsors': 7 * 24 * 60 * 60 * 1000, // 7 days for static data
+      'seat_assignments': 7 * 24 * 60 * 60 * 1000, // 7 days for static data
+      'dining_options': 7 * 24 * 60 * 60 * 1000, // 7 days for static data
+      'hotels': 7 * 24 * 60 * 60 * 1000, // 7 days for static data
+      'seating_configurations': 7 * 24 * 60 * 60 * 1000, // 7 days for static data
+      'user_profiles': 7 * 24 * 60 * 60 * 1000, // 7 days for static data
     };
 
     return ttlOverrides[tableName] || baseTTL;

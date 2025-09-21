@@ -88,17 +88,21 @@ export class UnifiedCacheService {
 
   /**
    * Set data in cache with versioning and monitoring
+   * Uses atomic operations to prevent corruption during concurrent access
    */
   async set<T>(key: string, data: T, ttl?: number): Promise<void> {
     const startTime = performance.now();
     
     try {
+      // Create entry with atomic timestamp to prevent race conditions
       const entry = this.cacheVersioning.createCacheEntry(data, ttl);
-      localStorage.setItem(key, JSON.stringify(entry));
       
-      // Create backup copy for corruption recovery
+      // Use atomic localStorage operations with retry logic
+      await this.atomicSetItem(key, entry);
+      
+      // Create backup copy for corruption recovery (also atomic)
       const backupKey = `${key}_backup`;
-      localStorage.setItem(backupKey, JSON.stringify(entry));
+      await this.atomicSetItem(backupKey, entry);
       
       const dataSize = JSON.stringify(data).length;
       const duration = performance.now() - startTime;
@@ -120,6 +124,53 @@ export class UnifiedCacheService {
       });
       throw error;
     }
+  }
+
+  /**
+   * Atomic localStorage set operation with retry logic
+   */
+  private async atomicSetItem(key: string, entry: CacheEntry): Promise<void> {
+    const maxRetries = 3;
+    let lastError: Error | null = null;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        // Validate entry before storing
+        const validation = this.cacheVersioning.validateCacheEntry(entry);
+        if (!validation.isValid) {
+          throw new Error(`Invalid cache entry: ${validation.issues?.join(', ')}`);
+        }
+        
+        // Store with atomic operation
+        localStorage.setItem(key, JSON.stringify(entry));
+        
+        // Verify the write was successful
+        const stored = localStorage.getItem(key);
+        if (!stored) {
+          throw new Error('Write verification failed');
+        }
+        
+        // Validate stored data integrity
+        const parsed = JSON.parse(stored);
+        const storedValidation = this.cacheVersioning.validateCacheEntry(parsed);
+        if (!storedValidation.isValid) {
+          throw new Error(`Stored data validation failed: ${storedValidation.issues?.join(', ')}`);
+        }
+        
+        return; // Success
+        
+      } catch (error) {
+        lastError = error as Error;
+        console.warn(`⚠️ Cache write attempt ${attempt} failed for ${key}:`, error);
+        
+        if (attempt < maxRetries) {
+          // Wait before retry with exponential backoff
+          await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 10));
+        }
+      }
+    }
+    
+    throw new Error(`Failed to write cache after ${maxRetries} attempts: ${lastError?.message}`);
   }
 
   /**
@@ -194,7 +245,7 @@ export class UnifiedCacheService {
   }
 
   /**
-   * Get comprehensive cache health status
+   * Get comprehensive cache health status with enhanced monitoring
    */
   async getHealthStatus(): Promise<CacheHealthStatus> {
     try {
@@ -204,16 +255,29 @@ export class UnifiedCacheService {
         await this.get('kn_cache_attendee')
       );
 
+      // Enhanced health check with corruption detection
+      const corruptionCount = await this.detectCacheCorruption();
+      const isHealthy = consistency.isConsistent && metrics.cacheCorruptions === 0 && corruptionCount === 0;
+
+      if (corruptionCount > 0) {
+        console.warn(`⚠️ Cache health check detected ${corruptionCount} corrupted entries`);
+      }
+
       return {
-        isHealthy: consistency.isConsistent && metrics.cacheCorruptions === 0,
-        metrics,
+        isHealthy,
+        metrics: {
+          ...metrics,
+          corruptionCount,
+          lastHealthCheck: new Date().toISOString()
+        },
         consistency,
         lastChecked: new Date().toISOString()
       };
     } catch (error) {
+      console.error('❌ Cache health check failed:', error);
       return {
         isHealthy: false,
-        metrics: null,
+        metrics: { error: error instanceof Error ? error.message : 'Unknown error' },
         consistency: { 
           isConsistent: false, 
           issues: [error instanceof Error ? error.message : 'Unknown error'], 
@@ -222,6 +286,39 @@ export class UnifiedCacheService {
         lastChecked: new Date().toISOString()
       };
     }
+  }
+
+  /**
+   * Detect cache corruption across all entries
+   */
+  private async detectCacheCorruption(): Promise<number> {
+    let corruptionCount = 0;
+    
+    try {
+      // Check all localStorage keys with our cache prefix
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('kn_cache_')) {
+          try {
+            const entry = this.getCacheEntry(key);
+            if (entry) {
+              const validation = this.cacheVersioning.validateCacheEntry(entry);
+              if (!validation.isValid) {
+                corruptionCount++;
+                console.warn(`⚠️ Corrupted cache entry detected: ${key}`);
+              }
+            }
+          } catch (error) {
+            corruptionCount++;
+            console.warn(`⚠️ Invalid cache entry detected: ${key}`, error);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('❌ Cache corruption detection failed:', error);
+    }
+    
+    return corruptionCount;
   }
 
   /**

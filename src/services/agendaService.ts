@@ -18,13 +18,14 @@ import { pwaDataSyncService } from './pwaDataSyncService.ts';
 import { cacheMonitoringService } from './cacheMonitoringService';
 import { cacheVersioningService, type CacheEntry } from './cacheVersioningService';
 import { unifiedCacheService } from './unifiedCacheService';
+import { ServerDataSyncService } from './serverDataSyncService';
 
 export class AgendaService implements IAgendaService {
   private backgroundRefreshInProgress = false;
   private readonly tableName = 'agenda_items';
   private readonly basePath = '/api/agenda-items';
 
-  private serverDataSyncService?: IServerDataSyncService;
+  private serverDataSyncService: ServerDataSyncService | null = null;
   private cacheService?: ICacheService;
   private unifiedCache?: IUnifiedCacheService;
 
@@ -33,11 +34,15 @@ export class AgendaService implements IAgendaService {
     cacheService?: ICacheService,
     unifiedCache?: IUnifiedCacheService
   ) {
-    this.serverDataSyncService = serverDataSyncService;
+    this.serverDataSyncService = serverDataSyncService as ServerDataSyncService || null;
     this.cacheService = cacheService;
     this.unifiedCache = unifiedCache || unifiedCacheService;
-    // If no dependencies provided, we'll use the default implementations
-    // This maintains backward compatibility
+    
+    // Initialize serverDataSyncService for background refresh if not provided
+    if (!this.serverDataSyncService) {
+      this.serverDataSyncService = new ServerDataSyncService();
+      console.log('✅ AgendaService: ServerDataSyncService initialized for background refresh');
+    }
   }
 
   private async apiGet<T>(path: string): Promise<T> {
@@ -248,7 +253,7 @@ export class AgendaService implements IAgendaService {
       const cachedData = await this.unifiedCache!.get('kn_cache_agenda_items');
       
       if (cachedData) {
-        const agendaItems = cachedData.data || cachedData;
+        const agendaItems = (cachedData as any)?.data || cachedData;
         const filteredItems = agendaItems.filter((item: any) => item.isActive);
         
         if (agendaItems.length > 0) {
@@ -347,14 +352,14 @@ export class AgendaService implements IAgendaService {
     try {
       const syncResult = await this.serverDataSyncService.syncAllData();
       
-      if (syncResult.success && syncResult.syncedTables.includes('agenda_items')) {
+      if (syncResult.success && syncResult.syncedTables?.includes('agenda_items')) {
         console.log('🌐 SYNC: Successfully synced agenda items');
         
         // Get the fresh data from cache
         const freshCachedData = await this.unifiedCache!.get('kn_cache_agenda_items');
         
         if (freshCachedData) {
-          const agendaItems = freshCachedData.data || freshCachedData;
+          const agendaItems = (freshCachedData as any)?.data || freshCachedData;
           const filteredItems = agendaItems
             .filter((item: any) => item.isActive)
             .sort((a: any, b: any) => {
@@ -438,6 +443,7 @@ export class AgendaService implements IAgendaService {
   private async refreshAgendaItemsInBackground(): Promise<void> {
     // Prevent multiple simultaneous background refreshes
     if (this.backgroundRefreshInProgress) {
+      console.log('🔄 Background refresh: Already in progress, skipping');
       return;
     }
 
@@ -445,21 +451,25 @@ export class AgendaService implements IAgendaService {
     
     try {
       if (!this.serverDataSyncService) {
-        console.warn('⚠️ Background refresh: No serverDataSyncService available');
-        return;
+        console.warn('⚠️ Background refresh: No serverDataSyncService available, reinitializing...');
+        this.serverDataSyncService = new ServerDataSyncService();
       }
 
+      console.log('🔄 Background refresh: Starting server sync...');
+      
       // Use the injected service
       const syncResult = await this.serverDataSyncService.syncAllData();
       
-      if (syncResult.success && syncResult.syncedTables.includes('agenda_items')) {
+      if (syncResult.success && syncResult.syncedTables?.includes('agenda_items')) {
         // The data is already cached by serverDataSyncService, so we don't need to cache it again
-        console.log('🔄 Background refresh: Successfully synced agenda items');
+        console.log('✅ Background refresh: Successfully synced agenda items');
       } else {
         console.warn('⚠️ Background refresh: serverDataSyncService failed, keeping existing cache');
       }
     } catch (error) {
       console.warn('⚠️ Background refresh failed:', error);
+      // Reset service on error to allow retry
+      this.serverDataSyncService = null;
     } finally {
       this.backgroundRefreshInProgress = false;
     }
