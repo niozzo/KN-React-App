@@ -226,6 +226,9 @@ export class AgendaService implements IAgendaService {
             let name = '';
             
             if (attendee) {
+              // DEBUG: Log attendee data for RCA
+              console.log('RCA DEBUG (agendaService): Attendee data for assignment:', assignment.attendee_id, attendee);
+
               // Format as "First Name Last Name, Title at Company" (matching mockup)
               const firstName = attendee.first_name || '';
               const lastName = attendee.last_name || '';
@@ -240,6 +243,9 @@ export class AgendaService implements IAgendaService {
               } else {
                 name = fullName;
               }
+              
+              // DEBUG: Log constructed name for RCA
+              console.log('RCA DEBUG (agendaService): Constructed name:', name);
             } else {
               name = `Speaker ${assignment.attendee_id}`;
             }
