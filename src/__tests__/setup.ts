@@ -22,40 +22,8 @@ vi.mock('@supabase/supabase-js', () => ({
   }))
 }));
 
-// Mock serverDataSyncService to prevent module resolution issues
-vi.mock('../services/serverDataSyncService', () => ({
-  serverDataSyncService: {
-    syncAllData: vi.fn(),
-    getCachedData: vi.fn(),
-    clearCache: vi.fn(),
-    lookupAttendeeByAccessCode: vi.fn()
-  },
-  ServerDataSyncService: vi.fn()
-}));
-
-// Mock pwaDataSyncService to prevent module resolution issues
-vi.mock('../services/pwaDataSyncService', () => ({
-  pwaDataSyncService: {
-    syncAllData: vi.fn().mockResolvedValue({
-      success: true,
-      syncedTables: ['agenda_items', 'attendees', 'sponsors'],
-      errors: [],
-      conflicts: []
-    }),
-    getCachedTableData: vi.fn().mockResolvedValue([]),
-    cacheTableData: vi.fn(),
-    getSyncStatus: vi.fn().mockReturnValue({
-      isOnline: true,
-      lastSync: new Date().toISOString(),
-      pendingChanges: 0,
-      syncInProgress: false
-    }),
-    getCachedData: vi.fn(),
-    clearCache: vi.fn(),
-    invalidateCache: vi.fn()
-  },
-  PWADataSyncService: vi.fn()
-}));
+// Note: Removed conflicting service mocks to prevent test hanging
+// Individual tests can mock services as needed using vi.mock() locally
 
 // Global test setup
 beforeAll(() => {

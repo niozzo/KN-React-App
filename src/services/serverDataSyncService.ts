@@ -10,6 +10,8 @@ import { createClient } from '@supabase/supabase-js';
 import { applicationDb } from './applicationDatabaseService';
 import { sanitizeAttendeeForStorage } from '../types/attendee';
 import { attendeeInfoService } from './attendeeInfoService';
+import { BaseService } from './baseService.js';
+import { supabaseClientService } from './supabaseClientService.js';
 
 export interface ServerSyncResult {
   success: boolean;
@@ -18,7 +20,7 @@ export interface ServerSyncResult {
   totalRecords: number;
 }
 
-export class ServerDataSyncService {
+export class ServerDataSyncService extends BaseService {
   private readonly supabaseUrl: string;
   private readonly supabaseKey: string;
   private readonly adminEmail: string;
@@ -43,15 +45,16 @@ export class ServerDataSyncService {
     'attendee_metadata'
   ];
 
-         constructor() {
-           // Get credentials from environment variables
-           this.supabaseUrl = (import.meta as any).env?.VITE_SUPABASE_URL || 'https://iikcgdhztkrexuuqheli.supabase.co';
-           this.supabaseKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlpa2NnZGh6dGtyZXh1dXFoZWxpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwMzY3NDEsImV4cCI6MjA3MjYxMjc0MX0.N3KNNn6N_S4qPlBeclj07QsekCeZnF_FkBKef96XnO8';
+  constructor() {
+    super();
+    // Get credentials from environment variables
+    this.supabaseUrl = (import.meta as any).env?.VITE_SUPABASE_URL || 'https://iikcgdhztkrexuuqheli.supabase.co';
+    this.supabaseKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlpa2NnZGh6dGtyZXh1dXFoZWxpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwMzY3NDEsImV4cCI6MjA3MjYxMjc0MX0.N3KNNn6N_S4qPlBeclj07QsekCeZnF_FkBKef96XnO8';
            
-           // Admin credentials for server-side authentication (using same env vars as spike server)
-           this.adminEmail = (import.meta as any).env?.SUPABASE_USER_EMAIL || 'ishan.gammampila@apax.com';
-           this.adminPassword = (import.meta as any).env?.SUPABASE_USER_PASSWORD || 'xx8kRx#tn@R?';
-         }
+    // Admin credentials for server-side authentication (using same env vars as spike server)
+    this.adminEmail = (import.meta as any).env?.SUPABASE_USER_EMAIL || 'ishan.gammampila@apax.com';
+    this.adminPassword = (import.meta as any).env?.SUPABASE_USER_PASSWORD || 'xx8kRx#tn@R?';
+  }
 
   /**
    * Get authenticated Supabase client with admin credentials
@@ -59,6 +62,13 @@ export class ServerDataSyncService {
   private async getAuthenticatedClient() {
     // Return cached client if already authenticated
     if (this.authenticatedClient) {
+      return this.authenticatedClient;
+    }
+    
+    // Use singleton client service to prevent multiple instances
+    if (this.isLocalMode()) {
+      console.log('🏠 Local mode: Using singleton Supabase client');
+      this.authenticatedClient = supabaseClientService.getClient();
       return this.authenticatedClient;
     }
     

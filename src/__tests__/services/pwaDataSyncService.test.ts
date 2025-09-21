@@ -5,10 +5,9 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-// Unmock the PWA data sync service to test the actual implementation
-vi.unmock('../../services/pwaDataSyncService');
-
-import { pwaDataSyncService } from '../../services/pwaDataSyncService';
+// Use ServiceTestFactory to create isolated service instances
+import { ServiceTestFactory } from '../factories/ServiceTestFactory';
+import { PWADataSyncService } from '../../services/pwaDataSyncService';
 
 // Mock Supabase
 vi.mock('../../lib/supabase', () => ({
@@ -73,6 +72,8 @@ Object.defineProperty(navigator, 'onLine', {
 });
 
 describe('PWADataSyncService', () => {
+  let pwaDataSyncService: PWADataSyncService;
+
   beforeEach(() => {
     vi.clearAllMocks();
     // Default: successful fetch for all endpoints
@@ -81,6 +82,9 @@ describe('PWADataSyncService', () => {
     localStorageMock.getItem.mockReturnValue(null);
     localStorageMock.setItem.mockImplementation(() => {});
     localStorageMock.removeItem.mockImplementation(() => {});
+    
+    // Create service instance using factory
+    pwaDataSyncService = ServiceTestFactory.createPWADataSyncService();
   });
 
   afterEach(() => {

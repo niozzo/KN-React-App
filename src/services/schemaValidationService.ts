@@ -7,6 +7,7 @@
  */
 
 import { supabase } from '../lib/supabase';
+import { BaseService } from './baseService.js';
 
 export interface SchemaValidationResult {
   isValid: boolean;
@@ -66,7 +67,7 @@ export interface ConstraintSchema {
   referencedColumns?: string[];
 }
 
-export class SchemaValidationService {
+export class SchemaValidationService extends BaseService {
   private readonly EXPECTED_TABLES = [
     'attendees',
     'sponsors',
@@ -78,15 +79,7 @@ export class SchemaValidationService {
     'user_profiles'
   ];
 
-  private isLocalMode(): boolean {
-    // Check if we're in local development mode (no Supabase connection needed)
-    // Also disable schema validation in production since Supabase doesn't expose information_schema
-    return process.env.NODE_ENV === 'development' || 
-           process.env.NODE_ENV === 'test' ||
-           process.env.NODE_ENV === 'production' || // Disable in production due to Supabase limitations
-           window.location.hostname === 'localhost' ||
-           window.location.hostname === '127.0.0.1';
-  }
+  // isLocalMode() is now inherited from BaseService
 
   private readonly EXPECTED_SCHEMAS: Record<string, Partial<TableSchema>> = {
     attendees: {

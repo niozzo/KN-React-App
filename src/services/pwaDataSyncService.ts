@@ -7,12 +7,13 @@
  */
 
 // All data reads must go through backend endpoints protected by RLS-aware auth
-// import { SchemaValidationService } from './schemaValidationService';
+import { SchemaValidationService } from './schemaValidationService.js';
 import { supabase } from '../lib/supabase';
 import { sanitizeAttendeeForStorage } from '../types/attendee';
 import { applicationDb } from './applicationDatabaseService';
 import { cacheMonitoringService } from './cacheMonitoringService';
 import { cacheVersioningService, type CacheEntry } from './cacheVersioningService';
+import { BaseService } from './baseService.js';
 
 export interface SyncStatus {
   isOnline: boolean;
@@ -42,7 +43,7 @@ export interface CacheConfig {
   syncInterval: number; // in milliseconds
 }
 
-export class PWADataSyncService {
+export class PWADataSyncService extends BaseService {
   private readonly CACHE_PREFIX = 'kn_cache_';
   private readonly SYNC_STATUS_KEY = 'kn_sync_status';
   private readonly CONFLICT_KEY = 'kn_conflicts';
@@ -54,12 +55,12 @@ export class PWADataSyncService {
     syncInProgress: false
   };
 
-  // private schemaValidator: SchemaValidationService;
+  private schemaValidator: SchemaValidationService | null = null;
 
   private cacheConfig: CacheConfig = {
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    maxAge: this.isLocalMode() ? 24 * 60 * 60 * 1000 : 5 * 60 * 1000, // 24h local, 5min prod
     maxSize: 50 * 1024 * 1024, // 50MB
-    syncInterval: 5 * 60 * 1000 // 5 minutes
+    syncInterval: this.isLocalMode() ? 30 * 60 * 1000 : 5 * 60 * 1000 // 30min local, 5min prod
   };
 
   private syncTimer: NodeJS.Timeout | null = null;
@@ -81,9 +82,44 @@ export class PWADataSyncService {
   };
 
   constructor() {
-    // this.schemaValidator = new SchemaValidationService();
+    super();
+    this.initializeSchemaValidator();
     this.initializeSync();
     this.setupEventListeners();
+  }
+
+  /**
+   * Initialize schema validator only in production mode
+   */
+  private initializeSchemaValidator(): void {
+    if (!this.isLocalMode()) {
+      this.schemaValidator = new SchemaValidationService();
+      console.log('✅ Schema validation service initialized for production mode');
+    } else {
+      console.log('🏠 Local mode: Schema validation service disabled');
+    }
+  }
+
+  /**
+   * Get cache TTL for specific table based on environment and data type
+   */
+  private getCacheTTL(tableName: string): number {
+    const baseTTL = this.isLocalMode() ? 24 * 60 * 60 * 1000 : 5 * 60 * 1000;
+    
+    // Different TTLs for different data types
+    const ttlOverrides: Record<string, number> = {
+      'agenda_items': 5 * 60 * 1000, // 5 minutes for dynamic data
+      'attendees': 24 * 60 * 60 * 1000, // 24 hours for static data
+      'speaker_assignments': 24 * 60 * 60 * 1000, // 24 hours for static data
+      'sponsors': 24 * 60 * 60 * 1000, // 24 hours for static data
+      'seat_assignments': 24 * 60 * 60 * 1000, // 24 hours for static data
+      'dining_options': 24 * 60 * 60 * 1000, // 24 hours for static data
+      'hotels': 24 * 60 * 60 * 1000, // 24 hours for static data
+      'seating_configurations': 24 * 60 * 60 * 1000, // 24 hours for static data
+      'user_profiles': 24 * 60 * 60 * 1000, // 24 hours for static data
+    };
+
+    return ttlOverrides[tableName] || baseTTL;
   }
 
   /**
@@ -242,12 +278,16 @@ export class PWADataSyncService {
 
     try {
 
-      // Validate schema before syncing
+      // Validate schema before syncing (only if validator is available)
       try {
-        const schemaResult = await this.schemaValidator.validateSchema();
-        if (!schemaResult.isValid) {
-          console.warn('⚠️ Schema validation failed:', schemaResult.errors);
-          result.errors.push(`Schema validation failed: ${schemaResult.errors.length} errors found`);
+        if (this.schemaValidator) {
+          const schemaResult = await this.schemaValidator.validateSchema();
+          if (!schemaResult.isValid) {
+            console.warn('⚠️ Schema validation failed:', schemaResult.errors);
+            result.errors.push(`Schema validation failed: ${schemaResult.errors.length} errors found`);
+          }
+        } else {
+          console.log('🏠 Local mode: Skipping schema validation');
         }
       } catch (schemaError) {
         console.warn('⚠️ Schema validation error:', schemaError);
@@ -414,8 +454,9 @@ export class PWADataSyncService {
         sanitizedData = data.map(attendee => sanitizeAttendeeForStorage(attendee));
       }
       
-      // ✅ NEW: Use cache versioning service for proper cache entry creation
-      const cacheEntry = cacheVersioningService.createCacheEntry(sanitizedData);
+      // ✅ NEW: Use cache versioning service for proper cache entry creation with environment-aware TTL
+      const ttl = this.getCacheTTL(tableName);
+      const cacheEntry = cacheVersioningService.createCacheEntry(sanitizedData, ttl);
       
       // Log cache operation
       console.log(`💾 Caching ${tableName} with versioning:`, {

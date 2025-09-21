@@ -141,10 +141,7 @@ export default defineConfig({
     logHeapUsage: false,
     // Force exit after tests complete
     forceRerunTriggers: ['**/package.json', '**/vitest.config.*'],
-    // Force process exit to prevent hanging
-    onProcessExit: () => {
-      process.exit(0);
-    },
+    // Note: Removed onProcessExit to prevent hanging issues
     // Prevent hanging by forcing process exit and manage console output
     onConsoleLog(log, type) {
       // Allow console output for debugging
