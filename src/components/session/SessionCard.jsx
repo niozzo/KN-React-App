@@ -133,67 +133,111 @@ const SessionCard = React.memo(({
           <div className="session-details">
             <div className="session-detail" style={{ display: 'block' }}>
               {speakers && speakers.length > 0 ? (
-                // Display each speaker on a separate line using speakers array
-                speakers.map((speaker, index) => (
-                  <div 
-                    key={speaker.id || index}
-                    style={{ 
-                      display: 'block', 
-                      marginBottom: '8px',
-                      width: '100%'
-                    }}
-                  >
-                    <a 
-                      href={`/bio?speaker=${encodeURIComponent(speaker.name)}`}
-                      className="speaker-link"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Handle navigation to speaker bio
-                        console.log('Navigate to speaker bio:', speaker.name);
-                      }}
+                // Display each speaker with name and title on separate lines
+                speakers.map((speaker, index) => {
+                  // Parse the speaker name to extract name and title
+                  const nameParts = speaker.name.split(', ');
+                  const speakerName = nameParts[0] || speaker.name;
+                  const speakerTitle = nameParts[1] || '';
+                  
+                  return (
+                    <div 
+                      key={speaker.id || index}
                       style={{ 
                         display: 'block', 
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
+                        marginBottom: speakers.length > 1 ? '16px' : '8px',
                         width: '100%'
                       }}
                     >
-                      {speaker.name}
-                    </a>
-                  </div>
-                ))
+                      <a 
+                        href={`/bio?speaker=${encodeURIComponent(speaker.name)}`}
+                        className="speaker-link"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Handle navigation to speaker bio
+                          console.log('Navigate to speaker bio:', speaker.name);
+                        }}
+                        style={{ 
+                          display: 'block', 
+                          textDecoration: 'none',
+                          color: 'inherit'
+                        }}
+                      >
+                        <div style={{
+                          fontWeight: '600',
+                          fontSize: '16px',
+                          color: 'var(--purple-700)',
+                          marginBottom: '2px'
+                        }}>
+                          {speakerName}
+                        </div>
+                        {speakerTitle && (
+                          <div style={{
+                            fontWeight: '400',
+                            fontSize: '14px',
+                            color: 'var(--ink-600)',
+                            lineHeight: '1.3'
+                          }}>
+                            {speakerTitle}
+                          </div>
+                        )}
+                      </a>
+                    </div>
+                  );
+                })
               ) : speakerInfo ? (
                 // Fallback to speakerInfo if speakers array not available
-                speakerInfo.split(', ').map((speakerName, index) => (
-                  <div 
-                    key={index}
-                    style={{ 
-                      display: 'block', 
-                      marginBottom: '8px',
-                      width: '100%'
-                    }}
-                  >
-                    <a 
-                      href={`/bio?speaker=${encodeURIComponent(speakerName.trim())}`}
-                      className="speaker-link"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Handle navigation to speaker bio
-                        console.log('Navigate to speaker bio:', speakerName.trim());
-                      }}
+                speakerInfo.split(', ').map((speakerName, index) => {
+                  // Parse the speaker name to extract name and title
+                  const nameParts = speakerName.trim().split(', ');
+                  const speakerNameOnly = nameParts[0] || speakerName.trim();
+                  const speakerTitle = nameParts[1] || '';
+                  
+                  return (
+                    <div 
+                      key={index}
                       style={{ 
                         display: 'block', 
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
+                        marginBottom: speakerInfo.split(', ').length > 1 ? '16px' : '8px',
                         width: '100%'
                       }}
                     >
-                      {speakerName.trim()}
-                    </a>
-                  </div>
-                ))
+                      <a 
+                        href={`/bio?speaker=${encodeURIComponent(speakerName.trim())}`}
+                        className="speaker-link"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Handle navigation to speaker bio
+                          console.log('Navigate to speaker bio:', speakerName.trim());
+                        }}
+                        style={{ 
+                          display: 'block', 
+                          textDecoration: 'none',
+                          color: 'inherit'
+                        }}
+                      >
+                        <div style={{
+                          fontWeight: '600',
+                          fontSize: '16px',
+                          color: 'var(--purple-700)',
+                          marginBottom: '2px'
+                        }}>
+                          {speakerNameOnly}
+                        </div>
+                        {speakerTitle && (
+                          <div style={{
+                            fontWeight: '400',
+                            fontSize: '14px',
+                            color: 'var(--ink-600)',
+                            lineHeight: '1.3'
+                          }}>
+                            {speakerTitle}
+                          </div>
+                        )}
+                      </a>
+                    </div>
+                  );
+                })
               ) : (
                 // Fallback for single speaker
                 <div 
@@ -213,13 +257,18 @@ const SessionCard = React.memo(({
                     }}
                     style={{ 
                       display: 'block',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      width: '100%'
+                      textDecoration: 'none',
+                      color: 'inherit'
                     }}
                   >
-                    {speaker}
+                    <div style={{
+                      fontWeight: '600',
+                      fontSize: '16px',
+                      color: 'var(--purple-700)',
+                      marginBottom: '2px'
+                    }}>
+                      {speaker}
+                    </div>
                   </a>
                 </div>
               )}
