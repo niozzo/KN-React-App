@@ -6,7 +6,14 @@ const APPLICATION_DB_URL = import.meta.env.VITE_APPLICATION_DB_URL;
 const APPLICATION_DB_ANON_KEY = import.meta.env.VITE_APPLICATION_DB_ANON_KEY;
 const APPLICATION_DB_SERVICE_KEY = import.meta.env.VITE_APPLICATION_DB_SERVICE_KEY;
 
+console.log('🔍 Application Database Service: Environment variables check');
+console.log('🔍 APPLICATION_DB_URL:', APPLICATION_DB_URL ? 'Present' : 'Missing');
+console.log('🔍 APPLICATION_DB_ANON_KEY:', APPLICATION_DB_ANON_KEY ? 'Present' : 'Missing');
+
 if (!APPLICATION_DB_URL || !APPLICATION_DB_ANON_KEY) {
+  console.error('❌ Missing application database environment variables');
+  console.error('❌ APPLICATION_DB_URL:', APPLICATION_DB_URL);
+  console.error('❌ APPLICATION_DB_ANON_KEY:', APPLICATION_DB_ANON_KEY);
   throw new Error('Missing application database environment variables');
 }
 

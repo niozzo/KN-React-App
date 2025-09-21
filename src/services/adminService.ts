@@ -40,6 +40,10 @@ export class AdminService {
     const speakerAssignments = await pwaDataSyncService.getCachedTableData('speaker_assignments');
     console.log('👥 AdminService: Loaded speaker assignments from cache:', speakerAssignments.length, 'assignments');
     
+    // Debug: Show all agenda item IDs and speaker assignment agenda_item_ids
+    console.log('🔍 AdminService: Agenda item IDs:', agendaItems.map((item: any) => item.id));
+    console.log('🔍 AdminService: Speaker assignment agenda_item_ids:', speakerAssignments.map((assignment: any) => assignment.agenda_item_id));
+    
     // Map assignments to agenda items and override titles with edited versions
     const itemsWithAssignments = agendaItems.map((item: any) => {
       // Find any edited metadata for this agenda item
@@ -51,6 +55,13 @@ export class AdminService {
       const assignments = speakerAssignments
         .filter((assignment: any) => assignment.agenda_item_id === item.id)
         .sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0));
+      
+      // Debug logging for this specific agenda item
+      console.log(`🔍 AdminService: Processing agenda item "${item.title}" (ID: ${item.id})`);
+      console.log(`🔍 AdminService: Found ${assignments.length} speaker assignments for this item`);
+      if (assignments.length > 0) {
+        console.log(`🔍 AdminService: Speaker assignments:`, assignments);
+      }
       
       return {
         ...item,
@@ -239,17 +250,23 @@ export class AdminService {
       
       for (const tableName of applicationTables) {
         try {
+          console.log(`🔄 Syncing ${tableName}...`);
           await pwaDataSyncService.syncApplicationTable(tableName);
-          console.log(`✅ Application table ${tableName} synced`);
+          console.log(`✅ Application table ${tableName} synced successfully`);
+          
+          // Verify the data was cached
+          const cachedData = await pwaDataSyncService.getCachedTableData(tableName);
+          console.log(`📊 Verified: ${tableName} has ${cachedData.length} records in cache`);
+          
         } catch (error) {
-          console.warn(`⚠️ Failed to sync application table ${tableName}:`, error);
+          console.error(`❌ Failed to sync application table ${tableName}:`, error);
           // Continue with other tables even if one fails
         }
       }
       
       console.log('✅ Application database sync completed for admin panel');
     } catch (error) {
-      console.warn('⚠️ Application database sync failed for admin panel:', error);
+      console.error('❌ Application database sync failed for admin panel:', error);
       // Don't throw error as this is not critical for basic functionality
     }
   }
