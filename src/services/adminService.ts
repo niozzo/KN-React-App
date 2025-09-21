@@ -1,4 +1,4 @@
-import { applicationDbService, SpeakerAssignment } from './applicationDatabaseService';
+import { applicationDatabaseService, SpeakerAssignment } from './applicationDatabaseService';
 import { pwaDataSyncService } from './pwaDataSyncService';
 import { unifiedCacheService } from './unifiedCacheService';
 
@@ -60,7 +60,7 @@ export class AdminService {
   async updateAgendaItemTitle(agendaItemId: string, newTitle: string): Promise<void> {
     // Update in application database metadata
     try {
-      await applicationDbService.syncAgendaItemMetadata({
+      await applicationDatabaseService.syncAgendaItemMetadata({
         id: agendaItemId,
         title: newTitle
       });
@@ -111,7 +111,7 @@ export class AdminService {
 
     try {
       // Try to save to database first
-      const dbAssignment = await applicationDbService.assignSpeaker(agendaItemId, attendeeId, role);
+      const dbAssignment = await applicationDatabaseService.assignSpeaker(agendaItemId, attendeeId, role);
       
       // Update local cache with database assignment (which has real ID)
       await this.updateLocalSpeakerAssignments([dbAssignment]);
@@ -130,7 +130,7 @@ export class AdminService {
   async removeSpeakerFromAgendaItem(assignmentId: string): Promise<void> {
     try {
       // Try to remove from database first
-      await applicationDbService.removeSpeakerAssignment(assignmentId);
+      await applicationDatabaseService.removeSpeakerAssignment(assignmentId);
     } catch (error) {
       console.warn('Database removal failed, continuing with local removal:', error);
     }
@@ -240,7 +240,7 @@ export class AdminService {
       
       console.log('🔄 New speaker orders:', speakerOrders);
       
-      await applicationDbService.reorderSpeakersForAgendaItem(agendaItemId, speakerOrders);
+      await applicationDatabaseService.reorderSpeakersForAgendaItem(agendaItemId, speakerOrders);
       
       // Update local cache with new order
       const updatedSpeakers = reorderedSpeakers.map((speaker, index) => ({
