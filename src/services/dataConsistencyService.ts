@@ -5,6 +5,8 @@
  * data synchronization issues and prevent UI inconsistencies.
  */
 
+import { toMilliseconds, compareTimestamps, isValidTimestamp } from '../utils/timestampUtils';
+
 export interface ConsistencyReport {
   isConsistent: boolean;
   issues: string[];
@@ -114,23 +116,33 @@ export class DataConsistencyService {
     issues: string[], 
     recommendations: string[]
   ): void {
-    const now = new Date();
+    const now = Date.now();
     
     // Check cache timestamps
     if (cacheState.lastSync) {
-      const syncTime = new Date(cacheState.lastSync);
-      if (syncTime > now) {
-        issues.push('Cache contains future sync timestamp');
+      if (!isValidTimestamp(cacheState.lastSync)) {
+        issues.push('Cache contains invalid sync timestamp format');
         recommendations.push('Clear cache and re-sync data');
+      } else {
+        const comparison = compareTimestamps(cacheState.lastSync, now);
+        if (comparison.isFuture) {
+          issues.push('Cache contains future sync timestamp');
+          recommendations.push('Clear cache and re-sync data');
+        }
       }
     }
 
     // Check UI timestamps
     if (uiState.lastUpdated) {
-      const updateTime = new Date(uiState.lastUpdated);
-      if (updateTime > now) {
-        issues.push('UI contains future update timestamp');
+      if (!isValidTimestamp(uiState.lastUpdated)) {
+        issues.push('UI contains invalid update timestamp format');
         recommendations.push('Reset UI state and reload data');
+      } else {
+        const comparison = compareTimestamps(uiState.lastUpdated, now);
+        if (comparison.isFuture) {
+          issues.push('UI contains future update timestamp');
+          recommendations.push('Reset UI state and reload data');
+        }
       }
     }
 
@@ -138,8 +150,16 @@ export class DataConsistencyService {
     if (cacheState.agendaItems) {
       const futureItems = cacheState.agendaItems.filter((item: any) => {
         if (item.date && item.start_time) {
-          const startTime = new Date(`${item.date}T${item.start_time}`);
-          return startTime > now;
+          try {
+            const startTime = `${item.date}T${item.start_time}`;
+            if (isValidTimestamp(startTime)) {
+              const comparison = compareTimestamps(startTime, now);
+              return comparison.isFuture;
+            }
+          } catch (error) {
+            // Invalid timestamp format
+            return false;
+          }
         }
         return false;
       });

@@ -5,6 +5,8 @@
  * to ensure cache health and prevent stale data issues.
  */
 
+import { toMilliseconds, isTimestampExpired, getCurrentISOString } from '../utils/timestampUtils';
+
 export interface CacheEntry {
   data: any;
   version: string;
@@ -38,7 +40,7 @@ export class CacheVersioningService {
     return {
       data,
       version,
-      timestamp: new Date().toISOString(),
+      timestamp: getCurrentISOString(),
       ttl: entryTTL,
       checksum: this.calculateChecksumSync(data)
     };
@@ -48,17 +50,22 @@ export class CacheVersioningService {
    * Validate a cache entry for freshness, version, and integrity
    */
   validateCacheEntry(entry: CacheEntry): ValidationResult {
-    const now = Date.now();
-    const entryTime = new Date(entry.timestamp).getTime();
-    const age = now - entryTime;
-    const isExpired = age > entry.ttl;
     const isVersionValid = entry.version === this.CACHE_VERSION;
     const isChecksumValid = entry.checksum === this.calculateChecksumSync(entry.data);
     
+    // Use safe timestamp validation
+    const timestampValidation = isTimestampExpired(entry.timestamp, entry.ttl);
+    
     const issues: string[] = [];
     
-    if (isExpired) {
-      issues.push(`Cache entry expired (age: ${Math.round(age / 1000)}s, TTL: ${Math.round(entry.ttl / 1000)}s)`);
+    if (!timestampValidation.isValid) {
+      issues.push(`Invalid timestamp: ${timestampValidation.error}`);
+    } else if (timestampValidation.isExpired) {
+      issues.push(`Cache entry expired (age: ${Math.round(timestampValidation.age / 1000)}s, TTL: ${Math.round(entry.ttl / 1000)}s)`);
+    }
+    
+    if (timestampValidation.isFuture) {
+      issues.push('Cache entry has future timestamp');
     }
     
     if (!isVersionValid) {
@@ -70,11 +77,11 @@ export class CacheVersioningService {
     }
 
     return {
-      isValid: !isExpired && isVersionValid && isChecksumValid,
-      isExpired,
+      isValid: timestampValidation.isValid && !timestampValidation.isExpired && !timestampValidation.isFuture && isVersionValid && isChecksumValid,
+      isExpired: timestampValidation.isExpired,
       isVersionValid,
       isChecksumValid,
-      age,
+      age: timestampValidation.age,
       issues: issues.length > 0 ? issues : undefined
     };
   }

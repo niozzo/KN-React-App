@@ -14,6 +14,7 @@ import { applicationDb } from './applicationDatabaseService';
 import { cacheMonitoringService } from './cacheMonitoringService';
 import { cacheVersioningService, type CacheEntry } from './cacheVersioningService';
 import { BaseService } from './baseService';
+import { isTimestampExpired } from '../utils/timestampUtils';
 
 export interface SyncStatus {
   isOnline: boolean;
@@ -572,33 +573,30 @@ export class PWADataSyncService extends BaseService {
       return false;
     }
 
-    // Check for future timestamps (cache corruption detection)
-    const now = Date.now();
-    
-    // Handle both string (ISO) and number (milliseconds) timestamps
-    let cacheTime: number;
-    if (typeof cacheData.timestamp === 'string') {
-      cacheTime = new Date(cacheData.timestamp).getTime();
-    } else {
-      cacheTime = cacheData.timestamp;
-    }
-    
-    const age = now - cacheTime;
+    // Use safe timestamp validation
+    const validation = isTimestampExpired(cacheData.timestamp, this.cacheConfig.maxAge);
     
     console.log('🔍 Cache validation debug:', {
-      now: new Date(now).toISOString(),
-      cacheTime: new Date(cacheTime).toISOString(),
-      age: age,
+      timestamp: cacheData.timestamp,
       maxAge: this.cacheConfig.maxAge,
-      isValid: age < this.cacheConfig.maxAge
+      isValid: validation.isValid,
+      isExpired: validation.isExpired,
+      isFuture: validation.isFuture,
+      age: validation.age,
+      error: validation.error
     });
     
-    if (cacheTime > now) {
+    if (!validation.isValid) {
+      console.warn('⚠️ Invalid timestamp detected in cache data:', validation.error);
+      return false;
+    }
+    
+    if (validation.isFuture) {
       console.warn('⚠️ Future timestamp detected in cache data, marking as invalid');
       return false;
     }
 
-    return age < this.cacheConfig.maxAge;
+    return !validation.isExpired;
   }
 
   /**
