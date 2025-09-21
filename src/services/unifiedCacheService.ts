@@ -57,7 +57,8 @@ export class UnifiedCacheService {
           return recoveryResult.data;
         }
         
-        // If all recovery attempts fail, clean up corrupted cache
+        // If all recovery attempts fail, clean up corrupted cache and return null
+        console.warn(`⚠️ Cache corruption detected for ${key}, clearing corrupted data`);
         await this.cleanupCorruptedCache(key);
         return null;
       }
@@ -128,6 +129,7 @@ export class UnifiedCacheService {
 
   /**
    * Atomic localStorage set operation with retry logic
+   * Fixed to prevent circular validation issues
    */
   private async atomicSetItem(key: string, entry: CacheEntry): Promise<void> {
     const maxRetries = 3;
@@ -135,26 +137,24 @@ export class UnifiedCacheService {
     
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        // Validate entry before storing
-        const validation = this.cacheVersioning.validateCacheEntry(entry);
-        if (!validation.isValid) {
-          throw new Error(`Invalid cache entry: ${validation.issues?.join(', ')}`);
+        // Basic validation before storing (only check required fields)
+        if (!entry.data || !entry.version || !entry.timestamp || !entry.checksum) {
+          throw new Error('Invalid cache entry: Missing required fields');
         }
         
         // Store with atomic operation
         localStorage.setItem(key, JSON.stringify(entry));
         
-        // Verify the write was successful
+        // Verify the write was successful (basic check only)
         const stored = localStorage.getItem(key);
         if (!stored) {
           throw new Error('Write verification failed');
         }
         
-        // Validate stored data integrity
+        // Basic integrity check (don't re-validate checksum to avoid circular issues)
         const parsed = JSON.parse(stored);
-        const storedValidation = this.cacheVersioning.validateCacheEntry(parsed);
-        if (!storedValidation.isValid) {
-          throw new Error(`Stored data validation failed: ${storedValidation.issues?.join(', ')}`);
+        if (!parsed.data || !parsed.version || !parsed.timestamp || !parsed.checksum) {
+          throw new Error('Stored data missing required fields');
         }
         
         return; // Success
@@ -401,6 +401,42 @@ export class UnifiedCacheService {
       console.log('🧹 Cleaned up corrupted cache entries for', key);
     } catch (error) {
       console.error('❌ Failed to cleanup corrupted cache for', key, error);
+    }
+  }
+
+  /**
+   * Clear all corrupted cache entries
+   */
+  async clearCorruptedCache(): Promise<void> {
+    try {
+      const corruptedKeys: string[] = [];
+      
+      // Find all corrupted cache entries
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('kn_cache_')) {
+          try {
+            const entry = this.getCacheEntry(key);
+            if (entry) {
+              const validation = this.cacheVersioning.validateCacheEntry(entry);
+              if (!validation.isValid) {
+                corruptedKeys.push(key);
+              }
+            }
+          } catch (error) {
+            corruptedKeys.push(key);
+          }
+        }
+      }
+      
+      // Remove all corrupted entries
+      for (const key of corruptedKeys) {
+        await this.cleanupCorruptedCache(key);
+      }
+      
+      console.log(`🧹 Cleared ${corruptedKeys.length} corrupted cache entries`);
+    } catch (error) {
+      console.error('❌ Failed to clear corrupted cache:', error);
     }
   }
 

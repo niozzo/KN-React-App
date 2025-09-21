@@ -86,6 +86,7 @@ export class PWADataSyncService extends BaseService {
     this.initializeSchemaValidator();
     this.initializeSync();
     this.setupEventListeners();
+    this.clearCorruptedCacheOnStartup();
   }
 
   /**
@@ -97,6 +98,20 @@ export class PWADataSyncService extends BaseService {
       console.log('✅ Schema validation service initialized for production mode');
     } else {
       console.log('🏠 Local mode: Schema validation service disabled');
+    }
+  }
+
+  /**
+   * Clear corrupted cache on startup to prevent validation loops
+   */
+  private async clearCorruptedCacheOnStartup(): Promise<void> {
+    try {
+      // Import unifiedCacheService dynamically to avoid circular dependencies
+      const { unifiedCacheService } = await import('./unifiedCacheService');
+      await unifiedCacheService.clearCorruptedCache();
+      console.log('🧹 Startup: Cleared any corrupted cache entries');
+    } catch (error) {
+      console.warn('⚠️ Failed to clear corrupted cache on startup:', error);
     }
   }
 
