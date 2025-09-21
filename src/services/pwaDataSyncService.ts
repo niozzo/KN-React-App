@@ -108,8 +108,14 @@ export class PWADataSyncService extends BaseService {
     try {
       // Import unifiedCacheService dynamically to avoid circular dependencies
       const { unifiedCacheService } = await import('./unifiedCacheService');
+      
+      // Force clear agenda items cache specifically to resolve persistent corruption
+      await unifiedCacheService.clearAgendaItemsCache();
+      
+      // Also clear any other corrupted entries
       await unifiedCacheService.clearCorruptedCache();
-      console.log('🧹 Startup: Cleared any corrupted cache entries');
+      
+      console.log('🧹 Startup: Cleared corrupted cache entries including agenda items');
     } catch (error) {
       console.warn('⚠️ Failed to clear corrupted cache on startup:', error);
     }
