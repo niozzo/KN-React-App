@@ -131,7 +131,6 @@ const SessionCard = React.memo(({
         {(speakerInfo || speaker) && (
           <div className="session-details">
             <div className="session-detail">
-              <span className="detail-icon">👤</span>
               {speakerInfo ? (
                 // Display each speaker on a separate line
                 speakerInfo.split(', ').map((speakerName, index) => (
