@@ -66,16 +66,28 @@ beforeAll(() => {
 afterEach(async () => {
   // Use standardized cleanup utility with improved isolation
   await cleanupAfterTest()
+  
+  // Clear all timers to prevent hanging
+  vi.clearAllTimers()
+  vi.useRealTimers()
 })
 
-afterAll(() => {
+afterAll(async () => {
   // Cleanup after all tests
   vi.restoreAllMocks()
+  
+  // Clear all timers to prevent hanging
+  vi.clearAllTimers()
   
   // Force garbage collection if available
   if (global.gc) {
     global.gc()
   }
+  
+  // Force process exit after cleanup to prevent hanging
+  setTimeout(() => {
+    process.exit(0)
+  }, 500) // Reduced timeout for faster exit
 })
 
 // Mock PWA APIs

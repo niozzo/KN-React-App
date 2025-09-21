@@ -67,7 +67,10 @@ export const useUIState = <T>(
   const [error, setError] = useState<string | null>(null);
   const [validationResult, setValidationResult] = useState<boolean | string>(true);
 
-  // Debounced validation
+  // Track if state change was user-initiated to avoid double validation
+  const [isUserInitiated, setIsUserInitiated] = useState(false);
+
+  // Debounced validation for system-initiated state changes
   const debouncedValidate = useMemo(
     () => debounce((currentState: T) => {
       if (validate) {
@@ -85,10 +88,13 @@ export const useUIState = <T>(
     [validate, debounceMs]
   );
 
-  // Validate state when it changes
+  // Validate state when it changes (only for system-initiated changes)
   useEffect(() => {
-    debouncedValidate(state);
-  }, [state, debouncedValidate]);
+    if (!isUserInitiated) {
+      debouncedValidate(state);
+    }
+    setIsUserInitiated(false); // Reset flag
+  }, [state, debouncedValidate, isUserInitiated]);
 
   // Persist state to localStorage
   useEffect(() => {
@@ -101,17 +107,37 @@ export const useUIState = <T>(
     }
   }, [state, persist, storageKey, isDirty]);
 
-  const updateState = useCallback((updates: Partial<T>) => {
-    setState(prev => ({ ...prev, ...updates }));
+  const setStateWithDirty = useCallback((newState: T | ((prev: T) => T)) => {
+    setIsUserInitiated(true); // Mark as user-initiated to skip debounced validation
+    setState(prev => {
+      const newValue = typeof newState === 'function' ? (newState as (prev: T) => T)(prev) : newState;
+      // Always trigger immediate validation for user-initiated setState calls
+      if (validate) {
+        const result = validate(newValue);
+        setValidationResult(result);
+        if (typeof result === 'string') {
+          setError(result);
+        } else if (result === false) {
+          setError('Validation failed');
+        } else {
+          setError(null);
+        }
+      }
+      return newValue;
+    });
     setIsDirty(true);
-  }, []);
+  }, [validate, setState]);
+
+  const updateState = useCallback((updates: Partial<T>) => {
+    setStateWithDirty(prev => ({ ...prev, ...updates }));
+  }, [setStateWithDirty]);
 
   const resetState = useCallback(() => {
     setState(initialState);
     setIsDirty(false);
     setError(null);
     setValidationResult(true);
-  }, [initialState]);
+  }, [initialState, setState]);
 
   const validateState = useCallback(() => {
     if (validate) {
@@ -130,7 +156,7 @@ export const useUIState = <T>(
 
   return {
     state,
-    setState,
+    setState: setStateWithDirty,
     updateState,
     resetState,
     validateState,

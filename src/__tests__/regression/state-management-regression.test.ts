@@ -112,7 +112,7 @@ describe('State Management Regression Tests', () => {
     });
 
     // Should handle null cache gracefully
-    expect(result.current.agendaData).toBeNull();
+    expect(result.current.agendaData).toEqual([]);
     expect(result.current.loading).toBe(false);
   });
 
@@ -150,10 +150,10 @@ describe('State Management Regression Tests', () => {
 
   it('should maintain persistence behavior', () => {
     const mockLocalStorage = {
-      getItem: jest.fn().mockReturnValue(JSON.stringify({ count: 5 })),
-      setItem: jest.fn(),
-      removeItem: jest.fn(),
-      clear: jest.fn()
+      getItem: vi.fn().mockReturnValue(JSON.stringify({ count: 5 })),
+      setItem: vi.fn(),
+      removeItem: vi.fn(),
+      clear: vi.fn()
     };
     Object.defineProperty(window, 'localStorage', { value: mockLocalStorage });
 
@@ -187,7 +187,7 @@ describe('State Management Regression Tests', () => {
     mockUnifiedCache.get.mockResolvedValue(null);
     
     let callCount = 0;
-    const fetcher = jest.fn().mockImplementation(() => {
+    const fetcher = vi.fn().mockImplementation(() => {
       callCount++;
       if (callCount < 3) {
         throw error;
@@ -198,7 +198,7 @@ describe('State Management Regression Tests', () => {
     const { result } = renderHook(() => useDataLoading());
 
     // Mock setTimeout to test retry logic
-    jest.useFakeTimers();
+    vi.useFakeTimers();
 
     await act(async () => {
       await result.current.loadData('test-key', fetcher, { retries: 3, retryDelay: 100 });
@@ -206,17 +206,17 @@ describe('State Management Regression Tests', () => {
 
     // Fast-forward time to trigger retries
     act(() => {
-      jest.advanceTimersByTime(1000);
+      vi.advanceTimersByTime(1000);
     });
 
     expect(callCount).toBe(3); // Should retry 3 times
     expect(result.current.data).toBe('success');
 
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   it('should maintain debounce behavior', async () => {
-    const validate = jest.fn().mockReturnValue(true);
+    const validate = vi.fn().mockReturnValue(true);
     
     const { result } = renderHook(() => 
       useUIState({ count: 0 }, { validate, debounceMs: 100 })

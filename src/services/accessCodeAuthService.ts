@@ -84,7 +84,7 @@ export class AccessCodeAuthService implements IAccessCodeAuthService {
   /**
    * Validate access code format
    */
-  validateAccessCode(accessCode: string): boolean {
+  async validateAccessCode(accessCode: string): Promise<boolean> {
     // Access codes are 6-digit strings
     return /^\d{6}$/.test(accessCode);
   }

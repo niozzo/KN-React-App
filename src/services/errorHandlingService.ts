@@ -10,6 +10,7 @@ export interface ErrorContext {
   userId?: string;
   sessionId?: string;
   timestamp?: Date;
+  category?: string;
   metadata?: Record<string, any>;
 }
 

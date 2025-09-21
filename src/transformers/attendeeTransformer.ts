@@ -13,9 +13,10 @@ export class AttendeeTransformer extends BaseTransformer<Attendee> {
       { source: 'id', target: 'id', type: 'string', required: true },
       { source: 'first_name', target: 'first_name', type: 'string', required: true },
       { source: 'last_name', target: 'last_name', type: 'string', required: true },
-      { source: 'email', target: 'email', type: 'string', required: true },
-      { source: 'phone', target: 'phone', type: 'string', defaultValue: null },
-      { source: 'company', target: 'company', type: 'string', defaultValue: '' },
+      // Database field names as primary sources
+      { source: 'email_address', target: 'email', type: 'string', required: true },
+      { source: 'phone_number', target: 'phone', type: 'string', defaultValue: null },
+      { source: 'company_name', target: 'company', type: 'string', defaultValue: '' },
       { source: 'is_active', target: 'isActive', type: 'boolean', defaultValue: true },
       { source: 'created_at', target: 'created_at', type: 'date' },
       { source: 'updated_at', target: 'updated_at', type: 'date' },
@@ -38,11 +39,11 @@ export class AttendeeTransformer extends BaseTransformer<Attendee> {
       },
       {
         name: 'displayName',
-        sourceFields: ['first_name', 'last_name', 'company_name'],
+        sourceFields: ['first_name', 'last_name', 'company'],
         computation: (data: any) => {
           const firstName = data.first_name || ''
           const lastName = data.last_name || ''
-          const company = data.company_name || ''
+          const company = data.company || ''
           const name = `${firstName} ${lastName}`.trim()
           return company ? `${name} (${company})` : name
         },
@@ -107,56 +108,6 @@ export class AttendeeTransformer extends BaseTransformer<Attendee> {
     return '2.0.0' // Current schema
   }
 
-  /**
-   * Handle database schema evolution with version-aware processing
-   */
-  protected handleSchemaEvolution(dbData: any, schemaVersion: SchemaVersion): any {
-    const evolved = { ...dbData }
-    
-    console.log(`🔄 Attendee schema evolution: ${schemaVersion.version} (confidence: ${schemaVersion.confidence})`)
-    
-    switch (schemaVersion.version) {
-      case '1.0.0':
-        // Handle field rename from email_address to email
-        if (evolved.email_address && !evolved.email) {
-          evolved.email = evolved.email_address
-        }
-        break
-        
-      case '1.1.0':
-        // Handle field rename from phone_number to phone
-        if (evolved.phone_number && !evolved.phone) {
-          evolved.phone = evolved.phone_number
-        }
-        break
-        
-      case '1.2.0':
-        // Handle field rename from company_name to company
-        if (evolved.company_name && !evolved.company) {
-          evolved.company = evolved.company_name
-        }
-        break
-        
-      case '1.3.0':
-        // Handle string boolean fields
-        if (typeof evolved.is_active === 'string') {
-          evolved.is_active = evolved.is_active === 'true' || evolved.is_active === '1'
-        }
-        break
-        
-      case '2.0.0':
-        // Current schema - no changes needed
-        break
-        
-      default:
-        console.warn(`⚠️ Unknown attendee schema version: ${schemaVersion.version}`)
-    }
-    
-    // Handle common data type issues
-    this.handleCommonDataTypes(evolved)
-    
-    return evolved
-  }
 
   /**
    * Handle common data type issues across all versions
@@ -195,6 +146,31 @@ export class AttendeeTransformer extends BaseTransformer<Attendee> {
       'company_name': 'company',
       'is_active': 'isActive'
     }
+  }
+
+  /**
+   * Handle schema evolution for field name changes
+   */
+  protected handleSchemaEvolution(dbData: any, schemaVersion: SchemaVersion): any {
+    const evolvedData = { ...dbData }
+    
+    // Handle field name evolution
+    if (evolvedData.email && !evolvedData.email_address) {
+      // New schema: email field exists, map to email_address for consistency
+      evolvedData.email_address = evolvedData.email
+    }
+    
+    if (evolvedData.phone && !evolvedData.phone_number) {
+      // New schema: phone field exists, map to phone_number for consistency
+      evolvedData.phone_number = evolvedData.phone
+    }
+    
+    if (evolvedData.company && !evolvedData.company_name) {
+      // New schema: company field exists, map to company_name for consistency
+      evolvedData.company_name = evolvedData.company
+    }
+    
+    return evolvedData
   }
 
   /**

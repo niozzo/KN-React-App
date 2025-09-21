@@ -125,6 +125,21 @@ export class UnifiedCacheService {
   }
 
   /**
+   * Delete data from cache (alias for remove with boolean return)
+   */
+  async delete(key: string): Promise<boolean> {
+    try {
+      localStorage.removeItem(key);
+      this.monitoring.logCacheMiss(key, 'deleted');
+      return true;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      this.monitoring.logCacheCorruption(key, errorMessage);
+      return false;
+    }
+  }
+
+  /**
    * Invalidate cache entries matching a pattern
    */
   async invalidate(pattern: string): Promise<void> {
@@ -133,7 +148,8 @@ export class UnifiedCacheService {
       const matchingKeys = keys.filter(key => key.includes(pattern));
       
       for (const key of matchingKeys) {
-        await this.remove(key);
+        localStorage.removeItem(key);
+        this.monitoring.logCacheMiss(key, 'removed');
       }
       
       this.monitoring.logCacheMiss(pattern, `invalidated ${matchingKeys.length} keys`);
@@ -154,6 +170,7 @@ export class UnifiedCacheService {
       
       for (const key of cacheKeys) {
         localStorage.removeItem(key);
+        this.monitoring.logCacheMiss(key, 'removed');
       }
       
       this.monitoring.logCacheMiss('all', `cleared ${cacheKeys.length} keys`);

@@ -10,11 +10,11 @@ import { UnifiedCacheService } from '../../services/unifiedCacheService';
 
 // Mock localStorage for performance testing
 const mockLocalStorage = {
-  getItem: jest.fn(),
-  setItem: jest.fn(),
-  removeItem: jest.fn(),
-  clear: jest.fn(),
-  key: jest.fn(),
+  getItem: vi.fn(),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+  clear: vi.fn(),
+  key: vi.fn(),
   length: 0
 };
 
@@ -30,7 +30,7 @@ describe('Cache Performance', () => {
 
   beforeEach(() => {
     cacheService = new UnifiedCacheService();
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should handle large datasets efficiently', async () => {

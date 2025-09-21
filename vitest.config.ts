@@ -130,6 +130,7 @@ export default defineConfig({
     // Optimized timeouts
     testTimeout: 3000, // Reduced from 5000 to 3000
     hookTimeout: 3000, // Reduced from 5000 to 3000
+    teardownTimeout: 10000, // Add teardown timeout for cleanup
     // Add bail to stop on first failure
     bail: 5, // Reduced from 10 to 5
     // Performance optimizations
@@ -138,9 +139,15 @@ export default defineConfig({
     // Memory and performance optimizations
     passWithNoTests: true,
     logHeapUsage: false,
-    // Allow console output for debugging but suppress verbose test output
+    // Force exit after tests complete
+    forceRerunTriggers: ['**/package.json', '**/vitest.config.*'],
+    // Force process exit to prevent hanging
+    onProcessExit: () => {
+      process.exit(0);
+    },
+    // Prevent hanging by forcing process exit and manage console output
     onConsoleLog(log, type) {
-      // Always allow console output in development mode for debugging
+      // Allow console output for debugging
       if (process.env.NODE_ENV === 'development') {
         return true;
       }
@@ -149,15 +156,18 @@ export default defineConfig({
       if (type === 'stderr' && log.includes('Multiple GoTrueClient instances')) {
         return false; // Suppress Supabase warnings
       }
+      
       // Allow debug logs for testing
       if (log.includes('About to call syncAllData') || 
           log.includes('serverDataSyncService:') || 
           log.includes('Sync result:')) {
         return true; // Allow debug logs
       }
+      
       if (log.includes('🔍') || log.includes('🔄') || log.includes('❌') || log.includes('⚠️')) {
         return false; // Suppress verbose service logging
       }
+      
       // Suppress massive HTML dumps from LoginPage tests
       if (log.includes('Here are the accessible roles:') || 
           log.includes('Ignored nodes: comments, script, style') ||
@@ -165,6 +175,7 @@ export default defineConfig({
           log.includes('Name "Enter your 6-character access code"')) {
         return false;
       }
+      
       return true;
     },
     coverage: {

@@ -14,7 +14,7 @@ import type { IServerDataSyncService } from './interfaces/IServerDataSyncService
 import type { ICacheService } from './interfaces/ICacheService';
 import type { IUnifiedCacheService } from './interfaces/IUnifiedCacheService';
 import type { ServiceResult } from './interfaces/IAgendaService';
-import { pwaDataSyncService } from './pwaDataSyncService';
+import { pwaDataSyncService } from './pwaDataSyncService.ts';
 import { cacheMonitoringService } from './cacheMonitoringService';
 import { cacheVersioningService, type CacheEntry } from './cacheVersioningService';
 import { unifiedCacheService } from './unifiedCacheService';
@@ -357,6 +357,27 @@ export class AgendaService implements IAgendaService {
       console.log('💾 Cached', agendaItems.length, 'agenda items using unified cache');
     } catch (error) {
       console.warn('⚠️ Failed to cache agenda items:', error);
+    }
+  }
+
+  /**
+   * Refresh agenda items - public method required by interface
+   */
+  async refreshAgendaItems(): Promise<ServiceResult<AgendaItem[]>> {
+    try {
+      // Force refresh by clearing cache first
+      await this.unifiedCache!.remove('kn_cache_agenda_items');
+      
+      // Get fresh data
+      const result = await this.getActiveAgendaItems();
+      return result;
+    } catch (error) {
+      console.error('❌ Failed to refresh agenda items:', error);
+      return {
+        success: false,
+        data: [],
+        error: error instanceof Error ? error.message : 'Unknown error occurred'
+      };
     }
   }
 

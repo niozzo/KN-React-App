@@ -12,33 +12,33 @@ import { useAgendaData } from '../../hooks/useAgendaData';
 import { unifiedCacheService } from '../../services/unifiedCacheService';
 
 // Mock components and services
-jest.mock('../../contexts/AuthContext', () => ({
+vi.mock('../../contexts/AuthContext', () => ({
   useAuth: () => ({ isAuthenticated: true, attendee: { id: 'test-user' } })
 }));
 
-jest.mock('../../services/unifiedCacheService', () => ({
+vi.mock('../../services/unifiedCacheService', () => ({
   unifiedCacheService: {
-    get: jest.fn(),
-    set: jest.fn(),
-    remove: jest.fn(),
-    invalidate: jest.fn(),
-    clear: jest.fn(),
-    getHealthStatus: jest.fn()
+    get: vi.fn(),
+    set: vi.fn(),
+    remove: vi.fn(),
+    invalidate: vi.fn(),
+    clear: vi.fn(),
+    getHealthStatus: vi.fn()
   }
 }));
 
-jest.mock('../../services/agendaService', () => ({
+vi.mock('../../services/agendaService', () => ({
   agendaService: {
-    getActiveAgendaItems: jest.fn()
+    getActiveAgendaItems: vi.fn()
   }
 }));
 
 // Mock localStorage
 const mockLocalStorage = {
-  getItem: jest.fn(),
-  setItem: jest.fn(),
-  removeItem: jest.fn(),
-  clear: jest.fn()
+  getItem: vi.fn(),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+  clear: vi.fn()
 };
 Object.defineProperty(window, 'localStorage', { value: mockLocalStorage });
 
@@ -66,7 +66,7 @@ const TestComponent = () => {
 
 describe('Cache Flow End-to-End', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should complete full data loading flow', async () => {
@@ -79,7 +79,7 @@ describe('Cache Flow End-to-End', () => {
     };
 
     // Mock API responses
-    global.fetch = jest.fn()
+    global.fetch = vi.fn()
       .mockResolvedValueOnce({
         ok: true,
         json: () => Promise.resolve(mockAgendaData.data)
@@ -108,15 +108,15 @@ describe('Cache Flow End-to-End', () => {
   it('should handle cache corruption gracefully', async () => {
     // Mock corrupted cache
     const mockLocalStorage = {
-      getItem: jest.fn((key) => {
+      getItem: vi.fn((key) => {
         if (key === 'kn_cache_agenda_items') {
           return '{"data": [{"id": "1", "title": "Test"}], "version": "1.0.0", "timestamp": "2025-01-01T00:00:00Z"}';
         }
         return null;
       }),
-      setItem: jest.fn(),
-      removeItem: jest.fn(),
-      clear: jest.fn()
+      setItem: vi.fn(),
+      removeItem: vi.fn(),
+      clear: vi.fn()
     };
     Object.defineProperty(window, 'localStorage', { value: mockLocalStorage });
 
@@ -136,7 +136,7 @@ describe('Cache Flow End-to-End', () => {
 
   it('should handle network failure recovery', async () => {
     // Mock network failure then recovery
-    global.fetch = jest.fn()
+    global.fetch = vi.fn()
       .mockRejectedValueOnce(new Error('Network error'))
       .mockResolvedValueOnce({
         ok: true,
@@ -188,7 +188,7 @@ describe('Cache Flow End-to-End', () => {
     const mockData2 = { data: [{ id: '2', title: 'Session 2' }], success: true };
 
     // Mock multiple concurrent requests
-    global.fetch = jest.fn()
+    global.fetch = vi.fn()
       .mockResolvedValueOnce({
         ok: true,
         json: () => Promise.resolve(mockData1.data)

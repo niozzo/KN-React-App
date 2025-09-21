@@ -80,7 +80,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, [])
 
-  const checkAuthStatus = useCallback(() => {
+  const checkAuthStatus = useCallback(async () => {
     try {
       const authStatus = getAuthStatus()
       setIsAuthenticated(authStatus.isAuthenticated)
@@ -88,7 +88,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setAttendee(authStatus.attendee as Attendee | null)
       
       // Load attendee name from cache if available
-      const cachedName = attendeeInfoService.getAttendeeName()
+      const cachedName = await attendeeInfoService.getAttendeeName()
       setAttendeeName(cachedName)
     } catch (error) {
       console.warn('⚠️ Error checking auth status, using defaults:', error)
@@ -149,7 +149,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setAttendee(authResult.attendee)
       
       // Load attendee name from the newly cached info
-      const cachedName = attendeeInfoService.getAttendeeName()
+      const cachedName = await attendeeInfoService.getAttendeeName()
       setAttendeeName(cachedName)
       
       console.log('✅ Authentication successful!')

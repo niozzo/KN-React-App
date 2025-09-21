@@ -208,11 +208,9 @@ describe('UnifiedCacheService', () => {
 
   describe('invalidate', () => {
     it('should remove all keys matching pattern', async () => {
-      mockLocalStorage.key.mockReturnValueOnce('kn_cache_agenda_items');
-      mockLocalStorage.key.mockReturnValueOnce('kn_cache_attendee');
-      mockLocalStorage.key.mockReturnValueOnce('other_key');
-      mockLocalStorage.key.mockReturnValueOnce(null);
-      Object.defineProperty(mockLocalStorage, 'length', { value: 3 });
+      // Mock Object.keys to return the test keys
+      const originalObjectKeys = Object.keys;
+      Object.keys = vi.fn().mockReturnValue(['kn_cache_agenda_items', 'kn_cache_attendee', 'other_key']);
 
       await cacheService.invalidate('kn_cache_');
 
@@ -220,16 +218,17 @@ describe('UnifiedCacheService', () => {
       expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('kn_cache_attendee');
       expect(mockLocalStorage.removeItem).not.toHaveBeenCalledWith('other_key');
       expect(mockMonitoring.logCacheMiss).toHaveBeenCalledWith('kn_cache_', 'invalidated 2 keys');
+
+      // Restore original Object.keys
+      Object.keys = originalObjectKeys;
     });
   });
 
   describe('clear', () => {
     it('should clear all cache keys', async () => {
-      mockLocalStorage.key.mockReturnValueOnce('kn_cache_agenda_items');
-      mockLocalStorage.key.mockReturnValueOnce('kn_cache_attendee');
-      mockLocalStorage.key.mockReturnValueOnce('other_key');
-      mockLocalStorage.key.mockReturnValueOnce(null);
-      Object.defineProperty(mockLocalStorage, 'length', { value: 3 });
+      // Mock Object.keys to return the test keys
+      const originalObjectKeys = Object.keys;
+      Object.keys = vi.fn().mockReturnValue(['kn_cache_agenda_items', 'kn_cache_attendee', 'other_key']);
 
       await cacheService.clear();
 
@@ -237,12 +236,15 @@ describe('UnifiedCacheService', () => {
       expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('kn_cache_attendee');
       expect(mockLocalStorage.removeItem).not.toHaveBeenCalledWith('other_key');
       expect(mockMonitoring.logCacheMiss).toHaveBeenCalledWith('all', 'cleared 2 keys');
+
+      // Restore original Object.keys
+      Object.keys = originalObjectKeys;
     });
   });
 
   describe('getHealthStatus', () => {
     it('should return healthy status when everything is working', async () => {
-      const mockMetrics = {
+      const mockMetricsData = {
         cacheHits: 10,
         cacheMisses: 2,
         cacheCorruptions: 0,
@@ -253,7 +255,7 @@ describe('UnifiedCacheService', () => {
         lastUpdated: new Date().toISOString()
       };
 
-      const mockConsistency = {
+      const mockConsistencyData = {
         isConsistent: true,
         issues: [],
         timestamp: new Date().toISOString(),
@@ -261,18 +263,18 @@ describe('UnifiedCacheService', () => {
         recommendations: []
       };
 
-      mockMetrics.getMetrics.mockReturnValue(mockMetrics);
-      mockConsistency.validateCacheConsistency.mockReturnValue(mockConsistency);
+      mockMetrics.getMetrics.mockReturnValue(mockMetricsData);
+      mockConsistency.validateCacheConsistency.mockReturnValue(mockConsistencyData);
 
       const healthStatus = await cacheService.getHealthStatus();
 
       expect(healthStatus.isHealthy).toBe(true);
-      expect(healthStatus.metrics).toEqual(mockMetrics);
-      expect(healthStatus.consistency).toEqual(mockConsistency);
+      expect(healthStatus.metrics).toEqual(mockMetricsData);
+      expect(healthStatus.consistency).toEqual(mockConsistencyData);
     });
 
     it('should return unhealthy status when there are issues', async () => {
-      const mockMetrics = {
+      const mockMetricsData = {
         cacheHits: 5,
         cacheMisses: 10,
         cacheCorruptions: 2,
@@ -283,7 +285,7 @@ describe('UnifiedCacheService', () => {
         lastUpdated: new Date().toISOString()
       };
 
-      const mockConsistency = {
+      const mockConsistencyData = {
         isConsistent: false,
         issues: ['Data mismatch detected'],
         timestamp: new Date().toISOString(),
@@ -291,14 +293,14 @@ describe('UnifiedCacheService', () => {
         recommendations: ['Check data synchronization']
       };
 
-      mockMetrics.getMetrics.mockReturnValue(mockMetrics);
-      mockConsistency.validateCacheConsistency.mockReturnValue(mockConsistency);
+      mockMetrics.getMetrics.mockReturnValue(mockMetricsData);
+      mockConsistency.validateCacheConsistency.mockReturnValue(mockConsistencyData);
 
       const healthStatus = await cacheService.getHealthStatus();
 
       expect(healthStatus.isHealthy).toBe(false);
-      expect(healthStatus.metrics).toEqual(mockMetrics);
-      expect(healthStatus.consistency).toEqual(mockConsistency);
+      expect(healthStatus.metrics).toEqual(mockMetricsData);
+      expect(healthStatus.consistency).toEqual(mockConsistencyData);
     });
 
     it('should handle errors gracefully', async () => {

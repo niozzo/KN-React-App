@@ -129,7 +129,7 @@ export abstract class BaseTransformer<T> implements DataTransformer<T> {
       // Apply computed fields
       for (const computedField of this.computedFields) {
         try {
-          result[computedField.name] = computedField.computation(evolvedData)
+          result[computedField.name] = computedField.computation(result)
         } catch (computedError) {
           console.warn(`⚠️ Failed to compute field ${computedField.name}:`, computedError)
           result[computedField.name] = null

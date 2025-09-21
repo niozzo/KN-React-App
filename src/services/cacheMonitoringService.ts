@@ -19,7 +19,7 @@ export interface CacheMetrics {
 }
 
 export interface LogEntry {
-  level: 'info' | 'warn' | 'error';
+  level: 'debug' | 'info' | 'warn' | 'error';
   category: 'cache' | 'state' | 'visibility' | 'sync';
   message: string;
   data: object;
@@ -93,7 +93,8 @@ export class CacheMonitoringService {
         dataSize,
         responseTime: responseTime || 'N/A',
         hitRate: this.getHitRate()
-      }
+      },
+      timestamp: new Date().toISOString()
     });
   }
 
@@ -119,7 +120,8 @@ export class CacheMonitoringService {
         reason,
         responseTime: responseTime || 'N/A',
         hitRate: this.getHitRate()
-      }
+      },
+      timestamp: new Date().toISOString()
     });
   }
 
@@ -140,7 +142,8 @@ export class CacheMonitoringService {
         error,
         corruptedData: this.sanitizeData(data),
         corruptionCount: this.metrics.cacheCorruptions
-      }
+      },
+      timestamp: new Date().toISOString()
     });
   }
 
@@ -161,7 +164,8 @@ export class CacheMonitoringService {
         error,
         context: this.sanitizeData(context),
         failureCount: this.metrics.syncFailures
-      }
+      },
+      timestamp: new Date().toISOString()
     });
   }
 
@@ -182,7 +186,8 @@ export class CacheMonitoringService {
         reason,
         previousState: this.sanitizeData(previousState),
         resetCount: this.metrics.stateResets
-      }
+      },
+      timestamp: new Date().toISOString()
     });
   }
 
@@ -199,9 +204,9 @@ export class CacheMonitoringService {
         willSync,
         isOnline: context.isOnline,
         isAuthenticated: context.isAuthenticated,
-        lastSync: context.lastSync,
-        timestamp: new Date().toISOString()
-      }
+        lastSync: context.lastSync
+      },
+      timestamp: new Date().toISOString()
     });
   }
 
@@ -217,9 +222,9 @@ export class CacheMonitoringService {
         component,
         fromState: this.sanitizeData(fromState),
         toState: this.sanitizeData(toState),
-        loadingSource,
-        timestamp: new Date().toISOString()
-      }
+        loadingSource
+      },
+      timestamp: new Date().toISOString()
     });
   }
 

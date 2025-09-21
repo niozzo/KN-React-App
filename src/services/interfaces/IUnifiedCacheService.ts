@@ -14,6 +14,7 @@ export interface IUnifiedCacheService {
   get<T>(key: string): Promise<T | null>;
   set<T>(key: string, data: T, ttl?: number): Promise<void>;
   remove(key: string): Promise<void>;
+  delete(key: string): Promise<boolean>;
   invalidate(pattern: string): Promise<void>;
   clear(): Promise<void>;
   getHealthStatus(): Promise<CacheHealthStatus>;
