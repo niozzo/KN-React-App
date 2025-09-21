@@ -58,7 +58,7 @@ export class PWADataSyncService extends BaseService {
   private schemaValidator: SchemaValidationService | null = null;
 
   private cacheConfig: CacheConfig = {
-    maxAge: this.isLocalMode() ? 24 * 60 * 60 * 1000 : 5 * 60 * 1000, // 24h local, 5min prod
+    maxAge: this.isLocalMode() ? 24 * 60 * 60 * 1000 : 60 * 60 * 1000, // 24h local, 1h prod
     maxSize: 50 * 1024 * 1024, // 50MB
     syncInterval: this.isLocalMode() ? 30 * 60 * 1000 : 5 * 60 * 1000 // 30min local, 5min prod
   };
@@ -568,17 +568,36 @@ export class PWADataSyncService extends BaseService {
    */
   private isCacheValid(cacheData: any): boolean {
     if (!cacheData || !cacheData.timestamp) {
+      console.log('🔍 Cache validation: No cache data or timestamp');
       return false;
     }
 
     // Check for future timestamps (cache corruption detection)
     const now = Date.now();
-    if (cacheData.timestamp > now) {
+    
+    // Handle both string (ISO) and number (milliseconds) timestamps
+    let cacheTime: number;
+    if (typeof cacheData.timestamp === 'string') {
+      cacheTime = new Date(cacheData.timestamp).getTime();
+    } else {
+      cacheTime = cacheData.timestamp;
+    }
+    
+    const age = now - cacheTime;
+    
+    console.log('🔍 Cache validation debug:', {
+      now: new Date(now).toISOString(),
+      cacheTime: new Date(cacheTime).toISOString(),
+      age: age,
+      maxAge: this.cacheConfig.maxAge,
+      isValid: age < this.cacheConfig.maxAge
+    });
+    
+    if (cacheTime > now) {
       console.warn('⚠️ Future timestamp detected in cache data, marking as invalid');
       return false;
     }
 
-    const age = now - cacheData.timestamp;
     return age < this.cacheConfig.maxAge;
   }
 
