@@ -6,6 +6,7 @@
 
 import React, { useState, useEffect } from 'react';
 import TimeService from '../../services/timeService';
+import { ValidationRules } from '../../utils/validationUtils';
 
 /**
  * Time Override Component
@@ -21,6 +22,7 @@ const TimeOverride = () => {
   const [overrideDateTime, setOverrideDateTime] = useState('');
   const [isActive, setIsActive] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [validationError, setValidationError] = useState('');
 
   // Load current override state and set defaults
   useEffect(() => {
@@ -52,12 +54,47 @@ const TimeOverride = () => {
     return () => clearInterval(interval);
   }, [isActive]);
 
+  // Validate datetime input
+  const validateDateTime = (value) => {
+    const result = ValidationRules.dateTimeLocal(value, 'Date & Time');
+    setValidationError(result.isValid ? '' : result.message);
+    return result.isValid;
+  };
+
+  const handleDateTimeChange = (e) => {
+    const value = e.target.value;
+    setOverrideDateTime(value);
+    setValidationError(''); // Clear previous errors
+    
+    // Real-time validation
+    if (value) {
+      validateDateTime(value);
+    }
+  };
+
   const handleSetOverride = () => {
     if (overrideDateTime) {
+      // Validate before setting
+      if (!validateDateTime(overrideDateTime)) {
+        return;
+      }
+      
       const overrideDate = new Date(overrideDateTime);
+      
+      // Additional validation for reasonable date range
+      const now = new Date();
+      const oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+      const oneYearFromNow = new Date(now.getFullYear() + 1, now.getMonth(), now.getDate());
+      
+      if (overrideDate < oneYearAgo || overrideDate > oneYearFromNow) {
+        setValidationError('Date must be within the last year or next year');
+        return;
+      }
+      
       TimeService.setOverrideTime(overrideDate);
       setIsActive(true);
       setIsOpen(false);
+      setValidationError('');
     }
   };
 
@@ -141,8 +178,15 @@ const TimeOverride = () => {
                     id="override-datetime"
                     type="datetime-local"
                     value={overrideDateTime}
-                    onChange={(e) => setOverrideDateTime(e.target.value)}
+                    onChange={handleDateTimeChange}
+                    className={validationError ? 'error' : ''}
+                    required
                   />
+                  {validationError && (
+                    <div className="error-message" style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px' }}>
+                      {validationError}
+                    </div>
+                  )}
                 </div>
                 
                 <div className="form-info">
@@ -154,7 +198,7 @@ const TimeOverride = () => {
                   <button 
                     className="set-override-button"
                     onClick={handleSetOverride}
-                    disabled={!overrideDateTime}
+                    disabled={!overrideDateTime || !!validationError}
                   >
                     {TimeService.isOverrideActive() ? 'Update Override' : 'Start Dynamic Override'}
                   </button>
@@ -304,6 +348,17 @@ const TimeOverride = () => {
           border: 1px solid #d1d5db;
           border-radius: 4px;
           font-size: 14px;
+        }
+
+        .form-group input.error {
+          border-color: #dc2626;
+          box-shadow: 0 0 0 1px #dc2626;
+        }
+
+        .error-message {
+          color: #dc2626;
+          font-size: 12px;
+          margin-top: 4px;
         }
 
         .form-info {

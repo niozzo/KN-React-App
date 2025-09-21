@@ -29,7 +29,8 @@ vi.mock('../services/serverDataSyncService', () => ({
     getCachedData: vi.fn(),
     clearCache: vi.fn(),
     lookupAttendeeByAccessCode: vi.fn()
-  }
+  },
+  ServerDataSyncService: vi.fn()
 }));
 
 // Global test setup

@@ -123,12 +123,18 @@ describe('State Management Integration', () => {
               return 'Sessions filtered but no results';
             }
             return true;
-          }
+          },
+          debounceMs: 0 // No debounce for testing
         }
       ));
 
       act(() => {
         result.current.updateState({ allSessions: [{ id: '1', title: 'Test' }] });
+      });
+
+      // Wait for validation to complete
+      act(() => {
+        result.current.validateState();
       });
 
       expect(result.current.isValid).toBe(false);

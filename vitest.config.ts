@@ -131,7 +131,7 @@ export default defineConfig({
     // Add bail to stop on first failure
     bail: 5, // Reduced from 10 to 5
     // Performance optimizations
-    silent: true,
+    silent: false, // Temporarily enable for debugging
     reporter: ['default'],
     // Memory and performance optimizations
     passWithNoTests: true,
@@ -146,6 +146,12 @@ export default defineConfig({
       // Suppress only specific verbose output in production/test mode
       if (type === 'stderr' && log.includes('Multiple GoTrueClient instances')) {
         return false; // Suppress Supabase warnings
+      }
+      // Allow debug logs for testing
+      if (log.includes('About to call syncAllData') || 
+          log.includes('serverDataSyncService:') || 
+          log.includes('Sync result:')) {
+        return true; // Allow debug logs
       }
       if (log.includes('🔍') || log.includes('🔄') || log.includes('❌') || log.includes('⚠️')) {
         return false; // Suppress verbose service logging

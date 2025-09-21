@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import PropTypes from 'prop-types';
 import SessionCard from './session/SessionCard';
 import ConferenceEndedCard from './ConferenceEndedCard';
 import Card from './common/Card';
@@ -33,7 +34,7 @@ const isNextSessionTomorrow = (nextSession) => {
  * - New Now card pushes old Now card down and changes its label to Next
  * - Old Next card disappears under the full schedule card
  */
-const AnimatedNowNextCards = ({
+const AnimatedNowNextCards = React.memo(({
   currentSession,
   nextSession,
   hasConferenceStarted,
@@ -385,6 +386,61 @@ const AnimatedNowNextCards = ({
       </div>
     </div>
   );
+}, (prevProps, nextProps) => {
+  // Custom comparison function for React.memo
+  return (
+    prevProps.currentSession?.id === nextProps.currentSession?.id &&
+    prevProps.nextSession?.id === nextProps.nextSession?.id &&
+    prevProps.hasConferenceStarted === nextProps.hasConferenceStarted &&
+    prevProps.hasConferenceEnded === nextProps.hasConferenceEnded &&
+    prevProps.className === nextProps.className &&
+    prevProps.tomorrowOnly === nextProps.tomorrowOnly
+  );
+});
+
+AnimatedNowNextCards.propTypes = {
+  currentSession: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    title: PropTypes.string.isRequired,
+    start_time: PropTypes.string,
+    end_time: PropTypes.string,
+    description: PropTypes.string,
+    speaker: PropTypes.string,
+    location: PropTypes.string,
+    isActive: PropTypes.bool,
+    isCoffeeBreak: PropTypes.bool,
+    isMeal: PropTypes.bool,
+    category: PropTypes.string,
+    priority: PropTypes.number
+  }),
+  nextSession: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    title: PropTypes.string.isRequired,
+    start_time: PropTypes.string,
+    end_time: PropTypes.string,
+    description: PropTypes.string,
+    speaker: PropTypes.string,
+    location: PropTypes.string,
+    isActive: PropTypes.bool,
+    isCoffeeBreak: PropTypes.bool,
+    isMeal: PropTypes.bool,
+    category: PropTypes.string,
+    priority: PropTypes.number
+  }),
+  hasConferenceStarted: PropTypes.bool.isRequired,
+  hasConferenceEnded: PropTypes.bool,
+  onSessionClick: PropTypes.func,
+  className: PropTypes.string,
+  tomorrowOnly: PropTypes.bool
+};
+
+AnimatedNowNextCards.defaultProps = {
+  currentSession: null,
+  nextSession: null,
+  hasConferenceEnded: false,
+  onSessionClick: () => {},
+  className: '',
+  tomorrowOnly: false
 };
 
 export default AnimatedNowNextCards;

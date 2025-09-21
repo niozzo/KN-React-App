@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import Card from './common/Card';
 import Button from './common/Button';
 import { useNavigate } from 'react-router-dom';
@@ -7,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
  * Conference Ended Card Component
  * Displays when all conference sessions have finished
  */
-const ConferenceEndedCard = ({ 
+const ConferenceEndedCard = React.memo(({ 
   className = '',
   style = {},
   onFeedbackClick,
@@ -75,6 +76,28 @@ const ConferenceEndedCard = ({
       </div>
     </Card>
   );
+}, (prevProps, nextProps) => {
+  // Custom comparison function for React.memo
+  return (
+    prevProps.className === nextProps.className &&
+    prevProps.style === nextProps.style &&
+    prevProps.onFeedbackClick === nextProps.onFeedbackClick &&
+    prevProps.onViewSessionsClick === nextProps.onViewSessionsClick
+  );
+});
+
+ConferenceEndedCard.propTypes = {
+  className: PropTypes.string,
+  style: PropTypes.object,
+  onFeedbackClick: PropTypes.func,
+  onViewSessionsClick: PropTypes.func
+};
+
+ConferenceEndedCard.defaultProps = {
+  className: '',
+  style: {},
+  onFeedbackClick: null,
+  onViewSessionsClick: null
 };
 
 export default ConferenceEndedCard;

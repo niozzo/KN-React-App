@@ -10,6 +10,7 @@ import { CacheVersioningService, CacheEntry, ValidationResult } from './cacheVer
 import { CacheMonitoringService } from './cacheMonitoringService';
 import { CacheMetricsService } from './cacheMetricsService';
 import { DataConsistencyService, CacheState, UIState } from './dataConsistencyService';
+import { trackCacheOperation, trackError } from './monitoringService';
 
 export interface CacheHealthStatus {
   isHealthy: boolean;
@@ -58,12 +59,21 @@ export class UnifiedCacheService {
       
       this.monitoring.logCacheHit(key, dataSize, responseTime);
       this.metrics.recordCacheHit(responseTime, dataSize);
+      trackCacheOperation('get', key, true, responseTime, dataSize);
       
       return entry.data;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const responseTime = performance.now() - startTime;
+      
       this.monitoring.logCacheCorruption(key, errorMessage);
       this.metrics.recordCacheCorruption(errorMessage);
+      trackCacheOperation('get', key, false, responseTime);
+      trackError(error as Error, {
+        component: 'UnifiedCacheService',
+        action: 'get',
+        severity: 'high'
+      });
       return null;
     }
   }
@@ -72,17 +82,30 @@ export class UnifiedCacheService {
    * Set data in cache with versioning and monitoring
    */
   async set<T>(key: string, data: T, ttl?: number): Promise<void> {
+    const startTime = performance.now();
+    
     try {
       const entry = this.cacheVersioning.createCacheEntry(data, ttl);
       localStorage.setItem(key, JSON.stringify(entry));
       
       const dataSize = JSON.stringify(data).length;
+      const duration = performance.now() - startTime;
+      
       this.monitoring.logCacheHit(key, dataSize);
       this.metrics.recordCacheHit(0, dataSize);
+      trackCacheOperation('set', key, true, duration, dataSize);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const duration = performance.now() - startTime;
+      
       this.monitoring.logCacheCorruption(key, errorMessage);
       this.metrics.recordCacheCorruption(errorMessage);
+      trackCacheOperation('set', key, false, duration);
+      trackError(error as Error, {
+        component: 'UnifiedCacheService',
+        action: 'set',
+        severity: 'high'
+      });
       throw error;
     }
   }

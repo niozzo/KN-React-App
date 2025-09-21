@@ -23,6 +23,7 @@ import { adminService } from '../services/adminService';
 import { SpeakerAssignment } from '../services/applicationDatabaseService';
 import { dataInitializationService } from '../services/dataInitializationService';
 import CacheHealthDashboard from './CacheHealthDashboard';
+import { ValidationRules } from '../utils/validationUtils';
 
 interface AdminPageProps {
   onLogout: () => void;
@@ -36,6 +37,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onLogout }) => {
   const [error, setError] = useState('');
   const [editingTitle, setEditingTitle] = useState<string | null>(null);
   const [titleValue, setTitleValue] = useState('');
+  const [titleValidationError, setTitleValidationError] = useState('');
   const [requiresAuth, setRequiresAuth] = useState(false);
   const [showDashboard, setShowDashboard] = useState(false);
 
@@ -92,9 +94,31 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onLogout }) => {
   const handleTitleEdit = (itemId: string, currentTitle: string) => {
     setEditingTitle(itemId);
     setTitleValue(currentTitle);
+    setTitleValidationError('');
+  };
+
+  const handleTitleChange = (value: string) => {
+    setTitleValue(value);
+    setTitleValidationError('');
+    
+    // Real-time validation
+    if (value.trim()) {
+      const result = ValidationRules.title(value.trim(), 'Title');
+      if (!result.isValid) {
+        setTitleValidationError(result.message);
+      }
+    }
   };
 
   const handleTitleSave = async (itemId: string) => {
+    // Validate title format
+    const titleResult = ValidationRules.title(titleValue.trim(), 'Title');
+    if (!titleResult.isValid) {
+      setTitleValidationError(titleResult.message);
+      return;
+    }
+
+    // Validate title is not empty
     if (!adminService.validateTitle(titleValue)) {
       setError('Title cannot be empty');
       return;
@@ -112,6 +136,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onLogout }) => {
       
       setEditingTitle(null);
       setTitleValue('');
+      setTitleValidationError('');
     } catch (err) {
       setError('Failed to update title. Please try again.');
       console.error('Error updating title:', err);
@@ -121,6 +146,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onLogout }) => {
   const handleTitleCancel = () => {
     setEditingTitle(null);
     setTitleValue('');
+    setTitleValidationError('');
   };
 
   const handleAssignmentsChange = (itemId: string, assignments: SpeakerAssignment[]) => {
@@ -242,15 +268,21 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onLogout }) => {
                           <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
                             <TextField
                               value={titleValue}
-                              onChange={(e) => setTitleValue(e.target.value)}
+                              onChange={(e) => handleTitleChange(e.target.value)}
                               size="small"
                               sx={{ flexGrow: 1, mr: 1 }}
                               autoFocus
+                              error={!!titleValidationError}
+                              helperText={titleValidationError}
+                              inputProps={{
+                                maxLength: 200
+                              }}
                             />
                             <Button
                               size="small"
                               startIcon={<SaveIcon />}
                               onClick={() => handleTitleSave(item.id)}
+                              disabled={!!titleValidationError || !titleValue.trim()}
                               sx={{ mr: 1 }}
                             >
                               Save

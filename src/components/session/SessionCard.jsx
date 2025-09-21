@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 import Card, { CardHeader, CardContent } from '../common/Card';
 import StatusTag from '../common/StatusTag';
@@ -21,7 +22,7 @@ import {
  * Story 2.1: Now/Next Glance Card - Enhanced with real-time countdown
  * Story 2.2: Coffee Break Treatment - Special countdown and styling for coffee breaks
  */
-const SessionCard = ({
+const SessionCard = React.memo(({
   session,
   variant = 'default', // 'now' or 'next'
   onClick,
@@ -195,6 +196,39 @@ const SessionCard = ({
       </CardContent>
     </Card>
   );
+}, (prevProps, nextProps) => {
+  // Custom comparison function for React.memo
+  return (
+    prevProps.session.id === nextProps.session.id &&
+    prevProps.variant === nextProps.variant &&
+    prevProps.className === nextProps.className
+  );
+});
+
+SessionCard.propTypes = {
+  session: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    title: PropTypes.string.isRequired,
+    start_time: PropTypes.string,
+    end_time: PropTypes.string,
+    description: PropTypes.string,
+    speaker: PropTypes.string,
+    location: PropTypes.string,
+    isActive: PropTypes.bool,
+    isCoffeeBreak: PropTypes.bool,
+    isMeal: PropTypes.bool,
+    category: PropTypes.string,
+    priority: PropTypes.number
+  }).isRequired,
+  variant: PropTypes.oneOf(['now', 'next', 'default']),
+  onClick: PropTypes.func,
+  className: PropTypes.string
+};
+
+SessionCard.defaultProps = {
+  variant: 'default',
+  onClick: () => {},
+  className: ''
 };
 
 export default SessionCard;
