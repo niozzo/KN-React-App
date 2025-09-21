@@ -144,7 +144,13 @@ const SessionCard = React.memo(({
                       // Handle navigation to speaker bio
                       console.log('Navigate to speaker bio:', speaker.name);
                     }}
-                    style={{ display: 'block', marginBottom: '4px' }}
+                    style={{ 
+                      display: 'block', 
+                      marginBottom: '4px',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
                   >
                     {speaker.name}
                   </a>
@@ -161,7 +167,13 @@ const SessionCard = React.memo(({
                       // Handle navigation to speaker bio
                       console.log('Navigate to speaker bio:', speakerName.trim());
                     }}
-                    style={{ display: 'block', marginBottom: '4px' }}
+                    style={{ 
+                      display: 'block', 
+                      marginBottom: '4px',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
                   >
                     {speakerName.trim()}
                   </a>
@@ -175,6 +187,12 @@ const SessionCard = React.memo(({
                     e.stopPropagation();
                     // Handle navigation to speaker bio
                     console.log('Navigate to speaker bio:', speaker);
+                  }}
+                  style={{ 
+                    display: 'block',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
                   }}
                 >
                   {speaker}
