@@ -7,7 +7,7 @@
  */
 
 // All data reads must go through backend endpoints protected by RLS-aware auth
-import { SchemaValidationService } from './schemaValidationService';
+// import { SchemaValidationService } from './schemaValidationService';
 import { supabase } from '../lib/supabase';
 import { sanitizeAttendeeForStorage } from '../types/attendee';
 import { applicationDb } from './applicationDatabaseService';
@@ -54,7 +54,7 @@ export class PWADataSyncService {
     syncInProgress: false
   };
 
-  private schemaValidator: SchemaValidationService;
+  // private schemaValidator: SchemaValidationService;
 
   private cacheConfig: CacheConfig = {
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
@@ -81,7 +81,7 @@ export class PWADataSyncService {
   };
 
   constructor() {
-    this.schemaValidator = new SchemaValidationService();
+    // this.schemaValidator = new SchemaValidationService();
     this.initializeSync();
     this.setupEventListeners();
   }

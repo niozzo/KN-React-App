@@ -72,8 +72,7 @@ export const useUIState = <T>(
     () => debounce((currentState: T) => {
       if (validate) {
         const result = validate(currentState);
-        const isValid = result === true;
-        setValidationResult(isValid);
+        setValidationResult(result);
         if (typeof result === 'string') {
           setError(result);
         } else if (result === false) {

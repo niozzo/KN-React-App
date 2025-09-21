@@ -11,32 +11,32 @@ import { useUIState } from '../../hooks/useUIState';
 import { useAgendaData } from '../../hooks/useAgendaData';
 
 // Mock services
-jest.mock('../../services/unifiedCacheService', () => ({
+vi.mock('../../services/unifiedCacheService', () => ({
   unifiedCacheService: {
-    get: jest.fn(),
-    set: jest.fn(),
-    remove: jest.fn(),
-    invalidate: jest.fn(),
-    clear: jest.fn(),
-    getHealthStatus: jest.fn()
+    get: vi.fn(),
+    set: vi.fn(),
+    remove: vi.fn(),
+    invalidate: vi.fn(),
+    clear: vi.fn(),
+    getHealthStatus: vi.fn()
   }
 }));
 
-jest.mock('../../services/agendaService', () => ({
+vi.mock('../../services/agendaService', () => ({
   agendaService: {
-    getActiveAgendaItems: jest.fn()
+    getActiveAgendaItems: vi.fn()
   }
 }));
 
 import { unifiedCacheService } from '../../services/unifiedCacheService';
 import { agendaService } from '../../services/agendaService';
 
-const mockUnifiedCache = unifiedCacheService as jest.Mocked<typeof unifiedCacheService>;
-const mockAgendaService = agendaService as jest.Mocked<typeof agendaService>;
+const mockUnifiedCache = unifiedCacheService as any;
+const mockAgendaService = agendaService as any;
 
 describe('State Management Regression Tests', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should maintain backward compatibility with existing cache keys', async () => {

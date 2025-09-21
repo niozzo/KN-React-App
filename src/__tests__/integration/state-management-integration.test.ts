@@ -114,7 +114,7 @@ describe('State Management Integration', () => {
   });
 
   describe('UI State Validation', () => {
-    it('should validate state correctly', () => {
+    it('should validate state correctly', async () => {
       const { result } = renderHook(() => useUIState(
         { sessions: [], allSessions: [] },
         {
@@ -133,8 +133,8 @@ describe('State Management Integration', () => {
       });
 
       // Wait for validation to complete
-      act(() => {
-        result.current.validateState();
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 10));
       });
 
       expect(result.current.isValid).toBe(false);
@@ -183,8 +183,11 @@ describe('State Management Integration', () => {
 
   describe('Error Recovery', () => {
     it('should recover from cache corruption', async () => {
-      // Simulate cache corruption
-      mockUnifiedCache.get.mockRejectedValue(new Error('Cache corruption'));
+      // Simulate cache corruption - first call fails, second succeeds
+      mockUnifiedCache.get
+        .mockRejectedValueOnce(new Error('Cache corruption'))
+        .mockResolvedValueOnce(null); // No cached data on retry
+      
       mockAgendaService.getActiveAgendaItems.mockResolvedValue({
         data: [{ id: '1', title: 'Recovered Session' }],
         success: true
@@ -194,6 +197,11 @@ describe('State Management Integration', () => {
 
       await act(async () => {
         await result.current.loadAgendaItems();
+      });
+
+      // Wait for state updates
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 100));
       });
 
       // Should fallback to server and recover
@@ -222,6 +230,11 @@ describe('State Management Integration', () => {
           () => mockAgendaService.getActiveAgendaItems(),
           { retries: 3, retryDelay: 100 }
         );
+      });
+
+      // Wait for state updates
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 100));
       });
 
       // Should eventually succeed after retries

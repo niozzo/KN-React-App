@@ -6,21 +6,22 @@
 import { renderHook, act } from '@testing-library/react';
 import { useDataLoading } from '../../hooks/useDataLoading';
 import { unifiedCacheService } from '../../services/unifiedCacheService';
+import { vi } from 'vitest';
 
 // Mock the unified cache service
-jest.mock('../../services/unifiedCacheService', () => ({
+vi.mock('../../services/unifiedCacheService', () => ({
   unifiedCacheService: {
-    get: jest.fn(),
-    set: jest.fn(),
-    remove: jest.fn()
+    get: vi.fn(),
+    set: vi.fn(),
+    remove: vi.fn()
   }
 }));
 
-const mockUnifiedCache = unifiedCacheService as jest.Mocked<typeof unifiedCacheService>;
+const mockUnifiedCache = unifiedCacheService as any;
 
 describe('useDataLoading', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should initialize with default state', () => {
@@ -54,7 +55,7 @@ describe('useDataLoading', () => {
     mockUnifiedCache.get.mockResolvedValue(null);
     mockUnifiedCache.set.mockResolvedValue();
 
-    const fetcher = jest.fn().mockResolvedValue(mockData);
+    const fetcher = vi.fn().mockResolvedValue(mockData);
     const { result } = renderHook(() => useDataLoading());
 
     await act(async () => {
@@ -70,7 +71,7 @@ describe('useDataLoading', () => {
     const error = new Error('Network error');
     mockUnifiedCache.get.mockResolvedValue(null);
 
-    const fetcher = jest.fn().mockRejectedValue(error);
+    const fetcher = vi.fn().mockRejectedValue(error);
     const { result } = renderHook(() => useDataLoading());
 
     await act(async () => {
@@ -87,11 +88,11 @@ describe('useDataLoading', () => {
     const error = new Error('Network error');
     mockUnifiedCache.get.mockResolvedValue(null);
 
-    const fetcher = jest.fn().mockRejectedValue(error);
+    const fetcher = vi.fn().mockRejectedValue(error);
     const { result } = renderHook(() => useDataLoading());
 
     // Mock setTimeout to test retry logic
-    jest.useFakeTimers();
+    vi.useFakeTimers();
 
     await act(async () => {
       await result.current.loadData('test-key', fetcher, { retries: 2, retryDelay: 1000 });
@@ -101,12 +102,12 @@ describe('useDataLoading', () => {
 
     // Fast-forward time to trigger retry
     act(() => {
-      jest.advanceTimersByTime(1000);
+      vi.advanceTimersByTime(1000);
     });
 
     expect(fetcher).toHaveBeenCalledTimes(2);
 
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   it('should refresh data by bypassing cache', async () => {
@@ -114,7 +115,7 @@ describe('useDataLoading', () => {
     mockUnifiedCache.get.mockResolvedValue(null);
     mockUnifiedCache.set.mockResolvedValue();
 
-    const fetcher = jest.fn().mockResolvedValue(mockData);
+    const fetcher = vi.fn().mockResolvedValue(mockData);
     const { result } = renderHook(() => useDataLoading());
 
     await act(async () => {
@@ -156,7 +157,7 @@ describe('useDataLoading', () => {
     mockUnifiedCache.get.mockResolvedValue(null);
     mockUnifiedCache.set.mockResolvedValue();
 
-    const fetcher = jest.fn().mockResolvedValue(mockData);
+    const fetcher = vi.fn().mockResolvedValue(mockData);
     const { result } = renderHook(() => useDataLoading());
 
     await act(async () => {

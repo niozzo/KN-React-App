@@ -20,9 +20,9 @@ describe('AttendeeTransformer', () => {
         id: '123',
         first_name: 'John',
         last_name: 'Doe',
-        email_address: 'john.doe@example.com',
-        phone_number: '555-1234',
-        company_name: 'Acme Corp',
+        email: 'john.doe@example.com',
+        phone: '555-1234',
+        company: 'Acme Corp',
         is_active: true,
         created_at: '2024-01-01T00:00:00Z'
       }
@@ -43,7 +43,8 @@ describe('AttendeeTransformer', () => {
         hotel_selection: null,
         dining_selections: [],
         fullName: 'John Doe',
-        displayName: 'John Doe (Acme Corp)'
+        displayName: 'John Doe (Acme Corp)',
+        attributes: {}
       })
     })
 

@@ -72,7 +72,9 @@ export default defineConfig({
     conditions: ['import', 'module', 'browser', 'default'],
     mainFields: ['module', 'jsnext:main', 'jsnext', 'main'],
     // Better module resolution for TypeScript
-    preserveSymlinks: false
+    preserveSymlinks: false,
+    // Add explicit module resolution for services
+    modules: ['node_modules', 'src']
   },
   esbuild: {
     target: 'es2020',

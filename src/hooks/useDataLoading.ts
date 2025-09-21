@@ -85,19 +85,20 @@ export const useDataLoading = <T>() => {
       return data;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const newRetryCount = state.retryCount + 1;
       
       setState(prev => ({
         ...prev,
         loading: false,
         error: errorMessage,
-        retryCount: prev.retryCount + 1
+        retryCount: newRetryCount
       }));
 
       // Retry logic
-      if (state.retryCount < retries) {
+      if (newRetryCount < retries) {
         setTimeout(() => {
           loadData(key, fetcher, options);
-        }, retryDelay * Math.pow(2, state.retryCount)); // Exponential backoff
+        }, retryDelay * Math.pow(2, newRetryCount)); // Exponential backoff
       }
 
       return null;

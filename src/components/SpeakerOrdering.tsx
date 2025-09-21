@@ -168,7 +168,7 @@ export const SpeakerOrdering: React.FC<SpeakerOrderingProps> = ({
   }
 
   return (
-    <div>
+    <div data-testid="dnd-context">
       {localSpeakers.map((speaker, index) => (
         <SpeakerItem
           key={speaker.id}

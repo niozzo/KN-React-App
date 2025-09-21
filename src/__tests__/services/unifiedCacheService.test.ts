@@ -9,13 +9,15 @@ import { CacheMonitoringService } from '../../services/cacheMonitoringService';
 import { CacheMetricsService } from '../../services/cacheMetricsService';
 import { DataConsistencyService } from '../../services/dataConsistencyService';
 
+import { vi } from 'vitest';
+
 // Mock localStorage
 const mockLocalStorage = {
-  getItem: jest.fn(),
-  setItem: jest.fn(),
-  removeItem: jest.fn(),
-  clear: jest.fn(),
-  key: jest.fn(),
+  getItem: vi.fn(),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+  clear: vi.fn(),
+  key: vi.fn(),
   length: 0
 };
 
@@ -23,14 +25,14 @@ Object.defineProperty(window, 'localStorage', { value: mockLocalStorage });
 
 describe('UnifiedCacheService', () => {
   let cacheService: UnifiedCacheService;
-  let mockVersioning: jest.Mocked<CacheVersioningService>;
-  let mockMonitoring: jest.Mocked<CacheMonitoringService>;
-  let mockMetrics: jest.Mocked<CacheMetricsService>;
-  let mockConsistency: jest.Mocked<DataConsistencyService>;
+  let mockVersioning: any;
+  let mockMonitoring: any;
+  let mockMetrics: any;
+  let mockConsistency: any;
 
   beforeEach(() => {
     // Reset all mocks
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     mockLocalStorage.getItem.mockClear();
     mockLocalStorage.setItem.mockClear();
     mockLocalStorage.removeItem.mockClear();
@@ -38,26 +40,26 @@ describe('UnifiedCacheService', () => {
 
     // Create mock services
     mockVersioning = {
-      createCacheEntry: jest.fn(),
-      validateCacheEntry: jest.fn(),
-      migrateCacheEntry: jest.fn()
+      createCacheEntry: vi.fn(),
+      validateCacheEntry: vi.fn(),
+      migrateCacheEntry: vi.fn()
     } as any;
 
     mockMonitoring = {
-      logCacheHit: jest.fn(),
-      logCacheMiss: jest.fn(),
-      logCacheCorruption: jest.fn()
+      logCacheHit: vi.fn(),
+      logCacheMiss: vi.fn(),
+      logCacheCorruption: vi.fn()
     } as any;
 
     mockMetrics = {
-      recordCacheHit: jest.fn(),
-      recordCacheMiss: jest.fn(),
-      recordCacheCorruption: jest.fn(),
-      getMetrics: jest.fn()
+      recordCacheHit: vi.fn(),
+      recordCacheMiss: vi.fn(),
+      recordCacheCorruption: vi.fn(),
+      getMetrics: vi.fn()
     } as any;
 
     mockConsistency = {
-      validateCacheConsistency: jest.fn()
+      validateCacheConsistency: vi.fn()
     } as any;
 
     // Create service instance with mocked dependencies
