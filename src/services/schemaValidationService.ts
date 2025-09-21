@@ -4,6 +4,11 @@
  * 
  * Validates database schema consistency to catch changes during development
  * and ensure data synchronization continues to work properly.
+ * 
+ * ARCHITECTURAL NOTE: This service attempts to query PostgreSQL's information_schema
+ * through Supabase's REST API, but Supabase's PostgREST doesn't expose system schemas.
+ * When information_schema queries fail with PGRST205 errors, the service falls back
+ * to expected schemas defined in EXPECTED_SCHEMAS. This is expected behavior, not a bug.
  */
 
 import { supabase } from '../lib/supabase';
@@ -294,7 +299,12 @@ export class SchemaValidationService extends BaseService {
         .in('table_type', ['BASE TABLE', 'VIEW']);
       
       if (error) {
-        console.warn('⚠️ Could not query information_schema, falling back to expected tables:', error);
+        // Check for specific Supabase API limitation error
+        if (error.code === 'PGRST205' || error.message?.includes('schema cache')) {
+          console.warn('⚠️ information_schema not accessible via Supabase REST API (PGRST205) - this is expected. Using expected schema fallback.');
+        } else {
+          console.warn('⚠️ Could not query information_schema, falling back to expected tables:', error);
+        }
         // Fallback to expected tables if information_schema is not accessible
         return this.EXPECTED_TABLES.map(tableName => ({
           name: tableName,
@@ -348,7 +358,12 @@ export class SchemaValidationService extends BaseService {
         .order('ordinal_position');
       
       if (colError) {
-        console.warn(`⚠️ Could not query columns for table ${tableName}, using expected schema:`, colError);
+        // Check for specific Supabase API limitation error
+        if (colError.code === 'PGRST205' || colError.message?.includes('schema cache')) {
+          console.warn(`⚠️ information_schema.columns not accessible via Supabase REST API (PGRST205) for table ${tableName} - this is expected. Using expected schema fallback.`);
+        } else {
+          console.warn(`⚠️ Could not query columns for table ${tableName}, using expected schema:`, colError);
+        }
         // Fallback to expected schema if information_schema is not accessible
         const expectedSchema = this.EXPECTED_SCHEMAS[tableName];
         return {
