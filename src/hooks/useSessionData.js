@@ -223,34 +223,10 @@ export const useSessionData = (options = {}) => {
         }
       }
 
-      // Load dining options
-      let diningData = [];
-      try {
-        console.log('🍽️ DINING: Loading dining options...');
-        const rawDiningData = await getAllDiningOptions();
-        
-        // Additional filtering for active status (redundant but ensures consistency)
-        diningData = rawDiningData.filter(dining => {
-          const isActive = dining.is_active !== false && dining.is_active !== undefined;
-          if (!isActive) {
-            console.log('🍽️ DINING: Filtered out inactive dining option:', dining.name);
-          }
-          return isActive;
-        });
-        
-        setDiningOptions(diningData);
-        setDiningError(null);
-        console.log('🍽️ DINING: Successfully loaded', diningData.length, 'active dining options (filtered from', rawDiningData.length, 'total)');
-      } catch (diningError) {
-        console.warn('⚠️ Could not load dining options:', diningError);
-        setDiningError(diningError.message);
-        setDiningOptions([]);
-        // Don't fail the entire data load if dining fails
-      }
-
       // Progressive data loading: Try cache first, then server, then fallback
       let allSessionsData = [];
       let loadSource = 'unknown';
+      let diningData = [];
       
       // Step 1: Try to load from cache first (fastest)
       try {
@@ -261,6 +237,7 @@ export const useSessionData = (options = {}) => {
           if (cachedData.diningOptions.length > 0) {
             diningData = cachedData.diningOptions;
             setDiningOptions(diningData);
+            console.log('🏠 CACHE: Using cached dining options from cache');
           }
           if (cachedData.allEvents.length > 0) {
             setAllEvents(cachedData.allEvents);
@@ -271,6 +248,32 @@ export const useSessionData = (options = {}) => {
       } catch (cacheError) {
         console.warn('⚠️ Cache load failed:', cacheError);
         cacheMonitoringService.logCacheCorruption('kn_cached_sessions', cacheError.message, { error: cacheError });
+      }
+      
+      // Load dining options (try API if not loaded from cache)
+      if (diningData.length === 0) {
+        try {
+          console.log('🍽️ DINING: Loading dining options from API...');
+          const rawDiningData = await getAllDiningOptions();
+          
+          // Additional filtering for active status (redundant but ensures consistency)
+          diningData = rawDiningData.filter(dining => {
+            const isActive = dining.is_active !== false && dining.is_active !== undefined;
+            if (!isActive) {
+              console.log('🍽️ DINING: Filtered out inactive dining option:', dining.name);
+            }
+            return isActive;
+          });
+          
+          setDiningOptions(diningData);
+          setDiningError(null);
+          console.log('🍽️ DINING: Successfully loaded', diningData.length, 'active dining options (filtered from', rawDiningData.length, 'total)');
+        } catch (diningError) {
+          console.warn('⚠️ Could not load dining options:', diningError);
+          setDiningError(diningError.message);
+          setDiningOptions([]);
+          // Don't fail the entire data load if dining fails
+        }
       }
       
       // Step 2: If no cache data, try server (if cache failed or empty)
