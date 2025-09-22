@@ -4,9 +4,8 @@
  */
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-// Application database uses the same credentials as main database
-const APPLICATION_DB_URL = import.meta.env.VITE_APPLICATION_DB_URL || import.meta.env.VITE_SUPABASE_URL || 'https://iikcgdhztkrexuuqheli.supabase.co';
-const APPLICATION_DB_ANON_KEY = import.meta.env.VITE_APPLICATION_DB_ANON_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlpa2NnZGh6dGtyZXh1dXFoZWxpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwMzY3NDEsImV4cCI6MjA3MjYxMjc0MX0.N3KNNn6N_S4qPlBeclj07QsekCeZnF_FkBKef96XnO8';
+const APPLICATION_DB_URL = import.meta.env.VITE_APPLICATION_DB_URL;
+const APPLICATION_DB_ANON_KEY = import.meta.env.VITE_APPLICATION_DB_ANON_KEY;
 const APPLICATION_DB_SERVICE_KEY = import.meta.env.VITE_APPLICATION_DB_SERVICE_KEY;
 
 export class ServiceRegistry {
@@ -35,6 +34,11 @@ export class ServiceRegistry {
       console.warn('⚠️ ServiceRegistry already initialized');
       return;
     }
+
+    console.log('🔍 ServiceRegistry: Environment variables check');
+    console.log('🔍 APPLICATION_DB_URL:', APPLICATION_DB_URL);
+    console.log('🔍 APPLICATION_DB_ANON_KEY:', APPLICATION_DB_ANON_KEY ? 'Present' : 'Missing');
+    console.log('🔍 APPLICATION_DB_SERVICE_KEY:', APPLICATION_DB_SERVICE_KEY ? 'Present' : 'Missing');
 
     if (!APPLICATION_DB_URL || !APPLICATION_DB_ANON_KEY) {
       console.error('❌ Missing application database environment variables');
