@@ -32,6 +32,12 @@ const SessionCard = React.memo(({
   className = ''
 }) => {
   const navigate = useNavigate();
+  
+  // Handle null or undefined session
+  if (!session) {
+    return null;
+  }
+  
   const {
     title,
     start_time,
