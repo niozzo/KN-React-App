@@ -73,8 +73,8 @@ describe('UnifiedCacheService - Architectural Fixes', () => {
   })
 
   describe('Cache Recovery - Sophisticated Recovery Instead of Force-Clear', () => {
-    it('should implement sophisticated cache recovery with backup restoration', () => {
-      // Check that the recovery method exists and is sophisticated
+    it('should implement simplified cache recovery with API fallback', () => {
+      // Check that the recovery method exists and uses API fallback
       expect(typeof unifiedCache.clearAgendaItemsCache).toBe('function')
     })
 

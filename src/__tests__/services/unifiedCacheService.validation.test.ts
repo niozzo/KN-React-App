@@ -95,8 +95,8 @@ describe('UnifiedCacheService - Validation Logic', () => {
 
   describe('Checksum Validation and Repair', () => {
     it('should repair checksum mismatch and return data', async () => {
-      // Note: This test verifies simplified cache behavior - checksum repair without backup recovery
-      // The simplified approach focuses on data integrity repair rather than complex backup patterns
+      // Note: This test verifies simplified cache behavior - checksum repair with server fallback
+      // The simplified approach focuses on data integrity repair with API fallback for failures
       
       // Arrange
       const mockData = { id: '1', title: 'Test Session' }

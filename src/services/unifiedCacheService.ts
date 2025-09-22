@@ -128,8 +128,8 @@ export class UnifiedCacheService {
       // Use atomic localStorage operations with retry logic
       await this.atomicSetItem(key, entry);
       
-      // No backup creation - simplified approach for conference PWA
-      // API fallback will handle cache failures
+      // Single cache entry only - no backups needed for conference PWA
+      // Server fallback handles all cache failures via API calls
       
       const dataSize = JSON.stringify(data).length;
       const duration = performance.now() - startTime;
@@ -349,7 +349,7 @@ export class UnifiedCacheService {
 
   /**
    * Attempt cache recovery - simplified for conference PWA
-   * No backup recovery, rely on API fallback
+   * Server fallback via API calls handles all cache failures
    */
   private async attemptCacheRecovery(key: string, corruptedEntry: CacheEntry, startTime: number): Promise<{success: boolean, data?: any}> {
     try {
@@ -370,8 +370,8 @@ export class UnifiedCacheService {
         }
       }
 
-      // No backup recovery - API fallback will handle cache failures
-      console.log('🔄 Cache recovery: No valid data found, API fallback required for', key);
+      // No local recovery possible - server fallback via API required
+      console.log('🔄 Cache recovery: No valid data found, server fallback required for', key);
       return { success: false };
     } catch (error) {
       console.error('❌ Cache recovery failed for', key, error);
@@ -431,7 +431,7 @@ export class UnifiedCacheService {
 
   /**
    * Simplified cache clearing for agenda items
-   * No backup recovery, rely on API fallback
+   * Server fallback via API calls handles data recovery
    */
   async clearAgendaItemsCache(): Promise<void> {
     try {
