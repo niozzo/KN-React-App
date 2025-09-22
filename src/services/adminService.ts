@@ -166,6 +166,12 @@ export class AdminService {
       );
       localStorage.setItem('agendaItems', JSON.stringify(updatedItems));
     }
+
+    // Emit custom event to notify components of agenda metadata update
+    console.log('📋 Emitting agendaMetadataUpdated event');
+    window.dispatchEvent(new CustomEvent('agendaMetadataUpdated', {
+      detail: { agendaItemId, newTitle }
+    }));
   }
 
   async updateDiningOptionTitle(diningOptionId: string, newTitle: string): Promise<void> {
@@ -212,6 +218,12 @@ export class AdminService {
       );
       localStorage.setItem('diningOptions', JSON.stringify(updatedOptions));
     }
+
+    // Emit custom event to notify components of dining metadata update
+    console.log('🍽️ Emitting diningMetadataUpdated event');
+    window.dispatchEvent(new CustomEvent('diningMetadataUpdated', {
+      detail: { diningOptionId, newTitle }
+    }));
   }
 
   async assignSpeakerToAgendaItem(agendaItemId: string, attendeeId: string, role: string = 'presenter'): Promise<SpeakerAssignment> {

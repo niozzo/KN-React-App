@@ -635,17 +635,33 @@ export const useSessionData = (options = {}) => {
       console.log('🕐 Session boundary crossed, updating session states');
       handleTimeOverrideChange();
     };
+
+    // Listen for dining metadata cache invalidation
+    const handleDiningMetadataUpdate = () => {
+      console.log('🍽️ Dining metadata updated, refreshing dining data');
+      loadSessionData();
+    };
+
+    // Listen for agenda metadata cache invalidation
+    const handleAgendaMetadataUpdate = () => {
+      console.log('📋 Agenda metadata updated, refreshing session data');
+      loadSessionData();
+    };
     
     window.addEventListener('storage', handleStorageChange);
     window.addEventListener('timeOverrideChanged', handleTimeOverrideUpdate);
     window.addEventListener('timeOverrideBoundaryCrossed', handleBoundaryCrossing);
+    window.addEventListener('diningMetadataUpdated', handleDiningMetadataUpdate);
+    window.addEventListener('agendaMetadataUpdated', handleAgendaMetadataUpdate);
 
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('timeOverrideChanged', handleTimeOverrideUpdate);
       window.removeEventListener('timeOverrideBoundaryCrossed', handleBoundaryCrossing);
+      window.removeEventListener('diningMetadataUpdated', handleDiningMetadataUpdate);
+      window.removeEventListener('agendaMetadataUpdated', handleAgendaMetadataUpdate);
     };
-  }, [allEvents]); // Re-run when events change to update the closure
+  }, [allEvents, loadSessionData]); // Re-run when events change to update the closure
 
   // Real-time update mechanism for both real time and dynamic time override
   useEffect(() => {
