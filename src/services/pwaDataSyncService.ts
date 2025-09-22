@@ -17,6 +17,7 @@ import { BaseService } from './baseService';
 import { isTimestampExpired } from '../utils/timestampUtils';
 import { TABLE_MAPPINGS, getAllApplicationTables, getAllMainTables, isValidApplicationTable, isValidMainTable, type ApplicationTableName, type MainTableName } from '../config/tableMappings';
 import { serviceRegistry } from './ServiceRegistry';
+import { SupabaseClientFactory } from './SupabaseClientFactory';
 
 export interface SyncStatus {
   isOnline: boolean;

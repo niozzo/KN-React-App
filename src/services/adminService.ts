@@ -3,6 +3,7 @@ import { pwaDataSyncService } from './pwaDataSyncService';
 import { unifiedCacheService } from './unifiedCacheService';
 import { getAllApplicationTables, type ApplicationTableName } from '../config/tableMappings';
 import { serviceRegistry } from './ServiceRegistry';
+import { SupabaseClientFactory } from './SupabaseClientFactory';
 
 export class AdminService {
   async getAgendaItemsWithAssignments(): Promise<any[]> {
