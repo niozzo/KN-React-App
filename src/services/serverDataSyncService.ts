@@ -42,7 +42,8 @@ export class ServerDataSyncService extends BaseService {
   private readonly applicationTablesToSync = [
     'speaker_assignments',
     'agenda_item_metadata', 
-    'attendee_metadata'
+    'attendee_metadata',
+    'dining_item_metadata'
   ];
 
   constructor() {
