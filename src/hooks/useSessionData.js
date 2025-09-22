@@ -10,6 +10,7 @@ import { getCurrentAttendeeData, getAttendeeSeatAssignments, getAllDiningOptions
 import TimeService from '../services/timeService';
 import { useAuth } from '../contexts/AuthContext';
 import { cacheMonitoringService } from '../services/cacheMonitoringService.ts';
+import { pwaDataSyncService } from '../services/pwaDataSyncService.ts';
 
 /**
  * Determine if a session is currently active
@@ -292,6 +293,33 @@ export const useSessionData = (options = {}) => {
           // Don't fail the entire data load if dining fails
         }
       }
+
+      // Apply dining metadata overrides (title changes from admin)
+      if (diningData.length > 0) {
+        try {
+          console.log('🍽️ DINING: Loading dining metadata for title overrides...');
+          const diningItemMetadata = await pwaDataSyncService.getCachedTableData('dining_item_metadata');
+          console.log('📊 DINING: Loaded dining item metadata from cache:', diningItemMetadata.length, 'records');
+          
+          // Apply title overrides to dining options
+          diningData = diningData.map((option) => {
+            const metadata = diningItemMetadata.find((meta) => meta.id === option.id);
+            const finalTitle = metadata?.title || option.name;
+            
+            return {
+              ...option,
+              name: finalTitle, // Use edited title if available
+              original_name: option.name // Keep original for reference
+            };
+          });
+          
+          setDiningOptions(diningData);
+          console.log('🍽️ DINING: Applied metadata overrides to', diningData.length, 'dining options');
+        } catch (metadataError) {
+          console.warn('⚠️ Could not load dining metadata, using original titles:', metadataError);
+          // Continue with original dining data if metadata fails
+        }
+      }
       
       // Step 2: If no cache data, try server (if cache failed or empty)
       if (allSessionsData.length === 0) {
@@ -371,7 +399,7 @@ export const useSessionData = (options = {}) => {
       // Filter sessions for current attendee based on session type and breakout assignments
       let filteredSessions = filterSessionsForAttendee(allSessionsData, attendeeData);
       
-      // Merge sessions and dining events
+      // Merge sessions and dining events (use dining data with metadata overrides)
       const combinedEvents = mergeAndSortEvents(filteredSessions, diningData);
       setAllEvents(combinedEvents);
       
