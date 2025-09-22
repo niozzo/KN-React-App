@@ -4,7 +4,7 @@
 
 **Last Updated**: January 2025  
 **Active Branch**: `main`  
-**Next Milestone**: Epic 2 - Story 2.1f - Next Story in Epic 2
+**Next Milestone**: Epic 2 - Story 2.2 - Personalized Schedule View
 
 ## ✅ Completed Epics
 
@@ -71,6 +71,40 @@
   - Responsive design for mobile and desktop
   - Production deployment successful on Vercel
   - Team review approved by Developer, QA, and Architect
+
+#### **Story 2.1g.1: Dining Options Data Integration** ✅ **COMPLETE**
+- **Status**: All acceptance criteria met and team validated
+- **Key Achievements**:
+  - Extended useSessionData hook with dining options integration
+  - Implemented unified time-based sorting for sessions + dining
+  - Enhanced caching consistency for dining data
+  - Added active status filtering for dining options
+  - Created comprehensive test suite with 12 passing tests
+  - 100% test coverage with performance validation
+  - Production deployment successful
+
+#### **Story 2.1g.2: Home Page Now/Next Dining Integration** ✅ **COMPLETE**
+- **Status**: All acceptance criteria met and team validated
+- **Key Achievements**:
+  - Extended AnimatedNowNextCards for dining events
+  - Added dining visual indicators and icons
+  - Implemented time filtering for dining events
+  - Added dining-specific information display
+  - Ensured responsive design across all devices
+  - Created comprehensive test suite with 63 passing tests
+  - 100% test coverage with animation validation
+  - Production deployment successful
+
+#### **Story 2.1g.3: SessionCard Dining Support** ✅ **COMPLETE**
+- **Status**: All acceptance criteria met and team validated
+- **Key Achievements**:
+  - Enhanced SessionCard component with dining support
+  - Added comprehensive SessionCard dining test suite
+  - Implemented null session handling for robustness
+  - Enhanced error handling for malformed data
+  - Created 33 test cases with 100% pass rate
+  - 100% test coverage with accessibility validation
+  - Production deployment successful
 
 ### **Story 1.1: Project Setup & PWA Foundation** ✅ **COMPLETE**
 - **Status**: All acceptance criteria met and team validated
