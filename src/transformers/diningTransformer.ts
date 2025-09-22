@@ -279,7 +279,7 @@ export class DiningTransformer extends BaseTransformer<DiningOption> {
    * Filter active dining options
    */
   filterActiveDiningOptions(diningOptions: DiningOption[]): DiningOption[] {
-    return diningOptions.filter(option => option.isActive !== false)
+    return diningOptions.filter(option => option.is_active !== false)
   }
 
   /**
