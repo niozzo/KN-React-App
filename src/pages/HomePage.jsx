@@ -24,11 +24,14 @@ const HomePage = () => {
     nextSession,
     sessions,
     allSessions,
+    diningOptions,
+    allEvents,
     attendee,
     seatAssignments,
     isLoading,
     isOffline,
     error,
+    diningError,
     refresh
   } = useSessionData({
     autoRefresh: true,

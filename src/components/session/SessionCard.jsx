@@ -7,6 +7,9 @@ import useCountdown from '../../hooks/useCountdown';
 import { 
   isCoffeeBreak, 
   isMeal, 
+  isDiningEvent,
+  getDiningEventType,
+  getDiningEventIcon,
   getSessionCategory, 
   shouldShowCountdown, 
   getCountdownPriority,
@@ -47,6 +50,9 @@ const SessionCard = React.memo(({
   // Use utility functions for session type detection
   const isCoffeeBreakSession = isCoffeeBreak(session);
   const isMealSession = isMeal(session);
+  const isDiningEventSession = isDiningEvent(session);
+  const diningEventType = getDiningEventType(session);
+  const diningEventIcon = getDiningEventIcon(session);
   const sessionCategory = getSessionCategory(session);
   const shouldShowCountdownForSession = shouldShowCountdown(session);
   const countdownPriority = getCountdownPriority(session);
@@ -93,6 +99,7 @@ const SessionCard = React.memo(({
     getSessionClassName(session),
     isNow ? 'session-card--now' : 'session-card--next',
     isCoffeeBreakSession ? 'session-card--coffee-break' : '',
+    isDiningEventSession ? 'session-card--dining' : '',
     hasSpecialStylingForSession ? 'session-card--special' : ''
   ].filter(Boolean).join(' ');
 
@@ -106,6 +113,11 @@ const SessionCard = React.memo(({
         background: 'var(--purple-050)',
         border: '2px solid var(--purple-500)',
         boxShadow: '0 4px 12px rgba(124, 76, 196, 0.15)'
+      } : isDiningEventSession && isNow ? {
+        // Special styling for dining events in "Now" status
+        background: 'var(--green-050)',
+        border: '2px solid var(--green-500)',
+        boxShadow: '0 4px 12px rgba(34, 197, 94, 0.15)'
       } : undefined}
     >
       <CardHeader className="session-header">
@@ -129,6 +141,55 @@ const SessionCard = React.memo(({
           {formatSessionTitle(session)}
         </h3>
         
+        {/* Dining Event Information */}
+        {isDiningEventSession && (
+          <div className="dining-details">
+            <div className="dining-info" style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px',
+              marginBottom: '12px',
+              padding: '8px 12px',
+              backgroundColor: 'var(--green-050)',
+              borderRadius: '6px',
+              border: '1px solid var(--green-200)'
+            }}>
+              <span className="dining-icon" style={{ fontSize: '18px' }}>
+                {diningEventIcon === 'coffee' && '☕'}
+                {diningEventIcon === 'restaurant' && '🍽️'}
+                {diningEventIcon === 'dinner_dining' && '🍽️'}
+                {diningEventIcon === 'cookie' && '🍪'}
+                {diningEventIcon === 'restaurant_menu' && '🍴'}
+              </span>
+              <span className="dining-type" style={{ 
+                fontWeight: '600', 
+                color: 'var(--green-700)',
+                textTransform: 'capitalize'
+              }}>
+                {diningEventType}
+              </span>
+              {session.capacity && (
+                <span className="dining-capacity" style={{ 
+                  fontSize: '14px', 
+                  color: 'var(--green-600)',
+                  marginLeft: 'auto'
+                }}>
+                  {session.capacity} seats
+                </span>
+              )}
+            </div>
+            {session.seating_type && (
+              <div className="seating-info" style={{ 
+                fontSize: '14px', 
+                color: 'var(--ink-600)',
+                marginBottom: '8px'
+              }}>
+                Seating: {session.seating_type === 'assigned' ? 'Assigned' : 'Open'}
+              </div>
+            )}
+          </div>
+        )}
+
         {(speakers && speakers.length > 0) || speakerInfo || speaker ? (
           <div className="session-details">
             <div className="session-detail" style={{ display: 'block' }}>

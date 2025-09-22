@@ -23,7 +23,7 @@ export const isCoffeeBreak = (session) => {
                      (session.type && session.type.toLowerCase() === 'meal') ||
                      isCoffeeBreakType;
 
-  // Title must contain "Coffee Break" (case insensitive)
+  // Title must contain "Coffee Break" (case insensitive) - must be exact phrase
   const hasCoffeeBreakInTitle = session.title.toLowerCase().includes('coffee break');
 
   return Boolean(isMealType && hasCoffeeBreakInTitle);
@@ -37,6 +37,11 @@ export const isCoffeeBreak = (session) => {
 export const isMeal = (session) => {
   if (!session) {
     return false;
+  }
+
+  // Check if it's a dining event (from 2.1g.1 integration)
+  if (session.type === 'dining') {
+    return true;
   }
 
   // Check session_type first (newer format)
@@ -61,13 +66,72 @@ export const isMeal = (session) => {
 };
 
 /**
+ * Check if a session is a dining event (from dining options integration)
+ * @param {Object} session - Session object to check
+ * @returns {boolean} Whether the session is a dining event
+ */
+export const isDiningEvent = (session) => {
+  return Boolean(session && session.type === 'dining');
+};
+
+/**
+ * Get dining event type (breakfast, lunch, dinner, etc.)
+ * @param {Object} session - Session object to check
+ * @returns {string} Dining event type
+ */
+export const getDiningEventType = (session) => {
+  if (!isDiningEvent(session)) {
+    return null;
+  }
+
+  const title = session.title || session.name || '';
+  const titleLower = title.toLowerCase();
+
+  if (titleLower.includes('breakfast')) return 'breakfast';
+  if (titleLower.includes('lunch')) return 'lunch';
+  if (titleLower.includes('dinner')) return 'dinner';
+  if (titleLower.includes('coffee')) return 'coffee';
+  if (titleLower.includes('snack')) return 'snack';
+  
+  return 'meal'; // Default fallback
+};
+
+/**
+ * Get dining event icon based on type
+ * @param {Object} session - Session object to check
+ * @returns {string} Icon name for the dining event
+ */
+export const getDiningEventIcon = (session) => {
+  const eventType = getDiningEventType(session);
+  
+  switch (eventType) {
+    case 'breakfast':
+      return 'coffee';
+    case 'lunch':
+      return 'restaurant';
+    case 'dinner':
+      return 'dinner_dining';
+    case 'coffee':
+      return 'coffee';
+    case 'snack':
+      return 'cookie';
+    default:
+      return 'restaurant_menu';
+  }
+};
+
+/**
  * Get session type category for display purposes
  * @param {Object} session - Session object to categorize
- * @returns {string} Session category ('coffee-break', 'meal', 'session')
+ * @returns {string} Session category ('coffee-break', 'meal', 'dining', 'session')
  */
 export const getSessionCategory = (session) => {
   if (isCoffeeBreak(session)) {
     return 'coffee-break';
+  }
+  
+  if (isDiningEvent(session)) {
+    return 'dining';
   }
   
   if (isMeal(session)) {

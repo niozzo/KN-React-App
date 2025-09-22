@@ -6,7 +6,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { agendaService } from '../services/agendaService.ts';
-import { getCurrentAttendeeData, getAttendeeSeatAssignments } from '../services/dataService.ts';
+import { getCurrentAttendeeData, getAttendeeSeatAssignments, getAllDiningOptions } from '../services/dataService.ts';
 import TimeService from '../services/timeService';
 import { useAuth } from '../contexts/AuthContext';
 import { cacheMonitoringService } from '../services/cacheMonitoringService.ts';
@@ -40,6 +40,76 @@ const isSessionUpcoming = (session, currentTime) => {
 };
 
 /**
+ * Determine if a dining event is currently active
+ * @param {Object} dining - Dining event data
+ * @param {Date} currentTime - Current time
+ * @returns {boolean} Whether dining event is active
+ */
+const isDiningActive = (dining, currentTime) => {
+  if (!dining.time || !dining.date) return false;
+  
+  const start = new Date(`${dining.date}T${dining.time}`);
+  // Dining events are considered active for 2 hours (typical meal duration)
+  const end = new Date(start.getTime() + (2 * 60 * 60 * 1000));
+  
+  return currentTime >= start && currentTime <= end;
+};
+
+/**
+ * Determine if a dining event is upcoming
+ * @param {Object} dining - Dining event data
+ * @param {Date} currentTime - Current time
+ * @returns {boolean} Whether dining event is upcoming
+ */
+const isDiningUpcoming = (dining, currentTime) => {
+  if (!dining.time || !dining.date) return false;
+  
+  const start = new Date(`${dining.date}T${dining.time}`);
+  return start > currentTime;
+};
+
+/**
+ * Create time-based comparator for sessions and dining events
+ * @param {Object} a - First event (session or dining)
+ * @param {Object} b - Second event (session or dining)
+ * @returns {number} Comparison result
+ */
+const compareEventsByTime = (a, b) => {
+  // First sort by date
+  const dateComparison = (a.date || '').localeCompare(b.date || '');
+  if (dateComparison !== 0) return dateComparison;
+  
+  // Then sort by time (start_time for sessions, time for dining)
+  const timeA = a.start_time || a.time || '';
+  const timeB = b.start_time || b.time || '';
+  return timeA.localeCompare(timeB);
+};
+
+/**
+ * Merge and sort sessions and dining events by time
+ * @param {Array} sessions - Array of sessions
+ * @param {Array} diningOptions - Array of dining options
+ * @returns {Array} Combined and sorted events
+ */
+const mergeAndSortEvents = (sessions, diningOptions) => {
+  // Convert dining options to event format for consistency
+  const diningEvents = diningOptions.map(dining => ({
+    ...dining,
+    type: 'dining',
+    start_time: dining.time,
+    end_time: dining.time, // Dining events use same time for start/end
+    title: dining.name,
+    session_type: 'meal'
+  }));
+  
+  // Combine sessions and dining events
+  const allEvents = [...sessions, ...diningEvents];
+  
+  // Sort by time
+  return allEvents.sort(compareEventsByTime);
+};
+
+/**
  * Get current time (supports time override for dev/staging)
  * @returns {Date} Current time or override time
  */
@@ -70,20 +140,24 @@ const filterSessionsForAttendee = (sessions, attendee) => {
 };
 
 /**
- * Load session data from cache
- * @returns {Array} Cached session data
+ * Load session and dining data from cache
+ * @returns {Object} Cached data with sessions and dining options
  */
 const loadFromCache = () => {
   try {
     const cachedData = localStorage.getItem('kn_cached_sessions');
     if (cachedData) {
       const parsed = JSON.parse(cachedData);
-      return parsed.sessions || [];
+      return {
+        sessions: parsed.sessions || [],
+        diningOptions: parsed.diningOptions || [],
+        allEvents: parsed.allEvents || []
+      };
     }
-    return [];
+    return { sessions: [], diningOptions: [], allEvents: [] };
   } catch (error) {
-    console.warn('⚠️ Failed to load cached sessions:', error);
-    return [];
+    console.warn('⚠️ Failed to load cached data:', error);
+    return { sessions: [], diningOptions: [], allEvents: [] };
   }
 };
 
@@ -104,6 +178,8 @@ export const useSessionData = (options = {}) => {
 
   const [sessions, setSessions] = useState([]);
   const [allSessions, setAllSessions] = useState([]);
+  const [diningOptions, setDiningOptions] = useState([]);
+  const [allEvents, setAllEvents] = useState([]); // Combined sessions + dining
   const [currentSession, setCurrentSession] = useState(null);
   const [nextSession, setNextSession] = useState(null);
   const [attendee, setAttendee] = useState(null);
@@ -112,6 +188,7 @@ export const useSessionData = (options = {}) => {
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [error, setError] = useState(null);
+  const [diningError, setDiningError] = useState(null);
 
   // Load session data
   const loadSessionData = useCallback(async () => {
@@ -146,18 +223,50 @@ export const useSessionData = (options = {}) => {
         }
       }
 
+      // Load dining options
+      let diningData = [];
+      try {
+        console.log('🍽️ DINING: Loading dining options...');
+        const rawDiningData = await getAllDiningOptions();
+        
+        // Additional filtering for active status (redundant but ensures consistency)
+        diningData = rawDiningData.filter(dining => {
+          const isActive = dining.is_active !== false && dining.is_active !== undefined;
+          if (!isActive) {
+            console.log('🍽️ DINING: Filtered out inactive dining option:', dining.name);
+          }
+          return isActive;
+        });
+        
+        setDiningOptions(diningData);
+        setDiningError(null);
+        console.log('🍽️ DINING: Successfully loaded', diningData.length, 'active dining options (filtered from', rawDiningData.length, 'total)');
+      } catch (diningError) {
+        console.warn('⚠️ Could not load dining options:', diningError);
+        setDiningError(diningError.message);
+        setDiningOptions([]);
+        // Don't fail the entire data load if dining fails
+      }
+
       // Progressive data loading: Try cache first, then server, then fallback
       let allSessionsData = [];
       let loadSource = 'unknown';
       
       // Step 1: Try to load from cache first (fastest)
       try {
-        const cachedSessions = loadFromCache();
-        if (cachedSessions.length > 0) {
-          console.log('🏠 CACHE: Loading sessions from cache (progressive step 1)');
-          allSessionsData = cachedSessions;
+        const cachedData = loadFromCache();
+        if (cachedData.sessions.length > 0 || cachedData.diningOptions.length > 0) {
+          console.log('🏠 CACHE: Loading data from cache (progressive step 1)');
+          allSessionsData = cachedData.sessions;
+          if (cachedData.diningOptions.length > 0) {
+            diningData = cachedData.diningOptions;
+            setDiningOptions(diningData);
+          }
+          if (cachedData.allEvents.length > 0) {
+            setAllEvents(cachedData.allEvents);
+          }
           loadSource = 'cache';
-          cacheMonitoringService.logStateTransition('useSessionData', { sessions: [] }, { sessions: cachedSessions }, 'cache-primary');
+          cacheMonitoringService.logStateTransition('useSessionData', { sessions: [] }, { sessions: allSessionsData }, 'cache-primary');
         }
       } catch (cacheError) {
         console.warn('⚠️ Cache load failed:', cacheError);
@@ -241,6 +350,13 @@ export const useSessionData = (options = {}) => {
       
       // Filter sessions for current attendee based on session type and breakout assignments
       let filteredSessions = filterSessionsForAttendee(allSessionsData, attendeeData);
+      
+      // Merge sessions and dining events
+      const combinedEvents = mergeAndSortEvents(filteredSessions, diningData);
+      setAllEvents(combinedEvents);
+      
+      // Set filtered sessions for backward compatibility
+      setSessions(filteredSessions);
 
       // Log state transition with detailed data
       console.log('🔄 STATE TRANSITION:', {
@@ -263,35 +379,45 @@ export const useSessionData = (options = {}) => {
       // Register session boundaries with TimeService for boundary detection
       TimeService.registerSessionBoundaries(filteredSessions);
 
-      // Determine current and next sessions
+      // Determine current and next events (sessions + dining)
       const currentTime = getCurrentTime();
-      const activeSession = filteredSessions.find(session => 
-        isSessionActive(session, currentTime)
-      );
       
-      // Find the next session - prioritize by date first, then time
-      const upcomingSession = filteredSessions
-        .filter(session => isSessionUpcoming(session, currentTime))
-        .sort((a, b) => {
-          // First sort by date
-          const dateComparison = (a.date || '').localeCompare(b.date || '');
-          if (dateComparison !== 0) return dateComparison;
-          
-          // Then sort by start time
-          return (a.start_time || '').localeCompare(b.start_time || '');
-        })[0]; // Get the first (earliest) upcoming session
+      // Find current active event (session or dining)
+      const activeEvent = combinedEvents.find(event => {
+        if (event.type === 'dining') {
+          return isDiningActive(event, currentTime);
+        } else {
+          return isSessionActive(event, currentTime);
+        }
+      });
+      
+      // Find the next upcoming event (session or dining)
+      const upcomingEvent = combinedEvents
+        .filter(event => {
+          if (event.type === 'dining') {
+            return isDiningUpcoming(event, currentTime);
+          } else {
+            return isSessionUpcoming(event, currentTime);
+          }
+        })
+        .sort(compareEventsByTime)[0]; // Get the first (earliest) upcoming event
 
-      // Enhance sessions with seat assignment data
-      const enhanceSessionWithSeatInfo = (session) => {
-        if (!session || !seatAssignments.length) return session || null;
+      // Enhance events with seat assignment data (for sessions only)
+      const enhanceEventWithSeatInfo = (event) => {
+        if (!event || !seatAssignments.length) return event || null;
+        
+        // Only enhance sessions with seat info, not dining events
+        if (event.type === 'dining') {
+          return event;
+        }
         
         // Find seat assignment for this session (if any)
         const seatAssignment = seatAssignments.find(seat => 
-          seat.seating_configuration_id === session.seating_configuration_id
+          seat.seating_configuration_id === event.seating_configuration_id
         );
         
         return {
-          ...session,
+          ...event,
           seatInfo: seatAssignment ? {
             table: seatAssignment.table_name,
             seat: seatAssignment.seat_number,
@@ -300,14 +426,16 @@ export const useSessionData = (options = {}) => {
         };
       };
 
-      setCurrentSession(enhanceSessionWithSeatInfo(activeSession) || null);
-      setNextSession(enhanceSessionWithSeatInfo(upcomingSession) || null);
+      setCurrentSession(enhanceEventWithSeatInfo(activeEvent) || null);
+      setNextSession(enhanceEventWithSeatInfo(upcomingEvent) || null);
 
       console.log('✅ useSessionData: Data loaded successfully', {
         allSessions: allSessionsData.length,
         filteredSessions: filteredSessions.length,
-        currentSession: activeSession?.title,
-        nextSession: upcomingSession?.title,
+        diningOptions: diningData.length,
+        allEvents: combinedEvents.length,
+        currentEvent: activeEvent?.title || activeEvent?.name,
+        nextEvent: upcomingEvent?.title || upcomingEvent?.name,
         attendeeId: attendeeData?.id,
         seatAssignments: seatAssignments.length
       });
@@ -325,12 +453,14 @@ export const useSessionData = (options = {}) => {
             const parsed = JSON.parse(cachedData);
             cacheMonitoringService.logStateTransition('useSessionData', { sessions: [] }, { sessions: parsed.sessions || [] }, 'offline-cache');
             setSessions(parsed.sessions || []);
+            setDiningOptions(parsed.diningOptions || []);
+            setAllEvents(parsed.allEvents || []);
             setCurrentSession(parsed.currentSession || null);
             setNextSession(parsed.nextSession || null);
             setLastUpdated(new Date(parsed.lastUpdated));
           }
         } catch (cacheErr) {
-          console.warn('⚠️ Failed to load cached session data:', cacheErr);
+          console.warn('⚠️ Failed to load cached data:', cacheErr);
           cacheMonitoringService.logCacheCorruption('kn_cached_sessions', cacheErr.message, { error: cacheErr });
         }
       }
@@ -340,18 +470,20 @@ export const useSessionData = (options = {}) => {
     }
   }, [enableOfflineMode, isOffline, isAuthenticated]);
 
-  // Cache session data for offline use
+  // Cache session and dining data for offline use
   const cacheSessionData = useCallback(() => {
-    if (enableOfflineMode && sessions.length > 0) {
+    if (enableOfflineMode && (sessions.length > 0 || diningOptions.length > 0)) {
       const cacheData = {
         sessions,
+        diningOptions,
+        allEvents,
         currentSession,
         nextSession,
         lastUpdated: lastUpdated?.toISOString()
       };
       localStorage.setItem('kn_cached_sessions', JSON.stringify(cacheData));
     }
-  }, [sessions, currentSession, nextSession, lastUpdated, enableOfflineMode]);
+  }, [sessions, diningOptions, allEvents, currentSession, nextSession, lastUpdated, enableOfflineMode]);
 
   // Handle online/offline status changes
   useEffect(() => {
@@ -399,39 +531,40 @@ export const useSessionData = (options = {}) => {
   // Listen for time override changes and re-evaluate session states
   useEffect(() => {
     const handleTimeOverrideChange = () => {
-      // Re-evaluate session states when time override changes
+      // Re-evaluate event states when time override changes
       const currentTime = getCurrentTime();
       
+      // Find current active event (session or dining)
+      const activeEvent = allEvents.find(event => {
+        if (event.type === 'dining') {
+          return isDiningActive(event, currentTime);
+        } else {
+          return isSessionActive(event, currentTime);
+        }
+      });
       
-      // Find current active session
-      const activeSession = sessions.find(session => 
-        isSessionActive(session, currentTime)
-      );
-      
-      // Find next upcoming session - prioritize by date first, then time
-      const upcomingSession = sessions
-        .filter(session => isSessionUpcoming(session, currentTime))
-        .sort((a, b) => {
-          // First sort by date
-          const dateComparison = (a.date || '').localeCompare(b.date || '');
-          if (dateComparison !== 0) return dateComparison;
-          
-          // Then sort by start time
-          return (a.start_time || '').localeCompare(b.start_time || '');
-        })[0]; // Get the first (earliest) upcoming session
-      
+      // Find next upcoming event (session or dining)
+      const upcomingEvent = allEvents
+        .filter(event => {
+          if (event.type === 'dining') {
+            return isDiningUpcoming(event, currentTime);
+          } else {
+            return isSessionUpcoming(event, currentTime);
+          }
+        })
+        .sort(compareEventsByTime)[0]; // Get the first (earliest) upcoming event
       
       // Update state only if changed (performance optimization)
       setCurrentSession(prev => {
-        if (prev?.id !== activeSession?.id) {
-          return activeSession;
+        if (prev?.id !== activeEvent?.id) {
+          return activeEvent;
         }
         return prev;
       });
       
       setNextSession(prev => {
-        if (prev?.id !== upcomingSession?.id) {
-          return upcomingSession;
+        if (prev?.id !== upcomingEvent?.id) {
+          return upcomingEvent;
         }
         return prev;
       });
@@ -464,12 +597,12 @@ export const useSessionData = (options = {}) => {
       window.removeEventListener('timeOverrideChanged', handleTimeOverrideUpdate);
       window.removeEventListener('timeOverrideBoundaryCrossed', handleBoundaryCrossing);
     };
-  }, [sessions]); // Re-run when sessions change to update the closure
+  }, [allEvents]); // Re-run when events change to update the closure
 
   // Real-time update mechanism for both real time and dynamic time override
   useEffect(() => {
-    // Only set up real-time updates if we have sessions
-    if (sessions.length === 0) {
+    // Only set up real-time updates if we have events
+    if (allEvents.length === 0) {
       return;
     }
 
@@ -486,41 +619,44 @@ export const useSessionData = (options = {}) => {
     const handleRealTimeUpdate = () => {
       const currentTime = getCurrentTime();
       
-      // Find current active session
-      const activeSession = sessions.find(session => 
-        isSessionActive(session, currentTime)
-      );
+      // Find current active event (session or dining)
+      const activeEvent = allEvents.find(event => {
+        if (event.type === 'dining') {
+          return isDiningActive(event, currentTime);
+        } else {
+          return isSessionActive(event, currentTime);
+        }
+      });
       
-      // Find next upcoming session - prioritize by date first, then time
-      const upcomingSession = sessions
-        .filter(session => isSessionUpcoming(session, currentTime))
-        .sort((a, b) => {
-          // First sort by date
-          const dateComparison = (a.date || '').localeCompare(b.date || '');
-          if (dateComparison !== 0) return dateComparison;
-          
-          // Then sort by start time
-          return (a.start_time || '').localeCompare(b.start_time || '');
-        })[0]; // Get the first (earliest) upcoming session
+      // Find next upcoming event (session or dining)
+      const upcomingEvent = allEvents
+        .filter(event => {
+          if (event.type === 'dining') {
+            return isDiningUpcoming(event, currentTime);
+          } else {
+            return isSessionUpcoming(event, currentTime);
+          }
+        })
+        .sort(compareEventsByTime)[0]; // Get the first (earliest) upcoming event
       
       // Update state only if changed (performance optimization)
-      // Don't clear sessions just because none are currently active - this causes the flash
+      // Don't clear events just because none are currently active - this causes the flash
       setCurrentSession(prev => {
-        // Only update if we found an active session or if we're intentionally clearing
-        if (activeSession && prev?.id !== activeSession?.id) {
-          return activeSession;
+        // Only update if we found an active event or if we're intentionally clearing
+        if (activeEvent && prev?.id !== activeEvent?.id) {
+          return activeEvent;
         }
-        // Don't clear current session if no active session found - keep the last known state
+        // Don't clear current event if no active event found - keep the last known state
         // This prevents the flash to "Conference Not Started" state
         return prev;
       });
       
       setNextSession(prev => {
-        // Only update if we found an upcoming session or if we're intentionally clearing
-        if (upcomingSession && prev?.id !== upcomingSession?.id) {
-          return upcomingSession;
+        // Only update if we found an upcoming event or if we're intentionally clearing
+        if (upcomingEvent && prev?.id !== upcomingEvent?.id) {
+          return upcomingEvent;
         }
-        // Don't clear next session if no upcoming session found - keep the last known state
+        // Don't clear next event if no upcoming event found - keep the last known state
         // This prevents the flash to "Conference Not Started" state
         return prev;
       });
@@ -534,7 +670,7 @@ export const useSessionData = (options = {}) => {
       // Stop boundary monitoring when component unmounts or sessions change
       TimeService.stopBoundaryMonitoring();
     };
-  }, [sessions]); // Re-run when sessions change
+  }, [allEvents]); // Re-run when events change
 
   // Refresh data manually
   const refresh = useCallback(() => {
@@ -544,6 +680,8 @@ export const useSessionData = (options = {}) => {
   return {
     sessions,
     allSessions,
+    diningOptions,
+    allEvents,
     currentSession,
     nextSession,
     attendee,
@@ -552,6 +690,7 @@ export const useSessionData = (options = {}) => {
     isOffline,
     lastUpdated,
     error,
+    diningError,
     refresh
   };
 };
