@@ -146,15 +146,32 @@ const filterSessionsForAttendee = (sessions, attendee) => {
 const loadFromCache = () => {
   try {
     const cachedData = localStorage.getItem('kn_cached_sessions');
+    let sessions = [];
+    let diningOptions = [];
+    let allEvents = [];
+    
     if (cachedData) {
       const parsed = JSON.parse(cachedData);
-      return {
-        sessions: parsed.sessions || [],
-        diningOptions: parsed.diningOptions || [],
-        allEvents: parsed.allEvents || []
-      };
+      sessions = parsed.sessions || [];
+      diningOptions = parsed.diningOptions || [];
+      allEvents = parsed.allEvents || [];
     }
-    return { sessions: [], diningOptions: [], allEvents: [] };
+    
+    // Also check for dining data in the unified cache
+    const diningCacheData = localStorage.getItem('kn_cache_dining_options');
+    if (diningCacheData) {
+      try {
+        const parsedDining = JSON.parse(diningCacheData);
+        if (parsedDining.data && parsedDining.data.length > 0) {
+          diningOptions = parsedDining.data;
+          console.log('🏠 CACHE: Found dining data in unified cache:', diningOptions.length, 'records');
+        }
+      } catch (diningError) {
+        console.warn('⚠️ Failed to parse dining cache data:', diningError);
+      }
+    }
+    
+    return { sessions, diningOptions, allEvents };
   } catch (error) {
     console.warn('⚠️ Failed to load cached data:', error);
     return { sessions: [], diningOptions: [], allEvents: [] };
