@@ -54,7 +54,7 @@ export class UnifiedCacheService {
           console.warn(`⚠️ Checksum mismatch detected for ${key}, attempting repair...`);
           
           // Try to repair the checksum
-          const repairResult = await this.repairCacheEntry(entry);
+          const repairResult = await this.repairCacheEntry(entry, key);
           if (repairResult.success) {
             console.log(`✅ Successfully repaired checksum for ${key}`);
             this.monitoring.logCacheRepair(key, 'Checksum repaired');
@@ -128,9 +128,8 @@ export class UnifiedCacheService {
       // Use atomic localStorage operations with retry logic
       await this.atomicSetItem(key, entry);
       
-      // Create backup copy for corruption recovery (also atomic)
-      const backupKey = `${key}_backup`;
-      await this.atomicSetItem(backupKey, entry);
+      // No backup creation - simplified approach for conference PWA
+      // API fallback will handle cache failures
       
       const dataSize = JSON.stringify(data).length;
       const duration = performance.now() - startTime;
@@ -349,31 +348,12 @@ export class UnifiedCacheService {
   }
 
   /**
-   * Attempt cache recovery from multiple sources
+   * Attempt cache recovery - simplified for conference PWA
+   * No backup recovery, rely on API fallback
    */
   private async attemptCacheRecovery(key: string, corruptedEntry: CacheEntry, startTime: number): Promise<{success: boolean, data?: any}> {
     try {
-      // 1. Try backup cache
-      const backupKey = `${key}_backup`;
-      const backupEntry = this.getCacheEntry(backupKey);
-      
-      if (backupEntry) {
-        const backupValidation = this.cacheVersioning.validateCacheEntry(backupEntry);
-        if (backupValidation.isValid) {
-          console.log('🔄 Cache recovery: Using backup data for', key);
-          this.monitoring.logCacheHit(key, JSON.stringify(backupEntry.data).length, performance.now() - startTime);
-          this.metrics.recordCacheHit(performance.now() - startTime, JSON.stringify(backupEntry.data).length);
-          
-          // Restore backup data to main cache
-          await this.set(key, backupEntry.data, backupEntry.ttl);
-          return { success: true, data: backupEntry.data };
-        } else {
-          console.warn('⚠️ Backup cache also corrupted for', key);
-          await this.remove(backupKey);
-        }
-      }
-
-      // 2. Try to recover partial data from corrupted entry
+      // Try to recover partial data from corrupted entry
       if (corruptedEntry.data && typeof corruptedEntry.data === 'object') {
         console.log('🔄 Cache recovery: Attempting partial data recovery for', key);
         try {
@@ -390,20 +370,8 @@ export class UnifiedCacheService {
         }
       }
 
-      // 3. Try to recover from localStorage backup patterns
-      const backupPatterns = [`${key}_old`, `${key}_prev`, `backup_${key}`];
-      for (const backupPattern of backupPatterns) {
-        const backupEntry = this.getCacheEntry(backupPattern);
-        if (backupEntry) {
-          const backupValidation = this.cacheVersioning.validateCacheEntry(backupEntry);
-          if (backupValidation.isValid) {
-            console.log('🔄 Cache recovery: Using pattern backup for', key);
-            await this.set(key, backupEntry.data, backupEntry.ttl);
-            return { success: true, data: backupEntry.data };
-          }
-        }
-      }
-
+      // No backup recovery - API fallback will handle cache failures
+      console.log('🔄 Cache recovery: No valid data found, API fallback required for', key);
       return { success: false };
     } catch (error) {
       console.error('❌ Cache recovery failed for', key, error);
@@ -412,20 +380,14 @@ export class UnifiedCacheService {
   }
 
   /**
-   * Clean up corrupted cache entries
+   * Clean up corrupted cache entries - simplified
    */
   private async cleanupCorruptedCache(key: string): Promise<void> {
     try {
-      // Remove main cache entry
+      // Remove main cache entry only
       await this.remove(key);
       
-      // Remove all backup entries
-      const backupKeys = [`${key}_backup`, `${key}_old`, `${key}_prev`, `backup_${key}`];
-      for (const backupKey of backupKeys) {
-        await this.remove(backupKey);
-      }
-      
-      console.log('🧹 Cleaned up corrupted cache entries for', key);
+      console.log('🧹 Cleaned up corrupted cache entry for', key);
     } catch (error) {
       console.error('❌ Failed to cleanup corrupted cache for', key, error);
     }
@@ -468,81 +430,36 @@ export class UnifiedCacheService {
   }
 
   /**
-   * Sophisticated cache recovery for agenda items
-   * Attempts repair before clearing, with backup restoration
+   * Simplified cache clearing for agenda items
+   * No backup recovery, rely on API fallback
    */
   async clearAgendaItemsCache(): Promise<void> {
     try {
-      const agendaKeys = [
-        'kn_cache_agenda_items',
-        'kn_cache_agenda_items_backup',
-        'kn_cache_agenda_items_old',
-        'kn_cache_agenda_items_prev',
-        'backup_kn_cache_agenda_items'
-      ];
-      
+      const mainKey = 'kn_cache_agenda_items';
       let recoveryAttempted = false;
       let recoverySuccessful = false;
       
-      // First, try to recover from backups
-      for (const key of agendaKeys) {
-        if (key === 'kn_cache_agenda_items') continue; // Skip main key for now
-        
-        try {
-          const backupData = localStorage.getItem(key);
-          if (backupData) {
-            const entry = JSON.parse(backupData);
-            const validation = this.cacheVersioning.validateCacheEntry(entry);
-            
-            if (validation.isValid) {
-              // Found valid backup, restore it
-              localStorage.setItem('kn_cache_agenda_items', backupData);
-              console.log(`✅ Restored agenda items from backup: ${key}`);
-              recoverySuccessful = true;
-              break;
-            }
+      // Try to repair the main cache
+      try {
+        const mainData = localStorage.getItem(mainKey);
+        if (mainData) {
+          const entry = JSON.parse(mainData);
+          const repairResult = await this.repairCacheEntry(entry, mainKey);
+          
+          if (repairResult.success) {
+            console.log('✅ Successfully repaired main agenda items cache');
+            recoverySuccessful = true;
+            recoveryAttempted = true;
           }
-        } catch (error) {
-          console.warn(`⚠️ Failed to restore from backup ${key}:`, error);
         }
+      } catch (error) {
+        console.warn('⚠️ Failed to repair main cache:', error);
       }
       
-      // If no valid backup found, try to repair the main cache
+      // If repair failed, clear the cache
       if (!recoverySuccessful) {
-        try {
-          const mainData = localStorage.getItem('kn_cache_agenda_items');
-          if (mainData) {
-            const entry = JSON.parse(mainData);
-            const repairResult = await this.repairCacheEntry(entry);
-            
-            if (repairResult.success) {
-              console.log('✅ Successfully repaired main agenda items cache');
-              recoverySuccessful = true;
-              recoveryAttempted = true;
-            }
-          }
-        } catch (error) {
-          console.warn('⚠️ Failed to repair main cache:', error);
-        }
-      }
-      
-      // If all recovery attempts failed, clear corrupted caches
-      if (!recoverySuccessful) {
-        for (const key of agendaKeys) {
-          await this.cleanupCorruptedCache(key);
-        }
-        console.log('🧹 Cleared all agenda items cache entries after recovery failure');
-      } else {
-        // Clean up old backups after successful recovery
-        const backupKeys = agendaKeys.filter(key => key !== 'kn_cache_agenda_items');
-        for (const key of backupKeys) {
-          try {
-            localStorage.removeItem(key);
-          } catch (error) {
-            console.warn(`⚠️ Failed to clean up backup ${key}:`, error);
-          }
-        }
-        console.log('🧹 Cleaned up old backup entries after successful recovery');
+        await this.cleanupCorruptedCache(mainKey);
+        console.log('🧹 Cleared agenda items cache after repair failure');
       }
       
       // Log recovery metrics
@@ -561,7 +478,7 @@ export class UnifiedCacheService {
   /**
    * Repair cache entry by recalculating checksum and fixing data integrity
    */
-  private async repairCacheEntry(entry: CacheEntry): Promise<{success: boolean, data?: any, error?: string}> {
+  private async repairCacheEntry(entry: CacheEntry, key?: string): Promise<{success: boolean, data?: any, error?: string}> {
     try {
       // Validate that the data itself is intact
       if (!entry.data || typeof entry.data !== 'object') {
@@ -584,12 +501,13 @@ export class UnifiedCacheService {
         return { success: false, error: `Repaired entry still invalid: ${validation.issues?.join(', ')}` };
       }
 
-      // Store the repaired entry
+      // Store the repaired entry (use key parameter if provided)
+      const targetKey = key || 'kn_cache_agenda_items';
       try {
-        localStorage.setItem('kn_cache_agenda_items', JSON.stringify(repairedEntry));
+        localStorage.setItem(targetKey, JSON.stringify(repairedEntry));
         
         // Verify the repair was successful
-        const stored = localStorage.getItem('kn_cache_agenda_items');
+        const stored = localStorage.getItem(targetKey);
         if (!stored) {
           return { success: false, error: 'Failed to store repaired entry' };
         }

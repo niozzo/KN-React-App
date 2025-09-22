@@ -158,6 +158,9 @@ describe('UnifiedCacheService', () => {
       };
 
       mockVersioning.createCacheEntry.mockReturnValue(mockEntry);
+      
+      // Mock localStorage.getItem to return the stored data for verification
+      mockLocalStorage.getItem.mockReturnValue(JSON.stringify(mockEntry));
 
       await cacheService.set('test-key', testData, 300000);
 
@@ -252,7 +255,9 @@ describe('UnifiedCacheService', () => {
         stateResets: 0,
         averageResponseTime: 50,
         totalDataSize: 1024,
-        lastUpdated: new Date().toISOString()
+        lastUpdated: expect.any(String),
+        corruptionCount: 0,
+        lastHealthCheck: expect.any(String)
       };
 
       const mockConsistencyData = {
@@ -282,7 +287,9 @@ describe('UnifiedCacheService', () => {
         stateResets: 0,
         averageResponseTime: 200,
         totalDataSize: 512,
-        lastUpdated: new Date().toISOString()
+        lastUpdated: expect.any(String),
+        corruptionCount: 0,
+        lastHealthCheck: expect.any(String)
       };
 
       const mockConsistencyData = {
@@ -311,7 +318,7 @@ describe('UnifiedCacheService', () => {
       const healthStatus = await cacheService.getHealthStatus();
 
       expect(healthStatus.isHealthy).toBe(false);
-      expect(healthStatus.metrics).toBeNull();
+      expect(healthStatus.metrics).toEqual({ error: 'Metrics error' });
       expect(healthStatus.consistency.isConsistent).toBe(false);
       expect(healthStatus.consistency.issues).toContain('Metrics error');
     });
