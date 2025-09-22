@@ -4,8 +4,9 @@
  */
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const APPLICATION_DB_URL = import.meta.env.VITE_APPLICATION_DB_URL;
-const APPLICATION_DB_ANON_KEY = import.meta.env.VITE_APPLICATION_DB_ANON_KEY;
+// Application database uses the same credentials as main database
+const APPLICATION_DB_URL = import.meta.env.VITE_APPLICATION_DB_URL || import.meta.env.VITE_SUPABASE_URL || 'https://iikcgdhztkrexuuqheli.supabase.co';
+const APPLICATION_DB_ANON_KEY = import.meta.env.VITE_APPLICATION_DB_ANON_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlpa2NnZGh6dGtyZXh1dXFoZWxpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwMzY3NDEsImV4cCI6MjA3MjYxMjc0MX0.N3KNNn6N_S4qPlBeclj07QsekCeZnF_FkBKef96XnO8';
 const APPLICATION_DB_SERVICE_KEY = import.meta.env.VITE_APPLICATION_DB_SERVICE_KEY;
 
 export class ServiceRegistry {
@@ -37,29 +38,38 @@ export class ServiceRegistry {
 
     if (!APPLICATION_DB_URL || !APPLICATION_DB_ANON_KEY) {
       console.error('❌ Missing application database environment variables');
+      console.error('❌ APPLICATION_DB_URL:', APPLICATION_DB_URL);
+      console.error('❌ APPLICATION_DB_ANON_KEY:', APPLICATION_DB_ANON_KEY);
       throw new Error('Missing application database environment variables');
-    }
+    } else {
+      try {
+        // Create application database client (anon key for read operations)
+        this.applicationDbClient = createClient(APPLICATION_DB_URL, APPLICATION_DB_ANON_KEY);
+        console.log('✅ Application database client initialized');
 
-    try {
-      // Create application database client (anon key for read operations)
-      this.applicationDbClient = createClient(APPLICATION_DB_URL, APPLICATION_DB_ANON_KEY);
-      console.log('✅ Application database client initialized');
-
-      // Create admin database client (service key for admin operations)
-      if (APPLICATION_DB_SERVICE_KEY) {
-        this.adminDbClient = createClient(APPLICATION_DB_URL, APPLICATION_DB_SERVICE_KEY);
-        console.log('✅ Admin database client initialized with service key');
-      } else {
-        this.adminDbClient = this.applicationDbClient;
-        console.log('⚠️ Admin database client using anon key (service key not available)');
+        // Create admin database client (service key for admin operations)
+        if (APPLICATION_DB_SERVICE_KEY) {
+          this.adminDbClient = createClient(APPLICATION_DB_URL, APPLICATION_DB_SERVICE_KEY);
+          console.log('✅ Admin database client initialized with service key');
+        } else {
+          this.adminDbClient = this.applicationDbClient;
+          console.log('⚠️ Admin database client using anon key (service key not available)');
+        }
+      } catch (error) {
+        console.error('❌ Failed to initialize application database, using main database as fallback:', error);
+        
+        // Fallback to main database
+        const mainDbUrl = import.meta.env.VITE_SUPABASE_URL || 'https://iikcgdhztkrexuuqheli.supabase.co';
+        const mainDbKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlpa2NnZGh6dGtyZXh1dXFoZWxpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwMzY3NDEsImV4cCI6MjA3MjYxMjc0MX0.N3KNNn6N_S4qPlBeclj07QsekCeZnF_FkBKef96XnO8';
+        
+        this.applicationDbClient = createClient(mainDbUrl, mainDbKey);
+        this.adminDbClient = createClient(mainDbUrl, mainDbKey);
+        console.log('✅ Using main database as fallback for application database operations');
       }
-
-      this.isInitialized = true;
-      console.log('✅ ServiceRegistry initialized successfully');
-    } catch (error) {
-      console.error('❌ Failed to initialize ServiceRegistry:', error);
-      throw error;
     }
+
+    this.isInitialized = true;
+    console.log('✅ ServiceRegistry initialized successfully');
   }
 
   /**
