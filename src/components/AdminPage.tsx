@@ -33,12 +33,16 @@ interface AdminPageProps {
 export const AdminPage: React.FC<AdminPageProps> = ({ onLogout }) => {
   const navigate = useNavigate();
   const [agendaItems, setAgendaItems] = useState<any[]>([]);
+  const [diningOptions, setDiningOptions] = useState<any[]>([]);
   const [attendees, setAttendees] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [editingTitle, setEditingTitle] = useState<string | null>(null);
+  const [editingDiningTitle, setEditingDiningTitle] = useState<string | null>(null);
   const [titleValue, setTitleValue] = useState('');
+  const [diningTitleValue, setDiningTitleValue] = useState('');
   const [titleValidationError, setTitleValidationError] = useState('');
+  const [diningTitleValidationError, setDiningTitleValidationError] = useState('');
   const [requiresAuth, setRequiresAuth] = useState(false);
   const [showDashboard, setShowDashboard] = useState(false);
 
@@ -77,7 +81,12 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onLogout }) => {
       const itemsWithAssignments = await adminService.getAgendaItemsWithAssignments();
       setAgendaItems(itemsWithAssignments);
 
-      // Step 3: Load available attendees
+      // Step 3: Load dining options with metadata
+      console.log('🍽️ Loading dining options...');
+      const optionsWithMetadata = await adminService.getDiningOptionsWithMetadata();
+      setDiningOptions(optionsWithMetadata);
+
+      // Step 4: Load available attendees
       console.log('👥 Loading attendees...');
       const availableAttendees = await adminService.getAvailableAttendees();
       setAttendees(availableAttendees);
@@ -98,6 +107,12 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onLogout }) => {
     setTitleValidationError('');
   };
 
+  const handleDiningTitleEdit = (itemId: string, currentTitle: string) => {
+    setEditingDiningTitle(itemId);
+    setDiningTitleValue(currentTitle);
+    setDiningTitleValidationError('');
+  };
+
   const handleTitleChange = (value: string) => {
     setTitleValue(value);
     setTitleValidationError('');
@@ -107,6 +122,19 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onLogout }) => {
       const result = ValidationRules.title(value.trim(), 'Title');
       if (!result.isValid) {
         setTitleValidationError(result.message);
+      }
+    }
+  };
+
+  const handleDiningTitleChange = (value: string) => {
+    setDiningTitleValue(value);
+    setDiningTitleValidationError('');
+    
+    // Real-time validation
+    if (value.trim()) {
+      const result = ValidationRules.title(value.trim(), 'Title');
+      if (!result.isValid) {
+        setDiningTitleValidationError(result.message);
       }
     }
   };
@@ -148,6 +176,45 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onLogout }) => {
     setEditingTitle(null);
     setTitleValue('');
     setTitleValidationError('');
+  };
+
+  const handleDiningTitleSave = async (itemId: string) => {
+    // Validate title format
+    const titleResult = ValidationRules.title(diningTitleValue.trim(), 'Title');
+    if (!titleResult.isValid) {
+      setDiningTitleValidationError(titleResult.message);
+      return;
+    }
+
+    // Validate title is not empty
+    if (!adminService.validateTitle(diningTitleValue)) {
+      setError('Title cannot be empty');
+      return;
+    }
+
+    try {
+      await adminService.updateDiningOptionTitle(itemId, diningTitleValue);
+      
+      // Update local state
+      setDiningOptions(options => 
+        options.map(option => 
+          option.id === itemId ? { ...option, name: diningTitleValue } : option
+        )
+      );
+      
+      setEditingDiningTitle(null);
+      setDiningTitleValue('');
+      setDiningTitleValidationError('');
+    } catch (err) {
+      setError('Failed to update dining option title. Please try again.');
+      console.error('Error updating dining option title:', err);
+    }
+  };
+
+  const handleDiningTitleCancel = () => {
+    setEditingDiningTitle(null);
+    setDiningTitleValue('');
+    setDiningTitleValidationError('');
   };
 
   const handleAssignmentsChange = (itemId: string, assignments: SpeakerAssignment[]) => {
@@ -356,6 +423,104 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onLogout }) => {
                   </Card>
                 </ListItem>
                 {index < agendaItems.length - 1 && <Divider />}
+              </React.Fragment>
+            ))}
+          </List>
+        )}
+
+        {/* Dining Options Section */}
+        <Typography variant="h4" gutterBottom sx={{ mt: 4 }}>
+          Dining Options
+        </Typography>
+
+        {diningOptions.length === 0 ? (
+          <Card sx={{ maxWidth: 600, mx: 'auto', mt: 4 }}>
+            <CardContent sx={{ textAlign: 'center', p: 4 }}>
+              <Typography variant="h6" gutterBottom>
+                No Dining Options Found
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                No dining options are currently available for editing.
+              </Typography>
+            </CardContent>
+          </Card>
+        ) : (
+          <List>
+            {diningOptions.map((option, index) => (
+              <React.Fragment key={option.id}>
+                <ListItem sx={{ px: 0 }}>
+                  <Card sx={{ width: '100%' }}>
+                    <CardContent>
+                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                        {editingDiningTitle === option.id ? (
+                          <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
+                            <TextField
+                              value={diningTitleValue}
+                              onChange={(e) => handleDiningTitleChange(e.target.value)}
+                              size="small"
+                              sx={{ flexGrow: 1, mr: 1 }}
+                              autoFocus
+                              error={!!diningTitleValidationError}
+                              helperText={diningTitleValidationError}
+                              inputProps={{
+                                maxLength: 200
+                              }}
+                            />
+                            <Button
+                              size="small"
+                              startIcon={<SaveIcon />}
+                              onClick={() => handleDiningTitleSave(option.id)}
+                              disabled={!!diningTitleValidationError || !diningTitleValue.trim()}
+                              sx={{ mr: 1 }}
+                            >
+                              Save
+                            </Button>
+                            <Button
+                              size="small"
+                              onClick={handleDiningTitleCancel}
+                            >
+                              Cancel
+                            </Button>
+                          </Box>
+                        ) : (
+                          <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
+                            <Typography variant="h6" sx={{ flexGrow: 1 }}>
+                              {option.name}
+                            </Typography>
+                            <Button
+                              size="small"
+                              onClick={() => handleDiningTitleEdit(option.id, option.name)}
+                            >
+                              Edit Title
+                            </Button>
+                          </Box>
+                        )}
+                      </Box>
+
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 1 }}>
+                        <Typography variant="body2" color="text.secondary">
+                          <strong>Date:</strong> {option.date}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          <strong>Time:</strong> {option.time}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          <strong>Location:</strong> {option.location}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          <strong>Capacity:</strong> {option.capacity} seats
+                        </Typography>
+                      </Box>
+
+                      {option.original_name && option.original_name !== option.name && (
+                        <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                          Original: {option.original_name}
+                        </Typography>
+                      )}
+                    </CardContent>
+                  </Card>
+                </ListItem>
+                {index < diningOptions.length - 1 && <Divider />}
               </React.Fragment>
             ))}
           </List>

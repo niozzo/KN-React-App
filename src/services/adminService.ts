@@ -73,6 +73,57 @@ export class AdminService {
     return itemsWithAssignments;
   }
 
+  async getDiningOptionsWithMetadata(): Promise<any[]> {
+    console.log('🔄 AdminService: Starting getDiningOptionsWithMetadata...');
+    
+    // Ensure application database tables are synced first
+    await this.ensureApplicationDatabaseSynced();
+    
+    // Get dining options from unified cache service
+    let diningOptions = [];
+    
+    try {
+      // Try kn_cache_dining_options first (current structure)
+      const cachedData = await unifiedCacheService.get('kn_cache_dining_options');
+      if (cachedData) {
+        diningOptions = (cachedData as any).data || cachedData || [];
+      }
+      
+      // Fallback to legacy diningOptions if kn_cache_dining_options is empty
+      if (diningOptions.length === 0) {
+        const legacyData = await unifiedCacheService.get('diningOptions');
+        if (legacyData) {
+          diningOptions = (legacyData as any).data || legacyData || [];
+        }
+      }
+    } catch (error) {
+      console.error('Error loading dining options from unified cache:', error);
+    }
+    
+    console.log('🍽️ AdminService: Loaded dining options:', diningOptions.length, 'items');
+    
+    // Get edited titles from application database metadata
+    const diningItemMetadata = await pwaDataSyncService.getCachedTableData('dining_item_metadata');
+    console.log('📊 AdminService: Loaded dining item metadata from cache:', diningItemMetadata.length, 'records');
+    
+    // Map metadata to dining options and override titles with edited versions
+    const optionsWithMetadata = diningOptions.map((option: any) => {
+      // Find any edited metadata for this dining option
+      const metadata = diningItemMetadata.find((meta: any) => meta.id === option.id);
+      
+      // Override title if it was edited in the application database
+      const finalTitle = (metadata as any)?.title || option.name;
+      
+      return {
+        ...option,
+        name: finalTitle, // Use edited title if available
+        original_name: option.name // Keep original for reference
+      };
+    });
+    
+    return optionsWithMetadata;
+  }
+
   async updateAgendaItemTitle(agendaItemId: string, newTitle: string): Promise<void> {
     // Update in application database metadata
     try {
@@ -111,6 +162,47 @@ export class AdminService {
         item.id === agendaItemId ? { ...item, title: newTitle } : item
       );
       localStorage.setItem('agendaItems', JSON.stringify(updatedItems));
+    }
+  }
+
+  async updateDiningOptionTitle(diningOptionId: string, newTitle: string): Promise<void> {
+    // Update in application database metadata
+    try {
+      await applicationDatabaseService.syncDiningItemMetadata({
+        id: diningOptionId,
+        title: newTitle
+      });
+    } catch (error) {
+      console.warn('Database sync failed, updating local storage only:', error);
+      // Continue with local storage update even if database fails
+    }
+    
+    // Update local storage - check both possible keys
+    const cachedData = localStorage.getItem('kn_cache_dining_options');
+    if (cachedData) {
+      try {
+        const parsed = JSON.parse(cachedData);
+        const diningOptions = parsed.data || parsed || [];
+        const updatedOptions = diningOptions.map((option: any) => 
+          option.id === diningOptionId ? { ...option, name: newTitle } : option
+        );
+        
+        // Update the cached structure
+        const updatedCache = {
+          ...parsed,
+          data: updatedOptions
+        };
+        localStorage.setItem('kn_cache_dining_options', JSON.stringify(updatedCache));
+      } catch (error) {
+        console.error('Error updating kn_cache_dining_options:', error);
+      }
+    } else {
+      // Fallback to diningOptions
+      const diningOptions = JSON.parse(localStorage.getItem('diningOptions') || '[]');
+      const updatedOptions = diningOptions.map((option: any) => 
+        option.id === diningOptionId ? { ...option, name: newTitle } : option
+      );
+      localStorage.setItem('diningOptions', JSON.stringify(updatedOptions));
     }
   }
 
@@ -246,7 +338,7 @@ export class AdminService {
       console.log('🔄 Ensuring application database tables are synced for admin panel...');
       
       // Sync application database tables
-      const applicationTables = ['speaker_assignments', 'agenda_item_metadata', 'attendee_metadata'];
+      const applicationTables = ['speaker_assignments', 'agenda_item_metadata', 'attendee_metadata', 'dining_item_metadata'];
       
       for (const tableName of applicationTables) {
         try {

@@ -162,6 +162,20 @@ class ApplicationDatabaseService extends BaseService {
     if (error) throw error;
   }
 
+  async syncDiningItemMetadata(diningItem: any): Promise<void> {
+    const { error } = await this.adminDb
+      .from('dining_item_metadata')
+      .upsert({
+        id: diningItem.id,
+        title: diningItem.title,
+        date: diningItem.date,
+        time: diningItem.time,
+        last_synced: new Date().toISOString()
+      });
+    
+    if (error) throw error;
+  }
+
   // Bulk Operations
   async syncAllMetadata(agendaItems: any[], attendees: any[]): Promise<void> {
     // Sync agenda items
