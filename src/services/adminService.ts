@@ -174,6 +174,11 @@ export class AdminService {
         id: diningOptionId,
         title: newTitle
       });
+      
+      // Trigger cache invalidation for dining metadata
+      console.log('🔄 Triggering cache invalidation for dining_item_metadata');
+      serviceRegistry.invalidateCache('dining_item_metadata');
+      
     } catch (error) {
       console.warn('Database sync failed, updating local storage only:', error);
       // Continue with local storage update even if database fails

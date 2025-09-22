@@ -77,6 +77,71 @@ export class PWADataSyncService extends BaseService {
     this.initializeSync();
     this.setupEventListeners();
     this.clearCorruptedCacheOnStartup();
+    this.registerCacheInvalidationCallbacks();
+  }
+
+  /**
+   * Register cache invalidation callbacks with service registry
+   */
+  private registerCacheInvalidationCallbacks(): void {
+    // Register callback for dining_item_metadata table
+    serviceRegistry.registerCacheInvalidationCallback('dining_item_metadata', 
+      () => this.handleDiningMetadataInvalidation()
+    );
+    
+    // Register callback for agenda_item_metadata table
+    serviceRegistry.registerCacheInvalidationCallback('agenda_item_metadata', 
+      () => this.handleAgendaMetadataInvalidation()
+    );
+    
+    // Register callback for attendee_metadata table
+    serviceRegistry.registerCacheInvalidationCallback('attendee_metadata', 
+      () => this.handleAttendeeMetadataInvalidation()
+    );
+    
+    console.log('📝 PWA Data Sync: Registered cache invalidation callbacks');
+  }
+
+  /**
+   * Handle dining metadata cache invalidation
+   */
+  private async handleDiningMetadataInvalidation(): Promise<void> {
+    try {
+      console.log('🔄 PWA Data Sync: Handling dining metadata cache invalidation');
+      await this.invalidateCache('dining_item_metadata');
+      await this.syncApplicationTable('dining_item_metadata');
+      console.log('✅ PWA Data Sync: Dining metadata cache refreshed successfully');
+    } catch (error) {
+      console.error('❌ PWA Data Sync: Failed to refresh dining metadata cache:', error);
+    }
+  }
+
+  /**
+   * Handle agenda metadata cache invalidation
+   */
+  private async handleAgendaMetadataInvalidation(): Promise<void> {
+    try {
+      console.log('🔄 PWA Data Sync: Handling agenda metadata cache invalidation');
+      await this.invalidateCache('agenda_item_metadata');
+      await this.syncApplicationTable('agenda_item_metadata');
+      console.log('✅ PWA Data Sync: Agenda metadata cache refreshed successfully');
+    } catch (error) {
+      console.error('❌ PWA Data Sync: Failed to refresh agenda metadata cache:', error);
+    }
+  }
+
+  /**
+   * Handle attendee metadata cache invalidation
+   */
+  private async handleAttendeeMetadataInvalidation(): Promise<void> {
+    try {
+      console.log('🔄 PWA Data Sync: Handling attendee metadata cache invalidation');
+      await this.invalidateCache('attendee_metadata');
+      await this.syncApplicationTable('attendee_metadata');
+      console.log('✅ PWA Data Sync: Attendee metadata cache refreshed successfully');
+    } catch (error) {
+      console.error('❌ PWA Data Sync: Failed to refresh attendee metadata cache:', error);
+    }
   }
 
   /**
