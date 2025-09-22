@@ -237,7 +237,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onLogout }) => {
       setError('');
       
       // Force sync application database tables
-      const applicationTables = ['speaker_assignments', 'agenda_item_metadata', 'attendee_metadata'];
+      const applicationTables = ['speaker_assignments', 'agenda_item_metadata', 'attendee_metadata', 'dining_item_metadata'];
       
       for (const tableName of applicationTables) {
         try {

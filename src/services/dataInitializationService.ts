@@ -130,7 +130,7 @@ export class DataInitializationService {
       console.log('🔄 Ensuring application database tables are synced...');
       
       // Sync application database tables using PWA data sync service
-      const applicationTables = ['speaker_assignments', 'agenda_item_metadata', 'attendee_metadata'];
+      const applicationTables = ['speaker_assignments', 'agenda_item_metadata', 'attendee_metadata', 'dining_item_metadata'];
       
       for (const tableName of applicationTables) {
         try {

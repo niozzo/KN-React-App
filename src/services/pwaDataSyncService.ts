@@ -853,7 +853,7 @@ export class PWADataSyncService extends BaseService {
    */
   async getOfflineDataStatus(): Promise<{ [tableName: string]: boolean }> {
     const tables = ['attendees', 'sponsors', 'seat_assignments', 'agenda_items', 'dining_options', 'hotels', 'seating_configurations', 'user_profiles'];
-    const applicationTables = ['speaker_assignments', 'agenda_item_metadata', 'attendee_metadata'];
+    const applicationTables = ['speaker_assignments', 'agenda_item_metadata', 'attendee_metadata', 'dining_item_metadata'];
     const allTables = [...tables, ...applicationTables];
     const status: { [tableName: string]: boolean } = {};
 
@@ -875,7 +875,7 @@ export class PWADataSyncService extends BaseService {
   async debugCachedData(): Promise<void> {
     console.log('🔍 Debugging cached data...');
     const tables = ['attendees', 'sponsors', 'seat_assignments', 'agenda_items', 'dining_options', 'hotels', 'seating_configurations', 'user_profiles'];
-    const applicationTables = ['speaker_assignments', 'agenda_item_metadata', 'attendee_metadata'];
+    const applicationTables = ['speaker_assignments', 'agenda_item_metadata', 'attendee_metadata', 'dining_item_metadata'];
     const allTables = [...tables, ...applicationTables];
     
     for (const table of allTables) {

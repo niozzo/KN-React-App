@@ -116,7 +116,7 @@ describe('Admin Application Database E2E', () => {
     mockPwaDataSyncService.cacheTableData.mockResolvedValue(undefined);
     mockPwaDataSyncService.syncAllData.mockResolvedValue({
       success: true,
-      syncedTables: ['speaker_assignments', 'agenda_item_metadata', 'attendee_metadata'],
+      syncedTables: ['speaker_assignments', 'agenda_item_metadata', 'attendee_metadata', 'dining_item_metadata'],
       errors: []
     });
 
