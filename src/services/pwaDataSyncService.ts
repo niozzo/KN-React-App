@@ -15,6 +15,8 @@ import { cacheMonitoringService } from './cacheMonitoringService';
 import { cacheVersioningService, type CacheEntry } from './cacheVersioningService';
 import { BaseService } from './baseService';
 import { isTimestampExpired } from '../utils/timestampUtils';
+import { TABLE_MAPPINGS, getAllApplicationTables, getAllMainTables, isValidApplicationTable, isValidMainTable, type ApplicationTableName, type MainTableName } from '../config/tableMappings';
+import { serviceRegistry } from './ServiceRegistry';
 
 export interface SyncStatus {
   isOnline: boolean;
@@ -66,21 +68,8 @@ export class PWADataSyncService extends BaseService {
 
   private syncTimer: NodeJS.Timeout | null = null;
   
-  // Map table names to Supabase table names
-  private readonly tableToSupabaseTable: Record<string, string> = {
-    attendees: 'attendees',
-    sponsors: 'sponsors',
-    seat_assignments: 'seat_assignments',
-    agenda_items: 'agenda_items',
-    dining_options: 'dining_options',
-    hotels: 'hotels',
-    seating_configurations: 'seating_configurations',
-    user_profiles: 'user_profiles',
-    // Application database tables
-    speaker_assignments: 'speaker_assignments',
-    agenda_item_metadata: 'agenda_item_metadata',
-    attendee_metadata: 'attendee_metadata'
-  };
+  // Use centralized table mappings configuration
+  private readonly tableMappings = TABLE_MAPPINGS;
 
   constructor() {
     super();
@@ -318,11 +307,11 @@ export class PWADataSyncService extends BaseService {
         result.errors.push(`Schema validation error: ${schemaError.message}`);
       }
 
-      // Sync each table
-      const tables = ['attendees', 'sponsors', 'seat_assignments', 'agenda_items', 'dining_options', 'hotels', 'seating_configurations', 'user_profiles'];
+      // Sync each table using centralized configuration
+      const tables = getAllMainTables();
       
-      // Sync application database tables
-      const applicationTables = ['speaker_assignments', 'agenda_item_metadata', 'attendee_metadata'];
+      // Sync application database tables using centralized configuration
+      const applicationTables = getAllApplicationTables();
       
       for (const table of tables) {
         try {
@@ -384,15 +373,15 @@ export class PWADataSyncService extends BaseService {
   /**
    * Sync individual table
    */
-  private async syncTable(tableName: string): Promise<void> {
+  private async syncTable(tableName: MainTableName): Promise<void> {
     console.log(`🔄 Syncing ${tableName}...`);
 
     try {
-      // Get Supabase table name
-      const supabaseTable = this.tableToSupabaseTable[tableName];
-      if (!supabaseTable) {
-        throw new Error(`No Supabase table configured for: ${tableName}`);
+      // Validate table name and get Supabase table name
+      if (!isValidMainTable(tableName)) {
+        throw new Error(`Invalid main table name: ${tableName}`);
       }
+      const supabaseTable = this.tableMappings.main[tableName];
 
       // Query data from Supabase
       const { data, error } = await supabase
@@ -437,20 +426,21 @@ export class PWADataSyncService extends BaseService {
   /**
    * Sync application database table
    */
-  async syncApplicationTable(tableName: string): Promise<void> {
+  async syncApplicationTable(tableName: ApplicationTableName): Promise<void> {
     console.log(`🔄 PWA Data Sync: Syncing application table ${tableName}...`);
 
     try {
-      // Get Supabase table name
-      const supabaseTable = this.tableToSupabaseTable[tableName];
-      if (!supabaseTable) {
-        throw new Error(`No Supabase table configured for: ${tableName}`);
+      // Validate table name and get Supabase table name
+      if (!isValidApplicationTable(tableName)) {
+        throw new Error(`Invalid application table name: ${tableName}`);
       }
+      const supabaseTable = this.tableMappings.application[tableName];
 
       console.log(`📊 PWA Data Sync: Querying ${supabaseTable} from application database...`);
 
-      // Query data from application database
-      const { data, error } = await applicationDb
+      // Query data from application database using service registry
+      const applicationDbClient = serviceRegistry.getApplicationDbClient();
+      const { data, error } = await applicationDbClient
         .from(supabaseTable)
         .select('*');
       

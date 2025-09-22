@@ -1,6 +1,8 @@
 import { applicationDatabaseService, SpeakerAssignment } from './applicationDatabaseService';
 import { pwaDataSyncService } from './pwaDataSyncService';
 import { unifiedCacheService } from './unifiedCacheService';
+import { getAllApplicationTables, type ApplicationTableName } from '../config/tableMappings';
+import { serviceRegistry } from './ServiceRegistry';
 
 export class AdminService {
   async getAgendaItemsWithAssignments(): Promise<any[]> {
@@ -337,8 +339,8 @@ export class AdminService {
     try {
       console.log('🔄 Ensuring application database tables are synced for admin panel...');
       
-      // Sync application database tables
-      const applicationTables = ['speaker_assignments', 'agenda_item_metadata', 'attendee_metadata', 'dining_item_metadata'];
+      // Use centralized configuration for application tables
+      const applicationTables = getAllApplicationTables();
       
       for (const tableName of applicationTables) {
         try {

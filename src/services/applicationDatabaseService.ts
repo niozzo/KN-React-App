@@ -1,6 +1,7 @@
 // Application Database Service
 import { createClient } from '@supabase/supabase-js';
 import { BaseService } from './baseService.js';
+import { serviceRegistry } from './ServiceRegistry.js';
 
 const APPLICATION_DB_URL = import.meta.env.VITE_APPLICATION_DB_URL;
 const APPLICATION_DB_ANON_KEY = import.meta.env.VITE_APPLICATION_DB_ANON_KEY;
@@ -43,16 +44,19 @@ class ApplicationDatabaseService extends BaseService {
   }
 
   getClient() {
-    return this.applicationDb;
+    // Use service registry for consistent client management
+    return serviceRegistry.getApplicationDbClient();
   }
 
   getAdminClient() {
-    return this.adminDb;
+    // Use service registry for consistent client management
+    return serviceRegistry.getAdminDbClient();
   }
 
   // Speaker Assignment Methods
   async getSpeakerAssignments(agendaItemId: string): Promise<SpeakerAssignment[]> {
-    const { data, error } = await this.applicationDb
+    const client = this.getClient();
+    const { data, error } = await client
       .from('speaker_assignments')
       .select('*')
       .eq('agenda_item_id', agendaItemId)
@@ -63,8 +67,10 @@ class ApplicationDatabaseService extends BaseService {
   }
 
   async assignSpeaker(agendaItemId: string, attendeeId: string, role: string = 'presenter'): Promise<SpeakerAssignment> {
+    const adminClient = this.getAdminClient();
+    
     // Get the next display_order value for this agenda item
-    const { data: existingAssignments } = await this.adminDb
+    const { data: existingAssignments } = await adminClient
       .from('speaker_assignments')
       .select('display_order')
       .eq('agenda_item_id', agendaItemId)
@@ -75,7 +81,7 @@ class ApplicationDatabaseService extends BaseService {
       ? (existingAssignments[0].display_order || 0) + 1 
       : 1;
 
-    const { data, error } = await this.adminDb
+    const { data, error } = await adminClient
       .from('speaker_assignments')
       .insert({
         agenda_item_id: agendaItemId,
@@ -91,7 +97,8 @@ class ApplicationDatabaseService extends BaseService {
   }
 
   async removeSpeakerAssignment(assignmentId: string): Promise<void> {
-    const { error } = await this.adminDb
+    const adminClient = this.getAdminClient();
+    const { error } = await adminClient
       .from('speaker_assignments')
       .delete()
       .eq('id', assignmentId);
@@ -105,7 +112,8 @@ class ApplicationDatabaseService extends BaseService {
   async updateSpeakerOrder(speakerId: string, displayOrder: number): Promise<void> {
     console.log(`🔄 Updating speaker ${speakerId} to order ${displayOrder}`);
     
-    const { error } = await this.adminDb
+    const adminClient = this.getAdminClient();
+    const { error } = await adminClient
       .from('speaker_assignments')
       .update({ 
         display_order: displayOrder,
@@ -136,7 +144,8 @@ class ApplicationDatabaseService extends BaseService {
 
   // Metadata Management Methods
   async syncAgendaItemMetadata(agendaItem: any): Promise<void> {
-    const { error } = await this.adminDb
+    const adminClient = this.getAdminClient();
+    const { error } = await adminClient
       .from('agenda_item_metadata')
       .upsert({
         id: agendaItem.id,
@@ -150,7 +159,8 @@ class ApplicationDatabaseService extends BaseService {
   }
 
   async syncAttendeeMetadata(attendee: any): Promise<void> {
-    const { error } = await this.adminDb
+    const adminClient = this.getAdminClient();
+    const { error } = await adminClient
       .from('attendee_metadata')
       .upsert({
         id: attendee.id,
@@ -163,7 +173,8 @@ class ApplicationDatabaseService extends BaseService {
   }
 
   async syncDiningItemMetadata(diningItem: any): Promise<void> {
-    const { error } = await this.adminDb
+    const adminClient = this.getAdminClient();
+    const { error } = await adminClient
       .from('dining_item_metadata')
       .upsert({
         id: diningItem.id,
