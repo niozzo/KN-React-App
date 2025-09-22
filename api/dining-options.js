@@ -3,33 +3,11 @@
  * Story 1.7: Data Transformation Layer for Schema Evolution
  */
 
-import { createClient } from '@supabase/supabase-js'
+import { getAuthenticatedClient } from './supabaseClient.js'
 import { DiningTransformer } from '../src/transformers/diningTransformer.js'
-
-// Supabase configuration
-const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
 // Create transformer instance
 const diningTransformer = new DiningTransformer()
-
-// Authentication function
-async function getAuthenticatedClient() {
-  const supabaseClient = createClient(supabaseUrl, supabaseKey)
-  
-  // Authenticate with stored credentials
-  const { data, error } = await supabaseClient.auth.signInWithPassword({
-    email: process.env.SUPABASE_USER_EMAIL || 'ishan.gammampila@apax.com',
-    password: process.env.SUPABASE_USER_PASSWORD || 'xx8kRx#tn@R?'
-  })
-  
-  if (error) {
-    console.error('❌ Authentication failed:', error.message)
-    throw new Error('AUTHENTICATION_REQUIRED')
-  }
-  
-  return supabaseClient
-}
 
 // Fetch table rows helper
 async function fetchTableRows(tableName, limit = 100) {
