@@ -77,3 +77,4 @@ dist/
 
 # Vite cache
 .vite/
+.env*.local
