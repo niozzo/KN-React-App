@@ -354,8 +354,13 @@ export class SchemaValidationService extends BaseService {
       if (error) {
         // Check for specific Supabase API limitation error
         if (error.code === 'PGRST205' || error.message?.includes('schema cache')) {
-          console.warn('⚠️ information_schema not accessible via Supabase REST API (PGRST205) - this is expected. Using expected schema fallback.');
+          // Only log in development with debug level for expected behavior
+          if (process.env.NODE_ENV === 'development') {
+            console.debug('ℹ️ information_schema not accessible via Supabase REST API (PGRST205) - this is expected. Using expected schema fallback.');
+          }
+          // In production, silently use fallback for expected behavior
         } else {
+          // Still warn about unexpected errors
           console.warn('⚠️ Could not query information_schema, falling back to expected tables:', error);
         }
         // Fallback to expected tables if information_schema is not accessible
@@ -427,8 +432,13 @@ export class SchemaValidationService extends BaseService {
       if (colError) {
         // Check for specific Supabase API limitation error
         if (colError.code === 'PGRST205' || colError.message?.includes('schema cache')) {
-          console.warn(`⚠️ information_schema.columns not accessible via Supabase REST API (PGRST205) for table ${tableName} - this is expected. Using expected schema fallback.`);
+          // Only log in development with debug level for expected behavior
+          if (process.env.NODE_ENV === 'development') {
+            console.debug(`ℹ️ information_schema.columns not accessible via Supabase REST API (PGRST205) for table ${tableName} - this is expected. Using expected schema fallback.`);
+          }
+          // In production, silently use fallback for expected behavior
         } else {
+          // Still warn about unexpected errors
           console.warn(`⚠️ Could not query columns for table ${tableName}, using expected schema:`, colError);
         }
         // Fallback to expected schema if information_schema is not accessible
