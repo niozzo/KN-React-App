@@ -388,8 +388,9 @@ export const useSessionData = (options = {}) => {
         // ✅ ARCHITECTURE-COMPLIANT: Refresh both External DB (conference data) and Application DB (metadata)
         Promise.all([
           agendaService.getActiveAgendaItems(),
+          diningService.getDiningOptions(), // ✅ CRITICAL FIX: Refresh dining data from source
           pwaDataSyncService.getCachedTableData('dining_item_metadata')
-        ]).then(([agendaResponse, diningMetadata]) => {
+        ]).then(([agendaResponse, diningResponse, diningMetadata]) => {
           if (agendaResponse.success && agendaResponse.data && agendaResponse.data.length > 0) {
             console.log('🔄 BACKGROUND: Server refresh successful, updating cache');
             
@@ -397,25 +398,40 @@ export const useSessionData = (options = {}) => {
             setAllSessions(agendaResponse.data);
             setSessions(filterSessionsForAttendee(agendaResponse.data, attendeeData));
             
-            // ✅ CRITICAL: Re-apply Application Database metadata overrides
-            if (diningMetadata && diningMetadata.length > 0) {
-              console.log('🍽️ BACKGROUND: Re-applying dining metadata overrides from Application DB');
-              const enrichedDiningOptions = diningOptions.map(option => {
-                const metadata = diningMetadata.find(meta => meta.id === option.id);
-                return metadata ? { 
-                  ...option, 
-                  name: metadata.title,  // Application DB override
-                  original_name: option.name 
-                } : option;
-              });
-              setDiningOptions(enrichedDiningOptions);
+            // ✅ CRITICAL FIX: Update dining data from fresh source
+            if (diningResponse.success && diningResponse.data && diningResponse.data.length > 0) {
+              console.log('🍽️ BACKGROUND: Refreshing dining data from source');
+              setDiningOptions(diningResponse.data);
               
-              // Update combined events with enriched dining data
-              const enrichedCombinedEvents = mergeAndSortEvents(
-                filterSessionsForAttendee(agendaResponse.data, attendeeData), 
-                enrichedDiningOptions
-              );
-              setAllEvents(enrichedCombinedEvents);
+              // ✅ CRITICAL: Re-apply Application Database metadata overrides
+              if (diningMetadata && diningMetadata.length > 0) {
+                console.log('🍽️ BACKGROUND: Re-applying dining metadata overrides from Application DB');
+                const enrichedDiningOptions = diningResponse.data.map(option => {
+                  const metadata = diningMetadata.find(meta => meta.id === option.id);
+                  return metadata ? { 
+                    ...option, 
+                    name: metadata.title,  // Application DB override
+                    original_name: option.name 
+                  } : option;
+                });
+                setDiningOptions(enrichedDiningOptions);
+                
+                // Update combined events with enriched dining data
+                const enrichedCombinedEvents = mergeAndSortEvents(
+                  filterSessionsForAttendee(agendaResponse.data, attendeeData), 
+                  enrichedDiningOptions
+                );
+                setAllEvents(enrichedCombinedEvents);
+              } else {
+                // Update combined events with fresh dining data (no metadata overrides)
+                const freshCombinedEvents = mergeAndSortEvents(
+                  filterSessionsForAttendee(agendaResponse.data, attendeeData), 
+                  diningResponse.data
+                );
+                setAllEvents(freshCombinedEvents);
+              }
+            } else {
+              console.warn('🍽️ BACKGROUND: Dining data refresh failed, keeping existing data');
             }
             
             setLastUpdated(new Date());
@@ -423,8 +439,8 @@ export const useSessionData = (options = {}) => {
         }).catch(err => {
           console.warn('🔄 BACKGROUND: Server refresh failed:', err);
           // ✅ ERROR HANDLING: Log specific failure types for debugging
-          if (err.message?.includes('dining_item_metadata')) {
-            console.warn('🍽️ BACKGROUND: Application DB metadata sync failed:', err);
+          if (err.message?.includes('dining')) {
+            console.warn('🍽️ BACKGROUND: Dining data sync failed:', err);
           }
         });
       }
@@ -702,7 +718,19 @@ export const useSessionData = (options = {}) => {
     // Listen for dining metadata cache invalidation
     const handleDiningMetadataUpdate = () => {
       console.log('🍽️ Dining metadata updated, refreshing dining data');
-      loadSessionData();
+      // ✅ CRITICAL FIX: Force refresh of dining data from source
+      diningService.getDiningOptions().then(response => {
+        if (response.success && response.data) {
+          console.log('🍽️ Dining data refreshed from source after metadata update');
+          setDiningOptions(response.data);
+          // Trigger full data reload to ensure dining events are properly merged
+          loadSessionData();
+        }
+      }).catch(err => {
+        console.warn('🍽️ Failed to refresh dining data after metadata update:', err);
+        // Fallback to full reload
+        loadSessionData();
+      });
     };
 
     // Listen for agenda metadata cache invalidation
