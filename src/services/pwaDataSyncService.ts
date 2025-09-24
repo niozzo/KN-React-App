@@ -892,6 +892,21 @@ export class PWADataSyncService extends BaseService {
   }
 
   /**
+   * Invalidate cache for a specific table
+   * Delegates to ServiceRegistry for consistency
+   */
+  async invalidateCache(tableName: string): Promise<void> {
+    try {
+      console.log(`🔄 PWA Data Sync: Invalidating cache for ${tableName}`);
+      serviceRegistry.invalidateCache(tableName);
+      console.log(`✅ PWA Data Sync: Cache invalidated for ${tableName}`);
+    } catch (error) {
+      console.error(`❌ PWA Data Sync: Failed to invalidate cache for ${tableName}:`, error);
+      throw error;
+    }
+  }
+
+  /**
    * Cleanup on destroy
    */
   destroy(): void {
