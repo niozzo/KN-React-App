@@ -384,15 +384,48 @@ export const useSessionData = (options = {}) => {
       // If we loaded from cache, refresh from server in background
       if (loadSource === 'cache' || loadSource === 'localStorage') {
         console.log('🔄 BACKGROUND: Refreshing data from server in background');
-        agendaService.getActiveAgendaItems().then(response => {
-          if (response.success && response.data && response.data.length > 0) {
+        
+        // ✅ ARCHITECTURE-COMPLIANT: Refresh both External DB (conference data) and Application DB (metadata)
+        Promise.all([
+          agendaService.getActiveAgendaItems(),
+          pwaDataSyncService.getCachedTableData('dining_item_metadata')
+        ]).then(([agendaResponse, diningMetadata]) => {
+          if (agendaResponse.success && agendaResponse.data && agendaResponse.data.length > 0) {
             console.log('🔄 BACKGROUND: Server refresh successful, updating cache');
-            setAllSessions(response.data);
-            setSessions(filterSessionsForAttendee(response.data, attendeeData));
+            
+            // Update conference data (External DB)
+            setAllSessions(agendaResponse.data);
+            setSessions(filterSessionsForAttendee(agendaResponse.data, attendeeData));
+            
+            // ✅ CRITICAL: Re-apply Application Database metadata overrides
+            if (diningMetadata && diningMetadata.length > 0) {
+              console.log('🍽️ BACKGROUND: Re-applying dining metadata overrides from Application DB');
+              const enrichedDiningOptions = diningOptions.map(option => {
+                const metadata = diningMetadata.find(meta => meta.id === option.id);
+                return metadata ? { 
+                  ...option, 
+                  name: metadata.title,  // Application DB override
+                  original_name: option.name 
+                } : option;
+              });
+              setDiningOptions(enrichedDiningOptions);
+              
+              // Update combined events with enriched dining data
+              const enrichedCombinedEvents = mergeAndSortEvents(
+                filterSessionsForAttendee(agendaResponse.data, attendeeData), 
+                enrichedDiningOptions
+              );
+              setAllEvents(enrichedCombinedEvents);
+            }
+            
             setLastUpdated(new Date());
           }
         }).catch(err => {
           console.warn('🔄 BACKGROUND: Server refresh failed:', err);
+          // ✅ ERROR HANDLING: Log specific failure types for debugging
+          if (err.message?.includes('dining_item_metadata')) {
+            console.warn('🍽️ BACKGROUND: Application DB metadata sync failed:', err);
+          }
         });
       }
       
