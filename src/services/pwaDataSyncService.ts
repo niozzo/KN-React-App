@@ -67,6 +67,9 @@ export class PWADataSyncService extends BaseService {
   private serviceWorkerCircuitOpen = false;
   private lastServiceWorkerFailure: number | null = null;
   private readonly CIRCUIT_RESET_TIMEOUT = 5 * 60 * 1000; // 5 minutes
+  
+  // Protection against recursive cache invalidation calls
+  private cacheInvalidationInProgress = new Set<string>();
 
   private cacheConfig: CacheConfig = {
     maxAge: this.isLocalMode() ? 24 * 60 * 60 * 1000 : 60 * 60 * 1000, // 24h local, 1h prod
@@ -114,13 +117,26 @@ export class PWADataSyncService extends BaseService {
    * Handle dining metadata cache invalidation
    */
   private async handleDiningMetadataInvalidation(): Promise<void> {
+    const tableName = 'dining_item_metadata';
+    
+    // Prevent recursive calls
+    if (this.cacheInvalidationInProgress.has(tableName)) {
+      console.log(`🚫 PWA Data Sync: Cache invalidation already in progress for ${tableName}, skipping`);
+      return;
+    }
+    
+    this.cacheInvalidationInProgress.add(tableName);
+    
     try {
       console.log('🔄 PWA Data Sync: Handling dining metadata cache invalidation');
-      await this.invalidateCache('dining_item_metadata');
+      // Remove the recursive invalidateCache call - it's already being invalidated
+      // await this.invalidateCache('dining_item_metadata'); // ❌ REMOVED - causes infinite loop
       await this.syncApplicationTable('dining_item_metadata');
       console.log('✅ PWA Data Sync: Dining metadata cache refreshed successfully');
     } catch (error) {
       console.error('❌ PWA Data Sync: Failed to refresh dining metadata cache:', error);
+    } finally {
+      this.cacheInvalidationInProgress.delete(tableName);
     }
   }
 
@@ -128,13 +144,26 @@ export class PWADataSyncService extends BaseService {
    * Handle agenda metadata cache invalidation
    */
   private async handleAgendaMetadataInvalidation(): Promise<void> {
+    const tableName = 'agenda_item_metadata';
+    
+    // Prevent recursive calls
+    if (this.cacheInvalidationInProgress.has(tableName)) {
+      console.log(`🚫 PWA Data Sync: Cache invalidation already in progress for ${tableName}, skipping`);
+      return;
+    }
+    
+    this.cacheInvalidationInProgress.add(tableName);
+    
     try {
       console.log('🔄 PWA Data Sync: Handling agenda metadata cache invalidation');
-      await this.invalidateCache('agenda_item_metadata');
+      // Remove the recursive invalidateCache call - it's already being invalidated
+      // await this.invalidateCache('agenda_item_metadata'); // ❌ REMOVED - causes infinite loop
       await this.syncApplicationTable('agenda_item_metadata');
       console.log('✅ PWA Data Sync: Agenda metadata cache refreshed successfully');
     } catch (error) {
       console.error('❌ PWA Data Sync: Failed to refresh agenda metadata cache:', error);
+    } finally {
+      this.cacheInvalidationInProgress.delete(tableName);
     }
   }
 
@@ -142,13 +171,26 @@ export class PWADataSyncService extends BaseService {
    * Handle attendee metadata cache invalidation
    */
   private async handleAttendeeMetadataInvalidation(): Promise<void> {
+    const tableName = 'attendee_metadata';
+    
+    // Prevent recursive calls
+    if (this.cacheInvalidationInProgress.has(tableName)) {
+      console.log(`🚫 PWA Data Sync: Cache invalidation already in progress for ${tableName}, skipping`);
+      return;
+    }
+    
+    this.cacheInvalidationInProgress.add(tableName);
+    
     try {
       console.log('🔄 PWA Data Sync: Handling attendee metadata cache invalidation');
-      await this.invalidateCache('attendee_metadata');
+      // Remove the recursive invalidateCache call - it's already being invalidated
+      // await this.invalidateCache('attendee_metadata'); // ❌ REMOVED - causes infinite loop
       await this.syncApplicationTable('attendee_metadata');
       console.log('✅ PWA Data Sync: Attendee metadata cache refreshed successfully');
     } catch (error) {
       console.error('❌ PWA Data Sync: Failed to refresh attendee metadata cache:', error);
+    } finally {
+      this.cacheInvalidationInProgress.delete(tableName);
     }
   }
 
