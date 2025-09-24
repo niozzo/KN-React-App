@@ -25,12 +25,40 @@ export abstract class BaseService {
 
   /**
    * Check if running in local development mode
+   * Enhanced detection to prevent schema validation in development
    */
   protected isLocalMode(): boolean {
-    return process.env.NODE_ENV === 'development' || 
-           process.env.NODE_ENV === 'test' ||
-           window.location.hostname === 'localhost' ||
-           window.location.hostname === '127.0.0.1';
+    // Check NODE_ENV first
+    if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
+      return true;
+    }
+    
+    // Check hostname patterns
+    const hostname = window.location.hostname;
+    const port = window.location.port;
+    
+    // Local development patterns
+    if (hostname === 'localhost' || 
+        hostname === '127.0.0.1' ||
+        hostname.includes('localhost') ||
+        hostname.includes('127.0.0.1') ||
+        port === '3004' || // Vite dev server
+        port === '3000' || // Common dev ports
+        port === '5173' || // Vite default
+        port === '8080') {
+      return true;
+    }
+    
+    // Check for development indicators in URL
+    if (window.location.href.includes('localhost') || 
+        window.location.href.includes('127.0.0.1') ||
+        window.location.href.includes(':3004') ||
+        window.location.href.includes(':3000') ||
+        window.location.href.includes(':5173')) {
+      return true;
+    }
+    
+    return false;
   }
 
   /**
@@ -44,10 +72,19 @@ export abstract class BaseService {
    * Log environment mode for debugging
    */
   protected logEnvironmentMode(): void {
-    if (this.isLocalMode()) {
-      console.log('🏠 Local mode detected - using local data sources');
+    const isLocal = this.isLocalMode();
+    const envInfo = {
+      NODE_ENV: process.env.NODE_ENV,
+      hostname: window.location.hostname,
+      port: window.location.port,
+      href: window.location.href,
+      isLocal
+    };
+    
+    if (isLocal) {
+      console.log('🏠 Local mode detected - using local data sources', envInfo);
     } else {
-      console.log('🌐 Production mode detected - using Supabase API');
+      console.log('🌐 Production mode detected - using Supabase API', envInfo);
     }
   }
 

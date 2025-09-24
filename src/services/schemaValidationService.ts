@@ -191,6 +191,19 @@ export class SchemaValidationService extends BaseService {
     };
 
     try {
+      // Check if we're in local mode first
+      if (this.isLocalMode()) {
+        console.log('🏠 Local mode detected - skipping live schema validation');
+        result.warnings.push({
+          table: 'system',
+          field: 'environment',
+          type: 'local_mode',
+          message: 'Schema validation skipped in local development mode',
+          suggestion: 'This is expected behavior in development'
+        });
+        return result;
+      }
+
       // Get all tables
       const tables = await this.getAllTables();
       result.tables = tables;
@@ -291,6 +304,19 @@ export class SchemaValidationService extends BaseService {
     }
 
     try {
+      // Check if we're in local mode first
+      if (this.isLocalMode()) {
+        console.log('🏠 Local mode: Using expected tables without Supabase queries');
+        return this.EXPECTED_TABLES.map(tableName => ({
+          name: tableName,
+          columns: [],
+          indexes: [],
+          constraints: [],
+          rowCount: 0,
+          lastModified: new Date().toISOString()
+        }));
+      }
+
       // Query information_schema to get actual tables
       const { data, error } = await supabase
         .from('information_schema.tables')
@@ -349,6 +375,20 @@ export class SchemaValidationService extends BaseService {
     }
 
     try {
+      // Check if we're in local mode first
+      if (this.isLocalMode()) {
+        console.log(`🏠 Local mode: Using expected schema for table ${tableName}`);
+        const expectedSchema = this.EXPECTED_SCHEMAS[tableName];
+        return {
+          name: tableName,
+          columns: expectedSchema?.columns || [],
+          indexes: [],
+          constraints: [],
+          rowCount: 0,
+          lastModified: new Date().toISOString()
+        };
+      }
+
       // Query information_schema.columns to get actual column information
       const { data: columns, error: colError } = await supabase
         .from('information_schema.columns')

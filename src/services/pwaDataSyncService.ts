@@ -196,14 +196,36 @@ export class PWADataSyncService extends BaseService {
 
   /**
    * Initialize schema validator only in production mode
+   * DEPRECATED: Use getSchemaValidator() for lazy loading instead
    */
   private initializeSchemaValidator(): void {
-    if (!this.isLocalMode()) {
-      this.schemaValidator = new SchemaValidationService();
-      console.log('✅ Schema validation service initialized for production mode');
-    } else {
-      console.log('🏠 Local mode: Schema validation service disabled');
+    // This method is kept for backward compatibility but should not be used
+    // Schema validation is now lazy-loaded via getSchemaValidator()
+    console.log('🏠 Schema validation initialization moved to lazy loading');
+  }
+
+  /**
+   * Get schema validator with lazy loading (only in production)
+   */
+  private async getSchemaValidator(): Promise<SchemaValidationService | null> {
+    // Skip schema validation in local development
+    if (this.isLocalMode()) {
+      console.log('🏠 Local mode: Skipping schema validation');
+      return null;
     }
+    
+    // Lazy load schema validator only when needed
+    if (!this.schemaValidator) {
+      try {
+        this.schemaValidator = new SchemaValidationService();
+        console.log('✅ Schema validation service lazy-loaded for production mode');
+      } catch (error) {
+        console.warn('⚠️ Failed to initialize schema validation service:', error);
+        return null;
+      }
+    }
+    
+    return this.schemaValidator;
   }
 
   /**
@@ -406,13 +428,17 @@ export class PWADataSyncService extends BaseService {
 
     try {
 
-      // Validate schema before syncing (only if validator is available)
+      // Validate schema before syncing (lazy-loaded only in production)
       try {
-        if (this.schemaValidator) {
-          const schemaResult = await this.schemaValidator.validateSchema();
+        const schemaValidator = await this.getSchemaValidator();
+        if (schemaValidator) {
+          console.log('🔍 Running schema validation before sync...');
+          const schemaResult = await schemaValidator.validateSchema();
           if (!schemaResult.isValid) {
             console.warn('⚠️ Schema validation failed:', schemaResult.errors);
             result.errors.push(`Schema validation failed: ${schemaResult.errors.length} errors found`);
+          } else {
+            console.log('✅ Schema validation passed');
           }
         } else {
           console.log('🏠 Local mode: Skipping schema validation');
