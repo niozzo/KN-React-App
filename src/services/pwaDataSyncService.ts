@@ -60,6 +60,13 @@ export class PWADataSyncService extends BaseService {
   };
 
   private schemaValidator: SchemaValidationService | null = null;
+  
+  // Circuit breaker for service worker caching failures
+  private serviceWorkerFailureCount = 0;
+  private readonly MAX_SERVICE_WORKER_FAILURES = 3;
+  private serviceWorkerCircuitOpen = false;
+  private lastServiceWorkerFailure: number | null = null;
+  private readonly CIRCUIT_RESET_TIMEOUT = 5 * 60 * 1000; // 5 minutes
 
   private cacheConfig: CacheConfig = {
     maxAge: this.isLocalMode() ? 24 * 60 * 60 * 1000 : 60 * 60 * 1000, // 24h local, 1h prod
@@ -560,7 +567,13 @@ export class PWADataSyncService extends BaseService {
       this.updateCacheSize();
       
       // Also cache in service worker for faster access (with sanitized data)
-      this.cacheInServiceWorker(tableName, sanitizedData);
+      // This is optional - if it fails, the main localStorage cache still works
+      try {
+        await this.cacheInServiceWorker(tableName, sanitizedData);
+      } catch (serviceWorkerError) {
+        // Don't throw - service worker caching is optional
+        console.warn(`⚠️ Service worker caching failed for ${tableName}, but localStorage cache succeeded:`, serviceWorkerError);
+      }
       
     } catch (error) {
       console.error(`❌ Failed to cache ${tableName}:`, error);
@@ -569,13 +582,68 @@ export class PWADataSyncService extends BaseService {
   }
 
   /**
-   * Cache data in service worker
+   * Check if service worker circuit breaker is open
+   */
+  private isServiceWorkerCircuitOpen(): boolean {
+    if (!this.serviceWorkerCircuitOpen) {
+      return false;
+    }
+    
+    // Check if enough time has passed to reset the circuit
+    if (this.lastServiceWorkerFailure && 
+        Date.now() - this.lastServiceWorkerFailure > this.CIRCUIT_RESET_TIMEOUT) {
+      this.serviceWorkerCircuitOpen = false;
+      this.serviceWorkerFailureCount = 0;
+      this.lastServiceWorkerFailure = null;
+      console.log('🔄 Service Worker: Circuit breaker reset - attempting service worker operations again');
+      return false;
+    }
+    
+    return true;
+  }
+
+  /**
+   * Record service worker failure and potentially open circuit breaker
+   */
+  private recordServiceWorkerFailure(): void {
+    this.serviceWorkerFailureCount++;
+    this.lastServiceWorkerFailure = Date.now();
+    
+    if (this.serviceWorkerFailureCount >= this.MAX_SERVICE_WORKER_FAILURES) {
+      this.serviceWorkerCircuitOpen = true;
+      console.warn(`⚠️ Service Worker: Circuit breaker opened after ${this.serviceWorkerFailureCount} failures. Service worker caching disabled for ${this.CIRCUIT_RESET_TIMEOUT / 1000 / 60} minutes.`);
+    }
+  }
+
+  /**
+   * Record service worker success and reset failure count
+   */
+  private recordServiceWorkerSuccess(): void {
+    if (this.serviceWorkerFailureCount > 0) {
+      console.log('✅ Service Worker: Success recorded, resetting failure count');
+      this.serviceWorkerFailureCount = 0;
+      this.serviceWorkerCircuitOpen = false;
+      this.lastServiceWorkerFailure = null;
+    }
+  }
+
+  /**
+   * Cache data in service worker with circuit breaker protection
    */
   private async cacheInServiceWorker(tableName: string, data: any[]): Promise<void> {
+    // Check circuit breaker first
+    if (this.isServiceWorkerCircuitOpen()) {
+      console.log(`🚫 Service Worker: Circuit breaker open - skipping cache for ${tableName}`);
+      return;
+    }
+
     try {
       if ('serviceWorker' in navigator && navigator.serviceWorker.ready) {
         const registration = await navigator.serviceWorker.ready;
-        const supabaseTable = this.tableToSupabaseTable[tableName];
+        
+        // Use existing TABLE_MAPPINGS configuration instead of undefined tableToSupabaseTable
+        const supabaseTable = this.tableMappings.application[tableName as ApplicationTableName] || 
+                             this.tableMappings.main[tableName as MainTableName];
         
         if (supabaseTable && registration.active) {
           // Create a cache key for the Supabase table
@@ -584,10 +652,19 @@ export class PWADataSyncService extends BaseService {
             type: 'CACHE_DATA',
             data: { [cacheKey]: data }
           });
+          console.log(`✅ Service Worker: Cached ${tableName} data successfully`);
+          this.recordServiceWorkerSuccess();
+        } else {
+          console.warn(`⚠️ Service Worker: No mapping found for table ${tableName} or service worker not active`);
+          this.recordServiceWorkerFailure();
         }
+      } else {
+        console.warn('⚠️ Service Worker: Not available or not ready');
+        this.recordServiceWorkerFailure();
       }
     } catch (error) {
       console.warn('⚠️ Failed to cache data in service worker:', error);
+      this.recordServiceWorkerFailure();
     }
   }
 
