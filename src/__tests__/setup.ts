@@ -8,7 +8,10 @@ vi.mock('@supabase/supabase-js', () => ({
     auth: {
       getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null }),
       signInWithPassword: vi.fn(),
-      signOut: vi.fn()
+      signOut: vi.fn(),
+      onAuthStateChange: vi.fn().mockReturnValue({
+        data: { subscription: { unsubscribe: vi.fn() } }
+      })
     },
     from: vi.fn(() => ({
       select: vi.fn().mockReturnThis(),
@@ -47,15 +50,37 @@ afterAll(async () => {
   // Clear all timers to prevent hanging
   vi.clearAllTimers()
   
+  // Clear all intervals and timeouts
+  const highestTimeoutId = setTimeout(() => {}, 0)
+  for (let i = 0; i < highestTimeoutId; i++) {
+    clearTimeout(i)
+    clearInterval(i)
+  }
+  
+  // Clear DOM completely
+  document.body.innerHTML = ''
+  document.head.innerHTML = ''
+  
+  // Clear storage
+  if (localStorage && typeof localStorage.clear === 'function') {
+    localStorage.clear()
+  }
+  if (sessionStorage && typeof sessionStorage.clear === 'function') {
+    sessionStorage.clear()
+  }
+  
   // Force garbage collection if available
   if (global.gc) {
     global.gc()
   }
   
+  // Wait for any pending operations to complete
+  await new Promise(resolve => setTimeout(resolve, 100))
+  
   // Force process exit after cleanup to prevent hanging
   setTimeout(() => {
     process.exit(0)
-  }, 500) // Reduced timeout for faster exit
+  }, 200) // Reduced timeout for faster exit
 })
 
 // Mock PWA APIs

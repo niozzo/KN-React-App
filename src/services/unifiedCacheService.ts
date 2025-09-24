@@ -204,7 +204,10 @@ export class UnifiedCacheService {
       }
     }
     
-    throw new Error(`Failed to write cache after ${maxRetries} attempts: ${lastError?.message}`);
+    // Log the final failure and throw a more descriptive error
+    const finalError = new Error(`Failed to write cache after ${maxRetries} attempts: ${lastError?.message}`);
+    console.error('Cache write failed after all retries:', finalError);
+    throw finalError;
   }
 
   /**

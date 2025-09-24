@@ -320,7 +320,11 @@ describe('AttendeeInfoService', () => {
 
       attendeeInfoService.clearAttendeeInfo()
       
-      expect(consoleSpy).toHaveBeenCalledWith('❌ Failed to clear attendee info cache:', expect.any(Error))
+      // The unifiedCacheService logs cache corruption, not the old error message
+      expect(consoleSpy).toHaveBeenCalledWith('💾 CACHE: Cache corruption detected', expect.objectContaining({
+        cacheKey: 'kn_current_attendee_info',
+        error: 'Storage error'
+      }))
       consoleSpy.mockRestore()
     })
   })
@@ -416,7 +420,9 @@ describe('AttendeeInfoService', () => {
         expect.stringContaining('"first_name":"Jane"')
       )
 
-      const storedData = JSON.parse(localStorageMock.setItem.mock.calls[0][1])
+      // Check the last call to setItem (the update call)
+      const lastCallIndex = localStorageMock.setItem.mock.calls.length - 1
+      const storedData = JSON.parse(localStorageMock.setItem.mock.calls[lastCallIndex][1])
       expect(storedData.data.full_name).toBe('Jane Smith')
     })
 

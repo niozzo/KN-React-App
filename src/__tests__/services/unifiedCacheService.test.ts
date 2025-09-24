@@ -164,7 +164,7 @@ describe('UnifiedCacheService', () => {
 
       await cacheService.set('test-key', testData, 300000);
 
-      expect(mockVersioning.createCacheEntry).toHaveBeenCalledWith(testData, 300000);
+      expect(mockVersioning.createCacheEntry).toHaveBeenCalledWith(testData, 300000, undefined, undefined);
       expect(mockLocalStorage.setItem).toHaveBeenCalledWith('test-key', JSON.stringify(mockEntry));
       expect(mockMonitoring.logCacheHit).toHaveBeenCalled();
       expect(mockMetrics.recordCacheHit).toHaveBeenCalled();

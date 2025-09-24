@@ -271,7 +271,14 @@ export abstract class BaseTransformer<T> implements DataTransformer<T> {
           const date = new Date(value)
           return isNaN(date.getTime()) ? defaultValue : date
         case 'array':
-          return Array.isArray(value) ? value : (value ? [value] : [])
+          if (Array.isArray(value)) {
+            return value
+          }
+          if (value && typeof value === 'object' && Object.keys(value).length === 0) {
+            // Empty object should become empty array
+            return []
+          }
+          return value ? [value] : []
         case 'object':
           return typeof value === 'object' ? value : (value ? { value } : {})
         default:

@@ -377,6 +377,7 @@ describe('SchemaValidationService', () => {
       const result = await service.validateTable('sponsors');
 
       // Should validate against real database schema
+      console.log('Validation result:', result);
       expect(result.isValid).toBe(true);
       expect(result.tables).toHaveLength(1);
       expect(result.tables[0].name).toBe('sponsors');
