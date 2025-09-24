@@ -436,6 +436,17 @@ export const useSessionData = (options = {}) => {
       const combinedEvents = mergeAndSortEvents(filteredSessions, diningData);
       setAllEvents(combinedEvents);
       
+      // 🔍 DEBUG: Enhanced logging for dining regression investigation
+      console.log('🍽️ DINING DEBUG: Data loading analysis', {
+        diningDataLength: diningData.length,
+        filteredSessionsLength: filteredSessions.length,
+        combinedEventsLength: combinedEvents.length,
+        diningEvents: combinedEvents.filter(e => e.type === 'dining').length,
+        sessionEvents: combinedEvents.filter(e => e.type !== 'dining').length,
+        timestamp: new Date().toISOString(),
+        loadSource: loadSource
+      });
+      
       // Set filtered sessions for backward compatibility
       setSessions(filteredSessions);
 
@@ -509,6 +520,25 @@ export const useSessionData = (options = {}) => {
 
       setCurrentSession(enhanceEventWithSeatInfo(activeEvent) || null);
       setNextSession(enhanceEventWithSeatInfo(upcomingEvent) || null);
+      
+      // 🔍 DEBUG: Enhanced logging for current/next session determination
+      console.log('🍽️ DINING DEBUG: Current/Next session analysis', {
+        activeEvent: activeEvent ? {
+          type: activeEvent.type,
+          title: activeEvent.title || activeEvent.name,
+          start_time: activeEvent.start_time,
+          isDining: activeEvent.type === 'dining'
+        } : null,
+        upcomingEvent: upcomingEvent ? {
+          type: upcomingEvent.type,
+          title: upcomingEvent.title || upcomingEvent.name,
+          start_time: upcomingEvent.start_time,
+          isDining: upcomingEvent.type === 'dining'
+        } : null,
+        combinedEventsCount: combinedEvents.length,
+        diningEventsCount: combinedEvents.filter(e => e.type === 'dining').length,
+        timestamp: new Date().toISOString()
+      });
 
       console.log('✅ useSessionData: Data loaded successfully', {
         allSessions: allSessionsData.length,
