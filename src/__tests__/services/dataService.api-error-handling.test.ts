@@ -29,10 +29,27 @@ vi.mock('../../services/authService', () => ({
   isUserAuthenticated: vi.fn(() => true)
 }));
 
+// Mock unifiedCacheService
+vi.mock('../../services/unifiedCacheService', () => ({
+  unifiedCacheService: {
+    get: vi.fn(),
+    set: vi.fn(),
+    remove: vi.fn(),
+    clear: vi.fn()
+  }
+}));
+
 describe('DataService API Error Handling', () => {
-  beforeEach(() => {
+  let mockUnifiedCacheService: any;
+
+  beforeEach(async () => {
     vi.clearAllMocks();
     mockLocalStorage.getItem.mockReturnValue(null);
+    
+    // Get the mocked service
+    const { unifiedCacheService } = await import('../../services/unifiedCacheService');
+    mockUnifiedCacheService = unifiedCacheService;
+    mockUnifiedCacheService.get.mockResolvedValue(null);
   });
 
   afterEach(() => {
@@ -69,6 +86,7 @@ describe('DataService API Error Handling', () => {
 
     it('should work correctly with valid JSON response', async () => {
       const mockAttendee = { id: 'test-user-123', name: 'Test User' };
+      const mockAttendees = [mockAttendee];
       
       mockFetch.mockResolvedValueOnce({
         ok: true,
@@ -76,7 +94,7 @@ describe('DataService API Error Handling', () => {
         headers: {
           get: vi.fn().mockReturnValue('application/json')
         },
-        json: vi.fn().mockResolvedValue(mockAttendee)
+        json: vi.fn().mockResolvedValue(mockAttendees)
       });
 
       const result = await getCurrentAttendeeData();
@@ -96,11 +114,11 @@ describe('DataService API Error Handling', () => {
         json: vi.fn().mockRejectedValue(new Error('Unexpected token'))
       });
 
-      // Mock cached data
+      // Mock cached data in unifiedCacheService
       const cachedAttendees = [
         { id: 'test-user-123', name: 'Test User', email: 'test@example.com' }
       ];
-      mockLocalStorage.getItem.mockReturnValue(JSON.stringify(cachedAttendees));
+      mockUnifiedCacheService.get.mockResolvedValue({ data: cachedAttendees });
 
       const result = await getCurrentAttendeeData();
       expect(result).toEqual(cachedAttendees[0]);
@@ -118,7 +136,7 @@ describe('DataService API Error Handling', () => {
       });
 
       // Mock no cached data
-      mockLocalStorage.getItem.mockReturnValue(null);
+      mockUnifiedCacheService.get.mockResolvedValue(null);
 
       await expect(getCurrentAttendeeData()).rejects.toThrow('Failed to fetch current attendee data');
     });
@@ -135,7 +153,7 @@ describe('DataService API Error Handling', () => {
       });
 
       // Mock corrupted cached data
-      mockLocalStorage.getItem.mockReturnValue('invalid json');
+      mockUnifiedCacheService.get.mockRejectedValue(new Error('Invalid cache data'));
 
       await expect(getCurrentAttendeeData()).rejects.toThrow('Failed to fetch current attendee data');
     });

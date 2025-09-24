@@ -122,17 +122,32 @@ export class AttendeeTransformer extends BaseTransformer<Attendee> {
       evolved.company = ''
     }
     
-    // Handle empty objects
-    if (evolved.dining_selections && typeof evolved.dining_selections === 'object' && Object.keys(evolved.dining_selections).length === 0) {
+    // Handle empty objects - convert to empty arrays
+    if (evolved.dining_selections && typeof evolved.dining_selections === 'object' && !Array.isArray(evolved.dining_selections) && Object.keys(evolved.dining_selections).length === 0) {
       evolved.dining_selections = []
     }
     
-    if (evolved.selected_breakouts && typeof evolved.selected_breakouts === 'object' && Object.keys(evolved.selected_breakouts).length === 0) {
+    if (evolved.selected_breakouts && typeof evolved.selected_breakouts === 'object' && !Array.isArray(evolved.selected_breakouts) && Object.keys(evolved.selected_breakouts).length === 0) {
       evolved.selected_breakouts = []
     }
     
     if (evolved.attributes && typeof evolved.attributes === 'object' && Object.keys(evolved.attributes).length === 0) {
       evolved.attributes = {}
+    }
+    
+    // Filter empty objects from arrays
+    if (Array.isArray(evolved.dining_selections)) {
+      evolved.dining_selections = evolved.dining_selections.filter(item => 
+        item !== null && item !== undefined && 
+        (typeof item !== 'object' || Object.keys(item).length > 0)
+      )
+    }
+    
+    if (Array.isArray(evolved.selected_breakouts)) {
+      evolved.selected_breakouts = evolved.selected_breakouts.filter(item => 
+        item !== null && item !== undefined && 
+        (typeof item !== 'object' || Object.keys(item).length > 0)
+      )
     }
   }
 

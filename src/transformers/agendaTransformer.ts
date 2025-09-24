@@ -65,9 +65,10 @@ export class AgendaTransformer extends BaseTransformer<AgendaItem> {
       },
       {
         name: 'speakerInfo',
-        sourceFields: ['speaker'],
+        sourceFields: ['speaker', 'speaker_name'],
         computation: (data: any) => {
-          const speaker = data.speaker
+          // Check both old 'speaker' field and new 'speaker_name' field
+          const speaker = data.speaker || data.speaker_name
 
           // Handle different data types
           if (speaker === null || speaker === undefined) {
@@ -75,7 +76,7 @@ export class AgendaTransformer extends BaseTransformer<AgendaItem> {
           }
 
           // Handle empty object {}
-          if (typeof speaker === 'object' && Object.keys(speaker).length === 0) {
+          if (typeof speaker === 'object' && speaker !== null && Object.keys(speaker).length === 0) {
             return ''
           }
 

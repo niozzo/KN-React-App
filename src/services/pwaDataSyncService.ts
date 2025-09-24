@@ -7,17 +7,17 @@
  */
 
 // All data reads must go through backend endpoints protected by RLS-aware auth
-import { SchemaValidationService } from './schemaValidationService';
-import { supabase } from '../lib/supabase';
-import { sanitizeAttendeeForStorage } from '../types/attendee';
-import { applicationDb } from './applicationDatabaseService';
-import { cacheMonitoringService } from './cacheMonitoringService';
-import { cacheVersioningService, type CacheEntry } from './cacheVersioningService';
-import { BaseService } from './baseService';
-import { isTimestampExpired } from '../utils/timestampUtils';
-import { TABLE_MAPPINGS, getAllApplicationTables, getAllMainTables, isValidApplicationTable, isValidMainTable, type ApplicationTableName, type MainTableName } from '../config/tableMappings';
-import { serviceRegistry } from './ServiceRegistry';
-import { SupabaseClientFactory } from './SupabaseClientFactory';
+// import { SchemaValidationService } from './schemaValidationService';
+import { supabase } from '../lib/supabase.js';
+import { sanitizeAttendeeForStorage } from '../types/attendee.ts';
+import { applicationDb } from './applicationDatabaseService.ts';
+import { cacheMonitoringService } from './cacheMonitoringService.ts';
+import { cacheVersioningService, type CacheEntry } from './cacheVersioningService.ts';
+import { BaseService } from './baseService.ts';
+import { isTimestampExpired } from '../utils/timestampUtils.ts';
+import { TABLE_MAPPINGS, getAllApplicationTables, getAllMainTables, isValidApplicationTable, isValidMainTable, type ApplicationTableName, type MainTableName } from '../config/tableMappings.ts';
+import { serviceRegistry } from './ServiceRegistry.ts';
+import { SupabaseClientFactory } from './SupabaseClientFactory.ts';
 
 export interface SyncStatus {
   isOnline: boolean;
@@ -59,7 +59,7 @@ export class PWADataSyncService extends BaseService {
     syncInProgress: false
   };
 
-  private schemaValidator: SchemaValidationService | null = null;
+  private schemaValidator: any | null = null;
   
   // Circuit breaker for service worker caching failures
   private serviceWorkerFailureCount = 0;
@@ -214,7 +214,7 @@ export class PWADataSyncService extends BaseService {
   /**
    * Get schema validator with lazy loading (only in production)
    */
-  private async getSchemaValidator(): Promise<SchemaValidationService | null> {
+  private async getSchemaValidator(): Promise<any | null> {
     // Skip schema validation in local development
     if (this.isLocalMode()) {
       console.log('🏠 Local mode: Skipping schema validation');
@@ -224,6 +224,7 @@ export class PWADataSyncService extends BaseService {
     // Lazy load schema validator only when needed
     if (!this.schemaValidator) {
       try {
+        const { SchemaValidationService } = await import('./schemaValidationService');
         this.schemaValidator = new SchemaValidationService();
         console.log('✅ Schema validation service lazy-loaded for production mode');
       } catch (error) {

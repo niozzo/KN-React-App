@@ -49,6 +49,12 @@ describe('Resilient Data Loading Integration', () => {
         })
       });
 
+      // Mock cache to return null (cache miss)
+      vi.spyOn(robustDataService as any, 'tryCache').mockResolvedValue(null);
+      
+      // Mock circuit breaker to succeed
+      vi.spyOn(robustDataService as any, 'fetchFromAPI').mockResolvedValue(mockApiData);
+
       const result = await robustDataService.loadData('attendees');
       
       expect(result.success).toBe(true);
@@ -222,18 +228,15 @@ describe('Resilient Data Loading Integration', () => {
     });
 
     it('should recover from temporary failures', async () => {
-      // First call fails
-      (global.fetch as any).mockRejectedValueOnce(new Error('Temporary failure'));
-      
-      // Second call succeeds
       const mockData = [{ id: '1', name: 'Recovered Data' }];
-      (global.fetch as any).mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({
-          success: true,
-          data: mockData
-        })
-      });
+      
+      // Mock cache to return null (cache miss)
+      vi.spyOn(robustDataService as any, 'tryCache').mockResolvedValue(null);
+      
+      // First call fails, second call succeeds
+      vi.spyOn(robustDataService as any, 'fetchFromAPI')
+        .mockRejectedValueOnce(new Error('Temporary failure'))
+        .mockResolvedValueOnce(mockData);
 
       // First attempt should use fallback
       const result1 = await robustDataService.loadData('attendees');

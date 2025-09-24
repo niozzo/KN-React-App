@@ -33,7 +33,7 @@ export interface SchemaError {
 export interface SchemaWarning {
   table: string;
   field: string;
-  type: 'deprecated' | 'unexpected' | 'performance';
+  type: 'deprecated' | 'unexpected' | 'performance' | 'local_mode' | 'type_mismatch' | 'constraint_missing' | 'index_missing';
   message: string;
   suggestion: string;
 }
@@ -51,9 +51,9 @@ export interface ColumnSchema {
   name: string;
   type: string;
   nullable: boolean;
-  defaultValue: any;
-  isPrimaryKey: boolean;
-  isForeignKey: boolean;
+  defaultValue?: any;
+  isPrimaryKey?: boolean;
+  isForeignKey?: boolean;
   maxLength?: number;
 }
 
@@ -665,3 +665,6 @@ export class SchemaValidationService extends BaseService {
     return result;
   }
 }
+
+// Export the class
+export { SchemaValidationService };

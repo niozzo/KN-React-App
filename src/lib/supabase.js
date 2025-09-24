@@ -3,7 +3,7 @@
  * This version uses the singleton SupabaseClientService to prevent multiple instances
  */
 
-import { supabaseClientService } from '../services/supabaseClientService.js'
+import { supabaseClientService } from '../services/supabaseClientService.ts'
 
 // Browser-safe configuration
 const supabaseUrl = 'https://iikcgdhztkrexuuqheli.supabase.co'

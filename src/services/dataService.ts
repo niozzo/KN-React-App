@@ -161,10 +161,9 @@ export const getCurrentAttendeeData = async (): Promise<Attendee | null> => {
       console.log('🌐 API ERROR: Details:', apiError)
     }
     
-    // FINAL FALLBACK: Use auth state data if API also fails
-    console.log('🔄 FALLBACK: Using attendee data from auth state (final fallback)')
-    console.log('🔄 FALLBACK: Using basic attendee data:', { id: current.id, name: `${current.first_name} ${current.last_name}` })
-    return current as Attendee
+    // NO FALLBACK: Throw error when both API and cache fail
+    console.log('❌ ERROR: Both API and cache failed, throwing error')
+    throw new DataServiceError('Failed to fetch current attendee data - both API and cache unavailable', 'FETCH_ERROR')
     
   } catch (error) {
     console.error('❌ Error fetching current attendee:', error)
