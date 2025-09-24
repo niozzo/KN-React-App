@@ -70,6 +70,13 @@ export class PWADataSyncService extends BaseService {
   
   // Protection against recursive cache invalidation calls
   private cacheInvalidationInProgress = new Set<string>();
+  
+  // Circuit breaker for application database sync failures
+  private applicationDbFailureCount = 0;
+  private readonly MAX_APPLICATION_DB_FAILURES = 3;
+  private applicationDbCircuitOpen = false;
+  private lastApplicationDbFailure: number | null = null;
+  private readonly APPLICATION_DB_CIRCUIT_RESET_TIMEOUT = 10 * 60 * 1000; // 10 minutes
 
   private cacheConfig: CacheConfig = {
     maxAge: this.isLocalMode() ? 24 * 60 * 60 * 1000 : 60 * 60 * 1000, // 24h local, 1h prod
@@ -226,6 +233,52 @@ export class PWADataSyncService extends BaseService {
     }
     
     return this.schemaValidator;
+  }
+
+  /**
+   * Check if application database circuit breaker is open
+   */
+  private isApplicationDbCircuitOpen(): boolean {
+    if (!this.applicationDbCircuitOpen) {
+      return false;
+    }
+    
+    // Check if enough time has passed to reset the circuit
+    if (this.lastApplicationDbFailure && 
+        Date.now() - this.lastApplicationDbFailure > this.APPLICATION_DB_CIRCUIT_RESET_TIMEOUT) {
+      this.applicationDbCircuitOpen = false;
+      this.applicationDbFailureCount = 0;
+      this.lastApplicationDbFailure = null;
+      console.log('🔄 Application DB: Circuit breaker reset - attempting application database operations again');
+      return false;
+    }
+    
+    return true;
+  }
+
+  /**
+   * Record application database failure and potentially open circuit breaker
+   */
+  private recordApplicationDbFailure(): void {
+    this.applicationDbFailureCount++;
+    this.lastApplicationDbFailure = Date.now();
+    
+    if (this.applicationDbFailureCount >= this.MAX_APPLICATION_DB_FAILURES) {
+      this.applicationDbCircuitOpen = true;
+      console.warn(`⚠️ Application DB: Circuit breaker opened after ${this.applicationDbFailureCount} failures. Application database sync disabled for ${this.APPLICATION_DB_CIRCUIT_RESET_TIMEOUT / 1000 / 60} minutes.`);
+    }
+  }
+
+  /**
+   * Record application database success and reset failure count
+   */
+  private recordApplicationDbSuccess(): void {
+    if (this.applicationDbFailureCount > 0) {
+      console.log('✅ Application DB: Success recorded, resetting failure count');
+      this.applicationDbFailureCount = 0;
+      this.applicationDbCircuitOpen = false;
+      this.lastApplicationDbFailure = null;
+    }
   }
 
   /**
@@ -570,6 +623,12 @@ export class PWADataSyncService extends BaseService {
   async syncApplicationTable(tableName: ApplicationTableName): Promise<void> {
     console.log(`🔄 PWA Data Sync: Syncing application table ${tableName}...`);
 
+    // Check circuit breaker first
+    if (this.isApplicationDbCircuitOpen()) {
+      console.log(`🚫 PWA Data Sync: Application database circuit breaker open - skipping sync for ${tableName}`);
+      return;
+    }
+
     try {
       // Validate table name and get Supabase table name
       if (!isValidApplicationTable(tableName)) {
@@ -581,24 +640,91 @@ export class PWADataSyncService extends BaseService {
 
       // Query data from application database using service registry
       const applicationDbClient = serviceRegistry.getApplicationDbClient();
+      
+      // Enhanced debugging for application database connection
+      if (!applicationDbClient) {
+        console.error(`❌ PWA Data Sync: Application database client is null for ${tableName}`);
+        this.recordApplicationDbFailure();
+        throw new Error(`Application database client not available for ${tableName}`);
+      }
+      
+      console.log(`🔍 PWA Data Sync: Application database client status:`, {
+        clientAvailable: !!applicationDbClient,
+        tableName,
+        supabaseTable
+      });
+
       const { data, error } = await applicationDbClient
         .from(supabaseTable)
         .select('*');
       
       if (error) {
-        console.error(`❌ PWA Data Sync: Application database query failed for ${tableName}:`, error);
+        console.error(`❌ PWA Data Sync: Application database query failed for ${tableName}:`, {
+          error: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint,
+          tableName,
+          supabaseTable
+        });
+        this.recordApplicationDbFailure();
         throw new Error(`Application database query failed: ${error.message}`);
       }
 
       console.log(`📊 PWA Data Sync: Retrieved ${data?.length || 0} records from ${supabaseTable}`);
-
-      // Cache the data
-      await this.cacheTableData(tableName, data || []);
       
-      console.log(`✅ PWA Data Sync: Successfully synced ${tableName} with ${data?.length || 0} records`);
+      // Enhanced debugging for empty results
+      if (!data || data.length === 0) {
+        console.warn(`⚠️ PWA Data Sync: No records found in ${supabaseTable} for ${tableName}`);
+        console.log(`🔍 PWA Data Sync: Debug info - Table: ${supabaseTable}, Data:`, data);
+      } else {
+        console.log(`🔍 PWA Data Sync: Sample record from ${supabaseTable}:`, data[0]);
+      }
+
+      // Validate data before caching to prevent overwriting user changes
+      if (data && data.length > 0) {
+        console.log(`🔍 PWA Data Sync: Validating ${data.length} records for ${tableName}...`);
+        
+        // Check for data integrity
+        const validRecords = data.filter(record => {
+          if (!record.id) {
+            console.warn(`⚠️ PWA Data Sync: Record missing ID in ${tableName}:`, record);
+            return false;
+          }
+          return true;
+        });
+        
+        if (validRecords.length !== data.length) {
+          console.warn(`⚠️ PWA Data Sync: Filtered out ${data.length - validRecords.length} invalid records for ${tableName}`);
+        }
+        
+        // Cache the validated data
+        await this.cacheTableData(tableName, validRecords);
+        console.log(`✅ PWA Data Sync: Successfully synced ${tableName} with ${validRecords.length} valid records`);
+        this.recordApplicationDbSuccess();
+      } else {
+        // Handle empty results with caution
+        console.log(`🔍 PWA Data Sync: No data to cache for ${tableName} - checking if this overwrites user changes...`);
+        
+        // For dining_item_metadata, check if we should preserve existing cache
+        if (tableName === 'dining_item_metadata') {
+          const existingCache = await this.getCachedTableData(tableName);
+          if (existingCache && existingCache.length > 0) {
+            console.warn(`⚠️ PWA Data Sync: Preserving existing ${existingCache.length} dining metadata records to prevent data loss`);
+            // Don't overwrite existing data with empty results
+            return;
+          }
+        }
+        
+        // Cache empty data only if no existing data
+        await this.cacheTableData(tableName, []);
+        console.log(`✅ PWA Data Sync: Successfully synced ${tableName} with 0 records`);
+        this.recordApplicationDbSuccess();
+      }
 
     } catch (error) {
       console.error(`❌ PWA Data Sync: Failed to sync application table ${tableName}:`, error);
+      this.recordApplicationDbFailure();
       throw error;
     }
   }
