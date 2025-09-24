@@ -49,6 +49,14 @@ export class UnifiedCacheService {
       // Proper validation with checksum repair instead of ignoring
       const validation = this.cacheVersioning.validateCacheEntry(entry);
       if (!validation.isValid) {
+        // Handle expiration first - expired cache should return null
+        if (validation.isExpired) {
+          console.log(`⏰ Cache entry expired for ${key}, removing from cache`);
+          this.monitoring.logCacheMiss(key, 'expired');
+          await this.cleanupCorruptedCache(key);
+          return null;
+        }
+        
         // Handle checksum mismatches by recalculating and fixing
         if (validation.issues?.includes('Cache data integrity check failed (checksum mismatch)')) {
           console.warn(`⚠️ Checksum mismatch detected for ${key}, attempting repair...`);
@@ -118,12 +126,12 @@ export class UnifiedCacheService {
    * Set data in cache with versioning and monitoring
    * Uses atomic operations to prevent corruption during concurrent access
    */
-  async set<T>(key: string, data: T, ttl?: number): Promise<void> {
+  async set<T>(key: string, data: T, ttl?: number, source?: string): Promise<void> {
     const startTime = performance.now();
     
     try {
       // Create entry with atomic timestamp to prevent race conditions
-      const entry = this.cacheVersioning.createCacheEntry(data, ttl);
+      const entry = this.cacheVersioning.createCacheEntry(data, ttl, undefined, source);
       
       // Use atomic localStorage operations with retry logic
       await this.atomicSetItem(key, entry);
@@ -179,7 +187,7 @@ export class UnifiedCacheService {
         
         // Basic integrity check (don't re-validate checksum to avoid circular issues)
         const parsed = JSON.parse(stored);
-        if (!parsed.data || !parsed.version || !parsed.timestamp || !parsed.checksum) {
+        if (!parsed.data || !parsed.version || !parsed.timestamp || !parsed.checksum || !parsed.ttl) {
           throw new Error('Stored data missing required fields');
         }
         

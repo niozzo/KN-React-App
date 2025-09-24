@@ -26,6 +26,11 @@ Object.defineProperty(window, 'localStorage', {
   value: localStorageMock
 })
 
+// Mock global localStorage for Node.js environment
+Object.defineProperty(global, 'localStorage', {
+  value: localStorageMock
+})
+
 describe('AttendeeInfoService', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -148,11 +153,11 @@ describe('AttendeeInfoService', () => {
 
       const storedData = JSON.parse(localStorageMock.setItem.mock.calls[0][1])
       expect(storedData).toHaveProperty('timestamp')
-      expect(storedData).toHaveProperty('version', 1)
+      expect(storedData).toHaveProperty('version', '1.0.0')
       expect(storedData).toHaveProperty('source', 'attendee-info-service')
     })
 
-    it('should handle storage errors gracefully', () => {
+    it('should handle storage errors gracefully', async () => {
       localStorageMock.setItem.mockImplementation(() => {
         throw new Error('Storage quota exceeded')
       })
@@ -168,12 +173,12 @@ describe('AttendeeInfoService', () => {
         access_code: 'ABC123'
       }
 
-      expect(() => attendeeInfoService.storeAttendeeInfo(attendeeInfo)).toThrow('Storage quota exceeded')
+      await expect(attendeeInfoService.storeAttendeeInfo(attendeeInfo)).rejects.toThrow('Storage quota exceeded')
     })
   })
 
   describe('getCachedAttendeeInfo', () => {
-    it('should return cached attendee info when available', () => {
+    it('should return cached attendee info when available', async () => {
       const mockCachedData = {
         data: {
           id: '123',
@@ -185,26 +190,26 @@ describe('AttendeeInfoService', () => {
           title: 'CEO'
         },
         timestamp: Date.now(),
-        version: 1,
+        version: '1.0.0',
         source: 'attendee-info-service'
       }
 
       localStorageMock.getItem.mockReturnValue(JSON.stringify(mockCachedData))
 
-      const result = attendeeInfoService.getCachedAttendeeInfo()
+      const result = await attendeeInfoService.getCachedAttendeeInfo()
 
       expect(result).toEqual(mockCachedData.data)
     })
 
-    it('should return null when no cached data exists', () => {
+    it('should return null when no cached data exists', async () => {
       localStorageMock.getItem.mockReturnValue(null)
 
-      const result = attendeeInfoService.getCachedAttendeeInfo()
+      const result = await attendeeInfoService.getCachedAttendeeInfo()
 
       expect(result).toBeNull()
     })
 
-    it('should return null when cache is expired', () => {
+    it('should return null when cache is expired', async () => {
       const expiredData = {
         data: {
           id: '123',
@@ -216,29 +221,30 @@ describe('AttendeeInfoService', () => {
           title: 'CEO'
         },
         timestamp: Date.now() - (25 * 60 * 60 * 1000), // 25 hours ago
-        version: 1,
+        ttl: 24 * 60 * 60 * 1000, // 24 hours TTL
+        version: '1.0.0',
         source: 'attendee-info-service'
       }
 
       localStorageMock.getItem.mockReturnValue(JSON.stringify(expiredData))
 
-      const result = attendeeInfoService.getCachedAttendeeInfo()
+      const result = await attendeeInfoService.getCachedAttendeeInfo()
 
       expect(result).toBeNull()
       expect(localStorageMock.removeItem).toHaveBeenCalledWith('kn_current_attendee_info')
     })
 
-    it('should handle malformed JSON gracefully', () => {
+    it('should handle malformed JSON gracefully', async () => {
       localStorageMock.getItem.mockReturnValue('invalid json')
 
-      const result = attendeeInfoService.getCachedAttendeeInfo()
+      const result = await attendeeInfoService.getCachedAttendeeInfo()
 
       expect(result).toBeNull()
     })
   })
 
   describe('getAttendeeName', () => {
-    it('should return name information from cache', () => {
+    it('should return name information from cache', async () => {
       const mockCachedData = {
         data: {
           id: '123',
@@ -250,13 +256,13 @@ describe('AttendeeInfoService', () => {
           title: 'CEO'
         },
         timestamp: Date.now(),
-        version: 1,
+        version: '1.0.0',
         source: 'attendee-info-service'
       }
 
       localStorageMock.getItem.mockReturnValue(JSON.stringify(mockCachedData))
 
-      const result = attendeeInfoService.getAttendeeName()
+      const result = await attendeeInfoService.getAttendeeName()
 
       expect(result).toEqual({
         first_name: 'John',
@@ -265,17 +271,17 @@ describe('AttendeeInfoService', () => {
       })
     })
 
-    it('should return null when no cached data exists', () => {
+    it('should return null when no cached data exists', async () => {
       localStorageMock.getItem.mockReturnValue(null)
 
-      const result = attendeeInfoService.getAttendeeName()
+      const result = await attendeeInfoService.getAttendeeName()
 
       expect(result).toBeNull()
     })
   })
 
   describe('getFullAttendeeInfo', () => {
-    it('should return full attendee information from cache', () => {
+    it('should return full attendee information from cache', async () => {
       const mockCachedData = {
         data: {
           id: '123',
@@ -287,13 +293,13 @@ describe('AttendeeInfoService', () => {
           title: 'CEO'
         },
         timestamp: Date.now(),
-        version: 1,
+        version: '1.0.0',
         source: 'attendee-info-service'
       }
 
       localStorageMock.getItem.mockReturnValue(JSON.stringify(mockCachedData))
 
-      const result = attendeeInfoService.getFullAttendeeInfo()
+      const result = await attendeeInfoService.getFullAttendeeInfo()
 
       expect(result).toEqual(mockCachedData.data)
     })
@@ -320,7 +326,7 @@ describe('AttendeeInfoService', () => {
   })
 
   describe('hasValidAttendeeInfo', () => {
-    it('should return true when valid cached data exists', () => {
+    it('should return true when valid cached data exists', async () => {
       const mockCachedData = {
         data: {
           id: '123',
@@ -332,26 +338,26 @@ describe('AttendeeInfoService', () => {
           title: 'CEO'
         },
         timestamp: Date.now(),
-        version: 1,
+        version: '1.0.0',
         source: 'attendee-info-service'
       }
 
       localStorageMock.getItem.mockReturnValue(JSON.stringify(mockCachedData))
 
-      const result = attendeeInfoService.hasValidAttendeeInfo()
+      const result = await attendeeInfoService.hasValidAttendeeInfo()
 
       expect(result).toBe(true)
     })
 
-    it('should return false when no cached data exists', () => {
+    it('should return false when no cached data exists', async () => {
       localStorageMock.getItem.mockReturnValue(null)
 
-      const result = attendeeInfoService.hasValidAttendeeInfo()
+      const result = await attendeeInfoService.hasValidAttendeeInfo()
 
       expect(result).toBe(false)
     })
 
-    it('should return false when cached data is invalid', () => {
+    it('should return false when cached data is invalid', async () => {
       const invalidData = {
         data: {
           id: '123',
@@ -360,20 +366,20 @@ describe('AttendeeInfoService', () => {
           // Missing required fields
         },
         timestamp: Date.now(),
-        version: 1,
+        version: '1.0.0',
         source: 'attendee-info-service'
       }
 
       localStorageMock.getItem.mockReturnValue(JSON.stringify(invalidData))
 
-      const result = attendeeInfoService.hasValidAttendeeInfo()
+      const result = await attendeeInfoService.hasValidAttendeeInfo()
 
       expect(result).toBe(false)
     })
   })
 
   describe('updateAttendeeInfo', () => {
-    it('should update existing attendee info', () => {
+    it('should update existing attendee info', async () => {
       // Reset the mock to not throw errors
       localStorageMock.setItem.mockImplementation(() => {})
       
@@ -390,7 +396,9 @@ describe('AttendeeInfoService', () => {
       const mockCachedData = {
         data: existingInfo,
         timestamp: Date.now(),
-        version: 1,
+        version: '1.0.0',
+        ttl: 24 * 60 * 60 * 1000, // 24 hours
+        checksum: 'mock-checksum',
         source: 'attendee-info-service'
       }
 
@@ -401,7 +409,7 @@ describe('AttendeeInfoService', () => {
         last_name: 'Smith'
       }
 
-      attendeeInfoService.updateAttendeeInfo(updates)
+      await attendeeInfoService.updateAttendeeInfo(updates)
 
       expect(localStorageMock.setItem).toHaveBeenCalledWith(
         'kn_current_attendee_info',
@@ -412,10 +420,10 @@ describe('AttendeeInfoService', () => {
       expect(storedData.data.full_name).toBe('Jane Smith')
     })
 
-    it('should throw error when no cached data exists to update', () => {
+    it('should throw error when no cached data exists to update', async () => {
       localStorageMock.getItem.mockReturnValue(null)
 
-      expect(() => attendeeInfoService.updateAttendeeInfo({ first_name: 'Jane' })).toThrow(
+      await expect(attendeeInfoService.updateAttendeeInfo({ first_name: 'Jane' })).rejects.toThrow(
         'No cached attendee info to update'
       )
     })

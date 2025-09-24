@@ -8,7 +8,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { AuthProvider, LoginPage } from '../../contexts/AuthContext'
 import { getAuthStatus, authenticateWithAccessCode } from '../../services/authService'
 import { serverDataSyncService } from '../../services/serverDataSyncService'
@@ -161,7 +161,9 @@ describe('LoginPage - Integration Tests', () => {
 
       // 3. Type access code (triggers auto-submit)
       const input = screen.getByRole('textbox', { name: 'Enter your 6-character access code' })
-      fireEvent.change(input, { target: { value: TEST_DATA.VALID_ACCESS_CODE } })
+      await act(async () => {
+        fireEvent.change(input, { target: { value: TEST_DATA.VALID_ACCESS_CODE } })
+      })
 
       // 4. Verify loading state appears
       await waitFor(() => {

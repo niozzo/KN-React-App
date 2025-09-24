@@ -73,7 +73,7 @@ export class AttendeeInfoService {
       };
 
       // Use unified cache service for consistent caching
-      await unifiedCacheService.set(this.CACHE_KEY, sanitizedInfo);
+      await unifiedCacheService.set(this.CACHE_KEY, sanitizedInfo, undefined, 'attendee-info-service');
       console.log('✅ Attendee info cached:', sanitizedInfo.full_name);
     } catch (error) {
       console.error('❌ Failed to cache attendee info:', error);
@@ -92,7 +92,8 @@ export class AttendeeInfoService {
       }
 
       // Unified cache service handles expiration automatically
-      return cached.data || cached || null;
+      // The cached data is already the attendee info, not wrapped in a cache entry
+      return cached;
     } catch (error) {
       console.error('❌ Failed to get cached attendee info:', error);
       return null;
@@ -131,6 +132,7 @@ export class AttendeeInfoService {
       console.log('🗑️ Attendee info cache cleared');
     } catch (error) {
       console.error('❌ Failed to clear attendee info cache:', error);
+      throw error; // Re-throw to ensure proper error handling
     }
   }
 
@@ -153,11 +155,15 @@ export class AttendeeInfoService {
 
     const updatedInfo: CachedAttendeeInfo = {
       ...currentInfo,
-      ...updates,
-      full_name: updates.first_name && updates.last_name 
-        ? `${updates.first_name} ${updates.last_name}`.trim()
-        : currentInfo.full_name
+      ...updates
     };
+    
+    // Calculate full_name after merging updates
+    if (updates.first_name || updates.last_name) {
+      const firstName = updates.first_name || currentInfo.first_name;
+      const lastName = updates.last_name || currentInfo.last_name;
+      updatedInfo.full_name = `${firstName} ${lastName}`.trim();
+    }
 
     await this.storeAttendeeInfo(updatedInfo as AttendeeInfo);
   }

@@ -72,8 +72,8 @@ class TimeService {
    * @returns {boolean} Whether override is enabled
    */
   static isOverrideEnabled() {
-    // Allow time override in all environments for testing
-    return true;
+    // Only allow time override in non-production environments
+    return process.env.NODE_ENV !== 'production';
   }
 
   /**

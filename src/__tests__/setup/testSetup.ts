@@ -152,5 +152,25 @@ vi.mock('../../services/serverDataSyncService', () => ({
   }
 }))
 
+// Mock Supabase client
+vi.mock('../../lib/supabase', () => ({
+  supabase: {
+    auth: {
+      onAuthStateChange: vi.fn().mockReturnValue({
+        data: { subscription: { unsubscribe: vi.fn() } }
+      }),
+      signOut: vi.fn().mockResolvedValue({ error: null }),
+      getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null })
+    },
+    from: vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          single: vi.fn().mockResolvedValue({ data: null, error: null })
+        })
+      })
+    })
+  }
+}))
+
 // Export mock functions for test access
 export { mockLocation }

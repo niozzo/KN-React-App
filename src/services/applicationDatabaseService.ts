@@ -1,6 +1,6 @@
 // Application Database Service
 import { createClient } from '@supabase/supabase-js';
-import { BaseService } from './baseService.js';
+import { BaseService } from './baseService';
 import { serviceRegistry } from './ServiceRegistry.js';
 
 const APPLICATION_DB_URL = import.meta.env.VITE_APPLICATION_DB_URL;

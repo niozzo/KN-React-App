@@ -13,6 +13,7 @@ export interface CacheEntry {
   timestamp: string;
   ttl: number;
   checksum: string;
+  source?: string;
 }
 
 export interface ValidationResult {
@@ -25,7 +26,7 @@ export interface ValidationResult {
 }
 
 export class CacheVersioningService {
-  private readonly CACHE_VERSION = '2.1.0';
+  private readonly CACHE_VERSION = '1.0.0';
   private readonly TTL_DEFAULT = 24 * 60 * 60 * 1000; // 24 hours
   private readonly TTL_SHORT = 5 * 60 * 1000; // 5 minutes for critical data
   private readonly TTL_LONG = 7 * 24 * 60 * 60 * 1000; // 7 days for static data
@@ -33,7 +34,7 @@ export class CacheVersioningService {
   /**
    * Create a new cache entry with versioning and TTL
    */
-  createCacheEntry(data: any, ttl?: number, customVersion?: string): CacheEntry {
+  createCacheEntry(data: any, ttl?: number, customVersion?: string, source?: string): CacheEntry {
     const version = customVersion || this.CACHE_VERSION;
     const entryTTL = ttl || this.getDefaultTTL(data);
     
@@ -42,7 +43,8 @@ export class CacheVersioningService {
       version,
       timestamp: getCurrentISOString(),
       ttl: entryTTL,
-      checksum: this.calculateChecksumSync(data)
+      checksum: this.calculateChecksumSync(data),
+      source: source || 'unknown-service'
     };
   }
 
