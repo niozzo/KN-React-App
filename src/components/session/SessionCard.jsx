@@ -144,9 +144,9 @@ const SessionCard = React.memo(({
           {location && (
             <div className="session-location">{location}</div>
           )}
-          {/* Dining Event Address */}
+          {/* Dining Event Map Link */}
           {isDiningEventSession && session.address && (
-            <div className="dining-address" style={{ 
+            <div className="dining-map-link" style={{ 
               fontSize: 'var(--text-base)',
               color: 'var(--coral)',
               fontWeight: 'var(--font-medium)',
@@ -162,7 +162,7 @@ const SessionCard = React.memo(({
                   cursor: 'pointer'
                 }}
               >
-                {session.address}
+                Click for map
               </a>
             </div>
           )}
