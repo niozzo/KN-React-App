@@ -44,12 +44,6 @@ const HomePage = () => {
     navigate('/schedule#current');
   };
 
-  const handleSessionClick = (session) => {
-    if (session) {
-      // Navigate to schedule page with session focus
-      navigate(`/schedule#session-${session.id}`);
-    }
-  };
 
   // Determine if conference has started (has any sessions in the past)
   const hasConferenceStarted = allSessions && allSessions.some(session => {
@@ -445,7 +439,6 @@ const HomePage = () => {
           nextSession={nextSession}
           hasConferenceStarted={hasConferenceStarted}
           hasConferenceEnded={hasConferenceEnded}
-          onSessionClick={handleSessionClick}
           tomorrowOnly={shouldShowTomorrowOnly()}
         />
       </section>

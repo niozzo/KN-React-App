@@ -39,7 +39,6 @@ const AnimatedNowNextCards = React.memo(({
   nextSession,
   hasConferenceStarted,
   hasConferenceEnded = false,
-  onSessionClick,
   className = '',
   tomorrowOnly = false
 }) => {
@@ -132,7 +131,6 @@ const AnimatedNowNextCards = React.memo(({
           <SessionCard 
             session={currentSession} 
             variant="now"
-            onClick={() => onSessionClick(currentSession)}
             className="animated-session-card"
           />
         </div>
@@ -227,7 +225,6 @@ const AnimatedNowNextCards = React.memo(({
           <SessionCard 
             session={previousSessions.current} 
             variant="next"
-            onClick={() => onSessionClick(previousSessions.current)}
             className="animated-session-card"
           />
         </div>
@@ -268,7 +265,6 @@ const AnimatedNowNextCards = React.memo(({
           <SessionCard 
             session={previousSessions.next} 
             variant="next"
-            onClick={() => onSessionClick(previousSessions.next)}
             className="animated-session-card"
           />
         </div>
@@ -309,7 +305,6 @@ const AnimatedNowNextCards = React.memo(({
           <SessionCard 
             session={nextSession} 
             variant="next"
-            onClick={() => onSessionClick(nextSession)}
             className="animated-session-card"
           />
         </div>
@@ -429,7 +424,6 @@ AnimatedNowNextCards.propTypes = {
   }),
   hasConferenceStarted: PropTypes.bool.isRequired,
   hasConferenceEnded: PropTypes.bool,
-  onSessionClick: PropTypes.func,
   className: PropTypes.string,
   tomorrowOnly: PropTypes.bool
 };
@@ -438,7 +432,6 @@ AnimatedNowNextCards.defaultProps = {
   currentSession: null,
   nextSession: null,
   hasConferenceEnded: false,
-  onSessionClick: () => {},
   className: '',
   tomorrowOnly: false
 };
