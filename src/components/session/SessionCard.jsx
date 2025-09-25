@@ -88,7 +88,15 @@ const SessionCard = React.memo(({
   };
 
   const formatTimeRange = () => {
-    if (!start_time || !end_time) return '';
+    if (!start_time) return '';
+    
+    // For dining events, only show start time
+    if (isDiningEventSession) {
+      return formatTime(start_time);
+    }
+    
+    // For regular sessions, show time range
+    if (!end_time) return formatTime(start_time);
     return `${formatTime(start_time)} - ${formatTime(end_time)}`;
   };
 
@@ -147,52 +155,62 @@ const SessionCard = React.memo(({
           {formatSessionTitle(session)}
         </h3>
         
-        {/* Dining Event Information */}
-        {isDiningEventSession && (
-          <div className="dining-details">
-            <div className="dining-info" style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '8px',
-              marginBottom: '12px',
-              padding: '8px 12px',
-              backgroundColor: 'var(--green-050)',
-              borderRadius: '6px',
-              border: '1px solid var(--green-200)'
+        {/* Dining Event Address */}
+        {isDiningEventSession && session.address && (
+          <div className="dining-address" style={{ 
+            marginBottom: 'var(--space-sm)',
+            fontSize: 'var(--text-sm)',
+            color: 'var(--primary-600)'
+          }}>
+            <a 
+              href={`https://maps.google.com/maps?q=${encodeURIComponent(session.address)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                textDecoration: 'underline',
+                color: 'var(--primary-600)',
+                cursor: 'pointer'
+              }}
+            >
+              📍 {session.address}
+            </a>
+          </div>
+        )}
+        
+        {/* Dining Event Seating Information */}
+        {isDiningEventSession && session.seating_type === 'open' && (
+          <div 
+            className="seat-assignment"
+            style={{ 
+              cursor: 'default',
+              background: 'white',
+              borderRadius: 'var(--radius-md)',
+              padding: 'var(--space-sm)',
+              marginTop: 'var(--space-sm)',
+              border: '1px solid var(--border-light)'
+            }}
+          >
+            <div className="seat-label" style={{ 
+              fontSize: 'var(--text-sm)', 
+              fontWeight: '600',
+              color: 'var(--text-secondary)',
+              marginBottom: 'var(--space-xs)'
             }}>
-              <span className="dining-icon" style={{ fontSize: '18px' }}>
-                {diningEventIcon === 'coffee' && '☕'}
-                {diningEventIcon === 'restaurant' && '🍽️'}
-                {diningEventIcon === 'dinner_dining' && '🍽️'}
-                {diningEventIcon === 'cookie' && '🍪'}
-                {diningEventIcon === 'restaurant_menu' && '🍴'}
-              </span>
-              <span className="dining-type" style={{ 
-                fontWeight: '600', 
-                color: 'var(--green-700)',
-                textTransform: 'capitalize'
-              }}>
-                {diningEventType}
-              </span>
-              {session.capacity && (
-                <span className="dining-capacity" style={{ 
-                  fontSize: '14px', 
-                  color: 'var(--green-600)',
-                  marginLeft: 'auto'
-                }}>
-                  {session.capacity} seats
-                </span>
-              )}
+              Seating
             </div>
-            {session.seating_type && (
-              <div className="seating-info" style={{ 
-                fontSize: '14px', 
-                color: 'var(--ink-600)',
-                marginBottom: '8px'
+            <div className="seat-details" style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <span style={{ 
+                fontSize: 'var(--text-base)', 
+                fontWeight: '500',
+                color: 'var(--text-primary)'
               }}>
-                Seating: {session.seating_type === 'assigned' ? 'Assigned' : 'Open'}
-              </div>
-            )}
+                Open Seating
+              </span>
+            </div>
           </div>
         )}
 
