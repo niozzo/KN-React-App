@@ -188,30 +188,18 @@ const SessionCard = React.memo(({
               borderRadius: 'var(--radius-md)',
               padding: 'var(--space-sm)',
               marginTop: 'var(--space-sm)',
-              border: '1px solid var(--purple-500)'
+              border: '1px solid var(--purple-500)',
+              display: 'flex',
+              alignItems: 'center'
             }}
           >
-            <div className="seat-label" style={{ 
-              fontSize: 'var(--text-sm)', 
-              fontWeight: '600',
-              color: 'var(--purple-700)',
-              marginBottom: 'var(--space-xs)'
+            <span style={{ 
+              fontSize: 'var(--text-base)', 
+              fontWeight: '500',
+              color: 'var(--text-primary)'
             }}>
-              YOUR TABLE
-            </div>
-            <div className="seat-details" style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}>
-              <span style={{ 
-                fontSize: 'var(--text-base)', 
-                fontWeight: '500',
-                color: 'var(--text-primary)'
-              }}>
-                Open seating
-              </span>
-            </div>
+              Open seating
+            </span>
           </div>
         )}
 
