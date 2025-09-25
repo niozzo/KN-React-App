@@ -130,7 +130,7 @@ describe('SessionCard Dining Support', () => {
       renderSessionCard(mockDiningEvents[0]);
       
       expect(screen.getByText('Continental Breakfast')).toBeInTheDocument();
-      expect(screen.getByText('Open Seating')).toBeInTheDocument();
+      expect(screen.getByText('Open seating')).toBeInTheDocument();
     });
 
     it('should maintain existing session rendering for regular sessions', () => {
@@ -145,7 +145,7 @@ describe('SessionCard Dining Support', () => {
     it('should display open seating for breakfast events', () => {
       renderSessionCard(mockDiningEvents[0]);
       
-      expect(screen.getByText('Open Seating')).toBeInTheDocument();
+      expect(screen.getByText('Open seating')).toBeInTheDocument();
     });
 
     it('should not display seating for assigned lunch events', () => {
@@ -163,7 +163,7 @@ describe('SessionCard Dining Support', () => {
     it('should display open seating for coffee break events', () => {
       renderSessionCard(mockDiningEvents[3]);
       
-      expect(screen.getByText('Open Seating')).toBeInTheDocument();
+      expect(screen.getByText('Open seating')).toBeInTheDocument();
     });
 
     it('should apply dining-specific styling', () => {
@@ -188,13 +188,13 @@ describe('SessionCard Dining Support', () => {
     it('should display dining seating information', () => {
       renderSessionCard(mockDiningEvents[0]);
       
-      expect(screen.getByText('Open Seating')).toBeInTheDocument();
+      expect(screen.getByText('Open seating')).toBeInTheDocument();
     });
 
     it('should display seating type for open seating', () => {
       renderSessionCard(mockDiningEvents[0]);
       
-      expect(screen.getByText('Open Seating')).toBeInTheDocument();
+      expect(screen.getByText('Open seating')).toBeInTheDocument();
     });
 
     it('should not display seating for assigned seating', () => {
@@ -322,7 +322,7 @@ describe('SessionCard Dining Support', () => {
         const { container, unmount } = renderSessionCard(mockDiningEvents[0], variant);
         
         expect(screen.getByText('Continental Breakfast')).toBeInTheDocument();
-        expect(screen.getByText('Open Seating')).toBeInTheDocument();
+        expect(screen.getByText('Open seating')).toBeInTheDocument();
         
         unmount();
       });
@@ -345,7 +345,7 @@ describe('SessionCard Dining Support', () => {
       
       // All text content should be accessible to screen readers
       expect(screen.getByText('Continental Breakfast')).toBeInTheDocument();
-      expect(screen.getByText('Open Seating')).toBeInTheDocument();
+      expect(screen.getByText('Open seating')).toBeInTheDocument();
     });
 
     it('should have proper semantic structure', () => {

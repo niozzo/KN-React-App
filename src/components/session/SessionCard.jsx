@@ -196,7 +196,7 @@ const SessionCard = React.memo(({
               color: 'var(--text-secondary)',
               marginBottom: 'var(--space-xs)'
             }}>
-              Seating
+              YOUR TABLE
             </div>
             <div className="seat-details" style={{
               display: 'flex',
@@ -208,7 +208,7 @@ const SessionCard = React.memo(({
                 fontWeight: '500',
                 color: 'var(--text-primary)'
               }}>
-                Open Seating
+                Open seating
               </span>
             </div>
           </div>
