@@ -144,6 +144,27 @@ const SessionCard = React.memo(({
           {location && (
             <div className="session-location">{location}</div>
           )}
+          {/* Dining Event Address */}
+          {isDiningEventSession && session.address && (
+            <div className="dining-address" style={{ 
+              fontSize: 'var(--text-sm)',
+              color: 'var(--text-secondary)',
+              marginTop: 'var(--space-xs)'
+            }}>
+              <a 
+                href={`https://maps.google.com/maps?q=${encodeURIComponent(session.address)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  textDecoration: 'underline',
+                  color: 'var(--text-secondary)',
+                  cursor: 'pointer'
+                }}
+              >
+                {session.address}
+              </a>
+            </div>
+          )}
         </div>
         <StatusTag variant={isNow ? 'now' : 'next'}>
           {statusText}
@@ -155,27 +176,6 @@ const SessionCard = React.memo(({
           {formatSessionTitle(session)}
         </h3>
         
-        {/* Dining Event Address */}
-        {isDiningEventSession && session.address && (
-          <div className="dining-address" style={{ 
-            marginBottom: 'var(--space-sm)',
-            fontSize: 'var(--text-sm)',
-            color: 'var(--primary-600)'
-          }}>
-            <a 
-              href={`https://maps.google.com/maps?q=${encodeURIComponent(session.address)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                textDecoration: 'underline',
-                color: 'var(--primary-600)',
-                cursor: 'pointer'
-              }}
-            >
-              📍 {session.address}
-            </a>
-          </div>
-        )}
         
         {/* Dining Event Seating Information */}
         {isDiningEventSession && session.seating_type === 'open' && (
