@@ -388,7 +388,7 @@ export const useSessionData = (options = {}) => {
         // ✅ ARCHITECTURE-COMPLIANT: Refresh both External DB (conference data) and Application DB (metadata)
         Promise.all([
           agendaService.getActiveAgendaItems(),
-          diningService.getDiningOptions(), // ✅ CRITICAL FIX: Refresh dining data from source
+          getAllDiningOptions(), // ✅ CRITICAL FIX: Refresh dining data from source
           pwaDataSyncService.getCachedTableData('dining_item_metadata')
         ]).then(([agendaResponse, diningResponse, diningMetadata]) => {
           if (agendaResponse.success && agendaResponse.data && agendaResponse.data.length > 0) {
@@ -719,13 +719,11 @@ export const useSessionData = (options = {}) => {
     const handleDiningMetadataUpdate = () => {
       console.log('🍽️ Dining metadata updated, refreshing dining data');
       // ✅ CRITICAL FIX: Force refresh of dining data from source
-      diningService.getDiningOptions().then(response => {
-        if (response.success && response.data) {
-          console.log('🍽️ Dining data refreshed from source after metadata update');
-          setDiningOptions(response.data);
-          // Trigger full data reload to ensure dining events are properly merged
-          loadSessionData();
-        }
+      getAllDiningOptions().then(response => {
+        console.log('🍽️ Dining data refreshed from source after metadata update');
+        setDiningOptions(response);
+        // Trigger full data reload to ensure dining events are properly merged
+        loadSessionData();
       }).catch(err => {
         console.warn('🍽️ Failed to refresh dining data after metadata update:', err);
         // Fallback to full reload
