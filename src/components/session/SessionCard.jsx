@@ -147,8 +147,9 @@ const SessionCard = React.memo(({
           {/* Dining Event Address */}
           {isDiningEventSession && session.address && (
             <div className="dining-address" style={{ 
-              fontSize: 'var(--text-sm)',
-              color: 'var(--text-secondary)',
+              fontSize: 'var(--text-base)',
+              color: 'var(--coral)',
+              fontWeight: 'var(--font-medium)',
               marginTop: 'var(--space-xs)'
             }}>
               <a 
@@ -157,7 +158,7 @@ const SessionCard = React.memo(({
                 rel="noopener noreferrer"
                 style={{
                   textDecoration: 'underline',
-                  color: 'var(--text-secondary)',
+                  color: 'var(--coral)',
                   cursor: 'pointer'
                 }}
               >
