@@ -187,13 +187,13 @@ const SessionCard = React.memo(({
               borderRadius: 'var(--radius-md)',
               padding: 'var(--space-sm)',
               marginTop: 'var(--space-sm)',
-              border: '1px solid var(--border-light)'
+              border: '1px solid var(--purple-500)'
             }}
           >
             <div className="seat-label" style={{ 
               fontSize: 'var(--text-sm)', 
               fontWeight: '600',
-              color: 'var(--text-secondary)',
+              color: 'var(--purple-700)',
               marginBottom: 'var(--space-xs)'
             }}>
               YOUR TABLE
