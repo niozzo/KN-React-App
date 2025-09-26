@@ -23,6 +23,8 @@ const TimeOverride = () => {
   const [isActive, setIsActive] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [validationError, setValidationError] = useState('');
+  const [lastEnteredTime, setLastEnteredTime] = useState('');
+  const [isEditMode, setIsEditMode] = useState(false);
 
   // Load current override state and set defaults
   useEffect(() => {
@@ -91,8 +93,12 @@ const TimeOverride = () => {
         return;
       }
       
+      // Store the last entered time for editing
+      setLastEnteredTime(overrideDateTime);
+      
       TimeService.setDynamicOverrideTime(overrideDate);
       setIsActive(true);
+      setIsEditMode(false); // Reset edit mode when setting override
       setIsOpen(false);
       setValidationError('');
     }
@@ -102,6 +108,8 @@ const TimeOverride = () => {
     TimeService.clearOverrideTime();
     setIsActive(false);
     setOverrideDateTime('');
+    setLastEnteredTime(''); // Clear the last entered time
+    setIsEditMode(false); // Reset edit mode
     setIsOpen(false); // Close the panel when override is cleared
     
     // No need to reload - the time will return to real time automatically
@@ -128,21 +136,22 @@ const TimeOverride = () => {
 
       {/* Override Panel */}
       {isOpen && (
-        <>
-          <div className="time-override-backdrop" onClick={() => setIsOpen(false)}></div>
-          <div className="time-override-panel">
+        <div className="time-override-panel">
           <div className="time-override-header">
             <h4>Time Override (Testing Tool)</h4>
             <button 
               className="close-button"
-              onClick={() => setIsOpen(false)}
+              onClick={() => {
+                setIsOpen(false);
+                setIsEditMode(false); // Reset edit mode when closing
+              }}
             >
               ×
             </button>
           </div>
 
           <div className="time-override-content">
-            {isActive ? (
+            {isActive && !isEditMode ? (
               <div className="override-status">
                 <p><strong>Override Active:</strong></p>
                 <p>Current Override Time: {currentTime.toLocaleString()}</p>
@@ -152,14 +161,23 @@ const TimeOverride = () => {
                   <button 
                     className="edit-override-button"
                     onClick={() => {
-                      // Load current dynamic override start time for editing
-                      const overrideStartTime = TimeService.getOverrideStartTime();
-                      if (overrideStartTime) {
-                        const dateTimeString = overrideStartTime.toISOString().slice(0, 16);
-                        setOverrideDateTime(dateTimeString);
+                      // Switch to edit mode
+                      setIsEditMode(true);
+                      
+                      // Load the last entered time for editing
+                      if (lastEnteredTime) {
+                        setOverrideDateTime(lastEnteredTime);
+                      } else {
+                        // Fallback: try to get the original start time and adjust it back
+                        const overrideStartTime = TimeService.getOverrideStartTime();
+                        if (overrideStartTime) {
+                          // Adjust back to the original time (remove the :50 seconds adjustment)
+                          const originalTime = new Date(overrideStartTime);
+                          originalTime.setSeconds(0); // Reset to :00 seconds
+                          const dateTimeString = originalTime.toISOString().slice(0, 16);
+                          setOverrideDateTime(dateTimeString);
+                        }
                       }
-                      // Switch to edit mode by setting isActive to false temporarily
-                      setIsActive(false);
                     }}
                   >
                     Edit Override
@@ -203,17 +221,19 @@ const TimeOverride = () => {
                     onClick={handleSetOverride}
                     disabled={!overrideDateTime || !!validationError}
                   >
-                    {TimeService.isOverrideActive() ? 'Update Override' : 'Start Dynamic Override'}
+                    {isEditMode ? 'Update Override' : 'Start Dynamic Override'}
                   </button>
                   
                   <button 
                     className="cancel-override-button"
                     onClick={() => {
                       setIsOpen(false);
+                      setIsEditMode(false); // Reset edit mode
                       // Reset to current time if canceling
                       const now = new Date();
                       const dateTimeString = now.toISOString().slice(0, 16);
                       setOverrideDateTime(dateTimeString);
+                      setLastEnteredTime(''); // Clear the last entered time
                     }}
                   >
                     Cancel
@@ -223,7 +243,6 @@ const TimeOverride = () => {
             )}
           </div>
         </div>
-        </>
       )}
 
       <style>{`
@@ -310,9 +329,8 @@ const TimeOverride = () => {
           top: 20vh;
           left: 50%;
           transform: translateX(-50%);
-          background: rgba(255, 255, 255, 0.95);
-          backdrop-filter: blur(10px);
-          border: 1px solid rgba(229, 231, 235, 0.8);
+          background: rgba(255, 255, 255, 1);
+          border: 1px solid #d1d5db;
           border-radius: 8px;
           box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
           width: 320px;
