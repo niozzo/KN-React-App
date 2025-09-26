@@ -233,8 +233,8 @@ const TimeOverride = () => {
           flex-direction: column;
           align-items: center;
           gap: 4px;
-          opacity: 0.8;
-          transition: opacity 0.3s ease;
+          opacity: 1 !important; /* Completely solid - no transparency */
+          transition: none; /* Remove transition effects */
         }
 
         .time-override-backdrop {
@@ -250,41 +250,44 @@ const TimeOverride = () => {
 
 
         .time-override-toggle {
-          background: rgba(99, 102, 241, 0.8);
-          color: rgba(255, 255, 255, 0.9);
+          background: #6366f1 !important; /* Solid color - no transparency */
+          color: #ffffff !important; /* Solid white text */
           border: none;
           padding: 8px 12px;
           border-radius: 6px;
           font-size: 12px;
           cursor: pointer;
           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-          transition: all 0.2s ease;
+          transition: none; /* Remove transition effects */
+          opacity: 1 !important; /* Completely solid */
         }
 
         .time-override-toggle:hover {
-          background: rgba(79, 70, 229, 0.9);
-          color: rgba(255, 255, 255, 1);
+          background: #4f46e5 !important; /* Solid hover color */
+          color: #ffffff !important; /* Solid white text */
         }
 
         .time-override-toggle.active {
-          background: rgba(220, 38, 38, 0.8);
-          color: rgba(255, 255, 255, 0.9);
+          background: #dc2626 !important; /* Solid red - no transparency */
+          color: #ffffff !important; /* Solid white text */
         }
 
         .time-override-toggle.active:hover {
-          background: rgba(185, 28, 28, 0.9);
-          color: rgba(255, 255, 255, 1);
+          background: #b91c1c !important; /* Solid dark red - no transparency */
+          color: #ffffff !important; /* Solid white text */
         }
 
         .current-time-display {
-          background: rgba(0, 0, 0, 0.7);
-          color: white;
+          background: #000000 !important; /* Solid black - no transparency */
+          color: #ffffff !important; /* Solid white text */
           padding: 4px 8px;
           border-radius: 4px;
           font-size: 10px;
           text-align: center;
           min-width: 200px;
-          backdrop-filter: blur(5px);
+          backdrop-filter: none !important; /* Remove backdrop effects */
+          -webkit-backdrop-filter: none !important; /* Remove webkit backdrop effects */
+          opacity: 1 !important; /* Completely solid */
         }
 
         .current-time-label {
@@ -298,20 +301,38 @@ const TimeOverride = () => {
         }
 
         .time-override-panel {
-          position: fixed;
-          top: 20vh;
-          left: 50%;
-          transform: translateX(-50%);
+          position: fixed !important;
+          top: 20vh !important;
+          left: 50% !important;
+          transform: translateX(-50%) !important;
           background: #ffffff !important; /* Completely solid white */
-          border: 1px solid #d1d5db;
-          border-radius: 8px;
-          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-          width: 320px;
-          max-width: 90vw;
-          max-height: 60vh;
-          z-index: 1001;
-          overflow-y: auto;
+          border: 1px solid #d1d5db !important;
+          border-radius: 8px !important;
+          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+          width: 320px !important;
+          max-width: 90vw !important;
+          max-height: 60vh !important;
+          z-index: 1001 !important;
+          overflow-y: auto !important;
           opacity: 1 !important; /* Override parent container opacity */
+          backdrop-filter: none !important; /* Remove any backdrop effects */
+          -webkit-backdrop-filter: none !important; /* Remove webkit backdrop effects */
+        }
+
+        /* Ultra-specific override for transparency issues */
+        div.time-override-panel {
+          background: #ffffff !important;
+          opacity: 1 !important;
+          backdrop-filter: none !important;
+          -webkit-backdrop-filter: none !important;
+        }
+
+        /* Even more specific override */
+        .time-override-container div.time-override-panel {
+          background: #ffffff !important;
+          opacity: 1 !important;
+          backdrop-filter: none !important;
+          -webkit-backdrop-filter: none !important;
         }
 
         /* Responsive adjustments for mobile devices */
@@ -350,6 +371,20 @@ const TimeOverride = () => {
 
         .time-override-content {
           padding: 12px 16px;
+          background: #ffffff !important; /* Ensure content background is solid */
+          opacity: 1 !important; /* Ensure content is not transparent */
+        }
+
+        /* Ultra-specific content override */
+        div.time-override-panel div.time-override-content {
+          background: #ffffff !important;
+          opacity: 1 !important;
+        }
+
+        /* Even more specific content override */
+        .time-override-container div.time-override-panel div.time-override-content {
+          background: #ffffff !important;
+          opacity: 1 !important;
         }
 
         .form-group {
