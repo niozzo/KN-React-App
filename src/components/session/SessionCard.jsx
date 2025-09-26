@@ -144,21 +144,20 @@ const SessionCard = React.memo(({
           {location && (
             <div className="session-location">
               {isDiningEventSession && session.address ? (
-                <a 
-                  href={`https://maps.google.com/maps?q=${encodeURIComponent(session.address)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    textDecoration: 'underline',
-                    color: 'var(--coral)',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px'
-                  }}
-                >
-                  {location}
-                </a> <span style={{ textDecoration: 'none !important', color: 'var(--coral)' }}>⧉</span>
+                <>
+                  <a 
+                    href={`https://maps.google.com/maps?q=${encodeURIComponent(session.address)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      textDecoration: 'underline',
+                      color: 'var(--coral)',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {location}
+                  </a> <span style={{ textDecoration: 'none !important', color: 'var(--coral)' }}>⧉</span>
+                </>
               ) : (
                 location
               )}
