@@ -149,6 +149,27 @@ const SessionCard = React.memo(({
                     href={`https://maps.google.com/maps/dir/?api=1&destination=${encodeURIComponent(session.address)}`}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={(e) => {
+                      // Try to open Google Maps app first on mobile
+                      if (/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+                        const appUrl = `comgooglemaps://?daddr=${encodeURIComponent(session.address)}&directionsmode=driving`;
+                        const webUrl = `https://maps.google.com/maps/dir/?api=1&destination=${encodeURIComponent(session.address)}`;
+                        
+                        // Try to open the app, fallback to web if it fails
+                        const iframe = document.createElement('iframe');
+                        iframe.style.display = 'none';
+                        iframe.src = appUrl;
+                        document.body.appendChild(iframe);
+                        
+                        // Fallback to web after a short delay if app doesn't open
+                        setTimeout(() => {
+                          document.body.removeChild(iframe);
+                          window.open(webUrl, '_blank');
+                        }, 1000);
+                        
+                        e.preventDefault();
+                      }
+                    }}
                     style={{
                       textDecoration: 'underline',
                       color: 'var(--coral)',
