@@ -137,53 +137,7 @@ const AnimatedNowNextCards = React.memo(({
       );
     }
 
-    // If no current session but conference has started, show "Between Sessions"
-    if (hasConferenceStarted) {
-      return (
-        <div 
-          className="now-card-wrapper" 
-          ref={nowCardRef}
-          style={{
-            transition: 'all 0.8s cubic-bezier(0.4, 0, 0.2, 1)',
-            transform: 'translateY(0) scale(1)',
-            opacity: 1,
-            zIndex: 2
-          }}
-        >
-          <Card className="no-session-card" style={{
-            background: 'var(--gray-50)',
-            border: '2px dashed var(--gray-300)',
-            textAlign: 'center',
-            padding: 'var(--space-xl)'
-          }}>
-            <div className="no-session-content">
-              <div style={{ fontSize: '2rem', marginBottom: 'var(--space-sm)' }}>☕</div>
-              <h3 style={{ 
-                color: 'var(--text-secondary)', 
-                marginBottom: 'var(--space-xs)',
-                fontSize: 'var(--text-lg)'
-              }}>
-                Between Sessions
-              </h3>
-              <p style={{ 
-                color: 'var(--text-tertiary)',
-                fontSize: 'var(--text-sm)'
-              }}>
-                Take a break or check your full schedule
-              </p>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => navigate('/schedule')}
-                style={{ marginTop: 'var(--space-sm)' }}
-              >
-                View Schedule
-              </Button>
-            </div>
-          </Card>
-        </div>
-      );
-    }
+    // Never show "Between Sessions" card - just show nothing if no current session
 
     return null;
   };

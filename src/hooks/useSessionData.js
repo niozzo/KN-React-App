@@ -19,10 +19,18 @@ import { pwaDataSyncService } from '../services/pwaDataSyncService.ts';
  * @returns {boolean} Whether session is active
  */
 const isSessionActive = (session, currentTime) => {
-  if (!session.start_time || !session.end_time) return false;
+  if (!session.start_time) return false;
   
   const start = new Date(`${session.date}T${session.start_time}`);
-  const end = new Date(`${session.date}T${session.end_time}`);
+  
+  // If no end time, assume it ends at midnight
+  let end;
+  if (session.end_time) {
+    end = new Date(`${session.date}T${session.end_time}`);
+  } else {
+    // Set end time to midnight of the same day
+    end = new Date(`${session.date}T23:59:59`);
+  }
   
   return currentTime >= start && currentTime <= end;
 };
