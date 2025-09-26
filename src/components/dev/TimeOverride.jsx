@@ -248,9 +248,6 @@ const TimeOverride = () => {
           cursor: pointer;
         }
 
-        .time-override-container:hover {
-          opacity: 1;
-        }
 
         .time-override-toggle {
           background: rgba(99, 102, 241, 0.8);
@@ -305,7 +302,7 @@ const TimeOverride = () => {
           top: 20vh;
           left: 50%;
           transform: translateX(-50%);
-          background: #ffffff !important; /* ALWAYS solid white */
+          background: #ffffff !important; /* Completely solid white */
           border: 1px solid #d1d5db;
           border-radius: 8px;
           box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
@@ -314,6 +311,7 @@ const TimeOverride = () => {
           max-height: 60vh;
           z-index: 1001;
           overflow-y: auto;
+          opacity: 1 !important; /* Override parent container opacity */
         }
 
         /* Responsive adjustments for mobile devices */
