@@ -146,7 +146,7 @@ const SessionCard = React.memo(({
               {isDiningEventSession && session.address ? (
                 <>
                   <a 
-                    href={`https://maps.google.com/maps?q=${encodeURIComponent(session.address)}`}
+                    href={`https://maps.google.com/maps/dir/?api=1&destination=${encodeURIComponent(session.address)}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{
