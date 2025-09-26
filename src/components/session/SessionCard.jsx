@@ -157,7 +157,7 @@ const SessionCard = React.memo(({
                     gap: '4px'
                   }}
                 >
-                  {location} 🔗
+                  {location} <span style={{ textDecoration: 'none' }}>⧉</span>
                 </a>
               ) : (
                 location
