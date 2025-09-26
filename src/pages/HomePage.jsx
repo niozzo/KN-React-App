@@ -105,19 +105,38 @@ const HomePage = () => {
     }
   }, [allSessions]);
 
-  // Get the conference start date from the first agenda item
+  // Get the conference start date from the earliest event (agenda items or dining options)
   const getConferenceStartDate = () => {
-    if (!allSessions || allSessions.length === 0) {
+    const allDates = [];
+    
+    // Collect dates from agenda items
+    if (allSessions && allSessions.length > 0) {
+      allSessions.forEach(session => {
+        if (session.date) {
+          allDates.push(session.date);
+        }
+      });
+    }
+    
+    // Collect dates from dining options
+    if (diningOptions && diningOptions.length > 0) {
+      diningOptions.forEach(dining => {
+        if (dining.date) {
+          allDates.push(dining.date);
+        }
+      });
+    }
+    
+    // If no dates found, return TBD
+    if (allDates.length === 0) {
       return 'TBD';
     }
     
-    const firstSession = allSessions[0];
-    if (!firstSession.date) {
-      return 'TBD';
-    }
+    // Find the earliest date
+    const earliestDate = allDates.sort()[0];
     
     // Parse date without timezone conversion to avoid day shift
-    const [year, month, day] = firstSession.date.split('-').map(Number);
+    const [year, month, day] = earliestDate.split('-').map(Number);
     const date = new Date(year, month - 1, day); // month is 0-indexed in Date constructor
     
     return date.toLocaleDateString('en-US', { 
