@@ -20,16 +20,16 @@ class TimeService {
    */
   static getCurrentTime() {
     if (this.isOverrideEnabled()) {
-      // First try static override time (for tests)
-      const overrideTime = this.getOverrideTime();
-      if (overrideTime) {
-        return overrideTime;
-      }
-      
-      // Fallback to dynamic override time (auto-advancing)
+      // First try dynamic override time (auto-advancing) - higher priority
       const dynamicTime = this.getDynamicOverrideTime();
       if (dynamicTime) {
         return dynamicTime;
+      }
+      
+      // Fallback to static override time (for tests)
+      const overrideTime = this.getOverrideTime();
+      if (overrideTime) {
+        return overrideTime;
       }
     }
     return new Date();

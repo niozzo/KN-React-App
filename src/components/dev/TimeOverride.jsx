@@ -91,7 +91,7 @@ const TimeOverride = () => {
         return;
       }
       
-      TimeService.setOverrideTime(overrideDate);
+      TimeService.setDynamicOverrideTime(overrideDate);
       setIsActive(true);
       setIsOpen(false);
       setValidationError('');
@@ -102,6 +102,7 @@ const TimeOverride = () => {
     TimeService.clearOverrideTime();
     setIsActive(false);
     setOverrideDateTime('');
+    setIsOpen(false); // Close the panel when override is cleared
     
     // No need to reload - the time will return to real time automatically
   };
@@ -127,7 +128,9 @@ const TimeOverride = () => {
 
       {/* Override Panel */}
       {isOpen && (
-        <div className="time-override-panel">
+        <>
+          <div className="time-override-backdrop" onClick={() => setIsOpen(false)}></div>
+          <div className="time-override-panel">
           <div className="time-override-header">
             <h4>Time Override (Testing Tool)</h4>
             <button 
@@ -149,10 +152,10 @@ const TimeOverride = () => {
                   <button 
                     className="edit-override-button"
                     onClick={() => {
-                      // Load current override time for editing
-                      const overrideTime = TimeService.getOverrideTime();
-                      if (overrideTime) {
-                        const dateTimeString = overrideTime.toISOString().slice(0, 16);
+                      // Load current dynamic override start time for editing
+                      const overrideStartTime = TimeService.getOverrideStartTime();
+                      if (overrideStartTime) {
+                        const dateTimeString = overrideStartTime.toISOString().slice(0, 16);
                         setOverrideDateTime(dateTimeString);
                       }
                       // Switch to edit mode by setting isActive to false temporarily
@@ -220,6 +223,7 @@ const TimeOverride = () => {
             )}
           </div>
         </div>
+        </>
       )}
 
       <style>{`
@@ -236,6 +240,17 @@ const TimeOverride = () => {
           gap: 4px;
           opacity: 0.8;
           transition: opacity 0.3s ease;
+        }
+
+        .time-override-backdrop {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.5);
+          z-index: 1000;
+          cursor: pointer;
         }
 
         .time-override-container:hover {
@@ -291,8 +306,8 @@ const TimeOverride = () => {
         }
 
         .time-override-panel {
-          position: absolute;
-          top: 100%;
+          position: fixed;
+          top: 20vh;
           left: 50%;
           transform: translateX(-50%);
           background: rgba(255, 255, 255, 0.95);
@@ -300,15 +315,30 @@ const TimeOverride = () => {
           border: 1px solid rgba(229, 231, 235, 0.8);
           border-radius: 8px;
           box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-          min-width: 300px;
-          margin-top: 8px;
+          width: 320px;
+          max-width: 90vw;
+          max-height: 60vh;
+          z-index: 1001;
+          overflow-y: auto;
+        }
+
+        /* Responsive adjustments for mobile devices */
+        @media (max-width: 480px) {
+          .time-override-panel {
+            left: 50%;
+            top: 10vh;
+            transform: translateX(-50%);
+            width: calc(100vw - 20px);
+            max-width: 320px;
+            max-height: 80vh;
+          }
         }
 
         .time-override-header {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 12px 16px;
+          padding: 10px 16px;
           border-bottom: 1px solid #e5e7eb;
         }
 
@@ -327,7 +357,7 @@ const TimeOverride = () => {
         }
 
         .time-override-content {
-          padding: 16px;
+          padding: 12px 16px;
         }
 
         .form-group {
@@ -348,6 +378,15 @@ const TimeOverride = () => {
           border: 1px solid #d1d5db;
           border-radius: 4px;
           font-size: 14px;
+          box-sizing: border-box;
+        }
+
+        /* Responsive datetime input */
+        @media (max-width: 768px) {
+          .form-group input[type="datetime-local"] {
+            font-size: 16px; /* Prevents zoom on iOS */
+            padding: 12px 8px;
+          }
         }
 
         .form-group input.error {
@@ -363,9 +402,9 @@ const TimeOverride = () => {
 
         .form-info {
           background: #f3f4f6;
-          padding: 8px 12px;
+          padding: 6px 10px;
           border-radius: 4px;
-          margin-bottom: 12px;
+          margin-bottom: 10px;
         }
 
         .form-info p {
@@ -389,6 +428,16 @@ const TimeOverride = () => {
           font-size: 14px;
           cursor: pointer;
           transition: background 0.2s ease;
+        }
+
+        /* Responsive button styling */
+        @media (max-width: 768px) {
+          .set-override-button,
+          .clear-override-button {
+            padding: 12px 8px;
+            font-size: 16px;
+            min-height: 44px; /* Touch-friendly minimum size */
+          }
         }
 
         .set-override-button:hover,

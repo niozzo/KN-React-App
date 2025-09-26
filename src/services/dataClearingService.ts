@@ -108,7 +108,7 @@ export class DataClearingService {
           key.startsWith('sb-') || // Supabase auth tokens (sb-iikcgdhztkrexuuqheli-auth-token, etc.)
           key.includes('supabase') || // Any other Supabase-related keys
           key.includes('application') // Application database related keys
-        )) {
+        ) && !key.startsWith('kn_time_override')) { // ✅ PROTECT TIME OVERRIDE KEYS
           keysToRemove.push(key)
         }
       }
