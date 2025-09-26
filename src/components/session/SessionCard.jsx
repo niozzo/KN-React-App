@@ -157,8 +157,8 @@ const SessionCard = React.memo(({
                     gap: '4px'
                   }}
                 >
-                  {location} <span style={{ textDecoration: 'none' }}>⧉</span>
-                </a>
+                  {location}
+                </a> <span style={{ textDecoration: 'none !important', color: 'var(--coral)' }}>⧉</span>
               ) : (
                 location
               )}
