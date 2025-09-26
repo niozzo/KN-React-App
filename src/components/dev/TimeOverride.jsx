@@ -101,124 +101,145 @@ const TimeOverride = () => {
   const handleClearOverride = () => {
     TimeService.clearOverrideTime();
     setIsActive(false);
-    setOverrideDateTime('');
+    // Don't clear overrideDateTime - keep the last entered value for easy re-entry
     setIsOpen(false);
   };
 
 
   return (
-    <div className="time-override-container">
-      {/* Toggle Button */}
-      <button
-        className={`time-override-toggle ${isActive ? 'active' : ''}`}
-        onClick={() => setIsOpen(!isOpen)}
-        title="Time Override (Testing Tool)"
-      >
-        🕐 {isActive ? 'Edit Dynamic Override' : 'Set Dynamic Override'}
-      </button>
-      
-      {/* Current Time Display */}
-      <div className="current-time-display" data-testid="current-time-display">
-        <div className="current-time-value">
-          {currentTime.toLocaleString()}
+    <>
+      {/* Main Container - Button and Display */}
+      <div className="time-override-container">
+        {/* Toggle Button */}
+        <button
+          className={`time-override-toggle ${isActive ? 'active' : ''}`}
+          onClick={() => setIsOpen(!isOpen)}
+          title="Time Override (Testing Tool)"
+        >
+          🕐 {isActive ? 'Edit Dynamic Override' : 'Set Dynamic Override'}
+        </button>
+        
+        {/* Current Time Display */}
+        <div className="current-time-display" data-testid="current-time-display">
+          <div className="current-time-value">
+            {currentTime.toLocaleString()}
+          </div>
         </div>
       </div>
 
-      {/* Override Panel */}
+      {/* Backdrop for click-outside-to-close - positioned outside container */}
       {isOpen && (
-        <div className="time-override-panel">
-          <div className="time-override-header">
-            <h4>Time Override (Testing Tool)</h4>
-            <button 
-              className="close-button"
-              onClick={() => setIsOpen(false)}
-            >
-              ×
-            </button>
-          </div>
+        <div 
+          className="time-override-backdrop"
+          onClick={(e) => {
+            console.log('Backdrop clicked!', e.target, e.currentTarget);
+            console.log('Event coordinates:', e.clientX, e.clientY);
+            e.stopPropagation();
+            setIsOpen(false);
+          }}
+          onMouseDown={(e) => {
+            console.log('Backdrop mousedown!', e.target);
+          }}
+        />
+      )}
 
-          <div className="time-override-content">
-            {isActive ? (
-              <div className="override-status">
-                <p><strong>Override Active:</strong></p>
-                <p>Current Override Time: {currentTime.toLocaleString()}</p>
-                <p>Real Time: {new Date().toLocaleString()}</p>
-                
-                <div className="override-actions">
-                  <button 
-                    className="edit-override-button"
-                    onClick={() => {
-                      // Load current override time for editing
-                      const overrideTime = TimeService.getOverrideTime();
-                      if (overrideTime) {
-                        const dateTimeString = overrideTime.toISOString().slice(0, 16);
-                        setOverrideDateTime(dateTimeString);
-                      }
-                      // Switch to form view by setting isActive to false
-                      setIsActive(false);
-                    }}
-                  >
-                    Edit Override
-                  </button>
+      {/* Override Panel - positioned outside container */}
+      {isOpen && (
+        <div 
+          className="time-override-panel"
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+        >
+            <div className="time-override-header">
+              <h4>Time Override (Testing Tool)</h4>
+              <button 
+                className="close-button"
+                onClick={() => setIsOpen(false)}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="time-override-content">
+              {isActive ? (
+                <div className="override-status">
+                  <p><strong>Override Active:</strong></p>
+                  <p>Current Override Time: {currentTime.toLocaleString()}</p>
+                  <p>Real Time: {new Date().toLocaleString()}</p>
                   
-                  <button 
-                    className="clear-override-button"
-                    onClick={handleClearOverride}
-                  >
-                    Clear Override
-                  </button>
+                  <div className="override-actions">
+                    <button 
+                      className="edit-override-button"
+                      onClick={() => {
+                        // Load current override time for editing
+                        const overrideTime = TimeService.getOverrideTime();
+                        if (overrideTime) {
+                          const dateTimeString = overrideTime.toISOString().slice(0, 16);
+                          setOverrideDateTime(dateTimeString);
+                        }
+                        // Switch to form view by setting isActive to false
+                        setIsActive(false);
+                      }}
+                    >
+                      Edit Override
+                    </button>
+                    
+                    <button 
+                      className="clear-override-button"
+                      onClick={handleClearOverride}
+                    >
+                      Clear Override
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <div className="override-form">
-                <div className="form-group">
-                  <label htmlFor="override-datetime">Date & Time (starts at :50 seconds):</label>
-                  <input
-                    id="override-datetime"
-                    type="datetime-local"
-                    value={overrideDateTime}
-                    onChange={handleDateTimeChange}
-                    className={validationError ? 'error' : ''}
-                    required
-                  />
-                  {validationError && (
-                    <div className="error-message" style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px' }}>
-                      {validationError}
-                    </div>
-                  )}
-                </div>
-                
-                <div className="form-info">
-                  <p>⏱️ Time will start at 50 seconds and advance automatically</p>
-                  <p>⏳ You'll only wait 10 seconds to see transitions</p>
-                </div>
-                
-                <div className="form-actions">
-                  <button 
-                    className="set-override-button"
-                    onClick={handleSetOverride}
-                    disabled={!overrideDateTime || !!validationError}
-                  >
-                    {isActive ? 'Update Override' : 'Start Dynamic Override'}
-                  </button>
+              ) : (
+                <div className="override-form">
+                  <div className="form-group">
+                    <label htmlFor="override-datetime">Date & Time (starts at :50 seconds):</label>
+                    <input
+                      id="override-datetime"
+                      type="datetime-local"
+                      value={overrideDateTime}
+                      onChange={handleDateTimeChange}
+                      className={validationError ? 'error' : ''}
+                      required
+                    />
+                    {validationError && (
+                      <div className="error-message" style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px' }}>
+                        {validationError}
+                      </div>
+                    )}
+                  </div>
                   
-                  <button 
-                    className="cancel-override-button"
-                    onClick={() => {
-                      setIsOpen(false);
-                      // Reset to current time if canceling
-                      const now = new Date();
-                      const dateTimeString = now.toISOString().slice(0, 16);
-                      setOverrideDateTime(dateTimeString);
-                    }}
-                  >
-                    Cancel
-                  </button>
+                  <div className="form-info">
+                    <p>⏱️ Time will start at 50 seconds and advance automatically</p>
+                    <p>⏳ You'll only wait 10 seconds to see transitions</p>
+                  </div>
+                  
+                  <div className="form-actions">
+                    <button 
+                      className="set-override-button"
+                      onClick={handleSetOverride}
+                      disabled={!overrideDateTime || !!validationError}
+                    >
+                      {isActive ? 'Update Override' : 'Start Dynamic Override'}
+                    </button>
+                    
+                    <button 
+                      className="cancel-override-button"
+                      onClick={() => {
+                        setIsOpen(false);
+                        // Don't reset the datetime - keep the last entered value
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
       )}
 
       <style>{`
@@ -238,14 +259,71 @@ const TimeOverride = () => {
         }
 
         .time-override-backdrop {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: rgba(0, 0, 0, 0.5);
-          z-index: 1000;
-          cursor: pointer;
+          position: fixed !important;
+          top: 0 !important;
+          left: 0 !important;
+          right: 0 !important;
+          bottom: 0 !important;
+          width: 100vw !important;
+          height: 100vh !important;
+          background: rgba(0, 0, 0, 0.5) !important;
+          /* border: 2px solid red !important; /* Temporary debugging border - commented out */
+          z-index: 1000 !important;
+          cursor: pointer !important;
+          pointer-events: auto !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          outline: none !important;
+          transform: none !important;
+        }
+
+        /* Additional backdrop positioning rules */
+        div.time-override-backdrop {
+          position: fixed !important;
+          top: 0 !important;
+          left: 0 !important;
+          right: 0 !important;
+          bottom: 0 !important;
+          width: 100vw !important;
+          height: 100vh !important;
+          background: rgba(0, 0, 0, 0.5) !important;
+          z-index: 1000 !important;
+          pointer-events: auto !important;
+          transform: none !important;
+        }
+
+        /* Ultra-specific backdrop positioning to override any parent transforms */
+        .time-override-container .time-override-backdrop {
+          position: fixed !important;
+          top: 0 !important;
+          left: 0 !important;
+          right: 0 !important;
+          bottom: 0 !important;
+          width: 100vw !important;
+          height: 100vh !important;
+          background: rgba(0, 0, 0, 0.5) !important;
+          z-index: 1000 !important;
+          pointer-events: auto !important;
+          transform: none !important;
+          margin: 0 !important;
+          padding: 0 !important;
+        }
+
+        /* Force backdrop to cover entire viewport regardless of parent */
+        body .time-override-backdrop {
+          position: fixed !important;
+          top: 0 !important;
+          left: 0 !important;
+          right: 0 !important;
+          bottom: 0 !important;
+          width: 100vw !important;
+          height: 100vh !important;
+          background: rgba(0, 0, 0, 0.5) !important;
+          z-index: 1000 !important;
+          pointer-events: auto !important;
+          transform: none !important;
+          margin: 0 !important;
+          padding: 0 !important;
         }
 
 
@@ -545,7 +623,7 @@ const TimeOverride = () => {
           background: #4b5563;
         }
       `}</style>
-    </div>
+    </>
   );
 };
 
