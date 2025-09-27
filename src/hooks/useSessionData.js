@@ -45,7 +45,30 @@ const isSessionUpcoming = (session, currentTime) => {
   if (!session.start_time) return false;
   
   const start = new Date(`${session.date}T${session.start_time}`);
-  return start > currentTime;
+  
+  // Check if session has already ended
+  if (session.end_time) {
+    const end = new Date(`${session.date}T${session.end_time}`);
+    // Session is upcoming if it starts in the future AND hasn't ended yet
+    return start > currentTime && end > currentTime;
+  }
+  
+  // If no end time, check if it's on a future day or same day but future time
+  const currentDateString = currentTime.toISOString().split('T')[0]; // YYYY-MM-DD
+  const sessionDateString = session.date; // Already in YYYY-MM-DD format
+  
+  // If it's a future day, it's upcoming
+  if (sessionDateString > currentDateString) {
+    return true;
+  }
+  
+  // If it's the same day, only upcoming if start time is in the future
+  if (sessionDateString === currentDateString) {
+    return start > currentTime;
+  }
+  
+  // If it's a past day, it's not upcoming
+  return false;
 };
 
 /**
