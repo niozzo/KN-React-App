@@ -79,9 +79,12 @@ const isDiningActive = (dining, currentTime) => {
   }
   
   // Define the local end of the day for the dining event (midnight)
-  const endOfDay = new Date(`${dining.date}T23:59:59`);
-
-  // 🔧 FIX: Dining event is active if current time is after start and before local midnight
+  // Create endOfDay in local timezone by using the same date as start but with 23:59:59
+  const endOfDay = new Date(start);
+  endOfDay.setHours(23, 59, 59, 999);
+  
+  // 🔧 FIX: Simple local time comparison
+  // All times should be in local timezone for proper comparison
   const isActive = currentTime >= start && currentTime <= endOfDay;
   
   // 🔍 DEBUG: Detailed logging for dining active determination
