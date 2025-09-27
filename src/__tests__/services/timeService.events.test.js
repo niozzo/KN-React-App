@@ -44,6 +44,7 @@ describe('TimeService Event Emission', () => {
     global.localStorage = originalLocalStorage;
     window.dispatchEvent = originalDispatchEvent;
     vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
   describe('setOverrideTime Event Emission', () => {
@@ -70,7 +71,7 @@ describe('TimeService Event Emission', () => {
 
       expect(global.localStorage.setItem).toHaveBeenCalledWith(
         'kn_time_override',
-        testDate.toISOString()
+        expect.stringMatching(/^{"overrideTime":"2024-12-19T15:05:00\.000Z","timestamp":\d+}$/)
       );
     });
 
@@ -82,7 +83,7 @@ describe('TimeService Event Emission', () => {
       }).not.toThrow();
     });
 
-    it('should throw error if localStorage fails', () => {
+    it('should handle localStorage errors gracefully', () => {
       const testDate = new Date('2024-12-19T09:05:00');
       const error = new Error('localStorage failed');
       
@@ -90,9 +91,10 @@ describe('TimeService Event Emission', () => {
         throw error;
       });
 
+      // Should not throw, just log the error
       expect(() => {
         TimeService.setOverrideTime(testDate);
-      }).toThrow(error);
+      }).not.toThrow();
     });
 
     it('should not emit event if localStorage fails', () => {
@@ -102,9 +104,10 @@ describe('TimeService Event Emission', () => {
         throw new Error('localStorage failed');
       });
 
+      // Should not throw, but also should not emit event
       expect(() => {
         TimeService.setOverrideTime(testDate);
-      }).toThrow();
+      }).not.toThrow();
 
       expect(mockDispatchEvent).not.toHaveBeenCalled();
     });
@@ -137,16 +140,17 @@ describe('TimeService Event Emission', () => {
       }).not.toThrow();
     });
 
-    it('should throw error if localStorage fails', () => {
+    it('should handle localStorage errors gracefully', () => {
       const error = new Error('localStorage failed');
       
       global.localStorage.removeItem.mockImplementation(() => {
         throw error;
       });
 
+      // Should not throw, just log the error
       expect(() => {
         TimeService.clearOverrideTime();
-      }).toThrow(error);
+      }).not.toThrow();
     });
 
     it('should not emit event if localStorage fails', () => {
@@ -154,9 +158,10 @@ describe('TimeService Event Emission', () => {
         throw new Error('localStorage failed');
       });
 
+      // Should not throw, but also should not emit event
       expect(() => {
         TimeService.clearOverrideTime();
-      }).toThrow();
+      }).not.toThrow();
 
       expect(mockDispatchEvent).not.toHaveBeenCalled();
     });

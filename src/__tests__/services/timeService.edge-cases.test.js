@@ -25,12 +25,16 @@ describe('TimeService Edge Cases', () => {
       removeItem: vi.fn(),
       clear: vi.fn()
     };
+    
+    // Clear any existing mocks
+    vi.clearAllMocks();
   });
 
   afterEach(() => {
     process.env.NODE_ENV = originalEnv;
     global.localStorage = originalLocalStorage;
     vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
   describe('Time Override During Session Boundaries', () => {
@@ -78,7 +82,19 @@ describe('TimeService Edge Cases', () => {
     it('should handle override time with millisecond precision', () => {
       process.env.NODE_ENV = 'development';
       const preciseTime = new Date('2024-12-19T09:15:30.500Z');
-      global.localStorage.getItem.mockReturnValue(preciseTime.toISOString());
+      const mockData = JSON.stringify({
+        overrideTime: preciseTime.toISOString(),
+        timestamp: Date.now()
+      });
+      global.localStorage.getItem.mockImplementation((key) => {
+        if (key === 'kn_time_override_start' || key === 'kn_time_override_offset') {
+          return null;
+        }
+        if (key === 'kn_time_override') {
+          return mockData;
+        }
+        return null;
+      });
 
       const result = TimeService.getCurrentTime();
 
@@ -136,7 +152,19 @@ describe('TimeService Edge Cases', () => {
     it('should handle future date override time', () => {
       process.env.NODE_ENV = 'development';
       const futureDate = new Date('2030-12-19T09:00:00.000Z');
-      global.localStorage.getItem.mockReturnValue(futureDate.toISOString());
+      const mockData = JSON.stringify({
+        overrideTime: futureDate.toISOString(),
+        timestamp: Date.now()
+      });
+      global.localStorage.getItem.mockImplementation((key) => {
+        if (key === 'kn_time_override_start' || key === 'kn_time_override_offset') {
+          return null;
+        }
+        if (key === 'kn_time_override') {
+          return mockData;
+        }
+        return null;
+      });
 
       const result = TimeService.getCurrentTime();
 
@@ -146,7 +174,19 @@ describe('TimeService Edge Cases', () => {
     it('should handle past date override time', () => {
       process.env.NODE_ENV = 'development';
       const pastDate = new Date('2020-12-19T09:00:00.000Z');
-      global.localStorage.getItem.mockReturnValue(pastDate.toISOString());
+      const mockData = JSON.stringify({
+        overrideTime: pastDate.toISOString(),
+        timestamp: Date.now()
+      });
+      global.localStorage.getItem.mockImplementation((key) => {
+        if (key === 'kn_time_override_start' || key === 'kn_time_override_offset') {
+          return null;
+        }
+        if (key === 'kn_time_override') {
+          return mockData;
+        }
+        return null;
+      });
 
       const result = TimeService.getCurrentTime();
 
@@ -155,33 +195,73 @@ describe('TimeService Edge Cases', () => {
   });
 
   describe('Environment-Specific Behavior', () => {
-    it('should not use override in production environment', () => {
+    it('should use override in production environment when set', () => {
       process.env.NODE_ENV = 'production';
       const overrideTime = new Date('2024-12-19T09:00:00.000Z');
-      global.localStorage.getItem.mockReturnValue(overrideTime.toISOString());
+      const mockData = JSON.stringify({
+        overrideTime: overrideTime.toISOString(),
+        timestamp: Date.now()
+      });
+      global.localStorage.getItem.mockImplementation((key) => {
+        if (key === 'kn_time_override_start' || key === 'kn_time_override_offset') {
+          return null;
+        }
+        if (key === 'kn_time_override') {
+          return mockData;
+        }
+        return null;
+      });
 
       const result = TimeService.getCurrentTime();
 
-      // Should return real time, not override
-      expect(result).toBeInstanceOf(Date);
-      expect(global.localStorage.getItem).not.toHaveBeenCalled();
+      // Should return override time, not real time
+      expect(result).toEqual(overrideTime);
+      expect(global.localStorage.getItem).toHaveBeenCalledWith('kn_time_override_start');
+      expect(global.localStorage.getItem).toHaveBeenCalledWith('kn_time_override_offset');
+      expect(global.localStorage.getItem).toHaveBeenCalledWith('kn_time_override');
     });
 
     it('should use override in test environment', () => {
       process.env.NODE_ENV = 'test';
       const overrideTime = new Date('2024-12-19T09:00:00.000Z');
-      global.localStorage.getItem.mockReturnValue(overrideTime.toISOString());
+      const mockData = JSON.stringify({
+        overrideTime: overrideTime.toISOString(),
+        timestamp: Date.now()
+      });
+      global.localStorage.getItem.mockImplementation((key) => {
+        if (key === 'kn_time_override_start' || key === 'kn_time_override_offset') {
+          return null;
+        }
+        if (key === 'kn_time_override') {
+          return mockData;
+        }
+        return null;
+      });
 
       const result = TimeService.getCurrentTime();
 
       expect(result).toEqual(overrideTime);
+      expect(global.localStorage.getItem).toHaveBeenCalledWith('kn_time_override_start');
+      expect(global.localStorage.getItem).toHaveBeenCalledWith('kn_time_override_offset');
       expect(global.localStorage.getItem).toHaveBeenCalledWith('kn_time_override');
     });
 
     it('should use override in development environment', () => {
       process.env.NODE_ENV = 'development';
       const overrideTime = new Date('2024-12-19T09:00:00.000Z');
-      global.localStorage.getItem.mockReturnValue(overrideTime.toISOString());
+      const mockData = JSON.stringify({
+        overrideTime: overrideTime.toISOString(),
+        timestamp: Date.now()
+      });
+      global.localStorage.getItem.mockImplementation((key) => {
+        if (key === 'kn_time_override_start' || key === 'kn_time_override_offset') {
+          return null;
+        }
+        if (key === 'kn_time_override') {
+          return mockData;
+        }
+        return null;
+      });
 
       const result = TimeService.getCurrentTime();
 
@@ -227,7 +307,19 @@ describe('TimeService Edge Cases', () => {
     it('should maintain time precision across multiple calls', () => {
       process.env.NODE_ENV = 'development';
       const overrideTime = new Date('2024-12-19T09:15:30.123Z');
-      global.localStorage.getItem.mockReturnValue(overrideTime.toISOString());
+      const mockData = JSON.stringify({
+        overrideTime: overrideTime.toISOString(),
+        timestamp: Date.now()
+      });
+      global.localStorage.getItem.mockImplementation((key) => {
+        if (key === 'kn_time_override_start' || key === 'kn_time_override_offset') {
+          return null;
+        }
+        if (key === 'kn_time_override') {
+          return mockData;
+        }
+        return null;
+      });
 
       const result1 = TimeService.getCurrentTime();
       const result2 = TimeService.getCurrentTime();
@@ -239,7 +331,19 @@ describe('TimeService Edge Cases', () => {
     it('should return consistent time within same millisecond', () => {
       process.env.NODE_ENV = 'development';
       const overrideTime = new Date('2024-12-19T09:15:30.000Z');
-      global.localStorage.getItem.mockReturnValue(overrideTime.toISOString());
+      const mockData = JSON.stringify({
+        overrideTime: overrideTime.toISOString(),
+        timestamp: Date.now()
+      });
+      global.localStorage.getItem.mockImplementation((key) => {
+        if (key === 'kn_time_override_start' || key === 'kn_time_override_offset') {
+          return null;
+        }
+        if (key === 'kn_time_override') {
+          return mockData;
+        }
+        return null;
+      });
 
       const results = Array.from({ length: 10 }, () => TimeService.getCurrentTime());
 
@@ -254,7 +358,19 @@ describe('TimeService Edge Cases', () => {
     it('should return correct status when override is active', () => {
       process.env.NODE_ENV = 'development';
       const overrideTime = new Date('2024-12-19T09:00:00.000Z');
-      global.localStorage.getItem.mockReturnValue(overrideTime.toISOString());
+      const mockData = JSON.stringify({
+        overrideTime: overrideTime.toISOString(),
+        timestamp: Date.now()
+      });
+      global.localStorage.getItem.mockImplementation((key) => {
+        if (key === 'kn_time_override_start' || key === 'kn_time_override_offset') {
+          return null;
+        }
+        if (key === 'kn_time_override') {
+          return mockData;
+        }
+        return null;
+      });
 
       const status = TimeService.getOverrideStatus();
 
@@ -276,15 +392,27 @@ describe('TimeService Edge Cases', () => {
       expect(status.environment).toBe('development');
     });
 
-    it('should return correct status in production environment', () => {
+    it('should return correct status in production environment when override is set', () => {
       process.env.NODE_ENV = 'production';
       const overrideTime = new Date('2024-12-19T09:00:00.000Z');
-      global.localStorage.getItem.mockReturnValue(overrideTime.toISOString());
+      const mockData = JSON.stringify({
+        overrideTime: overrideTime.toISOString(),
+        timestamp: Date.now()
+      });
+      global.localStorage.getItem.mockImplementation((key) => {
+        if (key === 'kn_time_override_start' || key === 'kn_time_override_offset') {
+          return null;
+        }
+        if (key === 'kn_time_override') {
+          return mockData;
+        }
+        return null;
+      });
 
       const status = TimeService.getOverrideStatus();
 
-      expect(status.isActive).toBe(false);
-      expect(status.overrideTime).toBeNull();
+      expect(status.isActive).toBe(true);
+      expect(status.overrideTime).toEqual(overrideTime);
       expect(status.realTime).toBeInstanceOf(Date);
       expect(status.environment).toBe('production');
     });
@@ -296,14 +424,38 @@ describe('TimeService Edge Cases', () => {
       
       // Test with UTC time
       const utcTime = new Date('2024-12-19T09:00:00.000Z');
-      global.localStorage.getItem.mockReturnValue(utcTime.toISOString());
+      const mockData = JSON.stringify({
+        overrideTime: utcTime.toISOString(),
+        timestamp: Date.now()
+      });
+      global.localStorage.getItem.mockImplementation((key) => {
+        if (key === 'kn_time_override_start' || key === 'kn_time_override_offset') {
+          return null;
+        }
+        if (key === 'kn_time_override') {
+          return mockData;
+        }
+        return null;
+      });
 
       const result = TimeService.getCurrentTime();
       expect(result).toEqual(utcTime);
 
       // Test with local time (will be converted to UTC in ISO string)
       const localTime = new Date(2024, 11, 19, 9, 0, 0); // December 19, 2024, 9:00 AM local
-      global.localStorage.getItem.mockReturnValue(localTime.toISOString());
+      const localMockData = JSON.stringify({
+        overrideTime: localTime.toISOString(),
+        timestamp: Date.now()
+      });
+      global.localStorage.getItem.mockImplementation((key) => {
+        if (key === 'kn_time_override_start' || key === 'kn_time_override_offset') {
+          return null;
+        }
+        if (key === 'kn_time_override') {
+          return localMockData;
+        }
+        return null;
+      });
 
       const result2 = TimeService.getCurrentTime();
       expect(result2.toISOString()).toBe(localTime.toISOString());
@@ -312,7 +464,19 @@ describe('TimeService Edge Cases', () => {
     it('should handle leap year dates', () => {
       process.env.NODE_ENV = 'development';
       const leapYearDate = new Date('2024-02-29T09:00:00.000Z'); // 2024 is a leap year
-      global.localStorage.getItem.mockReturnValue(leapYearDate.toISOString());
+      const mockData = JSON.stringify({
+        overrideTime: leapYearDate.toISOString(),
+        timestamp: Date.now()
+      });
+      global.localStorage.getItem.mockImplementation((key) => {
+        if (key === 'kn_time_override_start' || key === 'kn_time_override_offset') {
+          return null;
+        }
+        if (key === 'kn_time_override') {
+          return mockData;
+        }
+        return null;
+      });
 
       const result = TimeService.getCurrentTime();
       expect(result).toEqual(leapYearDate);
@@ -321,7 +485,19 @@ describe('TimeService Edge Cases', () => {
     it('should handle year boundary dates', () => {
       process.env.NODE_ENV = 'development';
       const newYearDate = new Date('2024-01-01T00:00:00.000Z');
-      global.localStorage.getItem.mockReturnValue(newYearDate.toISOString());
+      const mockData = JSON.stringify({
+        overrideTime: newYearDate.toISOString(),
+        timestamp: Date.now()
+      });
+      global.localStorage.getItem.mockImplementation((key) => {
+        if (key === 'kn_time_override_start' || key === 'kn_time_override_offset') {
+          return null;
+        }
+        if (key === 'kn_time_override') {
+          return mockData;
+        }
+        return null;
+      });
 
       const result = TimeService.getCurrentTime();
       expect(result).toEqual(newYearDate);

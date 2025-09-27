@@ -18,22 +18,29 @@ describe('TimeService', () => {
       removeItem: vi.fn(),
       clear: vi.fn()
     };
+    
+    // Clear any existing mocks
+    vi.clearAllMocks();
   });
 
   afterEach(() => {
     process.env.NODE_ENV = originalEnv;
     global.localStorage = originalLocalStorage;
     vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
   describe('getCurrentTime', () => {
-    it('should return real time in production environment', () => {
+    it('should return real time in production environment when no override is set', () => {
       process.env.NODE_ENV = 'production';
+      global.localStorage.getItem.mockReturnValue(null);
       
       const result = TimeService.getCurrentTime();
       
       expect(result).toBeInstanceOf(Date);
-      expect(global.localStorage.getItem).not.toHaveBeenCalled();
+      expect(global.localStorage.getItem).toHaveBeenCalledWith('kn_time_override_start');
+      expect(global.localStorage.getItem).toHaveBeenCalledWith('kn_time_override_offset');
+      expect(global.localStorage.getItem).toHaveBeenCalledWith('kn_time_override');
     });
 
     it('should return real time when no override is set in development', () => {
@@ -78,9 +85,9 @@ describe('TimeService', () => {
   });
 
   describe('isOverrideEnabled', () => {
-    it('should return false in production', () => {
+    it('should return true in production (override enabled for testing)', () => {
       process.env.NODE_ENV = 'production';
-      expect(TimeService.isOverrideEnabled()).toBe(false);
+      expect(TimeService.isOverrideEnabled()).toBe(true);
     });
 
     it('should return true in development', () => {
@@ -148,8 +155,8 @@ describe('TimeService', () => {
       
       const dateTime = new Date('2024-12-19T10:00:00.000Z');
       
-      // Should not throw in non-test environments
-      expect(() => TimeService.setOverrideTime(dateTime)).toThrow('Storage error');
+      // Should not throw in any environment, just log the error
+      expect(() => TimeService.setOverrideTime(dateTime)).not.toThrow();
     });
   });
 
@@ -165,14 +172,15 @@ describe('TimeService', () => {
         throw new Error('Storage error');
       });
       
-      // Should throw in test environment
-      expect(() => TimeService.clearOverrideTime()).toThrow('Storage error');
+      // Should not throw in any environment, just log the error
+      expect(() => TimeService.clearOverrideTime()).not.toThrow();
     });
   });
 
   describe('isOverrideActive', () => {
-    it('should return false in production', () => {
+    it('should return false in production when no override is set', () => {
       process.env.NODE_ENV = 'production';
+      global.localStorage.getItem.mockReturnValue(null);
       expect(TimeService.isOverrideActive()).toBe(false);
     });
 

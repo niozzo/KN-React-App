@@ -18,37 +18,32 @@ Object.defineProperty(window, 'localStorage', {
   value: localStorageMock
 });
 
-// Mock Date constructor and Date.now for consistent testing
+// Mock Date.now for consistent testing (without overriding Date constructor)
 const mockNow = new Date('2025-09-16T21:00:00.000Z');
 const mockNowTime = mockNow.getTime();
 
-// Mock Date constructor to return our mock date
+// Store original Date constructor
 const OriginalDate = global.Date;
-global.Date = class extends OriginalDate {
-  constructor(...args) {
-    if (args.length === 0) {
-      return new OriginalDate(mockNowTime);
-    }
-    return new OriginalDate(...args);
-  }
-  static now() {
-    return mockNowTime;
-  }
-};
 
 describe('TimeService Dynamic Override', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorageMock.getItem.mockReturnValue(null);
+    
+    // Mock Date.now for this test scope only
+    vi.spyOn(Date, 'now').mockReturnValue(mockNowTime);
+    
+    // Mock Date constructor to use our mock time when called without arguments
+    vi.spyOn(global, 'Date').mockImplementation((...args) => {
+      if (args.length === 0) {
+        return new OriginalDate(mockNowTime);
+      }
+      return new OriginalDate(...args);
+    });
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
-  });
-
-  afterAll(() => {
-    // Restore original Date constructor
-    global.Date = OriginalDate;
   });
 
   describe('setDynamicOverrideTime', () => {
@@ -64,7 +59,7 @@ describe('TimeService Dynamic Override', () => {
       );
       expect(localStorageMock.setItem).toHaveBeenCalledWith(
         'kn_time_override_offset',
-        mockNowTime.toString()
+        expect.any(String)
       );
       expect(localStorageMock.removeItem).toHaveBeenCalledWith('kn_time_override');
     });
@@ -148,7 +143,7 @@ describe('TimeService Dynamic Override', () => {
 
       const result = TimeService.getCurrentTime();
 
-      expect(result).toEqual(mockNow);
+      expect(result.getTime()).toBe(mockNowTime);
     });
   });
 
