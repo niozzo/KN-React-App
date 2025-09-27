@@ -1008,50 +1008,20 @@ export const useSessionData = (options = {}) => {
         })
         .sort(compareEventsByTime)[0]; // Get the first (earliest) upcoming event
       
-      // Update state only if changed (performance optimization)
-      // Don't clear events just because none are currently active - this causes the flash
-        setCurrentSession(prev => {
-          console.log('🕐 REAL-TIME UPDATE: State update decision', {
-            activeEvent: activeEvent ? { id: activeEvent.id, name: activeEvent.name, type: activeEvent.type } : null,
-            previous: prev ? { id: prev.id, name: prev.name, type: prev.type } : null,
-            currentTime: currentTime.toISOString()
-          });
-          
-          // Only update if we found an active event or if we're intentionally clearing
-          if (activeEvent && prev?.id !== activeEvent?.id) {
-            console.log('🕐 REAL-TIME UPDATE: Updating to active event', {
-              from: prev ? { id: prev.id, name: prev.name } : null,
-              to: { id: activeEvent.id, name: activeEvent.name }
-            });
-            return activeEvent;
-          }
-          
-          // 🔧 FIX: Clear current session if no active event found AND previous event was dining
-          // This allows dining events to end at midnight while preventing session flash
-          if (!activeEvent && prev && prev.type === 'dining') {
-            console.log('🕐 REAL-TIME UPDATE: Clearing dining event (no active event found)', {
-              previous: { id: prev.id, name: prev.name, type: prev.type }
-            });
-            return null;
-          }
-          
-          // Don't clear current event if no active event found - keep the last known state
-          // This prevents the flash to "Conference Not Started" state for sessions
-          console.log('🕐 REAL-TIME UPDATE: Keeping current session (no active event found)', {
-            current: prev ? { id: prev.id, name: prev.name, type: prev.type } : null
-          });
-          return prev;
-        });
+      // 🔧 TEMPORARY FIX: Simplified state management to resolve midnight transition bug
+      // TODO: Replace with proper state machine architecture in future iteration
+      // This fixes the immediate issue where dining events don't disappear at midnight
+      // due to complex callback pattern in setCurrentSession
       
-      setNextSession(prev => {
-        // Only update if we found an upcoming event or if we're intentionally clearing
-        if (upcomingEvent && prev?.id !== upcomingEvent?.id) {
-          return upcomingEvent;
-        }
-        // Don't clear next event if no upcoming event found - keep the last known state
-        // This prevents the flash to "Conference Not Started" state
-        return prev;
+      console.log('🕐 REAL-TIME UPDATE: Simplified state update', {
+        activeEvent: activeEvent ? { id: activeEvent.id, name: activeEvent.name, type: activeEvent.type } : null,
+        upcomingEvent: upcomingEvent ? { id: upcomingEvent.id, name: upcomingEvent.name, type: upcomingEvent.type } : null,
+        currentTime: currentTime.toISOString()
       });
+      
+      // Direct state updates - eliminates callback complexity that was causing the bug
+      setCurrentSession(activeEvent || null);
+      setNextSession(upcomingEvent || null);
     };
 
     // Set up interval for real-time updates (every second)
