@@ -237,25 +237,6 @@ const HomePage = () => {
     return `Scheduled Start Date: ${formatDateForDisplay(displayedEventDate)}`;
   };
 
-  // Determine if next session is tomorrow
-  const isNextSessionTomorrow = () => {
-    if (!nextSession || !nextSession.date) return false;
-    
-    const currentTime = TimeService.getCurrentTime();
-    const currentDate = currentTime.toISOString().split('T')[0]; // YYYY-MM-DD format
-    
-    // Calculate tomorrow's date
-    const tomorrow = new Date(currentTime);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowDate = tomorrow.toISOString().split('T')[0]; // YYYY-MM-DD format
-    
-    return nextSession.date === tomorrowDate;
-  };
-
-  // Determine if we should show tomorrow-only mode
-  const shouldShowTomorrowOnly = () => {
-    return hasConferenceStarted && !currentSession && nextSession && isNextSessionTomorrow();
-  };
 
   // Show loading state
   if (isLoading) {
@@ -537,11 +518,9 @@ const HomePage = () => {
         <h2 className="section-title">
           {hasConferenceEnded
             ? 'Thank you for attending!'
-            : shouldShowTomorrowOnly() 
-              ? 'Tomorrow' 
-              : hasConferenceStarted 
-                ? 'Now & Next' 
-                : getDateDisplayText()
+            : hasConferenceStarted 
+              ? 'Now & Next' 
+              : getDateDisplayText()
           }
         </h2>
         <AnimatedNowNextCards
@@ -549,7 +528,6 @@ const HomePage = () => {
           nextSession={nextSession}
           hasConferenceStarted={hasConferenceStarted}
           hasConferenceEnded={hasConferenceEnded}
-          tomorrowOnly={shouldShowTomorrowOnly()}
         />
       </section>
 
