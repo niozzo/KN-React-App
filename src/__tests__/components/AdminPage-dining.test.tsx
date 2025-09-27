@@ -1,58 +1,59 @@
 import React from 'react';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { AdminPage } from '../../components/AdminPage';
 import { adminService } from '../../services/adminService';
 
 // Mock Supabase and other dependencies first
-jest.mock('../../lib/supabase', () => ({
+vi.mock('../../lib/supabase', () => ({
   supabase: {
     auth: {
-      onAuthStateChange: jest.fn(),
-      getSession: jest.fn(() => Promise.resolve({ data: { session: null }, error: null }))
+      onAuthStateChange: vi.fn(),
+      getSession: vi.fn(() => Promise.resolve({ data: { session: null }, error: null }))
     }
   }
 }));
 
-jest.mock('../../services/supabaseClientService', () => ({
+vi.mock('../../services/supabaseClientService', () => ({
   supabaseClientService: {
-    initialize: jest.fn(() => Promise.resolve()),
-    getClient: jest.fn(() => ({
+    initialize: vi.fn(() => Promise.resolve()),
+    getClient: vi.fn(() => ({
       auth: {
-        onAuthStateChange: jest.fn(),
-        getSession: jest.fn(() => Promise.resolve({ data: { session: null }, error: null }))
+        onAuthStateChange: vi.fn(),
+        getSession: vi.fn(() => Promise.resolve({ data: { session: null }, error: null }))
       }
     }))
   }
 }));
 
-jest.mock('../../services/schemaValidationService', () => ({
+vi.mock('../../services/schemaValidationService', () => ({
   schemaValidationService: {
-    initialize: jest.fn(() => Promise.resolve())
+    initialize: vi.fn(() => Promise.resolve())
   }
 }));
 
 // Mock the admin service
 jest.mock('../../services/adminService', () => ({
   adminService: {
-    getAgendaItemsWithAssignments: jest.fn(),
-    getDiningOptionsWithMetadata: jest.fn(),
-    getAvailableAttendees: jest.fn(),
-    updateDiningOptionTitle: jest.fn(),
-    validateTitle: jest.fn(() => true)
+    getAgendaItemsWithAssignments: vi.fn(),
+    getDiningOptionsWithMetadata: vi.fn(),
+    getAvailableAttendees: vi.fn(),
+    updateDiningOptionTitle: vi.fn(),
+    validateTitle: vi.fn(() => true)
   }
 }));
 
 // Mock other dependencies
 jest.mock('../../services/dataInitializationService', () => ({
   dataInitializationService: {
-    ensureDataLoaded: jest.fn(() => Promise.resolve({ success: true, hasData: true }))
+    ensureDataLoaded: vi.fn(() => Promise.resolve({ success: true, hasData: true }))
   }
 }));
 
 jest.mock('../../services/pwaDataSyncService', () => ({
   pwaDataSyncService: {
-    syncApplicationTable: jest.fn(() => Promise.resolve())
+    syncApplicationTable: vi.fn(() => Promise.resolve())
   }
 }));
 
@@ -103,7 +104,7 @@ const mockAttendees = [
 const renderAdminPage = () => {
   return render(
     <BrowserRouter>
-      <AdminPage onLogout={jest.fn()} />
+      <AdminPage onLogout={vi.fn()} />
     </BrowserRouter>
   );
 };

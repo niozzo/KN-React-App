@@ -1,22 +1,23 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { AdminService } from '../../services/adminService';
 
 // Mock dependencies
-jest.mock('../../services/applicationDatabaseService', () => ({
+vi.mock('../../services/applicationDatabaseService', () => ({
   applicationDatabaseService: {
-    syncDiningItemMetadata: jest.fn(() => Promise.resolve())
+    syncDiningItemMetadata: vi.fn(() => Promise.resolve())
   }
 }));
 
-jest.mock('../../services/pwaDataSyncService', () => ({
+vi.mock('../../services/pwaDataSyncService', () => ({
   pwaDataSyncService: {
-    getCachedTableData: jest.fn(() => Promise.resolve([])),
-    syncApplicationTable: jest.fn(() => Promise.resolve())
+    getCachedTableData: vi.fn(() => Promise.resolve([])),
+    syncApplicationTable: vi.fn(() => Promise.resolve())
   }
 }));
 
-jest.mock('../../services/unifiedCacheService', () => ({
+vi.mock('../../services/unifiedCacheService', () => ({
   unifiedCacheService: {
-    get: jest.fn(() => Promise.resolve({
+    get: vi.fn(() => Promise.resolve({
       data: [
         {
           id: 'dining-1',

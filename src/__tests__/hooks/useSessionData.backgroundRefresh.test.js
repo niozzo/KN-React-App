@@ -4,25 +4,26 @@
  * Addresses QA concerns about missing test coverage
  */
 
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { useSessionData } from '../../hooks/useSessionData';
 import { agendaService } from '../../services/agendaService.ts';
 import { pwaDataSyncService } from '../../services/pwaDataSyncService.ts';
 
 // Mock services
-jest.mock('../../services/agendaService.ts');
-jest.mock('../../services/pwaDataSyncService.ts');
-jest.mock('../../services/dataService.ts');
-jest.mock('../../contexts/AuthContext');
-jest.mock('../../lib/supabase.js');
-jest.mock('../../services/supabaseClientService.ts');
+vi.mock('../../services/agendaService.ts');
+vi.mock('../../services/pwaDataSyncService.ts');
+vi.mock('../../services/dataService.ts');
+vi.mock('../../contexts/AuthContext');
+vi.mock('../../lib/supabase.js');
+vi.mock('../../services/supabaseClientService.ts');
 
 describe('useSessionData Background Refresh', () => {
   const mockAgendaService = agendaService;
   const mockPwaDataSyncService = pwaDataSyncService;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     
     // Setup localStorage with cached data
     const mockCachedData = {
@@ -97,7 +98,7 @@ describe('useSessionData Background Refresh', () => {
         new Error('dining_item_metadata sync failed')
       );
 
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation();
 
       // When: Background refresh occurs
       const { result } = renderHook(() => useSessionData());
@@ -188,7 +189,7 @@ describe('useSessionData Background Refresh', () => {
       mockAgendaService.getActiveAgendaItems.mockRejectedValue(new Error('External DB failed'));
       mockPwaDataSyncService.getCachedTableData.mockResolvedValue([]);
 
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation();
 
       // When: Background refresh occurs
       renderHook(() => useSessionData());
@@ -208,7 +209,7 @@ describe('useSessionData Background Refresh', () => {
       mockAgendaService.getActiveAgendaItems.mockRejectedValue(new Error('Service unavailable'));
       mockPwaDataSyncService.getCachedTableData.mockRejectedValue(new Error('Metadata unavailable'));
 
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation();
 
       // When: Background refresh occurs
       renderHook(() => useSessionData());

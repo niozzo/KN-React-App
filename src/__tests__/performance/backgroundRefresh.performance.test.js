@@ -4,16 +4,17 @@
  * Addresses QA concerns about performance validation
  */
 
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { useSessionData } from '../../hooks/useSessionData';
 
 // Mock services
-jest.mock('../../services/agendaService.ts');
-jest.mock('../../services/pwaDataSyncService.ts');
-jest.mock('../../services/dataService.ts');
-jest.mock('../../contexts/AuthContext');
-jest.mock('../../lib/supabase.js');
-jest.mock('../../services/supabaseClientService.ts');
+vi.mock('../../services/agendaService.ts');
+vi.mock('../../services/pwaDataSyncService.ts');
+vi.mock('../../services/dataService.ts');
+vi.mock('../../contexts/AuthContext');
+vi.mock('../../lib/supabase.js');
+vi.mock('../../services/supabaseClientService.ts');
 
 describe('Background Refresh Performance', () => {
   beforeEach(() => {
@@ -42,7 +43,7 @@ describe('Background Refresh Performance', () => {
 
   afterEach(() => {
     localStorage.clear();
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('Concurrent Database Access Performance', () => {
@@ -161,7 +162,7 @@ describe('Background Refresh Performance', () => {
       pwaDataSyncService.getCachedTableData.mockResolvedValue(consistentMetadata);
 
       // When: Hook renders and updates
-      const renderSpy = jest.fn();
+      const renderSpy = vi.fn();
       const { result } = renderHook(() => {
         renderSpy();
         return useSessionData();
@@ -193,7 +194,7 @@ describe('Background Refresh Performance', () => {
       agendaService.getActiveAgendaItems.mockRejectedValue(new Error('External DB error'));
       pwaDataSyncService.getCachedTableData.mockRejectedValue(new Error('Application DB error'));
 
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation();
 
       // When: Background refresh encounters errors
       const startTime = performance.now();

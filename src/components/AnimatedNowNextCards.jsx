@@ -40,7 +40,8 @@ const AnimatedNowNextCards = React.memo(({
   hasConferenceStarted,
   hasConferenceEnded = false,
   className = '',
-  tomorrowOnly = false
+  tomorrowOnly = false,
+  onSessionClick
 }) => {
   const navigate = useNavigate();
   const [previousSessions, setPreviousSessions] = useState({
@@ -132,6 +133,7 @@ const AnimatedNowNextCards = React.memo(({
             session={currentSession} 
             variant="now"
             className="animated-session-card"
+            onClick={onSessionClick}
           />
         </div>
       );
@@ -180,6 +182,7 @@ const AnimatedNowNextCards = React.memo(({
             session={previousSessions.current} 
             variant="next"
             className="animated-session-card"
+            onClick={onSessionClick}
           />
         </div>
       );
@@ -220,6 +223,7 @@ const AnimatedNowNextCards = React.memo(({
             session={previousSessions.next} 
             variant="next"
             className="animated-session-card"
+            onClick={onSessionClick}
           />
         </div>
       );
@@ -260,6 +264,7 @@ const AnimatedNowNextCards = React.memo(({
             session={nextSession} 
             variant="next"
             className="animated-session-card"
+            onClick={onSessionClick}
           />
         </div>
       );
@@ -379,7 +384,8 @@ AnimatedNowNextCards.propTypes = {
   hasConferenceStarted: PropTypes.bool.isRequired,
   hasConferenceEnded: PropTypes.bool,
   className: PropTypes.string,
-  tomorrowOnly: PropTypes.bool
+  tomorrowOnly: PropTypes.bool,
+  onSessionClick: PropTypes.func
 };
 
 AnimatedNowNextCards.defaultProps = {
@@ -387,7 +393,8 @@ AnimatedNowNextCards.defaultProps = {
   nextSession: null,
   hasConferenceEnded: false,
   className: '',
-  tomorrowOnly: false
+  tomorrowOnly: false,
+  onSessionClick: null
 };
 
 export default AnimatedNowNextCards;

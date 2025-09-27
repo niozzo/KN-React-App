@@ -4,17 +4,18 @@
  * Addresses QA concerns about missing integration test coverage
  */
 
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import HomePage from '../../pages/HomePage';
 import { AuthProvider } from '../../contexts/AuthContext';
 
 // Mock services
-jest.mock('../../services/agendaService.ts');
-jest.mock('../../services/pwaDataSyncService.ts');
-jest.mock('../../services/dataService.ts');
-jest.mock('../../lib/supabase.js');
-jest.mock('../../services/supabaseClientService.ts');
+vi.mock('../../services/agendaService.ts');
+vi.mock('../../services/pwaDataSyncService.ts');
+vi.mock('../../services/dataService.ts');
+vi.mock('../../lib/supabase.js');
+vi.mock('../../services/supabaseClientService.ts');
 
 describe('Periodic Refresh Integration', () => {
   const mockAuthContext = {
@@ -90,7 +91,7 @@ describe('Periodic Refresh Integration', () => {
 
   afterEach(() => {
     localStorage.clear();
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   const renderHomePage = () => {
@@ -186,7 +187,7 @@ describe('Periodic Refresh Integration', () => {
         new Error('dining_item_metadata sync failed')
       );
 
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation();
 
       // When: Page loads
       renderHomePage();
@@ -213,7 +214,7 @@ describe('Periodic Refresh Integration', () => {
       agendaService.getActiveAgendaItems.mockRejectedValue(new Error('Network error'));
       pwaDataSyncService.getCachedTableData.mockRejectedValue(new Error('Network error'));
 
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation();
 
       // When: Page loads
       renderHomePage();
