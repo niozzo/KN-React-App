@@ -1010,38 +1010,25 @@ export const useSessionData = (options = {}) => {
       
       // Update state only if changed (performance optimization)
       // Don't clear events just because none are currently active - this causes the flash
-      console.log('🕐 REAL-TIME UPDATE: State update decision', {
-        activeEvent: activeEvent ? { id: activeEvent.id, name: activeEvent.name } : null,
-        upcomingEvent: upcomingEvent ? { id: upcomingEvent.id, name: upcomingEvent.name } : null,
-        currentTime: currentTime.toISOString()
-      });
-      
-      setCurrentSession(prev => {
-        // Only update if we found an active event or if we're intentionally clearing
-        if (activeEvent && prev?.id !== activeEvent?.id) {
-          console.log('🕐 REAL-TIME UPDATE: Updating currentSession to active event', {
-            from: prev ? { id: prev.id, name: prev.name } : null,
-            to: { id: activeEvent.id, name: activeEvent.name }
-          });
-          return activeEvent;
-        }
-        
-        // 🔧 FIX: Clear current session if no active event found
-        // This is needed for dining events that should end at midnight
-        if (!activeEvent && prev) {
-          console.log('🕐 REAL-TIME UPDATE: Clearing current session (no active event found)', {
-            previous: { id: prev.id, name: prev.name }
-          });
-          return null;
-        }
-        
-        // Don't clear current event if no active event found - keep the last known state
-        // This prevents the flash to "Conference Not Started" state
-        console.log('🕐 REAL-TIME UPDATE: Keeping current session (no active event found)', {
-          current: prev ? { id: prev.id, name: prev.name } : null
+        setCurrentSession(prev => {
+          // Only update if we found an active event or if we're intentionally clearing
+          if (activeEvent && prev?.id !== activeEvent?.id) {
+            return activeEvent;
+          }
+          
+          // 🔧 FIX: Clear current session if no active event found AND previous event was dining
+          // This allows dining events to end at midnight while preventing session flash
+          if (!activeEvent && prev && prev.type === 'dining') {
+            console.log('🕐 REAL-TIME UPDATE: Clearing dining event (no active event found)', {
+              previous: { id: prev.id, name: prev.name, type: prev.type }
+            });
+            return null;
+          }
+          
+          // Don't clear current event if no active event found - keep the last known state
+          // This prevents the flash to "Conference Not Started" state for sessions
+          return prev;
         });
-        return prev;
-      });
       
       setNextSession(prev => {
         // Only update if we found an upcoming event or if we're intentionally clearing
