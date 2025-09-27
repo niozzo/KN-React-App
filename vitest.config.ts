@@ -65,7 +65,12 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@': '/Users/nickiozzo/Documents/GitHub/KN-React-App/src'
+      '@': '/Users/nickiozzo/Documents/GitHub/KN-React-App/src',
+      // Add explicit aliases for service modules to prevent resolution issues
+      '@/services': '/Users/nickiozzo/Documents/GitHub/KN-React-App/src/services',
+      '@/components': '/Users/nickiozzo/Documents/GitHub/KN-React-App/src/components',
+      '@/hooks': '/Users/nickiozzo/Documents/GitHub/KN-React-App/src/hooks',
+      '@/contexts': '/Users/nickiozzo/Documents/GitHub/KN-React-App/src/contexts'
     },
     extensions: ['.ts', '.tsx', '.js', '.jsx'],
     // Fix TypeScript module resolution
@@ -74,7 +79,11 @@ export default defineConfig({
     // Better module resolution for TypeScript
     preserveSymlinks: false,
     // Add explicit module resolution for services
-    modules: ['node_modules', 'src']
+    modules: ['node_modules', 'src'],
+    // Force TypeScript file resolution in test environment
+    preferRelative: false,
+    // Handle TypeScript imports without extensions
+    fullySpecified: false
   },
   esbuild: {
     target: 'es2020',
@@ -99,6 +108,23 @@ export default defineConfig({
         inline: ['@testing-library/jest-dom', '@testing-library/react'],
         external: ['@supabase/supabase-js']
       }
+    },
+    // Add TypeScript module resolution for test environment
+    resolve: {
+      alias: {
+        '@': '/Users/nickiozzo/Documents/GitHub/KN-React-App/src',
+        '@/services': '/Users/nickiozzo/Documents/GitHub/KN-React-App/src/services',
+        '@/components': '/Users/nickiozzo/Documents/GitHub/KN-React-App/src/components',
+        '@/hooks': '/Users/nickiozzo/Documents/GitHub/KN-React-App/src/hooks',
+        '@/contexts': '/Users/nickiozzo/Documents/GitHub/KN-React-App/src/contexts'
+      },
+      extensions: ['.ts', '.tsx', '.js', '.jsx'],
+      conditions: ['import', 'module', 'browser', 'default'],
+      mainFields: ['module', 'jsnext:main', 'jsnext', 'main'],
+      preserveSymlinks: false,
+      modules: ['node_modules', 'src'],
+      preferRelative: false,
+      fullySpecified: false
     },
     // Mock modules globally
     mockReset: true,

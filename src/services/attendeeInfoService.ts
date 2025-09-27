@@ -5,7 +5,7 @@
  * Provides easy access to logged-in attendee's basic information
  */
 
-import { unifiedCacheService } from './unifiedCacheService';
+import { unifiedCacheService } from './unifiedCacheService.ts';
 
 export interface AttendeeInfo {
   id: string;

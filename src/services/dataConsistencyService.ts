@@ -5,7 +5,7 @@
  * data synchronization issues and prevent UI inconsistencies.
  */
 
-import { toMilliseconds, compareTimestamps, isValidTimestamp } from '../utils/timestampUtils';
+import { toMilliseconds, compareTimestamps, isValidTimestamp } from '../utils/timestampUtils.ts';
 
 export interface ConsistencyReport {
   isConsistent: boolean;

@@ -6,11 +6,11 @@
  * across the application with comprehensive error handling, monitoring, and validation.
  */
 
-import { CacheVersioningService, CacheEntry, ValidationResult } from './cacheVersioningService';
-import { CacheMonitoringService } from './cacheMonitoringService';
-import { CacheMetricsService } from './cacheMetricsService';
-import { DataConsistencyService, CacheState, UIState } from './dataConsistencyService';
-import { trackCacheOperation, trackError } from './monitoringService';
+import { CacheVersioningService, CacheEntry, ValidationResult } from './cacheVersioningService.ts';
+import { CacheMonitoringService } from './cacheMonitoringService.ts';
+import { CacheMetricsService } from './cacheMetricsService.ts';
+import { DataConsistencyService, CacheState, UIState } from './dataConsistencyService.ts';
+import { trackCacheOperation, trackError } from './monitoringService.ts';
 
 export interface CacheHealthStatus {
   isHealthy: boolean;

@@ -5,7 +5,7 @@
  * to ensure cache health and prevent stale data issues.
  */
 
-import { toMilliseconds, isTimestampExpired, getCurrentISOString } from '../utils/timestampUtils';
+import { toMilliseconds, isTimestampExpired, getCurrentISOString } from '../utils/timestampUtils.ts';
 
 export interface CacheEntry {
   data: any;

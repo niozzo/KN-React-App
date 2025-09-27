@@ -1,7 +1,7 @@
 // Application Database Service
 import { createClient } from '@supabase/supabase-js';
-import { BaseService } from './baseService';
-import { serviceRegistry } from './ServiceRegistry.js';
+import { BaseService } from './baseService.ts';
+import { serviceRegistry } from './ServiceRegistry.ts';
 
 const APPLICATION_DB_URL = process.env.VITE_APPLICATION_DB_URL;
 const APPLICATION_DB_ANON_KEY = process.env.VITE_APPLICATION_DB_ANON_KEY;

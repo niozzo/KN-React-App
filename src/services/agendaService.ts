@@ -15,10 +15,10 @@ import type { ICacheService } from './interfaces/ICacheService';
 import type { IUnifiedCacheService } from './interfaces/IUnifiedCacheService';
 import type { ServiceResult } from './interfaces/IAgendaService';
 import { pwaDataSyncService } from './pwaDataSyncService.ts';
-import { cacheMonitoringService } from './cacheMonitoringService';
-import { cacheVersioningService, type CacheEntry } from './cacheVersioningService';
-import { unifiedCacheService } from './unifiedCacheService';
-import { ServerDataSyncService } from './serverDataSyncService';
+import { cacheMonitoringService } from './cacheMonitoringService.ts';
+import { cacheVersioningService, type CacheEntry } from './cacheVersioningService.ts';
+import { unifiedCacheService } from './unifiedCacheService.ts';
+import { ServerDataSyncService } from './serverDataSyncService.ts';
 
 export class AgendaService implements IAgendaService {
   private backgroundRefreshInProgress = false;

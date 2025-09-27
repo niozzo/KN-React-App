@@ -7,11 +7,11 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
-import { applicationDb } from './applicationDatabaseService';
-import { sanitizeAttendeeForStorage } from '../types/attendee';
-import { attendeeInfoService } from './attendeeInfoService';
-import { BaseService } from './baseService';
-import { supabaseClientService } from './supabaseClientService';
+import { applicationDb } from './applicationDatabaseService.ts';
+import { sanitizeAttendeeForStorage } from '../types/attendee.ts';
+import { attendeeInfoService } from './attendeeInfoService.ts';
+import { BaseService } from './baseService.ts';
+import { supabaseClientService } from './supabaseClientService.ts';
 
 export interface ServerSyncResult {
   success: boolean;
