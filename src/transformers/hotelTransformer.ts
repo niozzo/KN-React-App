@@ -136,7 +136,7 @@ export class HotelTransformer extends BaseTransformer<Hotel> {
   /**
    * Handle database schema evolution for hotels
    */
-  private handleSchemaEvolution(dbData: any): any {
+  protected handleSchemaEvolution(dbData: any): any {
     const evolved = { ...dbData }
 
     // Example: Handle field rename from website to website_url
@@ -211,7 +211,7 @@ export class HotelTransformer extends BaseTransformer<Hotel> {
       errors.push('Hotel name is required')
     }
 
-    if (hotel.website_url && !this.isValidUrl(hotel.website_url)) {
+    if (hotel.website && !this.isValidUrl(hotel.website)) {
       errors.push('Invalid website URL format')
     }
 
@@ -219,12 +219,8 @@ export class HotelTransformer extends BaseTransformer<Hotel> {
       errors.push('Invalid phone number format')
     }
 
-    if (hotel.room_rate !== undefined && hotel.room_rate < 0) {
-      errors.push('Room rate cannot be negative')
-    }
-
-    if (hotel.distance_from_venue !== undefined && hotel.distance_from_venue < 0) {
-      errors.push('Distance cannot be negative')
+    if (hotel.display_order !== undefined && hotel.display_order < 0) {
+      errors.push('Display order cannot be negative')
     }
 
     return {
@@ -272,17 +268,17 @@ export class HotelTransformer extends BaseTransformer<Hotel> {
    * Filter active hotels
    */
   filterActiveHotels(hotels: Hotel[]): Hotel[] {
-    return hotels.filter(hotel => hotel.isActive !== false)
+    return hotels.filter(hotel => hotel.is_active !== false)
   }
 
   /**
    * Sort hotels by distance from venue
    */
-  sortHotelsByDistance(hotels: Hotel[]): Hotel[] {
+  sortHotelsByDisplayOrder(hotels: Hotel[]): Hotel[] {
     return [...hotels].sort((a, b) => {
-      const distanceA = a.distance_from_venue || 0
-      const distanceB = b.distance_from_venue || 0
-      return distanceA - distanceB
+      const orderA = a.display_order || 0
+      const orderB = b.display_order || 0
+      return orderA - orderB
     })
   }
 }

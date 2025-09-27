@@ -115,7 +115,7 @@ export class SponsorTransformer extends BaseTransformer<Sponsor> {
   /**
    * Handle database schema evolution for sponsors
    */
-  private handleSchemaEvolution(dbData: any): any {
+  protected handleSchemaEvolution(dbData: any): any {
     const evolved = { ...dbData }
 
     // Example: Handle field rename from logo to logo_url
@@ -174,20 +174,12 @@ export class SponsorTransformer extends BaseTransformer<Sponsor> {
       errors.push('Sponsor name is required')
     }
 
-    if (sponsor.logo_url && !this.isValidUrl(sponsor.logo_url)) {
+    if (sponsor.logo && !this.isValidUrl(sponsor.logo)) {
       errors.push('Invalid logo URL format')
     }
 
-    if (sponsor.website_url && !this.isValidUrl(sponsor.website_url)) {
+    if (sponsor.website && !this.isValidUrl(sponsor.website)) {
       errors.push('Invalid website URL format')
-    }
-
-    if (sponsor.contact_email && !this.isValidEmail(sponsor.contact_email)) {
-      errors.push('Invalid contact email format')
-    }
-
-    if (sponsor.sponsor_level && !this.isValidSponsorLevel(sponsor.sponsor_level)) {
-      errors.push('Invalid sponsor level')
     }
 
     return {
@@ -243,6 +235,6 @@ export class SponsorTransformer extends BaseTransformer<Sponsor> {
    * Filter active sponsors
    */
   filterActiveSponsors(sponsors: Sponsor[]): Sponsor[] {
-    return sponsors.filter(sponsor => sponsor.isActive !== false)
+    return sponsors.filter(sponsor => sponsor.is_active !== false)
   }
 }

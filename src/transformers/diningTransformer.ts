@@ -247,12 +247,8 @@ export class DiningTransformer extends BaseTransformer<DiningOption> {
       errors.push('Time is required')
     }
 
-    if (diningOption.price !== undefined && diningOption.price < 0) {
-      errors.push('Price cannot be negative')
-    }
-
-    if (diningOption.max_capacity !== null && diningOption.max_capacity !== undefined && diningOption.max_capacity < 0) {
-      errors.push('Max capacity cannot be negative')
+    if (diningOption.capacity !== undefined && diningOption.capacity < 0) {
+      errors.push('Capacity cannot be negative')
     }
 
     return {

@@ -137,14 +137,14 @@ export class AttendeeTransformer extends BaseTransformer<Attendee> {
     
     // Filter empty objects from arrays
     if (Array.isArray(evolved.dining_selections)) {
-      evolved.dining_selections = evolved.dining_selections.filter(item => 
+      evolved.dining_selections = evolved.dining_selections.filter((item: any) => 
         item !== null && item !== undefined && 
         (typeof item !== 'object' || Object.keys(item).length > 0)
       )
     }
     
     if (Array.isArray(evolved.selected_breakouts)) {
-      evolved.selected_breakouts = evolved.selected_breakouts.filter(item => 
+      evolved.selected_breakouts = evolved.selected_breakouts.filter((item: any) => 
         item !== null && item !== undefined && 
         (typeof item !== 'object' || Object.keys(item).length > 0)
       )
@@ -206,8 +206,12 @@ export class AttendeeTransformer extends BaseTransformer<Attendee> {
       errors.push('Email is required')
     }
 
-    if (attendee.phone && !this.isValidPhone(attendee.phone)) {
-      errors.push('Invalid phone number format')
+    if (attendee.business_phone && !this.isValidPhone(attendee.business_phone)) {
+      errors.push('Invalid business phone number format')
+    }
+    
+    if (attendee.mobile_phone && !this.isValidPhone(attendee.mobile_phone)) {
+      errors.push('Invalid mobile phone number format')
     }
 
     return {
