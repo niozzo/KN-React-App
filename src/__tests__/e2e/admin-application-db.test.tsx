@@ -26,15 +26,13 @@ vi.mock('../../contexts/AuthContext', () => ({
 }));
 
 // Mock application database service
-const mockApplicationDbService = {
-  getSpeakerAssignments: vi.fn(),
-  assignSpeaker: vi.fn(),
-  removeSpeakerAssignment: vi.fn(),
-  syncAgendaItemMetadata: vi.fn()
-};
-
 vi.mock('../../services/applicationDatabaseService', () => ({
-  applicationDbService: mockApplicationDbService
+  applicationDatabaseService: {
+    getSpeakerAssignments: vi.fn(),
+    assignSpeaker: vi.fn(),
+    removeSpeakerAssignment: vi.fn(),
+    syncAgendaItemMetadata: vi.fn()
+  }
 }));
 
 // Mock PWA sync service
@@ -71,6 +69,7 @@ Object.defineProperty(window, 'localStorage', {
 
 // Import components after mocks
 import { AdminApp } from '../../components/AdminApp';
+import { applicationDatabaseService } from '../../services/applicationDatabaseService';
 
 // Helper function to render with router
 const renderWithRouter = (component: React.ReactElement) => {
@@ -121,8 +120,8 @@ describe('Admin Application Database E2E', () => {
     });
 
     // Mock application database service responses
-    mockApplicationDbService.getSpeakerAssignments.mockResolvedValue([]);
-    mockApplicationDbService.assignSpeaker.mockResolvedValue({
+    vi.mocked(applicationDatabaseService.getSpeakerAssignments).mockResolvedValue([]);
+    vi.mocked(applicationDatabaseService.assignSpeaker).mockResolvedValue({
       id: 'assign-1',
       agenda_item_id: 'item-1',
       attendee_id: 'attendee-1',
@@ -130,8 +129,8 @@ describe('Admin Application Database E2E', () => {
       created_at: '2025-01-16T10:00:00Z',
       updated_at: '2025-01-16T10:00:00Z'
     });
-    mockApplicationDbService.removeSpeakerAssignment.mockResolvedValue(undefined);
-    mockApplicationDbService.syncAgendaItemMetadata.mockResolvedValue(undefined);
+    vi.mocked(applicationDatabaseService.removeSpeakerAssignment).mockResolvedValue(undefined);
+    vi.mocked(applicationDatabaseService.syncAgendaItemMetadata).mockResolvedValue(undefined);
 
     // Mock data clearing service
     mockDataClearingService.clearAllData.mockResolvedValue({
@@ -194,7 +193,7 @@ describe('Admin Application Database E2E', () => {
 
     // Wait for assignment to be processed
     await waitFor(() => {
-      expect(mockApplicationDbService.assignSpeaker).toHaveBeenCalledWith(
+      expect(vi.mocked(applicationDatabaseService.assignSpeaker)).toHaveBeenCalledWith(
         'item-1',
         'attendee-1',
         'presenter'
@@ -221,7 +220,7 @@ describe('Admin Application Database E2E', () => {
 
   it('2.1a-E2E-002: should work offline with local storage', async () => {
     // Mock offline scenario - database fails but local storage works
-    mockApplicationDbService.assignSpeaker.mockRejectedValue(new Error('Network error'));
+    vi.mocked(applicationDatabaseService.assignSpeaker).mockRejectedValue(new Error('Network error'));
 
     renderWithRouter(<AdminApp />);
 

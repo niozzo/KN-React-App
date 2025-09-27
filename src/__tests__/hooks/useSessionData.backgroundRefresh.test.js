@@ -14,15 +14,18 @@ import { pwaDataSyncService } from '../../services/pwaDataSyncService.ts';
 vi.mock('../../services/agendaService.ts');
 vi.mock('../../services/pwaDataSyncService.ts');
 vi.mock('../../services/dataService.ts');
-vi.mock('../../contexts/AuthContext');
+vi.mock('../../contexts/AuthContext.tsx', () => ({
+  useAuth: vi.fn()
+}));
 vi.mock('../../lib/supabase.js');
 vi.mock('../../services/supabaseClientService.ts');
 
 describe('useSessionData Background Refresh', () => {
   const mockAgendaService = agendaService;
   const mockPwaDataSyncService = pwaDataSyncService;
+  const mockUseAuth = vi.fn();
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
     
     // Setup localStorage with cached data
@@ -38,7 +41,8 @@ describe('useSessionData Background Refresh', () => {
     localStorage.setItem('kn_cached_sessions', JSON.stringify(mockCachedData));
 
     // Mock authentication
-    require('../../contexts/AuthContext').useAuth.mockReturnValue({
+    const { useAuth } = await import('../../contexts/AuthContext.tsx');
+    vi.mocked(useAuth).mockReturnValue({
       isAuthenticated: true
     });
   });

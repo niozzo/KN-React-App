@@ -31,7 +31,7 @@ export abstract class BaseService {
    * Check if running in local development mode
    */
   protected isLocalMode(): boolean {
-    return import.meta.env.DEV || import.meta.env.MODE === 'development';
+    return process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'dev';
   }
 
   /**

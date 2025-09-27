@@ -10,10 +10,10 @@
 // import { SchemaValidationService } from './schemaValidationService';
 import { supabase } from '../lib/supabase.js';
 import { sanitizeAttendeeForStorage } from '../types/attendee.ts';
-import { applicationDb } from './applicationDatabaseService.ts';
+import { applicationDb } from './applicationDatabaseService';
 import { cacheMonitoringService } from './cacheMonitoringService.ts';
 import { cacheVersioningService, type CacheEntry } from './cacheVersioningService.ts';
-import { BaseService } from './baseService.ts';
+import { BaseService } from './baseService';
 import { isTimestampExpired } from '../utils/timestampUtils.ts';
 import { TABLE_MAPPINGS, getAllApplicationTables, getAllMainTables, isValidApplicationTable, isValidMainTable, type ApplicationTableName, type MainTableName } from '../config/tableMappings.ts';
 import { serviceRegistry } from './ServiceRegistry.ts';

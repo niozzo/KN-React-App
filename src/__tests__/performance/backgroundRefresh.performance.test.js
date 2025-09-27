@@ -12,14 +12,17 @@ import { useSessionData } from '../../hooks/useSessionData';
 vi.mock('../../services/agendaService.ts');
 vi.mock('../../services/pwaDataSyncService.ts');
 vi.mock('../../services/dataService.ts');
-vi.mock('../../contexts/AuthContext');
+vi.mock('../../contexts/AuthContext.tsx', () => ({
+  useAuth: vi.fn()
+}));
 vi.mock('../../lib/supabase.js');
 vi.mock('../../services/supabaseClientService.ts');
 
 describe('Background Refresh Performance', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     // Mock authentication
-    require('../../contexts/AuthContext').useAuth.mockReturnValue({
+    const { useAuth } = await import('../../contexts/AuthContext.tsx');
+    vi.mocked(useAuth).mockReturnValue({
       isAuthenticated: true
     });
 
