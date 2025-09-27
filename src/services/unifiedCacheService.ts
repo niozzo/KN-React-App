@@ -197,6 +197,13 @@ export class UnifiedCacheService {
         lastError = error as Error;
         console.warn(`⚠️ Cache write attempt ${attempt} failed for ${key}:`, error);
         
+        // Clear any corrupted data before retry
+        try {
+          localStorage.removeItem(key);
+        } catch (clearError) {
+          console.warn(`⚠️ Failed to clear corrupted cache for ${key}:`, clearError);
+        }
+        
         if (attempt < maxRetries) {
           // Wait before retry with exponential backoff
           await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 10));

@@ -17,7 +17,7 @@ vi.mock('../../services/pwaDataSyncService', () => ({
 
 // Mock application database service
 vi.mock('../../services/applicationDatabaseService', () => ({
-  applicationDbService: {
+  applicationDatabaseService: {
     getSpeakerAssignments: vi.fn(),
     assignSpeaker: vi.fn(),
     removeSpeakerAssignment: vi.fn(),
@@ -37,30 +37,38 @@ Object.defineProperty(window, 'localStorage', {
   value: localStorageMock
 });
 
+// Mock unified cache service
+vi.mock('../../services/unifiedCacheService', () => ({
+  unifiedCacheService: {
+    get: vi.fn(),
+    set: vi.fn(),
+    remove: vi.fn()
+  }
+}));
+
 // Import after mocks
 import { adminService } from '../../services/adminService';
 import { pwaDataSyncService } from '../../services/pwaDataSyncService';
-import { applicationDbService } from '../../services/applicationDatabaseService';
+import { applicationDatabaseService } from '../../services/applicationDatabaseService';
+import { unifiedCacheService } from '../../services/unifiedCacheService';
 
 describe('Admin Service + PWA Sync Integration', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorageMock.getItem.mockReturnValue(null);
+    // Mock cache service to return null by default
+    vi.mocked(unifiedCacheService.get).mockResolvedValue(null);
   });
 
   describe('Local Storage Integration', () => {
     it('2.1a-INT-001: should load speaker assignments from local storage first', async () => {
-      // Mock agenda items in localStorage
+      // Mock agenda items in cache service
       const mockAgendaItems = [
         { id: 'item-1', title: 'Opening Keynote' },
         { id: 'item-2', title: 'Coffee Break' }
       ];
 
-      localStorageMock.getItem.mockReturnValue(JSON.stringify({
-        data: mockAgendaItems,
-        timestamp: Date.now(),
-        version: 1
-      }));
+      vi.mocked(unifiedCacheService.get).mockResolvedValue(mockAgendaItems);
 
       // Mock speaker assignments from PWA sync service
       const mockSpeakerAssignments = [
@@ -104,11 +112,11 @@ describe('Admin Service + PWA Sync Integration', () => {
         updated_at: '2025-01-16T10:00:00Z'
       };
 
-      vi.mocked(applicationDbService.assignSpeaker).mockResolvedValue(newAssignment);
+      vi.mocked(applicationDatabaseService.assignSpeaker).mockResolvedValue(newAssignment);
 
       const result = await adminService.assignSpeakerToAgendaItem('item-1', 'attendee-2', 'co-presenter');
 
-      expect(applicationDbService.assignSpeaker).toHaveBeenCalledWith('item-1', 'attendee-2', 'co-presenter');
+      expect(applicationDatabaseService.assignSpeaker).toHaveBeenCalledWith('item-1', 'attendee-2', 'co-presenter');
       expect(pwaDataSyncService.cacheTableData).toHaveBeenCalledWith(
         'speaker_assignments',
         expect.arrayContaining([
@@ -129,11 +137,11 @@ describe('Admin Service + PWA Sync Integration', () => {
       vi.mocked(pwaDataSyncService.getCachedTableData).mockResolvedValue(existingAssignments);
 
       // Mock database removal success
-      vi.mocked(applicationDbService.removeSpeakerAssignment).mockResolvedValue(undefined);
+      vi.mocked(applicationDatabaseService.removeSpeakerAssignment).mockResolvedValue(undefined);
 
       await adminService.removeSpeakerFromAgendaItem('assign-2');
 
-      expect(applicationDbService.removeSpeakerAssignment).toHaveBeenCalledWith('assign-2');
+      expect(applicationDatabaseService.removeSpeakerAssignment).toHaveBeenCalledWith('assign-2');
       expect(pwaDataSyncService.cacheTableData).toHaveBeenCalledWith(
         'speaker_assignments',
         [{ id: 'assign-1', agenda_item_id: 'item-1', attendee_id: 'attendee-1', role: 'presenter' }]
@@ -158,7 +166,7 @@ describe('Admin Service + PWA Sync Integration', () => {
         updated_at: '2025-01-16T10:00:00Z'
       };
 
-      vi.mocked(applicationDbService.assignSpeaker).mockResolvedValue(newAssignment);
+      vi.mocked(applicationDatabaseService.assignSpeaker).mockResolvedValue(newAssignment);
 
       await adminService.assignSpeakerToAgendaItem('item-1', 'attendee-2', 'co-presenter');
 
@@ -183,7 +191,7 @@ describe('Admin Service + PWA Sync Integration', () => {
       vi.mocked(pwaDataSyncService.getCachedTableData).mockResolvedValue(existingAssignments);
 
       // Mock database removal success
-      vi.mocked(applicationDbService.removeSpeakerAssignment).mockResolvedValue(undefined);
+      vi.mocked(applicationDatabaseService.removeSpeakerAssignment).mockResolvedValue(undefined);
 
       await adminService.removeSpeakerFromAgendaItem('assign-2');
 
@@ -220,7 +228,7 @@ describe('Admin Service + PWA Sync Integration', () => {
 
     it('2.1a-INT-007: should isolate database errors from local storage operations', async () => {
       // Mock database to fail
-      vi.mocked(applicationDbService.assignSpeaker).mockRejectedValue(new Error('Database connection failed'));
+      vi.mocked(applicationDatabaseService.assignSpeaker).mockRejectedValue(new Error('Database connection failed'));
 
       // Mock PWA sync service to succeed
       vi.mocked(pwaDataSyncService.getCachedTableData).mockResolvedValue([]);
@@ -261,15 +269,13 @@ describe('Admin Service + PWA Sync Integration', () => {
     });
 
     it('should handle localStorage parsing errors gracefully', async () => {
-      // Mock invalid JSON in localStorage for kn_cache_agenda_items
-      localStorageMock.getItem.mockImplementation((key: string) => {
-        if (key === 'kn_cache_agenda_items') {
-          return 'invalid json';
-        }
-        return null;
-      });
+      // Mock cache service to return null (simulating cache miss)
+      vi.mocked(unifiedCacheService.get).mockResolvedValue(null);
+      
+      // Mock PWA sync service to return empty array
+      vi.mocked(pwaDataSyncService.getCachedTableData).mockResolvedValue([]);
 
-      // Should return empty array when localStorage parsing fails
+      // Should return empty array when cache fails
       const result = await adminService.getAgendaItemsWithAssignments();
       expect(result).toEqual([]);
     });

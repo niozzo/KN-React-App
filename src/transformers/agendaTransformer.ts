@@ -18,7 +18,7 @@ export class AgendaTransformer extends BaseTransformer<AgendaItem> {
       { source: 'end_time', target: 'end_time', type: 'string', required: true },
       { source: 'location', target: 'location', type: 'string', defaultValue: '' },
       { source: 'type', target: 'session_type', type: 'string', defaultValue: 'general' },
-      { source: 'speaker', target: 'speaker_name', type: 'object', defaultValue: null },
+      { source: 'speaker', target: 'speaker_name', type: 'string', defaultValue: null },
       { source: 'capacity', target: 'capacity', type: 'number', defaultValue: null },
       { source: 'registered_count', target: 'registered_count', type: 'number', defaultValue: 0 },
       { source: 'attendee_selection', target: 'attendee_selection', type: 'string', defaultValue: 'everyone' },
@@ -88,6 +88,11 @@ export class AgendaTransformer extends BaseTransformer<AgendaItem> {
           // Handle object with name property (in case it's structured data)
           if (typeof speaker === 'object' && speaker.name) {
             return speaker.name
+          }
+
+          // Handle object with value property (new structure)
+          if (typeof speaker === 'object' && speaker.value) {
+            return speaker.value
           }
 
           return ''
@@ -190,7 +195,12 @@ export class AgendaTransformer extends BaseTransformer<AgendaItem> {
       case '2.0.0':
         // Handle renamed speaker field
         if (evolved.speaker_name && !evolved.speaker) {
-          evolved.speaker = evolved.speaker_name
+          // Handle both string and object formats
+          if (typeof evolved.speaker_name === 'string') {
+            evolved.speaker = evolved.speaker_name
+          } else if (typeof evolved.speaker_name === 'object' && evolved.speaker_name.value) {
+            evolved.speaker = evolved.speaker_name.value
+          }
         }
         break
         
