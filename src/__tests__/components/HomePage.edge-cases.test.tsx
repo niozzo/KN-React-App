@@ -4,6 +4,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { TimeService } from '../../services/timeService';
 
 // Mock serverDataSyncService
 vi.mock('../../services/serverDataSyncService', () => ({
@@ -284,6 +285,75 @@ describe('HomePage Edge Cases', () => {
       renderWithRouter(<HomePage />);
 
       expect(screen.getByText('Now & Next')).toBeInTheDocument();
+    });
+
+    it('should display just the date when current date is on or after conference start date', () => {
+      // Mock current time to be on the conference start date
+      const mockCurrentTime = new Date('2025-12-25T10:00:00Z');
+      vi.spyOn(TimeService, 'getCurrentTime').mockReturnValue(mockCurrentTime);
+
+      const futureSessions = [
+        {
+          id: '1',
+          title: 'Conference Session',
+          start_time: '14:00:00',
+          end_time: '15:00:00',
+          date: '2025-12-25', // Same date as current time
+          location: 'Room A'
+        }
+      ];
+
+      mockUseSessionData.mockReturnValue({
+        currentSession: null,
+        nextSession: null,
+        sessions: futureSessions,
+        attendee: { id: '1', name: 'Test User' },
+        seatAssignments: [],
+        isLoading: false,
+        isOffline: false,
+        error: null,
+        refresh: vi.fn()
+      });
+
+      renderWithRouter(<HomePage />);
+
+      // Should show just the date without "Scheduled Start Date:" prefix
+      expect(screen.getByText('Dec 25, 2025')).toBeInTheDocument();
+      expect(screen.queryByText('Scheduled Start Date: Dec 25, 2025')).not.toBeInTheDocument();
+    });
+
+    it('should display "Scheduled Start Date:" prefix when current date is before conference start date', () => {
+      // Mock current time to be before the conference start date
+      const mockCurrentTime = new Date('2025-12-24T10:00:00Z');
+      vi.spyOn(TimeService, 'getCurrentTime').mockReturnValue(mockCurrentTime);
+
+      const futureSessions = [
+        {
+          id: '1',
+          title: 'Conference Session',
+          start_time: '14:00:00',
+          end_time: '15:00:00',
+          date: '2025-12-25', // Future date
+          location: 'Room A'
+        }
+      ];
+
+      mockUseSessionData.mockReturnValue({
+        currentSession: null,
+        nextSession: null,
+        sessions: futureSessions,
+        attendee: { id: '1', name: 'Test User' },
+        seatAssignments: [],
+        isLoading: false,
+        isOffline: false,
+        error: null,
+        refresh: vi.fn()
+      });
+
+      renderWithRouter(<HomePage />);
+
+      // Should show with "Scheduled Start Date:" prefix
+      expect(screen.getByText('Scheduled Start Date: Dec 25, 2025')).toBeInTheDocument();
     });
 
     it('should handle missing sessions data gracefully', () => {

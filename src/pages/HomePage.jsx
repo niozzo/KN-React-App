@@ -146,6 +146,56 @@ const HomePage = () => {
     });
   };
 
+  // Get the raw conference start date for comparison
+  const getConferenceStartDateRaw = () => {
+    const allDates = [];
+    
+    // Collect dates from agenda items
+    if (allSessions && allSessions.length > 0) {
+      allSessions.forEach(session => {
+        if (session.date) {
+          allDates.push(session.date);
+        }
+      });
+    }
+    
+    // Collect dates from dining options
+    if (diningOptions && diningOptions.length > 0) {
+      diningOptions.forEach(dining => {
+        if (dining.date) {
+          allDates.push(dining.date);
+        }
+      });
+    }
+    
+    // If no dates found, return null
+    if (allDates.length === 0) {
+      return null;
+    }
+    
+    // Find the earliest date
+    return allDates.sort()[0];
+  };
+
+  // Determine if we should show "Scheduled Start Date:" prefix or just the date
+  const getDateDisplayText = () => {
+    const conferenceStartDate = getConferenceStartDateRaw();
+    if (!conferenceStartDate) {
+      return 'TBD';
+    }
+
+    const currentTime = TimeService.getCurrentTime();
+    const currentDate = currentTime.toISOString().split('T')[0]; // YYYY-MM-DD format
+    
+    // If current date is on or after the conference start date, show just the date
+    if (currentDate >= conferenceStartDate) {
+      return getConferenceStartDate();
+    }
+    
+    // Before the conference start date, show with prefix
+    return `Scheduled Start Date: ${getConferenceStartDate()}`;
+  };
+
   // Determine if next session is tomorrow
   const isNextSessionTomorrow = () => {
     if (!nextSession || !nextSession.date) return false;
@@ -450,7 +500,7 @@ const HomePage = () => {
               ? 'Tomorrow' 
               : hasConferenceStarted 
                 ? 'Now & Next' 
-                : `Scheduled Start Date: ${getConferenceStartDate()}`
+                : getDateDisplayText()
           }
         </h2>
         <AnimatedNowNextCards
