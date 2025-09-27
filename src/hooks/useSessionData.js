@@ -579,6 +579,19 @@ export const useSessionData = (options = {}) => {
         }
       });
       
+      // 🔍 DEBUG: Log the final active event selection
+      console.log('🍽️ FINAL ACTIVE EVENT:', {
+        activeEvent: activeEvent ? {
+          id: activeEvent.id,
+          name: activeEvent.name,
+          type: activeEvent.type,
+          start_time: activeEvent.start_time,
+          date: activeEvent.date
+        } : null,
+        totalEvents: combinedEvents.length,
+        diningEvents: combinedEvents.filter(e => e.type === 'dining').length
+      });
+      
       // Find the next upcoming event (session or dining)
       const upcomingEvent = combinedEvents
         .filter(event => {
@@ -614,8 +627,30 @@ export const useSessionData = (options = {}) => {
         };
       };
 
-      setCurrentSession(enhanceEventWithSeatInfo(activeEvent) || null);
-      setNextSession(enhanceEventWithSeatInfo(upcomingEvent) || null);
+      const enhancedActiveEvent = enhanceEventWithSeatInfo(activeEvent);
+      const enhancedUpcomingEvent = enhanceEventWithSeatInfo(upcomingEvent);
+      
+      // 🔍 DEBUG: Log state updates
+      console.log('🍽️ STATE UPDATE DEBUG:', {
+        activeEvent: activeEvent ? {
+          id: activeEvent.id,
+          name: activeEvent.name,
+          type: activeEvent.type
+        } : null,
+        enhancedActiveEvent: enhancedActiveEvent ? {
+          id: enhancedActiveEvent.id,
+          name: enhancedActiveEvent.name,
+          type: enhancedActiveEvent.type
+        } : null,
+        upcomingEvent: upcomingEvent ? {
+          id: upcomingEvent.id,
+          name: upcomingEvent.name,
+          type: upcomingEvent.type
+        } : null
+      });
+      
+      setCurrentSession(enhancedActiveEvent || null);
+      setNextSession(enhancedUpcomingEvent || null);
       
       // 🔍 DEBUG: Enhanced logging for current/next session determination
       console.log('🍽️ DINING DEBUG: Current/Next session analysis', {
