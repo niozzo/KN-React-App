@@ -877,7 +877,7 @@ export const useSessionData = (options = {}) => {
             from: prev ? { id: prev.id, name: prev.name } : null,
             to: activeEvent ? { id: activeEvent.id, name: activeEvent.name } : null
           });
-          return activeEvent;
+          return activeEvent || null; // ✅ Ensure null instead of undefined
         }
         return prev;
       });
@@ -888,7 +888,7 @@ export const useSessionData = (options = {}) => {
             from: prev ? { id: prev.id, name: prev.name } : null,
             to: upcomingEvent ? { id: upcomingEvent.id, name: upcomingEvent.name } : null
           });
-          return upcomingEvent;
+          return upcomingEvent || null; // ✅ Ensure null instead of undefined
         }
         return prev;
       });
@@ -1020,8 +1020,8 @@ export const useSessionData = (options = {}) => {
       });
       
       // Direct state updates - eliminates callback complexity that was causing the bug
-      setCurrentSession(activeEvent || null);
-      setNextSession(upcomingEvent || null);
+      setCurrentSession(activeEvent || null); // ✅ Ensure null instead of undefined
+      setNextSession(upcomingEvent || null); // ✅ Ensure null instead of undefined
     };
 
     // Set up interval for real-time updates (every second)

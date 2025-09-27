@@ -116,6 +116,11 @@ const AnimatedNowNextCards = React.memo(({
       return null;
     }
     
+    // ✅ Add null/undefined check with component guard
+    if (!currentSession || typeof currentSession !== 'object') {
+      return null;
+    }
+    
     // During now-to-next animation, show the new current session as Now
     if (currentSession) {
       return (
@@ -146,6 +151,13 @@ const AnimatedNowNextCards = React.memo(({
 
   // Render Next card
   const renderNextCard = () => {
+    // ✅ Add null/undefined check with component guard for nextSession
+    if (!nextSession || typeof nextSession !== 'object') {
+      // Only return null if we're not in a transition state
+      if (!isTransitioning) {
+        return null;
+      }
+    }
 
     // During now-to-next animation, show the old Now card sliding down as Next
     if (isTransitioning && transitionType === 'now-to-next' && previousSessions.current) {
@@ -353,34 +365,40 @@ const AnimatedNowNextCards = React.memo(({
 });
 
 AnimatedNowNextCards.propTypes = {
-  currentSession: PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    title: PropTypes.string.isRequired,
-    start_time: PropTypes.string,
-    end_time: PropTypes.string,
-    description: PropTypes.string,
-    speaker: PropTypes.string,
-    location: PropTypes.string,
-    isActive: PropTypes.bool,
-    isCoffeeBreak: PropTypes.bool,
-    isMeal: PropTypes.bool,
-    category: PropTypes.string,
-    priority: PropTypes.number
-  }),
-  nextSession: PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    title: PropTypes.string.isRequired,
-    start_time: PropTypes.string,
-    end_time: PropTypes.string,
-    description: PropTypes.string,
-    speaker: PropTypes.string,
-    location: PropTypes.string,
-    isActive: PropTypes.bool,
-    isCoffeeBreak: PropTypes.bool,
-    isMeal: PropTypes.bool,
-    category: PropTypes.string,
-    priority: PropTypes.number
-  }),
+  currentSession: PropTypes.oneOfType([
+    PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      title: PropTypes.string.isRequired,
+      start_time: PropTypes.string,
+      end_time: PropTypes.string,
+      description: PropTypes.string,
+      speaker: PropTypes.string,
+      location: PropTypes.string,
+      isActive: PropTypes.bool,
+      isCoffeeBreak: PropTypes.bool,
+      isMeal: PropTypes.bool,
+      category: PropTypes.string,
+      priority: PropTypes.number
+    }),
+    PropTypes.oneOf([null]) // ✅ Explicitly allow null
+  ]),
+  nextSession: PropTypes.oneOfType([
+    PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      title: PropTypes.string.isRequired,
+      start_time: PropTypes.string,
+      end_time: PropTypes.string,
+      description: PropTypes.string,
+      speaker: PropTypes.string,
+      location: PropTypes.string,
+      isActive: PropTypes.bool,
+      isCoffeeBreak: PropTypes.bool,
+      isMeal: PropTypes.bool,
+      category: PropTypes.string,
+      priority: PropTypes.number
+    }),
+    PropTypes.oneOf([null]) // ✅ Explicitly allow null
+  ]),
   hasConferenceStarted: PropTypes.bool.isRequired,
   hasConferenceEnded: PropTypes.bool,
   className: PropTypes.string,
