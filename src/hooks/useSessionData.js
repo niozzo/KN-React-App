@@ -1011,8 +1011,18 @@ export const useSessionData = (options = {}) => {
       // Update state only if changed (performance optimization)
       // Don't clear events just because none are currently active - this causes the flash
         setCurrentSession(prev => {
+          console.log('🕐 REAL-TIME UPDATE: State update decision', {
+            activeEvent: activeEvent ? { id: activeEvent.id, name: activeEvent.name, type: activeEvent.type } : null,
+            previous: prev ? { id: prev.id, name: prev.name, type: prev.type } : null,
+            currentTime: currentTime.toISOString()
+          });
+          
           // Only update if we found an active event or if we're intentionally clearing
           if (activeEvent && prev?.id !== activeEvent?.id) {
+            console.log('🕐 REAL-TIME UPDATE: Updating to active event', {
+              from: prev ? { id: prev.id, name: prev.name } : null,
+              to: { id: activeEvent.id, name: activeEvent.name }
+            });
             return activeEvent;
           }
           
@@ -1027,6 +1037,9 @@ export const useSessionData = (options = {}) => {
           
           // Don't clear current event if no active event found - keep the last known state
           // This prevents the flash to "Conference Not Started" state for sessions
+          console.log('🕐 REAL-TIME UPDATE: Keeping current session (no active event found)', {
+            current: prev ? { id: prev.id, name: prev.name, type: prev.type } : null
+          });
           return prev;
         });
       
