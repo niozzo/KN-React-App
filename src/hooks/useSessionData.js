@@ -83,7 +83,16 @@ const isDiningActive = (dining, currentTime) => {
   const currentDateString = currentTime.toISOString().split('T')[0]; // YYYY-MM-DD
   const diningDateString = dining.date; // Already in YYYY-MM-DD format
   
-  const isActive = currentDateString === diningDateString;
+  // 🔧 FIX: When time override is active, compare with override date, not real date
+  let isActive = currentDateString === diningDateString;
+  
+  // If time override is active, check if we're still on the same day as the dining event
+  // This ensures dining events stay active until midnight of the override day
+  if (TimeService.isOverrideActive()) {
+    const overrideTime = TimeService.getCurrentTime();
+    const overrideDateString = overrideTime.toISOString().split('T')[0];
+    isActive = overrideDateString === diningDateString;
+  }
   
   // 🔍 DEBUG: Detailed logging for dining active determination
   console.log('🍽️ isDiningActive DEBUG:', {
