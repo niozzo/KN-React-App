@@ -591,8 +591,19 @@ export const useSessionData = (options = {}) => {
           date: activeEvent.date
         } : null,
         totalEvents: combinedEvents.length,
-        diningEvents: combinedEvents.filter(e => e.type === 'dining').length
+        diningEvents: combinedEvents.filter(e => e.type === 'dining').length,
+        currentTime: currentTime.toISOString()
       });
+      
+      // 🔍 DEBUG: Log all events being evaluated
+      console.log('🍽️ ALL EVENTS EVALUATION:', combinedEvents.map(event => ({
+        id: event.id,
+        name: event.name,
+        type: event.type,
+        date: event.date,
+        start_time: event.start_time,
+        isActive: event.type === 'dining' ? isDiningActive(event, currentTime) : isSessionActive(event, currentTime)
+      })));
       
       // Find the next upcoming event (session or dining)
       const upcomingEvent = combinedEvents
@@ -648,7 +659,8 @@ export const useSessionData = (options = {}) => {
           id: upcomingEvent.id,
           name: upcomingEvent.name,
           type: upcomingEvent.type
-        } : null
+        } : null,
+        currentTime: currentTime.toISOString()
       });
       
       setCurrentSession(enhancedActiveEvent || null);
