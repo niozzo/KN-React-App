@@ -56,21 +56,55 @@ const isSessionUpcoming = (session, currentTime) => {
  */
 const isDiningActive = (dining, currentTime) => {
   // After mergeAndSortEvents, dining events have start_time and date fields
-  if (!dining.start_time || !dining.date) return false;
+  if (!dining.start_time || !dining.date) {
+    console.log('🍽️ isDiningActive: Missing required fields', {
+      dining: dining,
+      hasStartTime: !!dining.start_time,
+      hasDate: !!dining.date
+    });
+    return false;
+  }
   
   const start = new Date(`${dining.date}T${dining.start_time}`);
   
   // Check if current time is before the start time
-  if (currentTime < start) return false;
+  if (currentTime < start) {
+    console.log('🍽️ isDiningActive: Current time before start time', {
+      dining: dining.name,
+      currentTime: currentTime.toISOString(),
+      startTime: start.toISOString(),
+      isBeforeStart: currentTime < start
+    });
+    return false;
+  }
   
   // Check if current time is on the same day as the dining event
   // Use date strings for comparison to avoid timezone issues
   const currentDateString = currentTime.toISOString().split('T')[0]; // YYYY-MM-DD
   const diningDateString = dining.date; // Already in YYYY-MM-DD format
   
+  const isActive = currentDateString === diningDateString;
+  
+  // 🔍 DEBUG: Detailed logging for dining active determination
+  console.log('🍽️ isDiningActive DEBUG:', {
+    dining: {
+      id: dining.id,
+      name: dining.name,
+      date: dining.date,
+      start_time: dining.start_time,
+      end_time: dining.end_time
+    },
+    currentTime: currentTime.toISOString(),
+    currentDateString: currentDateString,
+    diningDateString: diningDateString,
+    startTime: start.toISOString(),
+    isAfterStart: currentTime >= start,
+    isActive: isActive
+  });
+  
   // If we're on the same day, the dining event is still active
   // If we've crossed to the next day, the dining event is no longer active
-  return currentDateString === diningDateString;
+  return isActive;
 };
 
 /**
@@ -120,6 +154,17 @@ const mergeAndSortEvents = (sessions, diningOptions) => {
     title: dining.name,
     session_type: 'meal'
   }));
+  
+  // 🔍 DEBUG: Log dining events after merge
+  console.log('🍽️ MERGE DEBUG: Dining events after merge', diningEvents.map(d => ({
+    id: d.id,
+    name: d.name,
+    date: d.date,
+    time: d.time,
+    start_time: d.start_time,
+    end_time: d.end_time,
+    type: d.type
+  })));
   
   // Combine sessions and dining events
   const allEvents = [...sessions, ...diningEvents];
@@ -481,6 +526,17 @@ export const useSessionData = (options = {}) => {
         loadSource: loadSource
       });
       
+      // 🔍 DEBUG: Cache data structure analysis
+      console.log('🍽️ CACHED DINING DATA STRUCTURE:', diningData.map(d => ({
+        id: d.id,
+        name: d.name,
+        date: d.date,
+        time: d.time,
+        start_time: d.start_time,
+        end_time: d.end_time,
+        type: d.type
+      })));
+      
       // Set filtered sessions for backward compatibility
       setSessions(filteredSessions);
 
@@ -511,7 +567,13 @@ export const useSessionData = (options = {}) => {
       // Find current active event (session or dining)
       const activeEvent = combinedEvents.find(event => {
         if (event.type === 'dining') {
-          return isDiningActive(event, currentTime);
+          const isActive = isDiningActive(event, currentTime);
+          console.log('🍽️ ACTIVE CHECK: Dining event evaluation', {
+            event: event.name,
+            isActive: isActive,
+            currentTime: currentTime.toISOString()
+          });
+          return isActive;
         } else {
           return isSessionActive(event, currentTime);
         }
@@ -679,10 +741,22 @@ export const useSessionData = (options = {}) => {
       // Re-evaluate event states when time override changes
       const currentTime = getCurrentTime();
       
+      console.log('🕐 TIME OVERRIDE CHANGE: Re-evaluating events', {
+        currentTime: currentTime.toISOString(),
+        allEventsCount: allEvents.length,
+        diningEventsCount: allEvents.filter(e => e.type === 'dining').length
+      });
+      
       // Find current active event (session or dining)
       const activeEvent = allEvents.find(event => {
         if (event.type === 'dining') {
-          return isDiningActive(event, currentTime);
+          const isActive = isDiningActive(event, currentTime);
+          console.log('🍽️ TIME OVERRIDE: Dining event evaluation', {
+            event: event.name,
+            isActive: isActive,
+            currentTime: currentTime.toISOString()
+          });
+          return isActive;
         } else {
           return isSessionActive(event, currentTime);
         }
