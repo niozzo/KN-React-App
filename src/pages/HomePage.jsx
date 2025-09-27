@@ -177,10 +177,40 @@ const HomePage = () => {
     return allDates.sort()[0];
   };
 
+  // Get the date of the events being displayed (current or next session)
+  const getDisplayedEventDate = () => {
+    // If there's a current session, use its date
+    if (currentSession && currentSession.date) {
+      return currentSession.date;
+    }
+    
+    // If there's a next session, use its date
+    if (nextSession && nextSession.date) {
+      return nextSession.date;
+    }
+    
+    // Fallback to conference start date
+    return getConferenceStartDateRaw();
+  };
+
+  // Format a date string (YYYY-MM-DD) to display format
+  const formatDateForDisplay = (dateString) => {
+    if (!dateString) return 'TBD';
+    
+    const [year, month, day] = dateString.split('-').map(Number);
+    const date = new Date(year, month - 1, day); // month is 0-indexed in Date constructor
+    
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric' 
+    });
+  };
+
   // Determine if we should show "Scheduled Start Date:" prefix or just the date
   const getDateDisplayText = () => {
-    const conferenceStartDate = getConferenceStartDateRaw();
-    if (!conferenceStartDate) {
+    const displayedEventDate = getDisplayedEventDate();
+    if (!displayedEventDate) {
       return 'TBD';
     }
 
@@ -188,21 +218,23 @@ const HomePage = () => {
     const currentDate = currentTime.toISOString().split('T')[0]; // YYYY-MM-DD format
     
     console.log('🔍 getDateDisplayText Debug:', {
-      conferenceStartDate,
+      displayedEventDate,
       currentDate,
       currentTime: currentTime.toISOString(),
-      comparison: currentDate >= conferenceStartDate
+      comparison: currentDate >= displayedEventDate,
+      currentSession: currentSession ? { title: currentSession.title, date: currentSession.date } : null,
+      nextSession: nextSession ? { title: nextSession.title, date: nextSession.date } : null
     });
     
-    // If current date is on or after the conference start date, show just the date
-    if (currentDate >= conferenceStartDate) {
+    // If current date is on or after the displayed event date, show just the date
+    if (currentDate >= displayedEventDate) {
       console.log('🔍 Showing just date (no prefix)');
-      return getConferenceStartDate();
+      return formatDateForDisplay(displayedEventDate);
     }
     
-    // Before the conference start date, show with prefix
+    // Before the displayed event date, show with prefix
     console.log('🔍 Showing with prefix');
-    return `Scheduled Start Date: ${getConferenceStartDate()}`;
+    return `Scheduled Start Date: ${formatDateForDisplay(displayedEventDate)}`;
   };
 
   // Determine if next session is tomorrow
