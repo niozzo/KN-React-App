@@ -23,23 +23,16 @@ const isSessionActive = (session, currentTime) => {
   
   const start = new Date(`${session.date}T${session.start_time}`);
   
-  // Check if current time is before the start time
-  if (currentTime < start) return false;
-  
-  // If session has an explicit end time, use it
+  // If no end time, assume it ends at midnight
+  let end;
   if (session.end_time) {
-    const end = new Date(`${session.date}T${session.end_time}`);
-    return currentTime <= end;
+    end = new Date(`${session.date}T${session.end_time}`);
+  } else {
+    // Set end time to midnight of the same day
+    end = new Date(`${session.date}T23:59:59`);
   }
   
-  // If no end time, assume it ends at midnight of the same day
-  // Use date strings for comparison to avoid timezone issues
-  const currentDateString = currentTime.toISOString().split('T')[0]; // YYYY-MM-DD
-  const sessionDateString = session.date; // Already in YYYY-MM-DD format
-  
-  // If we're on the same day, the session is still active
-  // If we've crossed to the next day, the session is no longer active
-  return currentDateString === sessionDateString;
+  return currentTime >= start && currentTime <= end;
 };
 
 /**
@@ -121,7 +114,7 @@ const mergeAndSortEvents = (sessions, diningOptions) => {
     ...dining,
     type: 'dining',
     start_time: dining.time,
-    end_time: dining.time, // Dining events use same time for start/end
+    end_time: null, // Dining events have no explicit end time - will default to midnight
     title: dining.name,
     session_type: 'meal'
   }));
