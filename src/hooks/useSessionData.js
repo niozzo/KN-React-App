@@ -23,16 +23,23 @@ const isSessionActive = (session, currentTime) => {
   
   const start = new Date(`${session.date}T${session.start_time}`);
   
-  // If no end time, assume it ends at midnight
-  let end;
+  // Check if current time is before the start time
+  if (currentTime < start) return false;
+  
+  // If session has an explicit end time, use it
   if (session.end_time) {
-    end = new Date(`${session.date}T${session.end_time}`);
-  } else {
-    // Set end time to midnight of the same day
-    end = new Date(`${session.date}T23:59:59`);
+    const end = new Date(`${session.date}T${session.end_time}`);
+    return currentTime <= end;
   }
   
-  return currentTime >= start && currentTime <= end;
+  // If no end time, check if current time is on the same day as the session
+  // Use date strings for comparison to avoid timezone issues
+  const currentDateString = currentTime.toISOString().split('T')[0]; // YYYY-MM-DD
+  const sessionDateString = session.date; // Already in YYYY-MM-DD format
+  
+  // If we're on the same day, the session is still active
+  // If we've crossed to the next day, the session is no longer active
+  return currentDateString === sessionDateString;
 };
 
 /**
