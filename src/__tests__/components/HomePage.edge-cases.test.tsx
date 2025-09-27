@@ -14,6 +14,15 @@ vi.mock('../../services/serverDataSyncService', () => ({
   }
 }));
 
+// Mock pwaDataSyncService to prevent import errors
+vi.mock('../../services/pwaDataSyncService', () => ({
+  pwaDataSyncService: {
+    getCachedTableData: vi.fn(),
+    cacheTableData: vi.fn(),
+    syncAllData: vi.fn()
+  }
+}));
+
 // Mock Supabase client first to prevent import errors
 vi.mock('@supabase/supabase-js', () => ({
   createClient: vi.fn()
@@ -22,6 +31,25 @@ vi.mock('@supabase/supabase-js', () => ({
 // Mock attendee types to prevent import errors
 vi.mock('../../types/attendee', () => ({
   sanitizeAttendeeForStorage: vi.fn()
+}));
+
+// Mock applicationDatabaseService to prevent import errors
+vi.mock('../../services/applicationDatabaseService', () => ({
+  applicationDatabaseService: {
+    getSpeakerAssignments: vi.fn(),
+    assignSpeaker: vi.fn(),
+    removeSpeakerAssignment: vi.fn(),
+    syncAgendaItemMetadata: vi.fn()
+  },
+  applicationDb: {
+    from: vi.fn(() => ({
+      select: vi.fn(() => ({
+        eq: vi.fn(() => ({
+          single: vi.fn()
+        }))
+      }))
+    }))
+  }
 }));
 
 // Mock attendeeInfoService to prevent import errors

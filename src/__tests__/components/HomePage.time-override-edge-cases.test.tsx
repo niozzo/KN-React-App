@@ -24,6 +24,34 @@ vi.mock('../../services/serverDataSyncService', () => ({
   }
 }));
 
+// Mock pwaDataSyncService to prevent import errors
+vi.mock('../../services/pwaDataSyncService', () => ({
+  pwaDataSyncService: {
+    getCachedTableData: vi.fn(),
+    cacheTableData: vi.fn(),
+    syncAllData: vi.fn()
+  }
+}));
+
+// Mock applicationDatabaseService to prevent import errors
+vi.mock('../../services/applicationDatabaseService', () => ({
+  applicationDatabaseService: {
+    getSpeakerAssignments: vi.fn(),
+    assignSpeaker: vi.fn(),
+    removeSpeakerAssignment: vi.fn(),
+    syncAgendaItemMetadata: vi.fn()
+  },
+  applicationDb: {
+    from: vi.fn(() => ({
+      select: vi.fn(() => ({
+        eq: vi.fn(() => ({
+          single: vi.fn()
+        }))
+      }))
+    }))
+  }
+}));
+
 // Mock the useSessionData hook and its dependencies
 vi.mock('../../hooks/useSessionData', () => ({
   default: vi.fn()

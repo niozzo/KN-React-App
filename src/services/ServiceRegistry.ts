@@ -4,9 +4,9 @@
  */
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const APPLICATION_DB_URL = import.meta.env.VITE_APPLICATION_DB_URL;
-const APPLICATION_DB_ANON_KEY = import.meta.env.VITE_APPLICATION_DB_ANON_KEY;
-const APPLICATION_DB_SERVICE_KEY = import.meta.env.VITE_APPLICATION_DB_SERVICE_KEY;
+const APPLICATION_DB_URL = process.env.VITE_APPLICATION_DB_URL;
+const APPLICATION_DB_ANON_KEY = process.env.VITE_APPLICATION_DB_ANON_KEY;
+const APPLICATION_DB_SERVICE_KEY = process.env.VITE_APPLICATION_DB_SERVICE_KEY;
 
 export class ServiceRegistry {
   private static instance: ServiceRegistry;
