@@ -896,13 +896,16 @@ export const useSessionData = (options = {}) => {
 
     // Listen for time override changes via localStorage (cross-tab)
     const handleStorageChange = (e) => {
+      console.log('🕐 STORAGE CHANGE:', { key: e.key, newValue: e.newValue });
       if (e.key === 'kn_time_override' || e.key === 'kn_time_override_start') {
+        console.log('🕐 STORAGE CHANGE: Triggering time override change');
         handleTimeOverrideChange();
       }
     };
 
     // Listen for time override changes via custom event (same-tab)
     const handleTimeOverrideUpdate = () => {
+      console.log('🕐 CUSTOM EVENT: timeOverrideChanged triggered');
       handleTimeOverrideChange();
     };
     
@@ -969,12 +972,28 @@ export const useSessionData = (options = {}) => {
     const handleRealTimeUpdate = () => {
       const currentTime = getCurrentTime();
       
+      console.log('🕐 REAL-TIME UPDATE: Checking events', {
+        currentTime: currentTime.toISOString(),
+        totalEvents: allEvents.length,
+        isOverrideActive: TimeService.isOverrideActive()
+      });
+      
       // Find current active event (session or dining)
       const activeEvent = allEvents.find(event => {
         if (event.type === 'dining') {
-          return isDiningActive(event, currentTime);
+          const isActive = isDiningActive(event, currentTime);
+          console.log('🕐 REAL-TIME UPDATE: Dining event evaluation', {
+            event: event.name,
+            isActive: isActive
+          });
+          return isActive;
         } else {
-          return isSessionActive(event, currentTime);
+          const isActive = isSessionActive(event, currentTime);
+          console.log('🕐 REAL-TIME UPDATE: Session event evaluation', {
+            event: event.name,
+            isActive: isActive
+          });
+          return isActive;
         }
       });
       
