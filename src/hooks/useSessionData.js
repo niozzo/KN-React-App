@@ -32,7 +32,7 @@ const isSessionActive = (session, currentTime) => {
     return currentTime <= end;
   }
   
-  // If no end time, check if current time is on the same day as the session
+  // If no end time, assume it ends at midnight of the same day
   // Use date strings for comparison to avoid timezone issues
   const currentDateString = currentTime.toISOString().split('T')[0]; // YYYY-MM-DD
   const sessionDateString = session.date; // Already in YYYY-MM-DD format
