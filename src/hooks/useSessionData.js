@@ -78,21 +78,11 @@ const isDiningActive = (dining, currentTime) => {
     return false;
   }
   
-  // Check if current time is on the same day as the dining event
-  // Use date strings for comparison to avoid timezone issues
-  const currentDateString = currentTime.toISOString().split('T')[0]; // YYYY-MM-DD
-  const diningDateString = dining.date; // Already in YYYY-MM-DD format
-  
-  // 🔧 FIX: When time override is active, compare with override date, not real date
-  let isActive = currentDateString === diningDateString;
-  
-  // If time override is active, check if we're still on the same day as the dining event
-  // This ensures dining events stay active until midnight of the override day
-  if (TimeService.isOverrideActive()) {
-    const overrideTime = TimeService.getCurrentTime();
-    const overrideDateString = overrideTime.toISOString().split('T')[0];
-    isActive = overrideDateString === diningDateString;
-  }
+  // Define the local end of the day for the dining event (midnight)
+  const endOfDay = new Date(`${dining.date}T23:59:59`);
+
+  // 🔧 FIX: Dining event is active if current time is after start and before local midnight
+  const isActive = currentTime >= start && currentTime <= endOfDay;
   
   // 🔍 DEBUG: Detailed logging for dining active determination
   console.log('🍽️ isDiningActive DEBUG:', {
@@ -104,10 +94,10 @@ const isDiningActive = (dining, currentTime) => {
       end_time: dining.end_time
     },
     currentTime: currentTime.toISOString(),
-    currentDateString: currentDateString,
-    diningDateString: diningDateString,
     startTime: start.toISOString(),
+    endOfDay: endOfDay.toISOString(),
     isAfterStart: currentTime >= start,
+    isBeforeEndOfDay: currentTime <= endOfDay,
     isActive: isActive
   });
   
