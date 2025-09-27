@@ -187,12 +187,21 @@ const HomePage = () => {
     const currentTime = TimeService.getCurrentTime();
     const currentDate = currentTime.toISOString().split('T')[0]; // YYYY-MM-DD format
     
+    console.log('🔍 getDateDisplayText Debug:', {
+      conferenceStartDate,
+      currentDate,
+      currentTime: currentTime.toISOString(),
+      comparison: currentDate >= conferenceStartDate
+    });
+    
     // If current date is on or after the conference start date, show just the date
     if (currentDate >= conferenceStartDate) {
+      console.log('🔍 Showing just date (no prefix)');
       return getConferenceStartDate();
     }
     
     // Before the conference start date, show with prefix
+    console.log('🔍 Showing with prefix');
     return `Scheduled Start Date: ${getConferenceStartDate()}`;
   };
 
