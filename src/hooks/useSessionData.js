@@ -58,10 +58,18 @@ const isDiningActive = (dining, currentTime) => {
   if (!dining.time || !dining.date) return false;
   
   const start = new Date(`${dining.date}T${dining.time}`);
-  // Dining events end at midnight of the same day if no explicit end time
-  const end = new Date(`${dining.date}T23:59:59`);
   
-  return currentTime >= start && currentTime <= end;
+  // Check if current time is before the start time
+  if (currentTime < start) return false;
+  
+  // Check if current time is on the same day as the dining event
+  // Use date strings for comparison to avoid timezone issues
+  const currentDateString = currentTime.toISOString().split('T')[0]; // YYYY-MM-DD
+  const diningDateString = dining.date; // Already in YYYY-MM-DD format
+  
+  // If we're on the same day, the dining event is still active
+  // If we've crossed to the next day, the dining event is no longer active
+  return currentDateString === diningDateString;
 };
 
 /**
