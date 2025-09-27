@@ -813,6 +813,11 @@ export const useSessionData = (options = {}) => {
       });
       
       // Find current active event (session or dining)
+      console.log('🍽️ TIME OVERRIDE: Starting event search', {
+        totalEvents: allEvents.length,
+        currentTime: currentTime.toISOString()
+      });
+      
       const activeEvent = allEvents.find(event => {
         if (event.type === 'dining') {
           const isActive = isDiningActive(event, currentTime);
@@ -823,8 +828,22 @@ export const useSessionData = (options = {}) => {
           });
           return isActive;
         } else {
-          return isSessionActive(event, currentTime);
+          const isActive = isSessionActive(event, currentTime);
+          console.log('🍽️ TIME OVERRIDE: Session event evaluation', {
+            event: event.name,
+            isActive: isActive,
+            currentTime: currentTime.toISOString()
+          });
+          return isActive;
         }
+      });
+      
+      console.log('🍽️ TIME OVERRIDE: Event search complete', {
+        activeEvent: activeEvent ? {
+          id: activeEvent.id,
+          name: activeEvent.name,
+          type: activeEvent.type
+        } : null
       });
       
       // Find next upcoming event (session or dining)
@@ -839,8 +858,25 @@ export const useSessionData = (options = {}) => {
         .sort(compareEventsByTime)[0]; // Get the first (earliest) upcoming event
       
       // Update state only if changed (performance optimization)
+      console.log('🍽️ TIME OVERRIDE: Setting state values', {
+        activeEvent: activeEvent ? {
+          id: activeEvent.id,
+          name: activeEvent.name,
+          type: activeEvent.type
+        } : null,
+        upcomingEvent: upcomingEvent ? {
+          id: upcomingEvent.id,
+          name: upcomingEvent.name,
+          type: upcomingEvent.type
+        } : null
+      });
+      
       setCurrentSession(prev => {
         if (prev?.id !== activeEvent?.id) {
+          console.log('🍽️ TIME OVERRIDE: Updating currentSession', {
+            from: prev ? { id: prev.id, name: prev.name } : null,
+            to: activeEvent ? { id: activeEvent.id, name: activeEvent.name } : null
+          });
           return activeEvent;
         }
         return prev;
@@ -848,6 +884,10 @@ export const useSessionData = (options = {}) => {
       
       setNextSession(prev => {
         if (prev?.id !== upcomingEvent?.id) {
+          console.log('🍽️ TIME OVERRIDE: Updating nextSession', {
+            from: prev ? { id: prev.id, name: prev.name } : null,
+            to: upcomingEvent ? { id: upcomingEvent.id, name: upcomingEvent.name } : null
+          });
           return upcomingEvent;
         }
         return prev;
