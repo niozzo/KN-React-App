@@ -58,8 +58,8 @@ const isDiningActive = (dining, currentTime) => {
   if (!dining.time || !dining.date) return false;
   
   const start = new Date(`${dining.date}T${dining.time}`);
-  // Dining events are considered active for 2 hours (typical meal duration)
-  const end = new Date(start.getTime() + (2 * 60 * 60 * 1000));
+  // Dining events end at midnight of the same day if no explicit end time
+  const end = new Date(`${dining.date}T23:59:59`);
   
   return currentTime >= start && currentTime <= end;
 };
