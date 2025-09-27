@@ -663,6 +663,21 @@ export const useSessionData = (options = {}) => {
         currentTime: currentTime.toISOString()
       });
       
+      // 🔍 DEBUG: Log the exact values being set
+      console.log('🍽️ SETTING STATE VALUES:', {
+        enhancedActiveEvent: enhancedActiveEvent ? {
+          id: enhancedActiveEvent.id,
+          name: enhancedActiveEvent.name,
+          type: enhancedActiveEvent.type
+        } : null,
+        enhancedUpcomingEvent: enhancedUpcomingEvent ? {
+          id: enhancedUpcomingEvent.id,
+          name: enhancedUpcomingEvent.name,
+          type: enhancedUpcomingEvent.type
+        } : null,
+        currentTime: currentTime.toISOString()
+      });
+      
       setCurrentSession(enhancedActiveEvent || null);
       setNextSession(enhancedUpcomingEvent || null);
       
@@ -793,7 +808,8 @@ export const useSessionData = (options = {}) => {
       console.log('🕐 TIME OVERRIDE CHANGE: Re-evaluating events', {
         currentTime: currentTime.toISOString(),
         allEventsCount: allEvents.length,
-        diningEventsCount: allEvents.filter(e => e.type === 'dining').length
+        diningEventsCount: allEvents.filter(e => e.type === 'dining').length,
+        isOverrideActive: TimeService.isOverrideActive()
       });
       
       // Find current active event (session or dining)
