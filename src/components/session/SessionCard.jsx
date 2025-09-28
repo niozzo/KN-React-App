@@ -65,7 +65,8 @@ const SessionCard = React.memo(({
   const sessionIcon = getSessionIcon(session);
   const hasSpecialStylingForSession = hasSpecialStyling(session);
   
-  // Calculate end time for countdown
+  // Calculate start and end times for countdown
+  const startTime = start_time && date ? new Date(`${date}T${start_time}`) : null;
   const endTime = end_time && date ? new Date(`${date}T${end_time}`) : null;
   
   // Use countdown hook for real-time updates
@@ -73,7 +74,8 @@ const SessionCard = React.memo(({
   const { formattedTime, isActive, minutesRemaining } = useCountdown(endTime, {
     updateInterval: 60000, // Update every minute
     enabled: isNow && shouldShowCountdownForSession,
-    isCoffeeBreak: isCoffeeBreakSession // Special handling for coffee breaks
+    isCoffeeBreak: isCoffeeBreakSession, // Special handling for coffee breaks
+    startTime: startTime // Pass start time for smart countdown logic
   });
 
   // Format time display

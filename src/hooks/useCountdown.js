@@ -62,7 +62,8 @@ export const useCountdown = (endTime, options = {}) => {
     onTick = null,
     enabled = true,
     enableBroadcastIntegration = true,
-    isCoffeeBreak = false // Special handling for coffee breaks
+    isCoffeeBreak = false, // Special handling for coffee breaks
+    startTime = null // Start time for smart countdown logic
   } = options;
 
   const [timeRemaining, setTimeRemaining] = useState(0);
@@ -80,16 +81,36 @@ export const useCountdown = (endTime, options = {}) => {
     return totalMinutes < 5 ? 1000 : updateInterval;
   }, [isCoffeeBreak, timeRemaining, updateInterval]);
 
-  // Calculate time remaining
+  // Calculate time remaining with smart time override handling
   const calculateTimeRemaining = useCallback(() => {
     if (!endTime) return 0;
     
     const end = new Date(endTime);
     const now = getCurrentTime();
-    const remaining = end.getTime() - now.getTime();
     
+    // Smart countdown logic for time overrides during development
+    if (startTime) {
+      const start = new Date(startTime);
+      
+      // If current time is before session starts, don't show countdown
+      if (now.getTime() < start.getTime()) {
+        return 0;
+      }
+      
+      // If current time is after session ends, countdown is complete
+      if (now.getTime() > end.getTime()) {
+        return 0;
+      }
+      
+      // If current time is during the session, calculate remaining time
+      const remaining = end.getTime() - now.getTime();
+      return Math.max(0, remaining);
+    }
+    
+    // Fallback to original logic for sessions without start time
+    const remaining = end.getTime() - now.getTime();
     return Math.max(0, remaining);
-  }, [endTime]);
+  }, [endTime, startTime]);
 
   // Update countdown
   const updateCountdown = useCallback(() => {
