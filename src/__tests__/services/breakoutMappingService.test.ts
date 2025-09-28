@@ -946,7 +946,9 @@ describe('BreakoutMappingService', () => {
       const config = service.getMappingConfig();
       expect(config).toEqual({
         keyPhrases: ['Track A', 'Track B', 'CEO'],
-        caseInsensitive: true
+        caseInsensitive: true,
+        exactMatchPriority: true,
+        fallbackBehavior: 'break'
       });
     });
   });
