@@ -152,10 +152,78 @@ class ApplicationDatabaseService extends BaseService {
         title: agendaItem.title,
         start_time: agendaItem.start_time,
         end_time: agendaItem.end_time,
+        time_override_enabled: agendaItem.time_override_enabled || false,
         last_synced: new Date().toISOString()
       });
     
     if (error) throw error;
+  }
+
+  async updateAgendaItemTimes(
+    agendaItemId: string, 
+    startTime: string, 
+    endTime: string, 
+    enabled: boolean
+  ): Promise<void> {
+    const adminClient = this.getAdminClient();
+    const { error } = await adminClient
+      .from('agenda_item_metadata')
+      .upsert({
+        id: agendaItemId,
+        start_time: startTime,
+        end_time: endTime,
+        time_override_enabled: enabled,
+        last_synced: new Date().toISOString()
+      });
+    
+    if (error) throw error;
+
+    // Emit cache invalidation events for time override updates
+    this.emitTimeOverrideUpdatedEvent(agendaItemId, startTime, endTime, enabled);
+  }
+
+  /**
+   * Emit time override updated event for cache invalidation
+   */
+  private emitTimeOverrideUpdatedEvent(
+    agendaItemId: string, 
+    startTime: string, 
+    endTime: string, 
+    enabled: boolean
+  ): void {
+    try {
+      // Emit custom event for time override updates
+      const event = new CustomEvent('agendaTimeOverrideUpdated', {
+        detail: {
+          agendaItemId,
+          startTime,
+          endTime,
+          enabled,
+          timestamp: new Date().toISOString()
+        }
+      });
+      
+      window.dispatchEvent(event);
+      
+      // Also trigger cache invalidation through service registry
+      serviceRegistry.invalidateCache('agenda_items');
+      serviceRegistry.invalidateCache('agenda_item_metadata');
+      
+      console.log(`🔄 Time override event emitted for agenda item: ${agendaItemId}`);
+    } catch (error) {
+      console.error('❌ Failed to emit time override event:', error);
+    }
+  }
+
+  async getAgendaItemTimeOverrides(): Promise<AgendaItemMetadata[]> {
+    const client = this.getClient();
+    const { data, error } = await client
+      .from('agenda_item_metadata')
+      .select('*')
+      .eq('time_override_enabled', true);
+    
+    if (error) throw error;
+    return data || [];
   }
 
   async syncAttendeeMetadata(attendee: any): Promise<void> {
@@ -246,6 +314,7 @@ export interface AgendaItemMetadata {
   title: string;
   start_time?: string;
   end_time?: string;
+  time_override_enabled?: boolean;
   last_synced: string;
 }
 

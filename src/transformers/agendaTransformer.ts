@@ -257,6 +257,69 @@ export class AgendaTransformer extends BaseTransformer<AgendaItem> {
   }
 
   /**
+   * Transform agenda data with time override support
+   */
+  async transformFromDatabaseWithTimeOverrides(dbData: any, timeOverrides?: Map<string, any>): Promise<AgendaItem> {
+    // First apply standard transformation
+    const transformedItem = this.transformFromDatabase(dbData)
+    
+    // Check if time overrides exist for this item
+    if (timeOverrides && timeOverrides.has(transformedItem.id)) {
+      const override = timeOverrides.get(transformedItem.id)
+      if (override.time_override_enabled) {
+        // Apply time overrides while preserving original times as fallback
+        transformedItem.start_time = override.start_time || transformedItem.start_time
+        transformedItem.end_time = override.end_time || transformedItem.end_time
+        
+        // Recalculate computed fields with override times
+        transformedItem.duration = this.calculateDuration(transformedItem.start_time, transformedItem.end_time)
+        transformedItem.timeRange = `${transformedItem.start_time} - ${transformedItem.end_time}`
+      }
+    }
+    
+    return transformedItem
+  }
+
+  /**
+   * Transform array of agenda items with time overrides
+   */
+  async transformArrayFromDatabaseWithTimeOverrides(dbDataArray: any[], timeOverrides?: Map<string, any>): Promise<AgendaItem[]> {
+    const transformedItems = []
+    
+    for (const dbData of dbDataArray) {
+      const transformedItem = await this.transformFromDatabaseWithTimeOverrides(dbData, timeOverrides)
+      transformedItems.push(transformedItem)
+    }
+    
+    return transformedItems
+  }
+
+  /**
+   * Helper method to calculate duration
+   */
+  private calculateDuration(startTime: string, endTime: string): number | null {
+    if (!startTime || !endTime) return null
+    
+    try {
+      const start = new Date(`2000-01-01T${startTime}`)
+      const end = new Date(`2000-01-01T${endTime}`)
+      
+      // Check if dates are valid
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        return null
+      }
+      
+      const diffMs = end.getTime() - start.getTime()
+      const diffMinutes = Math.round(diffMs / (1000 * 60))
+      
+      // Return null for invalid results
+      return isNaN(diffMinutes) ? null : diffMinutes
+    } catch (error) {
+      return null
+    }
+  }
+
+  /**
    * Get field mapping for schema evolution documentation
    */
   getSchemaEvolutionMapping(): Record<string, string> {
