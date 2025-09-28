@@ -151,7 +151,8 @@ export const TimeOverridePanel: React.FC<TimeOverridePanelProps> = ({
         agendaItemId,
         state.startTime,
         state.endTime,
-        state.enabled
+        state.enabled,
+        currentTitle
       );
 
       setState(prev => ({ ...prev, isLoading: false, hasChanges: false }));

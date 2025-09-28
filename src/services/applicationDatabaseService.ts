@@ -163,7 +163,8 @@ class ApplicationDatabaseService extends BaseService {
     agendaItemId: string, 
     startTime: string, 
     endTime: string, 
-    enabled: boolean
+    enabled: boolean,
+    title?: string
   ): Promise<void> {
     const adminClient = this.getAdminClient();
     
@@ -193,6 +194,7 @@ class ApplicationDatabaseService extends BaseService {
       .from('agenda_item_metadata')
       .upsert({
         id: agendaItemId,
+        title: title || 'Session', // Provide default title if not provided
         start_time: startTimestamp,
         end_time: endTimestamp,
         time_override_enabled: enabled,
