@@ -127,7 +127,7 @@ const HomePage = () => {
       console.error('Error checking if conference has ended:', error);
       return false;
     }
-  }, [allSessions, timeOverrideTrigger]);
+  }, [allSessions, timeOverrideTrigger, currentSession]);
 
   // Listen for time override changes to re-evaluate hasConferenceEnded
   useEffect(() => {
@@ -146,6 +146,20 @@ const HomePage = () => {
       window.removeEventListener('timeOverrideChanged', handleTimeOverrideChange);
     };
   }, []);
+
+  // Listen for session state changes to re-evaluate hasConferenceEnded
+  useEffect(() => {
+    console.log('🔍 Session state changed, re-evaluating hasConferenceEnded', {
+      currentSession: !!currentSession,
+      hasConferenceEnded: hasConferenceEnded
+    });
+    
+    // Trigger re-evaluation when currentSession changes
+    if (!currentSession && hasConferenceEnded === false) {
+      console.log('🔍 No current session and conference not ended - triggering re-evaluation');
+      setTimeOverrideTrigger(prev => prev + 1);
+    }
+  }, [currentSession, hasConferenceEnded]);
 
   // Get the conference start date from the earliest event (agenda items or dining options)
   const getConferenceStartDate = () => {
