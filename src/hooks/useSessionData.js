@@ -11,6 +11,7 @@ import TimeService from '../services/timeService';
 import { useAuth } from '../contexts/AuthContext';
 import { cacheMonitoringService } from '../services/cacheMonitoringService.ts';
 import { pwaDataSyncService } from '../services/pwaDataSyncService.ts';
+import { breakoutMappingService } from '../services/breakoutMappingService.ts';
 
 /**
  * Determine if a session is currently active
@@ -196,8 +197,8 @@ const filterSessionsForAttendee = (sessions, attendee) => {
   
   return sessions.filter(session => {
     if (session.session_type === 'breakout-session') {
-      // TEMPORARY: Hide all breakout sessions until assignment logic is implemented
-      return false;
+      // NEW: Check if attendee is assigned to this breakout using mapping service
+      return breakoutMappingService.isAttendeeAssignedToBreakout(session, attendee);
     } else {
       // Show all other session types (keynote, meal, etc.) to everyone
       return true;
