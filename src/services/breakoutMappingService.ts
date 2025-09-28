@@ -48,6 +48,24 @@ export class BreakoutMappingService {
       return true;
     }
     
+    // Handle the specific format: "track-b-operational-performance" -> "Track B: ..."
+    // Extract track identifier from attendee breakout (e.g., "track-b" from "track-b-operational-performance")
+    const trackMatch = attendeeBreakoutLower.match(/^(track-[ab]|ceo)/);
+    if (trackMatch) {
+      const trackId = trackMatch[1];
+      
+      // Map track identifiers to session title patterns
+      if (trackId === 'track-a' && sessionTitle.includes('track a')) {
+        return true;
+      }
+      if (trackId === 'track-b' && sessionTitle.includes('track b')) {
+        return true;
+      }
+      if (trackId === 'ceo' && sessionTitle.includes('ceo')) {
+        return true;
+      }
+    }
+    
     // Then try key phrase matching for partial matches
     for (const phrase of this.mappingConfig.keyPhrases) {
       const phraseLower = phrase.toLowerCase();

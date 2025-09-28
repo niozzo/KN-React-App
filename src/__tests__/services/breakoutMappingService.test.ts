@@ -763,6 +763,94 @@ describe('BreakoutMappingService', () => {
       expect(result).toBe(false);
     });
 
+    // Test the specific format from the user's data
+    it('should match track-b-operational-performance format correctly', () => {
+      const attendee: Attendee = {
+        id: '1',
+        selected_breakouts: ['track-b-operational-performance'],
+        first_name: 'John',
+        last_name: 'Doe',
+        email: 'john@example.com',
+        title: 'CEO',
+        company: 'Test Corp',
+        bio: '',
+        photo: '',
+        business_phone: '',
+        mobile_phone: '',
+        address1: '',
+        address2: '',
+        postal_code: '',
+        city: '',
+        state: '',
+        country: '',
+        country_code: '',
+        check_in_date: '',
+        check_out_date: '',
+        hotel_selection: '',
+        custom_hotel: '',
+        room_type: '',
+        registration_id: '',
+        registration_status: '',
+        access_code: '',
+        has_spouse: false,
+        spouse_details: {
+          email: '',
+          lastName: '',
+          firstName: '',
+          salutation: '',
+          mobilePhone: '',
+          dietaryRequirements: ''
+        },
+        dining_selections: {},
+        attributes: {
+          ceo: false,
+          apaxIP: false,
+          spouse: false,
+          apaxOEP: false,
+          speaker: false,
+          cLevelExec: false,
+          sponsorAttendee: false,
+          otherAttendeeType: false,
+          portfolioCompanyExecutive: false
+        },
+        dietary_requirements: '',
+        assistant_name: '',
+        assistant_email: '',
+        idloom_id: '',
+        last_synced_at: '',
+        created_at: '',
+        updated_at: '',
+        is_cfo: false,
+        is_apax_ep: false,
+        primary_attendee_id: null,
+        is_spouse: false,
+        company_name_standardized: ''
+      };
+      const session: AgendaItem = {
+        id: 'session-track-b',
+        title: 'Track B: Driving Operational Performance In the Age of AI',
+        description: 'Description',
+        date: '2025-01-01',
+        start_time: '09:00:00',
+        end_time: '12:00:00',
+        location: 'Room 1',
+        session_type: 'breakout-session',
+        speaker_name: null,
+        capacity: 100,
+        registered_count: 50,
+        attendee_selection: 'selected',
+        selected_attendees: [],
+        isActive: true,
+        has_seating: false,
+        seating_notes: '',
+        seating_type: 'open',
+        created_at: '',
+        updated_at: ''
+      };
+      const result = service.isAttendeeAssignedToBreakout(session, attendee);
+      expect(result).toBe(true);
+    });
+
     // Edge case: Null/undefined selected_breakouts
     it('should return false when selected_breakouts is null', () => {
       const attendee: Attendee = {
