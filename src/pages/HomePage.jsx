@@ -207,6 +207,40 @@ const HomePage = () => {
     });
   };
 
+  // Determine if two sessions are on different days
+  const areSessionsOnDifferentDays = (session1, session2) => {
+    if (!session1?.date || !session2?.date) return false;
+    return session1.date !== session2.date;
+  };
+
+  // Get the date title to display above cards
+  const getDateTitle = () => {
+    // If we have both current and next sessions
+    if (currentSession && nextSession) {
+      // Check if they're on different days
+      if (areSessionsOnDifferentDays(currentSession, nextSession)) {
+        // Show the current session's date above the entire section
+        return formatDateForDisplay(currentSession.date);
+      } else {
+        // Same day - show the date above the entire section
+        return formatDateForDisplay(currentSession.date);
+      }
+    }
+    
+    // If we only have a current session
+    if (currentSession && !nextSession) {
+      return formatDateForDisplay(currentSession.date);
+    }
+    
+    // If we only have a next session (before conference)
+    if (!currentSession && nextSession) {
+      return formatDateForDisplay(nextSession.date);
+    }
+    
+    // Fallback
+    return null;
+  };
+
   // Determine if we should show "Scheduled Start Date:" prefix or just the date
   const getDateDisplayText = () => {
     const displayedEventDate = getDisplayedEventDate();
@@ -300,9 +334,6 @@ const HomePage = () => {
         )}
 
         <section className="now-next-section">
-          <h2 className="section-title">
-            Thank you for attending!
-          </h2>
           <div className="cards-container">
             <ConferenceEndedCard />
           </div>
@@ -325,7 +356,6 @@ const HomePage = () => {
         )}
 
         <section className="now-next-section">
-          <h2 className="section-title">Now & Next</h2>
           <div className="cards-container">
             <Card className="no-assignments-card" style={{
               background: 'var(--blue-50)',
@@ -388,7 +418,6 @@ const HomePage = () => {
         )}
 
         <section className="now-next-section">
-          <h2 className="section-title">Unable to Load Schedule</h2>
           <div className="cards-container">
             <Card className="data-loading-error-card" style={{
               background: 'var(--red-50)',
@@ -451,9 +480,6 @@ const HomePage = () => {
         )}
 
         <section className="now-next-section">
-          <h2 className="section-title">
-            Conference schedule to start on {getConferenceStartDate()}
-          </h2>
           <div className="cards-container">
             <Card className="conference-not-started-card" style={{
               background: 'var(--blue-50)',
@@ -515,14 +541,18 @@ const HomePage = () => {
 
       {/* Now/Next Section */}
       <section className="now-next-section">
-        <h2 className="section-title">
-          {hasConferenceEnded
-            ? 'Thank you for attending!'
-            : hasConferenceStarted 
-              ? 'Now & Next' 
-              : getDateDisplayText()
-          }
-        </h2>
+        {getDateTitle() && (
+          <h2 className="date-title" style={{
+            fontFamily: 'var(--font-heading)',
+            fontSize: 'var(--text-2xl)',
+            fontWeight: 'var(--font-semibold)',
+            color: 'var(--ink-900)',
+            marginBottom: 'var(--space-lg)',
+            textAlign: 'left'
+          }}>
+            {getDateTitle()}
+          </h2>
+        )}
         <AnimatedNowNextCards
           currentSession={currentSession}
           nextSession={nextSession}

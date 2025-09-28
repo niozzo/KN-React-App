@@ -27,6 +27,35 @@ const isNextSessionTomorrow = (nextSession) => {
 };
 
 /**
+ * Determine if two sessions are on different days
+ * @param {Object} session1 - First session object
+ * @param {Object} session2 - Second session object
+ * @returns {boolean} Whether the sessions are on different days
+ */
+const areSessionsOnDifferentDays = (session1, session2) => {
+  if (!session1?.date || !session2?.date) return false;
+  return session1.date !== session2.date;
+};
+
+/**
+ * Format a date string (YYYY-MM-DD) to display format
+ * @param {string} dateString - Date in YYYY-MM-DD format
+ * @returns {string} Formatted date string
+ */
+const formatDateForDisplay = (dateString) => {
+  if (!dateString) return '';
+  
+  const [year, month, day] = dateString.split('-').map(Number);
+  const date = new Date(year, month - 1, day); // month is 0-indexed in Date constructor
+  
+  return date.toLocaleDateString('en-US', { 
+    month: 'short', 
+    day: 'numeric', 
+    year: 'numeric' 
+  });
+};
+
+/**
  * Animated Now/Next Cards Component
  * Handles smooth transitions when Now/Next sessions change
  * 
@@ -162,6 +191,7 @@ const AnimatedNowNextCards = React.memo(({
     // During now-to-next animation, show the old Now card sliding down as Next
     if (isTransitioning && transitionType === 'now-to-next' && previousSessions.current) {
       const isTomorrow = isNextSessionTomorrow(previousSessions.current);
+      const isDifferentDay = currentSession && areSessionsOnDifferentDays(currentSession, previousSessions.current);
       
       return (
         <div 
@@ -190,6 +220,22 @@ const AnimatedNowNextCards = React.memo(({
               Tomorrow
             </div>
           )}
+          {isDifferentDay && !isTomorrow && (
+            <div 
+              className="different-day-title"
+              style={{
+                fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--font-semibold)',
+                color: 'var(--text-secondary)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                marginBottom: 'var(--space-sm)',
+                textAlign: 'left'
+              }}
+            >
+              {formatDateForDisplay(previousSessions.current.date)}
+            </div>
+          )}
           <SessionCard 
             session={previousSessions.current} 
             variant="next"
@@ -203,6 +249,7 @@ const AnimatedNowNextCards = React.memo(({
     // During next-disappear animation, show the old Next card fading out
     if (isTransitioning && transitionType === 'next-disappear' && previousSessions.next) {
       const isTomorrow = isNextSessionTomorrow(previousSessions.next);
+      const isDifferentDay = currentSession && areSessionsOnDifferentDays(currentSession, previousSessions.next);
       
       return (
         <div 
@@ -231,6 +278,22 @@ const AnimatedNowNextCards = React.memo(({
               Tomorrow
             </div>
           )}
+          {isDifferentDay && !isTomorrow && (
+            <div 
+              className="different-day-title"
+              style={{
+                fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--font-semibold)',
+                color: 'var(--text-secondary)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                marginBottom: 'var(--space-sm)',
+                textAlign: 'left'
+              }}
+            >
+              {formatDateForDisplay(previousSessions.next.date)}
+            </div>
+          )}
           <SessionCard 
             session={previousSessions.next} 
             variant="next"
@@ -244,6 +307,7 @@ const AnimatedNowNextCards = React.memo(({
     // Normal state - show current next session
     if (nextSession) {
       const isTomorrow = isNextSessionTomorrow(nextSession);
+      const isDifferentDay = currentSession && areSessionsOnDifferentDays(currentSession, nextSession);
       
       return (
         <div 
@@ -270,6 +334,22 @@ const AnimatedNowNextCards = React.memo(({
               }}
             >
               Tomorrow
+            </div>
+          )}
+          {isDifferentDay && !isTomorrow && (
+            <div 
+              className="different-day-title"
+              style={{
+                fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--font-semibold)',
+                color: 'var(--text-secondary)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                marginBottom: 'var(--space-sm)',
+                textAlign: 'left'
+              }}
+            >
+              {formatDateForDisplay(nextSession.date)}
             </div>
           )}
           <SessionCard 
