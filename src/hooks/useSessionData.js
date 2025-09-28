@@ -191,19 +191,39 @@ const getCurrentTime = () => {
  * @returns {Array} Filtered sessions
  */
 const filterSessionsForAttendee = (sessions, attendee) => {
+  console.log('🔍 filterSessionsForAttendee called:', {
+    totalSessions: sessions.length,
+    attendeeId: attendee?.id,
+    attendeeSelectedBreakouts: attendee?.selected_breakouts
+  });
+
   if (!attendee) {
+    console.log('❌ No attendee data, returning all sessions');
     return sessions;
   }
   
-  return sessions.filter(session => {
+  const filteredSessions = sessions.filter(session => {
     if (session.session_type === 'breakout-session') {
+      console.log(`🔍 Processing breakout session: "${session.title}"`);
       // NEW: Check if attendee is assigned to this breakout using mapping service
-      return breakoutMappingService.isAttendeeAssignedToBreakout(session, attendee);
+      const isAssigned = breakoutMappingService.isAttendeeAssignedToBreakout(session, attendee);
+      console.log(`📋 Session "${session.title}" - Assigned: ${isAssigned}`);
+      return isAssigned;
     } else {
+      console.log(`✅ Non-breakout session "${session.title}" - showing to everyone`);
       // Show all other session types (keynote, meal, etc.) to everyone
       return true;
     }
   });
+
+  console.log('📊 Filtering results:', {
+    originalCount: sessions.length,
+    filteredCount: filteredSessions.length,
+    breakoutSessions: sessions.filter(s => s.session_type === 'breakout-session').length,
+    filteredBreakoutSessions: filteredSessions.filter(s => s.session_type === 'breakout-session').length
+  });
+
+  return filteredSessions;
 };
 
 /**
