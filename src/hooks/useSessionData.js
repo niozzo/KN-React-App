@@ -58,11 +58,6 @@ const isSessionUpcoming = (session, currentTime) => {
 const isDiningActive = (dining, currentTime) => {
   // After mergeAndSortEvents, dining events have start_time and date fields
   if (!dining.start_time || !dining.date) {
-    console.log('🍽️ isDiningActive: Missing required fields', {
-      dining: dining,
-      hasStartTime: !!dining.start_time,
-      hasDate: !!dining.date
-    });
     return false;
   }
   
@@ -70,12 +65,6 @@ const isDiningActive = (dining, currentTime) => {
   
   // Check if current time is before the start time
   if (currentTime < start) {
-    console.log('🍽️ isDiningActive: Current time before start time', {
-      dining: dining.name,
-      currentTime: currentTime.toISOString(),
-      startTime: start.toISOString(),
-      isBeforeStart: currentTime < start
-    });
     return false;
   }
   
@@ -87,24 +76,7 @@ const isDiningActive = (dining, currentTime) => {
   // 🔧 FIX: Simple local time comparison
   // All times should be in local timezone for proper comparison
   const isActive = currentTime >= start && currentTime <= endOfDay;
-  
-  // 🔍 DEBUG: Detailed logging for dining active determination
-  console.log('🍽️ isDiningActive DEBUG:', {
-    dining: {
-      id: dining.id,
-      name: dining.name,
-      date: dining.date,
-      start_time: dining.start_time,
-      end_time: dining.end_time
-    },
-    currentTime: currentTime.toISOString(),
-    startTime: start.toISOString(),
-    endOfDay: endOfDay.toISOString(),
-    isAfterStart: currentTime >= start,
-    isBeforeEndOfDay: currentTime <= endOfDay,
-    isActive: isActive
-  });
-  
+
   // If we're on the same day, the dining event is still active
   // If we've crossed to the next day, the dining event is no longer active
   return isActive;
@@ -157,18 +129,7 @@ const mergeAndSortEvents = (sessions, diningOptions) => {
     title: dining.name,
     session_type: 'meal'
   }));
-  
-  // 🔍 DEBUG: Log dining events after merge
-  console.log('🍽️ MERGE DEBUG: Dining events after merge', diningEvents.map(d => ({
-    id: d.id,
-    name: d.name,
-    date: d.date,
-    time: d.time,
-    start_time: d.start_time,
-    end_time: d.end_time,
-    type: d.type
-  })));
-  
+
   // Combine sessions and dining events
   const allEvents = [...sessions, ...diningEvents];
   
@@ -191,44 +152,19 @@ const getCurrentTime = () => {
  * @returns {Array} Filtered sessions
  */
 const filterSessionsForAttendee = (sessions, attendee) => {
-  console.log('🔍 filterSessionsForAttendee called:', {
-    totalSessions: sessions.length,
-    attendeeId: attendee?.id,
-    attendeeSelectedBreakouts: attendee?.selected_breakouts
-  });
-
   if (!attendee) {
-    console.log('❌ No attendee data, returning all sessions');
     return sessions;
   }
   
   const filteredSessions = sessions.filter(session => {
-    console.log(`🔍 Session Debug: "${session.title}"`, {
-      sessionType: session.session_type,
-      type: session.type,
-      hasSessionType: 'session_type' in session,
-      hasType: 'type' in session,
-      allKeys: Object.keys(session)
-    });
-    
     if (session.session_type === 'breakout') {
-      console.log(`🔍 Processing breakout session: "${session.title}"`);
       // NEW: Check if attendee is assigned to this breakout using mapping service
       const isAssigned = breakoutMappingService.isAttendeeAssignedToBreakout(session, attendee);
-      console.log(`📋 Session "${session.title}" - Assigned: ${isAssigned}`);
       return isAssigned;
     } else {
-      console.log(`✅ Non-breakout session "${session.title}" - showing to everyone`);
       // Show all other session types (keynote, meal, etc.) to everyone
       return true;
     }
-  });
-
-  console.log('📊 Filtering results:', {
-    originalCount: sessions.length,
-    filteredCount: filteredSessions.length,
-    breakoutSessions: sessions.filter(s => s.session_type === 'breakout').length,
-    filteredBreakoutSessions: filteredSessions.filter(s => s.session_type === 'breakout').length
   });
 
   return filteredSessions;
@@ -259,17 +195,12 @@ const loadFromCache = () => {
         const parsedDining = JSON.parse(diningCacheData);
         if (parsedDining.data && parsedDining.data.length > 0) {
           diningOptions = parsedDining.data;
-          console.log('🏠 CACHE: Found dining data in unified cache:', diningOptions.length, 'records');
         }
-      } catch (diningError) {
-        console.warn('⚠️ Failed to parse dining cache data:', diningError);
-      }
+      } catch (diningError) {      }
     }
     
     return { sessions, diningOptions, allEvents };
-  } catch (error) {
-    console.warn('⚠️ Failed to load cached data:', error);
-    return { sessions: [], diningOptions: [], allEvents: [] };
+  } catch (error) {    return { sessions: [], diningOptions: [], allEvents: [] };
   }
 };
 
@@ -307,16 +238,12 @@ export const useSessionData = (options = {}) => {
     const sessionId = cacheMonitoringService.getSessionId();
     
     // Don't load data if not authenticated
-    if (!isAuthenticated) {
-      console.log('🔄 useSessionData: Not authenticated, skipping data load');
-      cacheMonitoringService.logStateTransition('useSessionData', { authenticated: false }, { authenticated: false }, 'skipped');
+    if (!isAuthenticated) {      cacheMonitoringService.logStateTransition('useSessionData', { authenticated: false }, { authenticated: false }, 'skipped');
       setIsLoading(false);
       return;
     }
 
-    try {
-      console.log('🔄 useSessionData: Starting data load...');
-      cacheMonitoringService.logStateTransition('useSessionData', { loading: false }, { loading: true }, 'start');
+    try {      cacheMonitoringService.logStateTransition('useSessionData', { loading: false }, { loading: true }, 'start');
       setIsLoading(true);
       setError(null);
 
@@ -329,9 +256,7 @@ export const useSessionData = (options = {}) => {
         try {
           const seatData = await getAttendeeSeatAssignments(attendeeData.id);
           setSeatAssignments(seatData);
-        } catch (seatError) {
-          console.warn('⚠️ Could not load seat assignments:', seatError);
-          setSeatAssignments([]);
+        } catch (seatError) {          setSeatAssignments([]);
         }
       }
 
@@ -343,46 +268,32 @@ export const useSessionData = (options = {}) => {
       // Step 1: Try to load from cache first (fastest)
       try {
         const cachedData = loadFromCache();
-        if (cachedData.sessions.length > 0 || cachedData.diningOptions.length > 0) {
-          console.log('🏠 CACHE: Loading data from cache (progressive step 1)');
-          allSessionsData = cachedData.sessions;
+        if (cachedData.sessions.length > 0 || cachedData.diningOptions.length > 0) {          allSessionsData = cachedData.sessions;
           if (cachedData.diningOptions.length > 0) {
             diningData = cachedData.diningOptions;
-            setDiningOptions(diningData);
-            console.log('🏠 CACHE: Using cached dining options from cache');
-          }
+            setDiningOptions(diningData);          }
           if (cachedData.allEvents.length > 0) {
             setAllEvents(cachedData.allEvents);
           }
           loadSource = 'cache';
           cacheMonitoringService.logStateTransition('useSessionData', { sessions: [] }, { sessions: allSessionsData }, 'cache-primary');
         }
-      } catch (cacheError) {
-        console.warn('⚠️ Cache load failed:', cacheError);
-        cacheMonitoringService.logCacheCorruption('kn_cached_sessions', cacheError.message, { error: cacheError });
+      } catch (cacheError) {        cacheMonitoringService.logCacheCorruption('kn_cached_sessions', cacheError.message, { error: cacheError });
       }
       
       // Load dining options (try API if not loaded from cache)
       if (diningData.length === 0) {
-        try {
-          console.log('🍽️ DINING: Loading dining options from API...');
-          const rawDiningData = await getAllDiningOptions();
+        try {          const rawDiningData = await getAllDiningOptions();
           
           // Additional filtering for active status (redundant but ensures consistency)
           diningData = rawDiningData.filter(dining => {
             const isActive = dining.is_active !== false && dining.is_active !== undefined;
-            if (!isActive) {
-              console.log('🍽️ DINING: Filtered out inactive dining option:', dining.name);
-            }
+            if (!isActive) {            }
             return isActive;
           });
           
           setDiningOptions(diningData);
-          setDiningError(null);
-          console.log('🍽️ DINING: Successfully loaded', diningData.length, 'active dining options (filtered from', rawDiningData.length, 'total)');
-        } catch (diningError) {
-          console.warn('⚠️ Could not load dining options:', diningError);
-          setDiningError(diningError.message);
+          setDiningError(null);        } catch (diningError) {          setDiningError(diningError.message);
           setDiningOptions([]);
           // Don't fail the entire data load if dining fails
         }
@@ -390,11 +301,7 @@ export const useSessionData = (options = {}) => {
 
       // Apply dining metadata overrides (title changes from admin)
       if (diningData.length > 0) {
-        try {
-          console.log('🍽️ DINING: Loading dining metadata for title overrides...');
-          const diningItemMetadata = await pwaDataSyncService.getCachedTableData('dining_item_metadata');
-          console.log('📊 DINING: Loaded dining item metadata from cache:', diningItemMetadata.length, 'records');
-          
+        try {          const diningItemMetadata = await pwaDataSyncService.getCachedTableData('dining_item_metadata');          
           // Apply title overrides to dining options
           diningData = diningData.map((option) => {
             const metadata = diningItemMetadata.find((meta) => meta.id === option.id);
@@ -407,32 +314,20 @@ export const useSessionData = (options = {}) => {
             };
           });
           
-          setDiningOptions(diningData);
-          console.log('🍽️ DINING: Applied metadata overrides to', diningData.length, 'dining options');
-        } catch (metadataError) {
-          console.warn('⚠️ Could not load dining metadata, using original titles:', metadataError);
-          // Continue with original dining data if metadata fails
+          setDiningOptions(diningData);        } catch (metadataError) {          // Continue with original dining data if metadata fails
         }
       }
       
       // Step 2: If no cache data, try server (if cache failed or empty)
       if (allSessionsData.length === 0) {
-        try {
-          console.log('🌐 SERVER: Loading agenda items from server (progressive step 2)');
-          const agendaResponse = await agendaService.getActiveAgendaItems();
+        try {          const agendaResponse = await agendaService.getActiveAgendaItems();
           
           if (agendaResponse.success && agendaResponse.data && agendaResponse.data.length > 0) {
             allSessionsData = agendaResponse.data;
-            loadSource = 'server';
-            console.log('🌐 SERVER: Successfully loaded sessions from server');
-            cacheMonitoringService.logStateTransition('useSessionData', { sessions: [] }, { sessions: allSessionsData }, 'server-success');
-          } else {
-            console.warn('⚠️ Server returned no data:', agendaResponse.error);
-            cacheMonitoringService.logStateTransition('useSessionData', { agendaLoaded: false }, { agendaLoaded: false, error: agendaResponse.error }, 'server-empty');
+            loadSource = 'server';            cacheMonitoringService.logStateTransition('useSessionData', { sessions: [] }, { sessions: allSessionsData }, 'server-success');
+          } else {            cacheMonitoringService.logStateTransition('useSessionData', { agendaLoaded: false }, { agendaLoaded: false, error: agendaResponse.error }, 'server-empty');
           }
-        } catch (serverError) {
-          console.warn('⚠️ Server load failed:', serverError);
-          cacheMonitoringService.logStateTransition('useSessionData', { agendaLoaded: false }, { agendaLoaded: false, error: serverError.message }, 'server-failed');
+        } catch (serverError) {          cacheMonitoringService.logStateTransition('useSessionData', { agendaLoaded: false }, { agendaLoaded: false, error: serverError.message }, 'server-failed');
         }
       }
       
@@ -444,63 +339,42 @@ export const useSessionData = (options = {}) => {
             const parsed = JSON.parse(localStorageData);
             if (parsed.sessions && parsed.sessions.length > 0) {
               allSessionsData = parsed.sessions;
-              loadSource = 'localStorage';
-              console.log('🏠 LOCALSTORAGE: Loading sessions from localStorage fallback');
-              cacheMonitoringService.logStateTransition('useSessionData', { sessions: [] }, { sessions: allSessionsData }, 'localStorage-fallback');
+              loadSource = 'localStorage';              cacheMonitoringService.logStateTransition('useSessionData', { sessions: [] }, { sessions: allSessionsData }, 'localStorage-fallback');
             }
           }
-        } catch (localStorageError) {
-          console.warn('⚠️ localStorage fallback failed:', localStorageError);
-        }
+        } catch (localStorageError) {        }
       }
       
       // Step 4: If still no data, set error state
       if (allSessionsData.length === 0) {
-        const errorMessage = 'Unable to load conference schedule from any source';
-        console.error('❌ All data sources failed:', errorMessage);
-        cacheMonitoringService.logStateTransition('useSessionData', { sessions: [] }, { sessions: [], error: errorMessage }, 'all-sources-failed');
+        const errorMessage = 'Unable to load conference schedule from any source';        cacheMonitoringService.logStateTransition('useSessionData', { sessions: [] }, { sessions: [], error: errorMessage }, 'all-sources-failed');
         setError(errorMessage);
         setAllSessions([]);
         setSessions([]);
         setLastUpdated(new Date());
         return;
-      }
-      
-      console.log(`✅ Progressive loading successful from ${loadSource}:`, {
-        sessionsCount: allSessionsData.length,
-        loadSource,
-        timestamp: new Date().toISOString()
-      });
-      
+      }      
       // Store all sessions for conference start date logic
       setAllSessions(allSessionsData);
       
       // If we loaded from cache, refresh from server in background
-      if (loadSource === 'cache' || loadSource === 'localStorage') {
-        console.log('🔄 BACKGROUND: Refreshing data from server in background');
-        
+      if (loadSource === 'cache' || loadSource === 'localStorage') {        
         // ✅ ARCHITECTURE-COMPLIANT: Refresh both External DB (conference data) and Application DB (metadata)
         Promise.all([
           agendaService.getActiveAgendaItems(),
           getAllDiningOptions(), // ✅ CRITICAL FIX: Refresh dining data from source
           pwaDataSyncService.getCachedTableData('dining_item_metadata')
         ]).then(([agendaResponse, diningResponse, diningMetadata]) => {
-          if (agendaResponse.success && agendaResponse.data && agendaResponse.data.length > 0) {
-            console.log('🔄 BACKGROUND: Server refresh successful, updating cache');
-            
+          if (agendaResponse.success && agendaResponse.data && agendaResponse.data.length > 0) {            
             // Update conference data (External DB)
             setAllSessions(agendaResponse.data);
             setSessions(filterSessionsForAttendee(agendaResponse.data, attendeeData));
             
             // ✅ CRITICAL FIX: Update dining data from fresh source
-            if (diningResponse.success && diningResponse.data && diningResponse.data.length > 0) {
-              console.log('🍽️ BACKGROUND: Refreshing dining data from source');
-              setDiningOptions(diningResponse.data);
+            if (diningResponse.success && diningResponse.data && diningResponse.data.length > 0) {              setDiningOptions(diningResponse.data);
               
               // ✅ CRITICAL: Re-apply Application Database metadata overrides
-              if (diningMetadata && diningMetadata.length > 0) {
-                console.log('🍽️ BACKGROUND: Re-applying dining metadata overrides from Application DB');
-                const enrichedDiningOptions = diningResponse.data.map(option => {
+              if (diningMetadata && diningMetadata.length > 0) {                const enrichedDiningOptions = diningResponse.data.map(option => {
                   const metadata = diningMetadata.find(meta => meta.id === option.id);
                   return metadata ? { 
                     ...option, 
@@ -524,18 +398,12 @@ export const useSessionData = (options = {}) => {
                 );
                 setAllEvents(freshCombinedEvents);
               }
-            } else {
-              console.warn('🍽️ BACKGROUND: Dining data refresh failed, keeping existing data');
-            }
+            } else {            }
             
             setLastUpdated(new Date());
           }
-        }).catch(err => {
-          console.warn('🔄 BACKGROUND: Server refresh failed:', err);
-          // ✅ ERROR HANDLING: Log specific failure types for debugging
-          if (err.message?.includes('dining')) {
-            console.warn('🍽️ BACKGROUND: Dining data sync failed:', err);
-          }
+        }).catch(err => {          // ✅ ERROR HANDLING: Log specific failure types for debugging
+          if (err.message?.includes('dining')) {          }
         });
       }
       
@@ -546,40 +414,12 @@ export const useSessionData = (options = {}) => {
       const combinedEvents = mergeAndSortEvents(filteredSessions, diningData);
       setAllEvents(combinedEvents);
       
-      // 🔍 DEBUG: Enhanced logging for dining regression investigation
-      console.log('🍽️ DINING DEBUG: Data loading analysis', {
-        diningDataLength: diningData.length,
-        filteredSessionsLength: filteredSessions.length,
-        combinedEventsLength: combinedEvents.length,
-        diningEvents: combinedEvents.filter(e => e.type === 'dining').length,
-        sessionEvents: combinedEvents.filter(e => e.type !== 'dining').length,
-        timestamp: new Date().toISOString(),
-        loadSource: loadSource
-      });
-      
-      // 🔍 DEBUG: Cache data structure analysis
-      console.log('🍽️ CACHED DINING DATA STRUCTURE:', diningData.map(d => ({
-        id: d.id,
-        name: d.name,
-        date: d.date,
-        time: d.time,
-        start_time: d.start_time,
-        end_time: d.end_time,
-        type: d.type
-      })));
-      
+      // 🔍 DEBUG: Enhanced logging for dining regression investigation      
+      // 🔍 DEBUG: Cache data structure analysis      
       // Set filtered sessions for backward compatibility
       setSessions(filteredSessions);
 
-      // Log state transition with detailed data
-      console.log('🔄 STATE TRANSITION:', {
-        allSessionsCount: allSessionsData.length,
-        filteredSessionsCount: filteredSessions.length,
-        attendeeId: attendeeData?.id,
-        timestamp: new Date().toISOString(),
-        loadingSource: 'server'
-      });
-      
+      // Log state transition with detailed data      
       cacheMonitoringService.logStateTransition('useSessionData', 
         { sessions: [], allSessions: [] }, 
         { sessions: filteredSessions, allSessions: allSessionsData }, 
@@ -598,42 +438,14 @@ export const useSessionData = (options = {}) => {
       // Find current active event (session or dining)
       const activeEvent = combinedEvents.find(event => {
         if (event.type === 'dining') {
-          const isActive = isDiningActive(event, currentTime);
-          console.log('🍽️ ACTIVE CHECK: Dining event evaluation', {
-            event: event.name,
-            isActive: isActive,
-            currentTime: currentTime.toISOString()
-          });
-          return isActive;
+          const isActive = isDiningActive(event, currentTime);          return isActive;
         } else {
           return isSessionActive(event, currentTime);
         }
       });
       
-      // 🔍 DEBUG: Log the final active event selection
-      console.log('🍽️ FINAL ACTIVE EVENT:', {
-        activeEvent: activeEvent ? {
-          id: activeEvent.id,
-          name: activeEvent.name,
-          type: activeEvent.type,
-          start_time: activeEvent.start_time,
-          date: activeEvent.date
-        } : null,
-        totalEvents: combinedEvents.length,
-        diningEvents: combinedEvents.filter(e => e.type === 'dining').length,
-        currentTime: currentTime.toISOString()
-      });
-      
-      // 🔍 DEBUG: Log all events being evaluated
-      console.log('🍽️ ALL EVENTS EVALUATION:', combinedEvents.map(event => ({
-        id: event.id,
-        name: event.name,
-        type: event.type,
-        date: event.date,
-        start_time: event.start_time,
-        isActive: event.type === 'dining' ? isDiningActive(event, currentTime) : isSessionActive(event, currentTime)
-      })));
-      
+      // 🔍 DEBUG: Log the final active event selection      
+      // 🔍 DEBUG: Log all events being evaluated      
       // Find the next upcoming event (session or dining)
       const upcomingEvent = combinedEvents
         .filter(event => {
@@ -672,77 +484,13 @@ export const useSessionData = (options = {}) => {
       const enhancedActiveEvent = enhanceEventWithSeatInfo(activeEvent);
       const enhancedUpcomingEvent = enhanceEventWithSeatInfo(upcomingEvent);
       
-      // 🔍 DEBUG: Log state updates
-      console.log('🍽️ STATE UPDATE DEBUG:', {
-        activeEvent: activeEvent ? {
-          id: activeEvent.id,
-          name: activeEvent.name,
-          type: activeEvent.type
-        } : null,
-        enhancedActiveEvent: enhancedActiveEvent ? {
-          id: enhancedActiveEvent.id,
-          name: enhancedActiveEvent.name,
-          type: enhancedActiveEvent.type
-        } : null,
-        upcomingEvent: upcomingEvent ? {
-          id: upcomingEvent.id,
-          name: upcomingEvent.name,
-          type: upcomingEvent.type
-        } : null,
-        currentTime: currentTime.toISOString()
-      });
-      
-      // 🔍 DEBUG: Log the exact values being set
-      console.log('🍽️ SETTING STATE VALUES:', {
-        enhancedActiveEvent: enhancedActiveEvent ? {
-          id: enhancedActiveEvent.id,
-          name: enhancedActiveEvent.name,
-          type: enhancedActiveEvent.type
-        } : null,
-        enhancedUpcomingEvent: enhancedUpcomingEvent ? {
-          id: enhancedUpcomingEvent.id,
-          name: enhancedUpcomingEvent.name,
-          type: enhancedUpcomingEvent.type
-        } : null,
-        currentTime: currentTime.toISOString()
-      });
-      
+      // 🔍 DEBUG: Log state updates      
+      // 🔍 DEBUG: Log the exact values being set      
       setCurrentSession(enhancedActiveEvent || null);
       setNextSession(enhancedUpcomingEvent || null);
       
       // 🔍 DEBUG: Enhanced logging for current/next session determination
-      console.log('🍽️ DINING DEBUG: Current/Next session analysis', {
-        activeEvent: activeEvent ? {
-          type: activeEvent.type,
-          title: activeEvent.title || activeEvent.name,
-          start_time: activeEvent.start_time,
-          isDining: activeEvent.type === 'dining'
-        } : null,
-        upcomingEvent: upcomingEvent ? {
-          type: upcomingEvent.type,
-          title: upcomingEvent.title || upcomingEvent.name,
-          start_time: upcomingEvent.start_time,
-          isDining: upcomingEvent.type === 'dining'
-        } : null,
-        combinedEventsCount: combinedEvents.length,
-        diningEventsCount: combinedEvents.filter(e => e.type === 'dining').length,
-        timestamp: new Date().toISOString()
-      });
-
-      console.log('✅ useSessionData: Data loaded successfully', {
-        allSessions: allSessionsData.length,
-        filteredSessions: filteredSessions.length,
-        diningOptions: diningData.length,
-        allEvents: combinedEvents.length,
-        currentEvent: activeEvent?.title || activeEvent?.name,
-        nextEvent: upcomingEvent?.title || upcomingEvent?.name,
-        attendeeId: attendeeData?.id,
-        seatAssignments: seatAssignments.length
-      });
-
-    } catch (err) {
-      console.error('❌ Error loading session data:', err);
-      cacheMonitoringService.logStateTransition('useSessionData', { error: null }, { error: err.message }, 'error');
+    } catch (err) {      cacheMonitoringService.logStateTransition('useSessionData', { error: null }, { error: err.message }, 'error');
       setError(err.message);
       
       // Try to load from cache if offline
@@ -759,9 +507,7 @@ export const useSessionData = (options = {}) => {
             setNextSession(parsed.nextSession || null);
             setLastUpdated(new Date(parsed.lastUpdated));
           }
-        } catch (cacheErr) {
-          console.warn('⚠️ Failed to load cached data:', cacheErr);
-          cacheMonitoringService.logCacheCorruption('kn_cached_sessions', cacheErr.message, { error: cacheErr });
+        } catch (cacheErr) {          cacheMonitoringService.logCacheCorruption('kn_cached_sessions', cacheErr.message, { error: cacheErr });
         }
       }
     } finally {
@@ -832,49 +578,15 @@ export const useSessionData = (options = {}) => {
   useEffect(() => {
     const handleTimeOverrideChange = () => {
       // Re-evaluate event states when time override changes
-      const currentTime = getCurrentTime();
-      
-      console.log('🕐 TIME OVERRIDE CHANGE: Re-evaluating events', {
-        currentTime: currentTime.toISOString(),
-        allEventsCount: allEvents.length,
-        diningEventsCount: allEvents.filter(e => e.type === 'dining').length,
-        isOverrideActive: TimeService.isOverrideActive()
-      });
-      
-      // Find current active event (session or dining)
-      console.log('🍽️ TIME OVERRIDE: Starting event search', {
-        totalEvents: allEvents.length,
-        currentTime: currentTime.toISOString()
-      });
-      
+      const currentTime = getCurrentTime();      
+      // Find current active event (session or dining)      
       const activeEvent = allEvents.find(event => {
         if (event.type === 'dining') {
-          const isActive = isDiningActive(event, currentTime);
-          console.log('🍽️ TIME OVERRIDE: Dining event evaluation', {
-            event: event.name,
-            isActive: isActive,
-            currentTime: currentTime.toISOString()
-          });
-          return isActive;
+          const isActive = isDiningActive(event, currentTime);          return isActive;
         } else {
-          const isActive = isSessionActive(event, currentTime);
-          console.log('🍽️ TIME OVERRIDE: Session event evaluation', {
-            event: event.name,
-            isActive: isActive,
-            currentTime: currentTime.toISOString()
-          });
-          return isActive;
+          const isActive = isSessionActive(event, currentTime);          return isActive;
         }
-      });
-      
-      console.log('🍽️ TIME OVERRIDE: Event search complete', {
-        activeEvent: activeEvent ? {
-          id: activeEvent.id,
-          name: activeEvent.name,
-          type: activeEvent.type
-        } : null
-      });
-      
+      });      
       // Find next upcoming event (session or dining)
       const upcomingEvent = allEvents
         .filter(event => {
@@ -886,84 +598,45 @@ export const useSessionData = (options = {}) => {
         })
         .sort(compareEventsByTime)[0]; // Get the first (earliest) upcoming event
       
-      // Update state only if changed (performance optimization)
-      console.log('🍽️ TIME OVERRIDE: Setting state values', {
-        activeEvent: activeEvent ? {
-          id: activeEvent.id,
-          name: activeEvent.name,
-          type: activeEvent.type
-        } : null,
-        upcomingEvent: upcomingEvent ? {
-          id: upcomingEvent.id,
-          name: upcomingEvent.name,
-          type: upcomingEvent.type
-        } : null
-      });
-      
+      // Update state only if changed (performance optimization)      
       setCurrentSession(prev => {
-        if (prev?.id !== activeEvent?.id) {
-          console.log('🍽️ TIME OVERRIDE: Updating currentSession', {
-            from: prev ? { id: prev.id, name: prev.name } : null,
-            to: activeEvent ? { id: activeEvent.id, name: activeEvent.name } : null
-          });
-          return activeEvent || null; // ✅ Ensure null instead of undefined
+        if (prev?.id !== activeEvent?.id) {          return activeEvent || null; // ✅ Ensure null instead of undefined
         }
         return prev;
       });
       
       setNextSession(prev => {
-        if (prev?.id !== upcomingEvent?.id) {
-          console.log('🍽️ TIME OVERRIDE: Updating nextSession', {
-            from: prev ? { id: prev.id, name: prev.name } : null,
-            to: upcomingEvent ? { id: upcomingEvent.id, name: upcomingEvent.name } : null
-          });
-          return upcomingEvent || null; // ✅ Ensure null instead of undefined
+        if (prev?.id !== upcomingEvent?.id) {          return upcomingEvent || null; // ✅ Ensure null instead of undefined
         }
         return prev;
       });
     };
 
     // Listen for time override changes via localStorage (cross-tab)
-    const handleStorageChange = (e) => {
-      console.log('🕐 STORAGE CHANGE:', { key: e.key, newValue: e.newValue });
-      if (e.key === 'kn_time_override' || e.key === 'kn_time_override_start') {
-        console.log('🕐 STORAGE CHANGE: Triggering time override change');
-        handleTimeOverrideChange();
+    const handleStorageChange = (e) => {      if (e.key === 'kn_time_override' || e.key === 'kn_time_override_start') {        handleTimeOverrideChange();
       }
     };
 
     // Listen for time override changes via custom event (same-tab)
-    const handleTimeOverrideUpdate = () => {
-      console.log('🕐 CUSTOM EVENT: timeOverrideChanged triggered');
-      handleTimeOverrideChange();
+    const handleTimeOverrideUpdate = () => {      handleTimeOverrideChange();
     };
     
     // Listen for session boundary crossings
-    const handleBoundaryCrossing = () => {
-      console.log('🕐 Session boundary crossed, updating session states');
-      handleTimeOverrideChange();
+    const handleBoundaryCrossing = () => {      handleTimeOverrideChange();
     };
 
     // Listen for dining metadata cache invalidation
-    const handleDiningMetadataUpdate = () => {
-      console.log('🍽️ Dining metadata updated, refreshing dining data');
-      // ✅ CRITICAL FIX: Force refresh of dining data from source
-      getAllDiningOptions().then(response => {
-        console.log('🍽️ Dining data refreshed from source after metadata update');
-        setDiningOptions(response);
+    const handleDiningMetadataUpdate = () => {      // ✅ CRITICAL FIX: Force refresh of dining data from source
+      getAllDiningOptions().then(response => {        setDiningOptions(response);
         // Trigger full data reload to ensure dining events are properly merged
         loadSessionData();
-      }).catch(err => {
-        console.warn('🍽️ Failed to refresh dining data after metadata update:', err);
-        // Fallback to full reload
+      }).catch(err => {        // Fallback to full reload
         loadSessionData();
       });
     };
 
     // Listen for agenda metadata cache invalidation
-    const handleAgendaMetadataUpdate = () => {
-      console.log('📋 Agenda metadata updated, refreshing session data');
-      loadSessionData();
+    const handleAgendaMetadataUpdate = () => {      loadSessionData();
     };
     
     window.addEventListener('storage', handleStorageChange);
@@ -999,30 +672,13 @@ export const useSessionData = (options = {}) => {
     // Time override is just a dev feature
 
     const handleRealTimeUpdate = () => {
-      const currentTime = getCurrentTime();
-      
-      console.log('🕐 REAL-TIME UPDATE: Checking events', {
-        currentTime: currentTime.toISOString(),
-        totalEvents: allEvents.length,
-        isOverrideActive: TimeService.isOverrideActive()
-      });
-      
+      const currentTime = getCurrentTime();      
       // Find current active event (session or dining)
       const activeEvent = allEvents.find(event => {
         if (event.type === 'dining') {
-          const isActive = isDiningActive(event, currentTime);
-          console.log('🕐 REAL-TIME UPDATE: Dining event evaluation', {
-            event: event.name,
-            isActive: isActive
-          });
-          return isActive;
+          const isActive = isDiningActive(event, currentTime);          return isActive;
         } else {
-          const isActive = isSessionActive(event, currentTime);
-          console.log('🕐 REAL-TIME UPDATE: Session event evaluation', {
-            event: event.name,
-            isActive: isActive
-          });
-          return isActive;
+          const isActive = isSessionActive(event, currentTime);          return isActive;
         }
       });
       
@@ -1040,14 +696,7 @@ export const useSessionData = (options = {}) => {
       // 🔧 TEMPORARY FIX: Simplified state management to resolve midnight transition bug
       // TODO: Replace with proper state machine architecture in future iteration
       // This fixes the immediate issue where dining events don't disappear at midnight
-      // due to complex callback pattern in setCurrentSession
-      
-      console.log('🕐 REAL-TIME UPDATE: Simplified state update', {
-        activeEvent: activeEvent ? { id: activeEvent.id, name: activeEvent.name, type: activeEvent.type } : null,
-        upcomingEvent: upcomingEvent ? { id: upcomingEvent.id, name: upcomingEvent.name, type: upcomingEvent.type } : null,
-        currentTime: currentTime.toISOString()
-      });
-      
+      // due to complex callback pattern in setCurrentSession      
       // Direct state updates - eliminates callback complexity that was causing the bug
       setCurrentSession(activeEvent || null); // ✅ Ensure null instead of undefined
       setNextSession(upcomingEvent || null); // ✅ Ensure null instead of undefined

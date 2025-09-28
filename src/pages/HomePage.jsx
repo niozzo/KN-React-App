@@ -61,27 +61,19 @@ const HomePage = () => {
     try {
       // Safety checks
       if (!allSessions || !Array.isArray(allSessions) || allSessions.length === 0) {
-        console.log('🔍 hasConferenceEnded: No sessions available');
         return false;
       }
 
       const now = TimeService.getCurrentTime();
-      console.log('🔍 hasConferenceEnded: Current time:', now.toISOString());
-      
-      // Enhanced debugging for cross-day scenarios
-      console.log('🔍 hasConferenceEnded: Enhanced debugging for cross-day scenarios');
-      console.log('🔍 hasConferenceEnded: Current date:', now.toISOString().split('T')[0]);
       
       const sessionChecks = allSessions.map(session => {
         // Validate session object
         if (!session || typeof session !== 'object') {
-          console.warn('Invalid session object:', session);
           return false;
         }
 
         // Check required fields
         if (!session.end_time || !session.date) {
-          console.warn('Session missing end_time or date:', session);
           return false;
         }
 
@@ -90,41 +82,19 @@ const HomePage = () => {
           
           // Validate date
           if (isNaN(sessionEnd.getTime())) {
-            console.warn('Invalid session end date:', session.end_time, session.date);
             return false;
           }
 
           const isPast = sessionEnd < now;
-          
-          // Enhanced debugging for cross-day scenarios
-          const currentDate = now.toISOString().split('T')[0];
-          const sessionDate = session.date;
-          const isCrossDay = currentDate !== sessionDate;
-          
-          console.log(`🔍 Session "${session.title}":`, {
-            sessionDate: sessionDate,
-            currentDate: currentDate,
-            isCrossDay: isCrossDay,
-            sessionEnd: sessionEnd.toISOString(),
-            currentTime: now.toISOString(),
-            isPast: isPast,
-            timeDiff: now.getTime() - sessionEnd.getTime(),
-            timeDiffHours: (now.getTime() - sessionEnd.getTime()) / (1000 * 60 * 60)
-          });
-          
           return isPast;
         } catch (dateError) {
-          console.warn('Error parsing session date:', dateError, session);
           return false;
         }
       });
       
       const allSessionsEnded = sessionChecks.every(check => check);
-      console.log('🔍 hasConferenceEnded result:', allSessionsEnded);
-      console.log('🔍 hasConferenceEnded: Session check results:', sessionChecks);
       return allSessionsEnded;
     } catch (error) {
-      console.error('Error checking if conference has ended:', error);
       return false;
     }
   }, [allSessions, timeOverrideTrigger, currentSession]);
@@ -132,31 +102,21 @@ const HomePage = () => {
   // Listen for time override changes to re-evaluate hasConferenceEnded
   useEffect(() => {
     const handleTimeOverrideChange = () => {
-      console.log('🔍 Time override changed, re-evaluating hasConferenceEnded');
       setTimeOverrideTrigger(prev => prev + 1);
     };
-
-    console.log('🔍 Setting up timeOverrideChanged event listener');
     
     // Listen for time override changes
     window.addEventListener('timeOverrideChanged', handleTimeOverrideChange);
     
     return () => {
-      console.log('🔍 Cleaning up timeOverrideChanged event listener');
       window.removeEventListener('timeOverrideChanged', handleTimeOverrideChange);
     };
   }, []);
 
   // Listen for session state changes to re-evaluate hasConferenceEnded
   useEffect(() => {
-    console.log('🔍 Session state changed, re-evaluating hasConferenceEnded', {
-      currentSession: !!currentSession,
-      hasConferenceEnded: hasConferenceEnded
-    });
-    
     // Trigger re-evaluation when currentSession changes
     if (!currentSession && hasConferenceEnded === false) {
-      console.log('🔍 No current session and conference not ended - triggering re-evaluation');
       setTimeOverrideTrigger(prev => prev + 1);
     }
   }, [currentSession, hasConferenceEnded]);
@@ -308,23 +268,12 @@ const HomePage = () => {
     const currentTime = TimeService.getCurrentTime();
     const currentDate = currentTime.toISOString().split('T')[0]; // YYYY-MM-DD format
     
-    console.log('🔍 getDateDisplayText Debug:', {
-      displayedEventDate,
-      currentDate,
-      currentTime: currentTime.toISOString(),
-      comparison: currentDate >= displayedEventDate,
-      currentSession: currentSession ? { title: currentSession.title, date: currentSession.date } : null,
-      nextSession: nextSession ? { title: nextSession.title, date: nextSession.date } : null
-    });
-    
     // If current date is on or after the displayed event date, show just the date
     if (currentDate >= displayedEventDate) {
-      console.log('🔍 Showing just date (no prefix)');
       return formatDateForDisplay(displayedEventDate);
     }
     
     // Before the displayed event date, show with prefix
-    console.log('🔍 Showing with prefix');
     return `Scheduled Start Date: ${formatDateForDisplay(displayedEventDate)}`;
   };
 
@@ -369,16 +318,6 @@ const HomePage = () => {
   }
 
   // Show conference ended state - when all sessions are in the past AND no current/next sessions
-  console.log('🔍 HomePage Debug:', {
-    isLoading,
-    hasAttendee: !!attendee,
-    hasConferenceEnded,
-    allSessionsCount: allSessions?.length || 0,
-    currentSession: !!currentSession,
-    nextSession: !!nextSession,
-    hasConferenceStarted
-  });
-  
   if (!isLoading && attendee && hasConferenceEnded && !currentSession && !nextSession) {
     return (
       <PageLayout data-testid="home-page">

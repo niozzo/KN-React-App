@@ -125,17 +125,14 @@ export const breakoutMappingDocumentation = {
  */
 export const validateBreakoutMappingConfig = (config: BreakoutMappingConfig): boolean => {
   if (!config.keyPhrases || config.keyPhrases.length === 0) {
-    console.error('❌ Breakout mapping config: keyPhrases array is required');
     return false;
   }
   
   if (typeof config.caseInsensitive !== 'boolean') {
-    console.error('❌ Breakout mapping config: caseInsensitive must be boolean');
     return false;
   }
   
   if (!['hide', 'show', 'break'].includes(config.fallbackBehavior)) {
-    console.error('❌ Breakout mapping config: fallbackBehavior must be hide, show, or break');
     return false;
   }
   
@@ -150,7 +147,6 @@ export const getBreakoutMappingConfig = (): BreakoutMappingConfig => {
   const config = { ...defaultBreakoutMappingConfig };
   
   if (!validateBreakoutMappingConfig(config)) {
-    console.warn('⚠️ Using fallback configuration due to validation errors');
     return {
       keyPhrases: ['Track A', 'Track B', 'CEO'],
       caseInsensitive: true,

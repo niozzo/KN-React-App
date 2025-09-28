@@ -31,25 +31,15 @@ export class BreakoutMappingService {
    * @returns true if attendee is assigned to this breakout session
    */
   isAttendeeAssignedToBreakout(session: AgendaItem, attendee: Attendee): boolean {
-    console.log('🔍 BreakoutMappingService Debug:', {
-      sessionTitle: session.title,
-      sessionType: session.session_type,
-      attendeeId: attendee.id,
-      selectedBreakouts: attendee.selected_breakouts
-    });
-
     if (!attendee.selected_breakouts || attendee.selected_breakouts.length === 0) {
-      console.log('❌ No selected breakouts found');
       return false;
     }
 
     // Get first breakout (as per requirements - AC 3)
     const attendeeBreakout = attendee.selected_breakouts[0];
-    console.log('🎯 Using first breakout:', attendeeBreakout);
     
     // Match using key phrases
     const result = this.matchBreakoutToSession(attendeeBreakout, session);
-    console.log('✅ Match result:', result);
     
     return result;
   }
@@ -68,17 +58,8 @@ export class BreakoutMappingService {
       ? attendeeBreakout.toLowerCase() 
       : attendeeBreakout;
     
-    console.log('🔍 MatchBreakoutToSession Debug:', {
-      originalSessionTitle: session.title,
-      sessionTitleLower: sessionTitle,
-      attendeeBreakoutOriginal: attendeeBreakout,
-      attendeeBreakoutLower: attendeeBreakoutLower,
-      config: this.mappingConfig
-    });
-    
     // First, try exact title matching if enabled
     if (this.mappingConfig.exactMatchPriority && sessionTitle === attendeeBreakoutLower) {
-      console.log('✅ Exact title match found');
       return true;
     }
     
@@ -93,30 +74,23 @@ export class BreakoutMappingService {
       
       if (attendeeBreakoutLower.includes(attendeePattern) && 
           sessionTitle.includes(sessionPattern)) {
-        console.log(`✅ Rule match found: ${rule.description}`);
         return true;
       }
     }
     
     // Then try key phrase matching for partial matches
-    console.log('🔍 Trying key phrase matching...');
     for (const phrase of this.mappingConfig.keyPhrases) {
       const phraseLower = this.mappingConfig.caseInsensitive 
         ? phrase.toLowerCase() 
         : phrase;
-      console.log(`🔍 Checking phrase: "${phraseLower}"`);
-      console.log(`  - Session title contains "${phraseLower}": ${sessionTitle.includes(phraseLower)}`);
-      console.log(`  - Attendee breakout contains "${phraseLower}": ${attendeeBreakoutLower.includes(phraseLower)}`);
       
       // Both session title and attendee breakout must contain the key phrase
       if (sessionTitle.includes(phraseLower) && 
           attendeeBreakoutLower.includes(phraseLower)) {
-        console.log(`✅ Key phrase match found for: "${phraseLower}"`);
         return true;
       }
     }
     
-    console.log('❌ No match found');
     return false;
   }
 
@@ -142,7 +116,6 @@ export class BreakoutMappingService {
    */
   updateConfiguration(newConfig: BreakoutMappingConfig): void {
     this.mappingConfig = { ...newConfig };
-    console.log('🔄 Breakout mapping configuration updated:', this.mappingConfig);
   }
 }
 
