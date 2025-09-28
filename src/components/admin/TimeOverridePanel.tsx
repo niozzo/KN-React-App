@@ -34,6 +34,14 @@ export const TimeOverridePanel: React.FC<TimeOverridePanelProps> = ({
   onTimeUpdate,
   onClose
 }) => {
+  console.log('🎛️ TimeOverridePanel rendered with props:', {
+    agendaItemId,
+    currentStartTime,
+    currentEndTime,
+    currentTitle,
+    startTimeType: typeof currentStartTime,
+    endTimeType: typeof currentEndTime
+  });
   const [state, setState] = useState<TimeOverrideState>({
     startTime: currentStartTime,
     endTime: currentEndTime,
@@ -181,8 +189,9 @@ export const TimeOverridePanel: React.FC<TimeOverridePanelProps> = ({
   };
 
   return (
-    <div className="time-override-panel">
-      <div className="time-override-header">
+    <div className="time-override-overlay">
+      <div className="time-override-panel">
+        <div className="time-override-header">
         <h3>Time Override - {currentTitle}</h3>
         {onClose && (
           <button 
@@ -287,6 +296,19 @@ export const TimeOverridePanel: React.FC<TimeOverridePanelProps> = ({
       </div>
 
       <style jsx>{`
+        .time-override-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.5);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+          padding: 20px;
+        }
         .time-override-panel {
           background: white;
           border: 1px solid #e5e7eb;
@@ -518,6 +540,7 @@ export const TimeOverridePanel: React.FC<TimeOverridePanelProps> = ({
           }
         }
       `}</style>
+      </div>
     </div>
   );
 };

@@ -265,8 +265,54 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onLogout }) => {
     navigate('/');
   };
 
+  const extractTimeFromTimestamp = (timestamp: string): string => {
+    if (!timestamp) return '';
+    
+    // If it's already in HH:MM format, return as-is
+    if (/^\d{1,2}:\d{2}(:\d{2})?$/.test(timestamp)) {
+      return timestamp.substring(0, 5); // Ensure HH:MM format
+    }
+    
+    // If it's a full timestamp, extract time part
+    try {
+      const date = new Date(timestamp);
+      if (isNaN(date.getTime())) {
+        console.warn('Invalid timestamp:', timestamp);
+        return '';
+      }
+      return date.toTimeString().substring(0, 5); // HH:MM format
+    } catch (error) {
+      console.warn('Error parsing timestamp:', timestamp, error);
+      return '';
+    }
+  };
+
   const handleTimeOverride = (item: any) => {
-    setTimeOverrideItem(item);
+    console.log('🕐 Opening time override for item:', item);
+    console.log('🕐 Item properties:', {
+      id: item.id,
+      title: item.title,
+      start_time: item.start_time,
+      end_time: item.end_time,
+      type: typeof item.start_time,
+      allKeys: Object.keys(item)
+    });
+    
+    // Convert timestamps to time format for the panel
+    const processedItem = {
+      ...item,
+      start_time: extractTimeFromTimestamp(item.start_time),
+      end_time: extractTimeFromTimestamp(item.end_time)
+    };
+    
+    console.log('🕐 Processed item for TimeOverridePanel:', {
+      id: processedItem.id,
+      title: processedItem.title,
+      start_time: processedItem.start_time,
+      end_time: processedItem.end_time
+    });
+    
+    setTimeOverrideItem(processedItem);
   };
 
   const handleTimeUpdate = async (startTime: string, endTime: string, enabled: boolean) => {
