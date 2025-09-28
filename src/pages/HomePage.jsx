@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PageLayout from '../components/layout/PageLayout';
 import AnimatedNowNextCards from '../components/AnimatedNowNextCards';
@@ -17,6 +17,9 @@ import TimeService from '../services/timeService';
  */
 const HomePage = () => {
   const navigate = useNavigate();
+  
+  // State to force re-evaluation when time override changes
+  const [timeOverrideTrigger, setTimeOverrideTrigger] = useState(0);
   
   // Load real session data with offline support
   const {
@@ -65,6 +68,10 @@ const HomePage = () => {
       const now = TimeService.getCurrentTime();
       console.log('🔍 hasConferenceEnded: Current time:', now.toISOString());
       
+      // Enhanced debugging for cross-day scenarios
+      console.log('🔍 hasConferenceEnded: Enhanced debugging for cross-day scenarios');
+      console.log('🔍 hasConferenceEnded: Current date:', now.toISOString().split('T')[0]);
+      
       const sessionChecks = allSessions.map(session => {
         // Validate session object
         if (!session || typeof session !== 'object') {
@@ -88,7 +95,23 @@ const HomePage = () => {
           }
 
           const isPast = sessionEnd < now;
-          console.log(`🔍 Session "${session.title}": end=${sessionEnd.toISOString()}, isPast=${isPast}`);
+          
+          // Enhanced debugging for cross-day scenarios
+          const currentDate = now.toISOString().split('T')[0];
+          const sessionDate = session.date;
+          const isCrossDay = currentDate !== sessionDate;
+          
+          console.log(`🔍 Session "${session.title}":`, {
+            sessionDate: sessionDate,
+            currentDate: currentDate,
+            isCrossDay: isCrossDay,
+            sessionEnd: sessionEnd.toISOString(),
+            currentTime: now.toISOString(),
+            isPast: isPast,
+            timeDiff: now.getTime() - sessionEnd.getTime(),
+            timeDiffHours: (now.getTime() - sessionEnd.getTime()) / (1000 * 60 * 60)
+          });
+          
           return isPast;
         } catch (dateError) {
           console.warn('Error parsing session date:', dateError, session);
@@ -98,12 +121,31 @@ const HomePage = () => {
       
       const allSessionsEnded = sessionChecks.every(check => check);
       console.log('🔍 hasConferenceEnded result:', allSessionsEnded);
+      console.log('🔍 hasConferenceEnded: Session check results:', sessionChecks);
       return allSessionsEnded;
     } catch (error) {
       console.error('Error checking if conference has ended:', error);
       return false;
     }
-  }, [allSessions]);
+  }, [allSessions, timeOverrideTrigger]);
+
+  // Listen for time override changes to re-evaluate hasConferenceEnded
+  useEffect(() => {
+    const handleTimeOverrideChange = () => {
+      console.log('🔍 Time override changed, re-evaluating hasConferenceEnded');
+      setTimeOverrideTrigger(prev => prev + 1);
+    };
+
+    console.log('🔍 Setting up timeOverrideChanged event listener');
+    
+    // Listen for time override changes
+    window.addEventListener('timeOverrideChanged', handleTimeOverrideChange);
+    
+    return () => {
+      console.log('🔍 Cleaning up timeOverrideChanged event listener');
+      window.removeEventListener('timeOverrideChanged', handleTimeOverrideChange);
+    };
+  }, []);
 
   // Get the conference start date from the earliest event (agenda items or dining options)
   const getConferenceStartDate = () => {
