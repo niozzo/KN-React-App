@@ -1,13 +1,9 @@
 /**
- * Attendees API Endpoint with Data Transformation
- * Story 1.7: Data Transformation Layer for Schema Evolution
+ * Attendees API Endpoint
+ * Returns raw attendee data from database
  */
 
 import { getAuthenticatedClient } from './supabaseClient.js'
-import { AttendeeTransformer } from './transformers/attendeeTransformer.js'
-
-// Create transformer instance
-const attendeeTransformer = new AttendeeTransformer()
 
 // Fetch table rows helper
 async function fetchTableRows(tableName, limit = 100) {
@@ -67,7 +63,7 @@ export default async function handler(req, res) {
       })
     }
 
-    // Validate data before transformation
+    // Validate data
     if (!rawData || !Array.isArray(rawData)) {
       console.error('❌ Invalid data format received from database')
       return res.status(500).json({
@@ -78,31 +74,13 @@ export default async function handler(req, res) {
       })
     }
 
-    // Transform data using the transformation layer
-    let transformedData
-    try {
-      transformedData = attendeeTransformer.transformArrayFromDatabase(rawData)
-      console.log(`✅ Transformed ${transformedData.length} attendees`)
-    } catch (transformError) {
-      console.error('❌ Transformation failed:', transformError)
-      return res.status(500).json({
-        success: false,
-        data: null,
-        error: `Data transformation failed: ${transformError.message}`,
-        timestamp: new Date().toISOString()
-      })
-    }
+    console.log(`✅ Retrieved ${rawData.length} attendees`)
 
     return res.status(200).json({
       success: true,
-      data: transformedData,
-      count: transformedData.length,
-      timestamp: new Date().toISOString(),
-      transformation: {
-        applied: true,
-        transformer: 'AttendeeTransformer',
-        version: '1.0.0'
-      }
+      data: rawData,
+      count: rawData.length,
+      timestamp: new Date().toISOString()
     })
 
   } catch (error) {

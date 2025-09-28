@@ -9,8 +9,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "npm run build:api && vite build",
-    "build:api": "node scripts/build-api.js",
+    "build": "vite build",
     "preview": "vite preview",
     "start": "python3 -m http.server 3000",
     "serve": "python3 -m http.server 3000",
