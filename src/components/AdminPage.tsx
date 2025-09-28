@@ -16,7 +16,7 @@ import {
   ListItemText,
   Divider
 } from '@mui/material';
-import { ArrowBack as ArrowBackIcon, Save as SaveIcon, Home as HomeIcon, Dashboard as DashboardIcon } from '@mui/icons-material';
+import { ArrowBack as ArrowBackIcon, Save as SaveIcon, Home as HomeIcon, Dashboard as DashboardIcon, AccessTime as AccessTimeIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { SpeakerAssignmentComponent } from './SpeakerAssignment';
 import { adminService } from '../services/adminService';
@@ -25,6 +25,7 @@ import { dataInitializationService } from '../services/dataInitializationService
 import { pwaDataSyncService } from '../services/pwaDataSyncService';
 import CacheHealthDashboard from './CacheHealthDashboard';
 import { ValidationRules } from '../utils/validationUtils';
+import { TimeOverridePanel } from './admin/TimeOverridePanel';
 
 interface AdminPageProps {
   onLogout: () => void;
@@ -45,6 +46,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onLogout }) => {
   const [diningTitleValidationError, setDiningTitleValidationError] = useState('');
   const [requiresAuth, setRequiresAuth] = useState(false);
   const [showDashboard, setShowDashboard] = useState(false);
+  const [timeOverrideItem, setTimeOverrideItem] = useState<any>(null);
 
   useEffect(() => {
     loadData();
@@ -263,6 +265,27 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onLogout }) => {
     navigate('/');
   };
 
+  const handleTimeOverride = (item: any) => {
+    setTimeOverrideItem(item);
+  };
+
+  const handleTimeUpdate = async (startTime: string, endTime: string, enabled: boolean) => {
+    try {
+      // Refresh agenda items to show updated times
+      await loadData();
+      setTimeOverrideItem(null);
+      console.log('✅ Time override updated successfully');
+    } catch (error) {
+      console.error('❌ Failed to refresh data after time update:', error);
+      // Still close the panel even if refresh fails
+      setTimeOverrideItem(null);
+    }
+  };
+
+  const handleTimeOverrideClose = () => {
+    setTimeOverrideItem(null);
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
@@ -403,12 +426,22 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onLogout }) => {
                             <Typography variant="h6" sx={{ flexGrow: 1 }}>
                               {item.title}
                             </Typography>
-                            <Button
-                              size="small"
-                              onClick={() => handleTitleEdit(item.id, item.title)}
-                            >
-                              Edit Title
-                            </Button>
+                            <Box sx={{ display: 'flex', gap: 1 }}>
+                              <Button
+                                size="small"
+                                onClick={() => handleTitleEdit(item.id, item.title)}
+                              >
+                                Edit Title
+                              </Button>
+                              <Button
+                                size="small"
+                                startIcon={<AccessTimeIcon />}
+                                onClick={() => handleTimeOverride(item)}
+                                variant="outlined"
+                              >
+                                Override Times
+                              </Button>
+                            </Box>
                           </Box>
                         )}
                       </Box>
@@ -538,6 +571,18 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onLogout }) => {
               </CardContent>
             </Card>
           </Box>
+        )}
+
+        {/* Time Override Panel */}
+        {timeOverrideItem && (
+          <TimeOverridePanel
+            agendaItemId={timeOverrideItem.id}
+            currentStartTime={timeOverrideItem.start_time}
+            currentEndTime={timeOverrideItem.end_time}
+            currentTitle={timeOverrideItem.title}
+            onTimeUpdate={handleTimeUpdate}
+            onClose={handleTimeOverrideClose}
+          />
         )}
       </Box>
     </Box>
