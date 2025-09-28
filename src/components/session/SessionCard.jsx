@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 import Card, { CardHeader, CardContent } from '../common/Card';
 import StatusTag from '../common/StatusTag';
+import SessionErrorBoundary from '../common/SessionErrorBoundary';
 import useCountdown from '../../hooks/useCountdown';
 import { 
   isCoffeeBreak, 
@@ -120,22 +121,29 @@ const SessionCard = React.memo(({
   ].filter(Boolean).join(' ');
 
   return (
-    <Card 
-      variant={isNow ? 'now' : 'default'} 
-      onClick={onClick}
-      className={cardClassName}
-      style={isCoffeeBreakSession && isNow ? {
-        // Special styling for coffee breaks in "Now" status
-        background: 'var(--purple-050)',
-        border: '2px solid var(--purple-500)',
-        boxShadow: '0 4px 12px rgba(124, 76, 196, 0.15)'
-      } : isDiningEventSession && isNow ? {
-        // Special styling for dining events in "Now" status
-        background: 'var(--green-050)',
-        border: '2px solid var(--green-500)',
-        boxShadow: '0 4px 12px rgba(34, 197, 94, 0.15)'
-      } : undefined}
+    <SessionErrorBoundary 
+      sessionData={session}
+      onError={(error, errorInfo) => {
+        console.error('SessionCard rendering error:', error, errorInfo);
+        // Additional error handling can be added here
+      }}
     >
+      <Card 
+        variant={isNow ? 'now' : 'default'} 
+        onClick={onClick}
+        className={cardClassName}
+        style={isCoffeeBreakSession && isNow ? {
+          // Special styling for coffee breaks in "Now" status
+          background: 'var(--purple-050)',
+          border: '2px solid var(--purple-500)',
+          boxShadow: '0 4px 12px rgba(124, 76, 196, 0.15)'
+        } : isDiningEventSession && isNow ? {
+          // Special styling for dining events in "Now" status
+          background: 'var(--green-050)',
+          border: '2px solid var(--green-500)',
+          boxShadow: '0 4px 12px rgba(34, 197, 94, 0.15)'
+        } : undefined}
+      >
       <CardHeader className="session-header">
         <div className="session-time-container">
           {timeDisplay && (
@@ -223,7 +231,7 @@ const SessionCard = React.memo(({
           </div>
         )}
 
-        {(speakers && speakers.length > 0) || speakerInfo || speaker ? (
+        {(speakers && speakers.length > 0) || (speakerInfo && typeof speakerInfo === 'string' && speakerInfo.trim()) || (speaker && typeof speaker === 'string' && speaker.trim()) ? (
           <div className="session-details">
             <div className="session-detail" style={{ display: 'block' }}>
               {speakers && speakers.length > 0 ? (
@@ -288,7 +296,7 @@ const SessionCard = React.memo(({
                     </div>
                   );
                 })
-              ) : speakerInfo ? (
+              ) : (speakerInfo && typeof speakerInfo === 'string' && speakerInfo.trim()) ? (
                 // Fallback to speakerInfo if speakers array not available
                 speakerInfo.split(', ').map((speakerName, index) => {
                   // Parse the speaker name to extract name and title
@@ -344,8 +352,8 @@ const SessionCard = React.memo(({
                     </div>
                   );
                 })
-              ) : (
-                // Fallback for single speaker
+              ) : (speaker && typeof speaker === 'string' && speaker.trim()) ? (
+                // Fallback for single speaker - only render if speaker is a valid string
                 <div 
                   style={{ 
                     display: 'block', 
@@ -377,7 +385,7 @@ const SessionCard = React.memo(({
                     </div>
                   </a>
                 </div>
-              )}
+              ) : null}
             </div>
           </div>
         ) : null}
@@ -430,7 +438,8 @@ const SessionCard = React.memo(({
           </div>
         )}
       </CardContent>
-    </Card>
+      </Card>
+    </SessionErrorBoundary>
   );
 }, (prevProps, nextProps) => {
   // Custom comparison function for React.memo

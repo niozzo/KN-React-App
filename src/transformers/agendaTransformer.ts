@@ -75,8 +75,14 @@ export class AgendaTransformer extends BaseTransformer<AgendaItem> {
             return ''
           }
 
-          // Handle empty object {}
+          // Handle empty object {} - this is the main cause of React Error #31
           if (typeof speaker === 'object' && speaker !== null && Object.keys(speaker).length === 0) {
+            console.warn('🔄 AgendaTransformer: Empty speaker object detected and normalized', {
+              sessionId: data.id,
+              sessionTitle: data.title,
+              speakerValue: speaker,
+              timestamp: new Date().toISOString()
+            });
             return ''
           }
 
@@ -95,6 +101,17 @@ export class AgendaTransformer extends BaseTransformer<AgendaItem> {
             return speaker.value
           }
 
+          // Log unexpected speaker data types for debugging
+          if (speaker !== null && speaker !== undefined) {
+            console.warn('🔄 AgendaTransformer: Unexpected speaker data type', {
+              sessionId: data.id,
+              sessionTitle: data.title,
+              speakerType: typeof speaker,
+              speakerValue: speaker,
+              timestamp: new Date().toISOString()
+            });
+          }
+
           return ''
         },
         type: 'string'
@@ -110,6 +127,26 @@ export class AgendaTransformer extends BaseTransformer<AgendaItem> {
           return !isNaN(date.getTime())
         },
         message: 'Invalid date format'
+      },
+      {
+        field: 'speaker',
+        rule: (value: any) => {
+          // Allow null, undefined, empty string, or valid string
+          if (value === null || value === undefined || value === '') {
+            return true
+          }
+          // Allow valid string
+          if (typeof value === 'string' && value.trim()) {
+            return true
+          }
+          // Allow valid object with name or value property
+          if (typeof value === 'object' && value !== null && 
+              (value.name || value.value || Object.keys(value).length === 0)) {
+            return true
+          }
+          return false
+        },
+        message: 'Invalid speaker field - must be string, valid object, or empty'
       },
       {
         field: 'start_time',
