@@ -203,6 +203,14 @@ const filterSessionsForAttendee = (sessions, attendee) => {
   }
   
   const filteredSessions = sessions.filter(session => {
+    console.log(`🔍 Session Debug: "${session.title}"`, {
+      sessionType: session.session_type,
+      type: session.type,
+      hasSessionType: 'session_type' in session,
+      hasType: 'type' in session,
+      allKeys: Object.keys(session)
+    });
+    
     if (session.session_type === 'breakout-session') {
       console.log(`🔍 Processing breakout session: "${session.title}"`);
       // NEW: Check if attendee is assigned to this breakout using mapping service
