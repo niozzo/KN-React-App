@@ -177,17 +177,17 @@ class ApplicationDatabaseService extends BaseService {
         return timeStr;
       }
       
-      // Convert HH:MM to timestamp using today's date
+      // Convert HH:MM to HH:MM:SS format
       const today = new Date().toISOString().split('T')[0]; // Get YYYY-MM-DD
-      return `${today}T${timeStr}:00.000Z`;
+      if (/^\d{2}:\d{2}:\d{2}$/.test(timeStr)) return timeStr; return timeStr.padStart(5, "0") + ":00";
     };
     
     const startTimestamp = convertTimeToTimestamp(startTime);
     const endTimestamp = convertTimeToTimestamp(endTime);
     
-    console.log('🕐 Converting times for database:', {
+    console.log('🕐 Storing time overrides (time-only approach):', {
       original: { startTime, endTime },
-      converted: { startTimestamp, endTimestamp }
+      normalized: { startTimestamp, endTimestamp }
     });
     
     const { error } = await adminClient
@@ -250,22 +250,20 @@ class ApplicationDatabaseService extends BaseService {
     if (error) throw error;
     
     // Convert timestamps back to time format for UI consumption
-    const convertTimestampToTime = (timestamp: string): string => {
-      if (!timestamp) return '';
+    const convertTimeForUI = (timeStr: string): string => {
       
-      try {
-        const date = new Date(timestamp);
-        if (isNaN(date.getTime())) return '';
-        return date.toTimeString().substring(0, 5); // HH:MM format
-      } catch {
-        return '';
+      // If HH:MM:SS format, convert to HH:MM for UI
+      if (/^\d{2}:\d{2}:\d{2}$/.test(timeStr)) {
+        return timeStr.substring(0, 5); // Remove :SS part
       }
-    };
+      
+      // If already HH:MM format, return as-is
+      return timeStr;    };
     
     const processedData = (data || []).map(item => ({
       ...item,
-      start_time: convertTimestampToTime(item.start_time || ''),
-      end_time: convertTimestampToTime(item.end_time || '')
+      start_time: convertTimeForUI(item.start_time || ''),
+      end_time: convertTimeForUI(item.end_time || '')
     }));
     
     console.log('🕐 Retrieved time overrides from database:', processedData);

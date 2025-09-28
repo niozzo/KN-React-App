@@ -79,6 +79,7 @@ describe('ApplicationDatabaseService - Time Override', () => {
         start_time: startTime,
         end_time: endTime,
         time_override_enabled: enabled,
+        title: "Session",
         last_synced: expect.any(String)
       });
     });
@@ -168,6 +169,7 @@ describe('ApplicationDatabaseService - Time Override', () => {
         start_time: startTime,
         end_time: endTime,
         time_override_enabled: false,
+        title: "Session",
         last_synced: expect.any(String)
       });
     });
@@ -176,6 +178,25 @@ describe('ApplicationDatabaseService - Time Override', () => {
   describe('getAgendaItemTimeOverrides', () => {
     it('should retrieve enabled time overrides', async () => {
       // Arrange
+      // Expected result after conversion to HH:MM format
+      const expectedResult = [
+        {
+          id: 'test-item-1',
+          title: 'Test Session 1',
+          start_time: '09:00',
+          end_time: '12:00',
+          time_override_enabled: true,
+          last_synced: '2025-01-27T10:00:00Z'
+        },
+        {
+          id: 'test-item-2',
+          title: 'Test Session 2',
+          start_time: '13:00',
+          end_time: '16:00',
+          time_override_enabled: true,
+          last_synced: '2025-01-27T10:00:00Z'
+        }
+      ];
       const mockOverrides: AgendaItemMetadata[] = [
         {
           id: 'test-item-1',
@@ -208,7 +229,7 @@ describe('ApplicationDatabaseService - Time Override', () => {
       // Assert
       expect(mockSupabaseClient.from).toHaveBeenCalledWith('agenda_item_metadata');
       expect(mockSelect).toHaveBeenCalledWith('*');
-      expect(result).toEqual(mockOverrides);
+      expect(result).toEqual(expectedResult);
     });
 
     it('should handle empty results', async () => {
@@ -270,6 +291,7 @@ describe('ApplicationDatabaseService - Time Override', () => {
         start_time: agendaItem.start_time,
         end_time: agendaItem.end_time,
         time_override_enabled: true,
+        title: agendaItem.title,
         last_synced: expect.any(String)
       });
     });
@@ -298,6 +320,7 @@ describe('ApplicationDatabaseService - Time Override', () => {
         start_time: agendaItem.start_time,
         end_time: agendaItem.end_time,
         time_override_enabled: false,
+        title: agendaItem.title,
         last_synced: expect.any(String)
       });
     });
