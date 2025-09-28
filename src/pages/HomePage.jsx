@@ -201,8 +201,8 @@ const HomePage = () => {
     const date = new Date(year, month - 1, day); // month is 0-indexed in Date constructor
     
     return date.toLocaleDateString('en-US', { 
-      weekday: 'short',
-      month: 'short', 
+      weekday: 'long',
+      month: 'long', 
       day: 'numeric', 
       year: 'numeric' 
     });
