@@ -4,7 +4,7 @@
  */
 
 import { getAuthenticatedClient } from './supabaseClient.js'
-import { AttendeeTransformer } from '../src/transformers/attendeeTransformer.js'
+import { AttendeeTransformer } from './transformers/attendeeTransformer.js'
 
 // Create transformer instance
 const attendeeTransformer = new AttendeeTransformer()
