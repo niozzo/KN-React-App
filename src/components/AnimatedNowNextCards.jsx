@@ -7,24 +7,6 @@ import Button from './common/Button';
 import { useNavigate } from 'react-router-dom';
 import TimeService from '../services/timeService';
 
-/**
- * Determine if the next session is on the next day
- * @param {Object} nextSession - The next session object
- * @returns {boolean} Whether the next session is tomorrow
- */
-const isNextSessionTomorrow = (nextSession) => {
-  if (!nextSession || !nextSession.date) return false;
-  
-  const currentTime = TimeService.getCurrentTime();
-  const currentDate = currentTime.toISOString().split('T')[0]; // YYYY-MM-DD format
-  
-  // Calculate tomorrow's date
-  const tomorrow = new Date(currentTime);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const tomorrowDate = tomorrow.toISOString().split('T')[0]; // YYYY-MM-DD format
-  
-  return nextSession.date === tomorrowDate;
-};
 
 /**
  * Determine if two sessions are on different days
@@ -191,7 +173,6 @@ const AnimatedNowNextCards = React.memo(({
 
     // During now-to-next animation, show the old Now card sliding down as Next
     if (isTransitioning && transitionType === 'now-to-next' && previousSessions.current) {
-      const isTomorrow = isNextSessionTomorrow(previousSessions.current);
       const isDifferentDay = currentSession && areSessionsOnDifferentDays(currentSession, previousSessions.current);
       
       return (
@@ -205,23 +186,7 @@ const AnimatedNowNextCards = React.memo(({
             zIndex: 1
           }}
         >
-          {isTomorrow && !tomorrowOnly && (
-            <div 
-              className="tomorrow-title"
-              style={{
-                fontSize: 'var(--text-sm)',
-                fontWeight: 'var(--font-semibold)',
-                color: 'var(--text-secondary)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-                marginBottom: 'var(--space-sm)',
-                textAlign: 'left'
-              }}
-            >
-              Tomorrow
-            </div>
-          )}
-          {isDifferentDay && !isTomorrow && (
+          {isDifferentDay && (
             <div 
               className="different-day-title"
               style={{
@@ -249,7 +214,6 @@ const AnimatedNowNextCards = React.memo(({
 
     // During next-disappear animation, show the old Next card fading out
     if (isTransitioning && transitionType === 'next-disappear' && previousSessions.next) {
-      const isTomorrow = isNextSessionTomorrow(previousSessions.next);
       const isDifferentDay = currentSession && areSessionsOnDifferentDays(currentSession, previousSessions.next);
       
       return (
@@ -263,23 +227,7 @@ const AnimatedNowNextCards = React.memo(({
             zIndex: 0
           }}
         >
-          {isTomorrow && !tomorrowOnly && (
-            <div 
-              className="tomorrow-title"
-              style={{
-                fontSize: 'var(--text-sm)',
-                fontWeight: 'var(--font-semibold)',
-                color: 'var(--text-secondary)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-                marginBottom: 'var(--space-sm)',
-                textAlign: 'left'
-              }}
-            >
-              Tomorrow
-            </div>
-          )}
-          {isDifferentDay && !isTomorrow && (
+          {isDifferentDay && (
             <div 
               className="different-day-title"
               style={{
@@ -307,7 +255,6 @@ const AnimatedNowNextCards = React.memo(({
     
     // Normal state - show current next session
     if (nextSession) {
-      const isTomorrow = isNextSessionTomorrow(nextSession);
       const isDifferentDay = currentSession && areSessionsOnDifferentDays(currentSession, nextSession);
       
       return (
@@ -321,23 +268,7 @@ const AnimatedNowNextCards = React.memo(({
             zIndex: tomorrowOnly ? 2 : 1 // Higher z-index when it's the only card
           }}
         >
-          {isTomorrow && !tomorrowOnly && (
-            <div 
-              className="tomorrow-title"
-              style={{
-                fontSize: 'var(--text-sm)',
-                fontWeight: 'var(--font-semibold)',
-                color: 'var(--text-secondary)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-                marginBottom: 'var(--space-sm)',
-                textAlign: 'left'
-              }}
-            >
-              Tomorrow
-            </div>
-          )}
-          {isDifferentDay && !isTomorrow && (
+          {isDifferentDay && (
             <div 
               className="different-day-title"
               style={{
