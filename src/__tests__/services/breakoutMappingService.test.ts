@@ -17,10 +17,10 @@ describe('BreakoutMappingService', () => {
   describe('isAttendeeAssignedToBreakout', () => {
     // AC 1: Breakout Session Filtering
     it('should return true when attendee has matching breakout', () => {
-      // Given: Attendee with "track b operational performance" and session with "Track B"
+      // Given: Attendee with exact session title match
       const attendee: Attendee = {
         id: '1',
-        selected_breakouts: ['track b operational performance'],
+        selected_breakouts: ['Track B: Driving Operational Performance In the Age of AI'],
         first_name: 'John',
         last_name: 'Doe',
         email: 'john@example.com',
@@ -112,7 +112,7 @@ describe('BreakoutMappingService', () => {
     it('should match Track A sessions correctly', () => {
       const attendee: Attendee = {
         id: '1',
-        selected_breakouts: ['track a revenue growth'],
+        selected_breakouts: ['Track A: Driving Revenue Growth in the Age of AI'],
         first_name: 'John',
         last_name: 'Doe',
         email: 'john@example.com',
@@ -201,7 +201,7 @@ describe('BreakoutMappingService', () => {
     it('should match Track B sessions correctly', () => {
       const attendee: Attendee = {
         id: '1',
-        selected_breakouts: ['track b operational performance'],
+        selected_breakouts: ['Track B: Driving Operational Performance In the Age of AI'],
         first_name: 'John',
         last_name: 'Doe',
         email: 'john@example.com',
@@ -290,7 +290,7 @@ describe('BreakoutMappingService', () => {
     it('should match CEO sessions correctly', () => {
       const attendee: Attendee = {
         id: '1',
-        selected_breakouts: ['ceo summit'],
+        selected_breakouts: ['Apax Software CEO Summit - by invitation only'],
         first_name: 'John',
         last_name: 'Doe',
         email: 'john@example.com',
@@ -377,10 +377,10 @@ describe('BreakoutMappingService', () => {
 
     // AC 3: Multiple Breakout Handling
     it('should use first breakout when multiple are present', () => {
-      // Given: Attendee with ["track a", "track b"]
+      // Given: Attendee with multiple breakout selections
       const attendee: Attendee = {
         id: '1',
-        selected_breakouts: ['track a revenue growth', 'track b operational performance'],
+        selected_breakouts: ['Track A: Driving Revenue Growth in the Age of AI', 'Track B: Driving Operational Performance In the Age of AI'],
         first_name: 'John',
         last_name: 'Doe',
         email: 'john@example.com',

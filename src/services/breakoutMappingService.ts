@@ -43,7 +43,12 @@ export class BreakoutMappingService {
     const sessionTitle = session.title.toLowerCase();
     const attendeeBreakoutLower = attendeeBreakout.toLowerCase();
     
-    // Check for key phrase matches (AC 2, 5)
+    // First, try exact title matching (most reliable)
+    if (sessionTitle === attendeeBreakoutLower) {
+      return true;
+    }
+    
+    // Then try key phrase matching for partial matches
     for (const phrase of this.mappingConfig.keyPhrases) {
       const phraseLower = phrase.toLowerCase();
       // Both session title and attendee breakout must contain the key phrase
