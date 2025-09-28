@@ -211,7 +211,7 @@ const filterSessionsForAttendee = (sessions, attendee) => {
       allKeys: Object.keys(session)
     });
     
-    if (session.session_type === 'breakout-session') {
+    if (session.session_type === 'breakout') {
       console.log(`🔍 Processing breakout session: "${session.title}"`);
       // NEW: Check if attendee is assigned to this breakout using mapping service
       const isAssigned = breakoutMappingService.isAttendeeAssignedToBreakout(session, attendee);
@@ -227,8 +227,8 @@ const filterSessionsForAttendee = (sessions, attendee) => {
   console.log('📊 Filtering results:', {
     originalCount: sessions.length,
     filteredCount: filteredSessions.length,
-    breakoutSessions: sessions.filter(s => s.session_type === 'breakout-session').length,
-    filteredBreakoutSessions: filteredSessions.filter(s => s.session_type === 'breakout-session').length
+    breakoutSessions: sessions.filter(s => s.session_type === 'breakout').length,
+    filteredBreakoutSessions: filteredSessions.filter(s => s.session_type === 'breakout').length
   });
 
   return filteredSessions;
