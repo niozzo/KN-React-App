@@ -166,12 +166,35 @@ class ApplicationDatabaseService extends BaseService {
     enabled: boolean
   ): Promise<void> {
     const adminClient = this.getAdminClient();
+    
+    // Convert time strings (HH:MM) to timestamp format for database
+    const convertTimeToTimestamp = (timeStr: string): string => {
+      if (!timeStr) return '';
+      
+      // If it's already a full timestamp, return as-is
+      if (timeStr.includes('T') || timeStr.includes(' ')) {
+        return timeStr;
+      }
+      
+      // Convert HH:MM to timestamp using today's date
+      const today = new Date().toISOString().split('T')[0]; // Get YYYY-MM-DD
+      return `${today}T${timeStr}:00.000Z`;
+    };
+    
+    const startTimestamp = convertTimeToTimestamp(startTime);
+    const endTimestamp = convertTimeToTimestamp(endTime);
+    
+    console.log('🕐 Converting times for database:', {
+      original: { startTime, endTime },
+      converted: { startTimestamp, endTimestamp }
+    });
+    
     const { error } = await adminClient
       .from('agenda_item_metadata')
       .upsert({
         id: agendaItemId,
-        start_time: startTime,
-        end_time: endTime,
+        start_time: startTimestamp,
+        end_time: endTimestamp,
         time_override_enabled: enabled,
         last_synced: new Date().toISOString()
       });
@@ -223,7 +246,28 @@ class ApplicationDatabaseService extends BaseService {
       .eq('time_override_enabled', true);
     
     if (error) throw error;
-    return data || [];
+    
+    // Convert timestamps back to time format for UI consumption
+    const convertTimestampToTime = (timestamp: string): string => {
+      if (!timestamp) return '';
+      
+      try {
+        const date = new Date(timestamp);
+        if (isNaN(date.getTime())) return '';
+        return date.toTimeString().substring(0, 5); // HH:MM format
+      } catch {
+        return '';
+      }
+    };
+    
+    const processedData = (data || []).map(item => ({
+      ...item,
+      start_time: convertTimestampToTime(item.start_time || ''),
+      end_time: convertTimestampToTime(item.end_time || '')
+    }));
+    
+    console.log('🕐 Retrieved time overrides from database:', processedData);
+    return processedData;
   }
 
   async syncAttendeeMetadata(attendee: any): Promise<void> {
