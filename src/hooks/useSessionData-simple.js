@@ -135,13 +135,16 @@ export const useSessionData = (user = { id: 'test-user' }) => {
       // Filter sessions based on attendee assignments
       const filteredSessions = allSessions.filter(session => {
         // Show all non-breakout sessions to all users
-        if (session.type !== 'breakout-session') {
+        if (session.session_type !== 'breakout-session') {
           return true;
         }
         
-        // For breakout sessions, only show if user is assigned
+        // For breakout sessions, use mapping service to check assignment
         if (attendeeData && attendeeData.selected_breakouts) {
-          return attendeeData.selected_breakouts.includes(session.id);
+          // Import and use the mapping service
+          const { BreakoutMappingService } = require('../services/breakoutMappingService');
+          const mappingService = new BreakoutMappingService();
+          return mappingService.isAttendeeAssignedToBreakout(session, attendeeData);
         }
         
         // If no attendee data, don't show breakout sessions

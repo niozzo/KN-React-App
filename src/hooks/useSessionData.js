@@ -157,7 +157,7 @@ const filterSessionsForAttendee = (sessions, attendee) => {
   }
   
   const filteredSessions = sessions.filter(session => {
-    if (session.session_type === 'breakout') {
+    if (session.session_type === 'breakout-session') {
       // NEW: Check if attendee is assigned to this breakout using mapping service
       const isAssigned = breakoutMappingService.isAttendeeAssignedToBreakout(session, attendee);
       return isAssigned;
