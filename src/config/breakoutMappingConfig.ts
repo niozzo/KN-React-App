@@ -58,6 +58,12 @@ export const breakoutMappingRules: BreakoutMappingRule[] = [
     priority: 1
   },
   {
+    attendeePattern: 'apax-software-ceo',
+    sessionPattern: 'Apax Software CEO',
+    description: 'Apax Software CEO sessions',
+    priority: 2
+  },
+  {
     attendeePattern: 'track-a-revenue-growth',
     sessionPattern: 'Track A: Driving Revenue Growth',
     description: 'Specific Track A revenue growth sessions',
@@ -74,6 +80,12 @@ export const breakoutMappingRules: BreakoutMappingRule[] = [
     sessionPattern: 'Apax Software CEO Summit',
     description: 'Specific CEO Summit sessions',
     priority: 2
+  },
+  {
+    attendeePattern: 'apax-software-ceo-summit-by-invitation-only',
+    sessionPattern: 'Apax Software CEO Summit - by invitation only',
+    description: 'CEO Summit by invitation only sessions',
+    priority: 3
   }
 ];
 
