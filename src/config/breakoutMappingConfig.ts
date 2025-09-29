@@ -7,9 +7,7 @@
  */
 
 export interface BreakoutMappingConfig {
-  keyPhrases: string[];
   caseInsensitive: boolean;
-  exactMatchPriority: boolean;
   fallbackBehavior: 'hide' | 'show' | 'break';
 }
 
@@ -28,66 +26,16 @@ export interface BreakoutMappingRule {
  * - CEO Summit sessions
  */
 export const defaultBreakoutMappingConfig: BreakoutMappingConfig = {
-  keyPhrases: ['Track A', 'Track B', 'CEO'],
   caseInsensitive: true,
-  exactMatchPriority: true,
   fallbackBehavior: 'break'
 };
 
 /**
- * Specific mapping rules for known breakout patterns
- * These rules provide more precise matching for common scenarios
+ * Simple business rules for breakout mapping:
+ * 1. If attendee selection contains "Track A" -> match agenda session containing "Track A"
+ * 2. If attendee selection contains "Track B" -> match agenda session containing "Track B"  
+ * 3. If attendee selection contains "CEO" -> match agenda session containing "CEO"
  */
-export const breakoutMappingRules: BreakoutMappingRule[] = [
-  {
-    attendeePattern: 'track-a',
-    sessionPattern: 'Track A',
-    description: 'Track A: Driving Revenue Growth sessions',
-    priority: 1
-  },
-  {
-    attendeePattern: 'track-b',
-    sessionPattern: 'Track B', 
-    description: 'Track B: Driving Operational Performance sessions',
-    priority: 1
-  },
-  {
-    attendeePattern: 'ceo',
-    sessionPattern: 'CEO',
-    description: 'CEO Summit sessions',
-    priority: 1
-  },
-  {
-    attendeePattern: 'apax-software-ceo',
-    sessionPattern: 'Apax Software CEO',
-    description: 'Apax Software CEO sessions',
-    priority: 2
-  },
-  {
-    attendeePattern: 'track-a-revenue-growth',
-    sessionPattern: 'Track A: Driving Revenue Growth',
-    description: 'Specific Track A revenue growth sessions',
-    priority: 2
-  },
-  {
-    attendeePattern: 'track-b-operational-performance',
-    sessionPattern: 'Track B: Driving Operational Performance',
-    description: 'Specific Track B operational performance sessions',
-    priority: 2
-  },
-  {
-    attendeePattern: 'ceo-summit',
-    sessionPattern: 'Apax Software CEO Summit',
-    description: 'Specific CEO Summit sessions',
-    priority: 2
-  },
-  {
-    attendeePattern: 'apax-software-ceo-summit-by-invitation-only',
-    sessionPattern: 'Apax Software CEO Summit - by invitation only',
-    description: 'CEO Summit by invitation only sessions',
-    priority: 3
-  }
-];
 
 /**
  * Configuration for future agenda changes

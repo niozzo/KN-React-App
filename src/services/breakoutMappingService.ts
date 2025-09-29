@@ -9,19 +9,15 @@
 import type { AgendaItem } from '../types/agenda';
 import type { Attendee } from '../types/attendee';
 import { 
-  getBreakoutMappingConfig, 
-  getBreakoutMappingRules,
-  type BreakoutMappingConfig,
-  type BreakoutMappingRule 
+  getBreakoutMappingConfig,
+  type BreakoutMappingConfig
 } from '../config/breakoutMappingConfig';
 
 export class BreakoutMappingService {
   private mappingConfig: BreakoutMappingConfig;
-  private mappingRules: BreakoutMappingRule[];
 
   constructor() {
     this.mappingConfig = getBreakoutMappingConfig();
-    this.mappingRules = getBreakoutMappingRules();
   }
 
   /**
@@ -45,54 +41,55 @@ export class BreakoutMappingService {
   }
 
   /**
-   * Match attendee breakout selection to session using configuration-based rules
+   * Match attendee breakout selection to session using simple business rules
    * @param attendeeBreakout - The attendee's breakout selection
    * @param session - The session to match against
    * @returns true if there's a match
    */
   private matchBreakoutToSession(attendeeBreakout: string, session: AgendaItem): boolean {
-    const sessionTitle = this.mappingConfig.caseInsensitive 
-      ? session.title.toLowerCase() 
-      : session.title;
-    const attendeeBreakoutLower = this.mappingConfig.caseInsensitive 
-      ? attendeeBreakout.toLowerCase() 
-      : attendeeBreakout;
+    const sessionTitle = session.title.toLowerCase();
+    const attendeeBreakoutLower = attendeeBreakout.toLowerCase();
     
-    // First, try exact title matching if enabled
-    if (this.mappingConfig.exactMatchPriority && sessionTitle === attendeeBreakoutLower) {
+    // Normalize both strings to handle variations like "Track-b", "Track B", "track b"
+    const normalizedAttendee = this.normalizeTrackNames(attendeeBreakoutLower);
+    const normalizedSession = this.normalizeTrackNames(sessionTitle);
+    
+    // Simple business rules:
+    // 1. If database contains "Track A" -> map to agenda session containing "Track A"
+    // 2. If database contains "Track B" -> map to agenda session containing "Track B"  
+    // 3. If database contains "CEO" -> map to agenda session containing "CEO"
+    
+    if (normalizedAttendee.includes('track a') && normalizedSession.includes('track a')) {
+      console.log('🎯 Track A match:', { attendeeBreakout, sessionTitle, normalizedAttendee, normalizedSession });
       return true;
     }
     
-    // Try specific mapping rules (higher priority)
-    for (const rule of this.mappingRules) {
-      const attendeePattern = this.mappingConfig.caseInsensitive 
-        ? rule.attendeePattern.toLowerCase() 
-        : rule.attendeePattern;
-      const sessionPattern = this.mappingConfig.caseInsensitive 
-        ? rule.sessionPattern.toLowerCase() 
-        : rule.sessionPattern;
-      
-      if (attendeeBreakoutLower.includes(attendeePattern) && 
-          sessionTitle.includes(sessionPattern)) {
-        return true;
-      }
+    if (normalizedAttendee.includes('track b') && normalizedSession.includes('track b')) {
+      console.log('🎯 Track B match:', { attendeeBreakout, sessionTitle, normalizedAttendee, normalizedSession });
+      return true;
     }
     
-    // Then try key phrase matching for partial matches
-    for (const phrase of this.mappingConfig.keyPhrases) {
-      const phraseLower = this.mappingConfig.caseInsensitive 
-        ? phrase.toLowerCase() 
-        : phrase;
-      
-      // Both session title and attendee breakout must contain the key phrase
-      if (sessionTitle.includes(phraseLower) && 
-          attendeeBreakoutLower.includes(phraseLower)) {
-        return true;
-      }
+    if (attendeeBreakoutLower.includes('ceo') && sessionTitle.includes('ceo')) {
+      console.log('🎯 CEO match:', { attendeeBreakout, sessionTitle });
+      return true;
     }
     
+    console.log('❌ No match found:', { attendeeBreakout, sessionTitle, normalizedAttendee, normalizedSession });
     return false;
   }
+
+  /**
+   * Normalize track names to handle variations like "Track-b", "Track B", "track b"
+   * @param text - Text to normalize
+   * @returns Normalized text with consistent track naming
+   */
+  private normalizeTrackNames(text: string): string {
+    return text
+      .replace(/track\s*-\s*a/gi, 'track a')  // "Track-A", "Track -A", "track-a" -> "track a"
+      .replace(/track\s*-\s*b/gi, 'track b')  // "Track-B", "Track -B", "track-b" -> "track b"
+      .replace(/\s+/g, ' ');                   // Normalize multiple spaces to single space
+  }
+
 
   /**
    * Get the mapping configuration for external access
@@ -102,13 +99,6 @@ export class BreakoutMappingService {
     return { ...this.mappingConfig };
   }
 
-  /**
-   * Get the mapping rules for external access
-   * @returns The current mapping rules
-   */
-  getMappingRules(): BreakoutMappingRule[] {
-    return [...this.mappingRules];
-  }
 
   /**
    * Update configuration (for testing or runtime updates)
