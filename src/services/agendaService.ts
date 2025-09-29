@@ -19,11 +19,14 @@ import { cacheMonitoringService } from './cacheMonitoringService.ts';
 import { cacheVersioningService, type CacheEntry } from './cacheVersioningService.ts';
 import { unifiedCacheService } from './unifiedCacheService.ts';
 import { ServerDataSyncService } from './serverDataSyncService.ts';
+import { applicationDatabaseService } from './applicationDatabaseService.ts';
+import { AgendaTransformer } from '../transformers/agendaTransformer.ts';
 
 export class AgendaService implements IAgendaService {
   private backgroundRefreshInProgress = false;
   private readonly tableName = 'agenda_items';
   private readonly basePath = '/api/agenda-items';
+  private agendaTransformer = new AgendaTransformer();
 
   private serverDataSyncService: ServerDataSyncService | null = null;
   private cacheService?: ICacheService;
@@ -278,6 +281,40 @@ export class AgendaService implements IAgendaService {
   }
 
   /**
+   * Apply time overrides to agenda items
+   */
+  private async applyTimeOverrides(agendaItems: any[]): Promise<any[]> {
+    try {
+      // Get time overrides from application database
+      const timeOverrides = await applicationDatabaseService.getAgendaItemTimeOverrides();
+      console.log('🕐 Applying time overrides to agenda items:', timeOverrides.length, 'overrides found');
+      
+      if (timeOverrides.length === 0) {
+        return agendaItems;
+      }
+      
+      // Convert overrides to Map for efficient lookup
+      const timeOverridesMap = new Map();
+      timeOverrides.forEach(override => {
+        timeOverridesMap.set(override.id, override);
+      });
+      
+      // Apply time overrides using transformer
+      const transformedItems = await this.agendaTransformer.transformArrayFromDatabaseWithTimeOverrides(
+        agendaItems, 
+        timeOverridesMap
+      );
+      
+      console.log('✅ Time overrides applied successfully');
+      return transformedItems;
+    } catch (error) {
+      console.error('❌ Failed to apply time overrides:', error);
+      // Return original items if override application fails
+      return agendaItems;
+    }
+  }
+
+  /**
    * Get active agenda items only
    */
   async getActiveAgendaItems(): Promise<PaginatedResponse<AgendaItem>> {
@@ -291,7 +328,10 @@ export class AgendaService implements IAgendaService {
         
         if (agendaItems.length > 0) {
           console.log('🏠 CACHE: Using cached agenda items');
-          const enrichedData = await this.enrichWithSpeakerData(filteredItems);
+          
+          // Apply time overrides before enrichment
+          const itemsWithOverrides = await this.applyTimeOverrides(filteredItems);
+          const enrichedData = await this.enrichWithSpeakerData(itemsWithOverrides);
           this.refreshAgendaItemsInBackground();
           
           return {
@@ -360,7 +400,9 @@ export class AgendaService implements IAgendaService {
               return (a.start_time || '').localeCompare(b.start_time || '');
             });
           
-          const enrichedData = await this.enrichWithSpeakerData(filteredItems);
+          // Apply time overrides before enrichment
+          const itemsWithOverrides = await this.applyTimeOverrides(filteredItems);
+          const enrichedData = await this.enrichWithSpeakerData(itemsWithOverrides);
           
           return {
             data: enrichedData,
@@ -404,8 +446,9 @@ export class AgendaService implements IAgendaService {
               return (a.start_time || '').localeCompare(b.start_time || '')
             });
           
-          // Enrich with speaker data
-          const enrichedData = await this.enrichWithSpeakerData(filteredItems);
+          // Apply time overrides before enrichment
+          const itemsWithOverrides = await this.applyTimeOverrides(filteredItems);
+          const enrichedData = await this.enrichWithSpeakerData(itemsWithOverrides);
           
           console.log('🌐 SYNC: Retrieved', enrichedData.length, 'agenda items from cache');
           return {

@@ -25,6 +25,13 @@ describe('TimeOverridePanel - Basic Functionality', () => {
     currentTitle: 'Test Breakout Session'
   };
 
+  // Helper function to wait for loading to complete and save button to be available
+  const waitForSaveButton = async () => {
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /save changes/i })).toBeInTheDocument();
+    }, { timeout: 3000 });
+  };
+
   beforeEach(async () => {
     vi.clearAllMocks();
     
@@ -155,6 +162,10 @@ describe('TimeOverridePanel - Basic Functionality', () => {
     it('should show error for invalid start time format', async () => {
       // Arrange
       render(<TimeOverridePanel {...defaultProps} />);
+      
+      // Wait for loading to complete
+      await waitForSaveButton();
+      
       const checkbox = screen.getByRole('checkbox', { name: /enable time override/i });
       fireEvent.click(checkbox);
 
@@ -174,6 +185,10 @@ describe('TimeOverridePanel - Basic Functionality', () => {
     it('should show error for invalid end time format', async () => {
       // Arrange
       render(<TimeOverridePanel {...defaultProps} />);
+      
+      // Wait for loading to complete
+      await waitForSaveButton();
+      
       const checkbox = screen.getByRole('checkbox', { name: /enable time override/i });
       fireEvent.click(checkbox);
 
@@ -193,6 +208,10 @@ describe('TimeOverridePanel - Basic Functionality', () => {
     it('should show error when end time is before start time', async () => {
       // Arrange
       render(<TimeOverridePanel {...defaultProps} />);
+      
+      // Wait for loading to complete
+      await waitForSaveButton();
+      
       const checkbox = screen.getByRole('checkbox', { name: /enable time override/i });
       fireEvent.click(checkbox);
 
@@ -217,6 +236,10 @@ describe('TimeOverridePanel - Basic Functionality', () => {
     it('should save time override when form is submitted', async () => {
       // Arrange
       render(<TimeOverridePanel {...defaultProps} />);
+      
+      // Wait for loading to complete
+      await waitForSaveButton();
+      
       const checkbox = screen.getByRole('checkbox', { name: /enable time override/i });
       fireEvent.click(checkbox);
 
@@ -247,6 +270,9 @@ describe('TimeOverridePanel - Basic Functionality', () => {
       const mockOnTimeUpdate = vi.fn();
       render(<TimeOverridePanel {...defaultProps} onTimeUpdate={mockOnTimeUpdate} />);
       
+      // Wait for loading to complete
+      await waitForSaveButton();
+      
       const checkbox = screen.getByRole('checkbox', { name: /enable time override/i });
       fireEvent.click(checkbox);
 
@@ -269,6 +295,10 @@ describe('TimeOverridePanel - Basic Functionality', () => {
     it('should show success message after successful save', async () => {
       // Arrange
       render(<TimeOverridePanel {...defaultProps} />);
+      
+      // Wait for loading to complete
+      await waitForSaveButton();
+      
       const checkbox = screen.getByRole('checkbox', { name: /enable time override/i });
       fireEvent.click(checkbox);
 
