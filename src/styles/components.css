@@ -732,6 +732,10 @@ body {
     margin-top: var(--space-xs);
     font-size: var(--text-sm);
     line-height: 1.4;
+    white-space: normal;        /* ✅ Fix text truncation */
+    overflow: visible;          /* ✅ Show all text */
+    text-overflow: unset;       /* ✅ Remove ellipsis */
+    word-wrap: break-word;      /* ✅ Break long words if needed */
   }
 }
 
@@ -780,6 +784,10 @@ body {
     line-height: 1.4;
     color: var(--coral);
     font-weight: var(--font-medium);
+    white-space: normal;        /* ✅ Fix text truncation */
+    overflow: visible;          /* ✅ Show all text */
+    text-overflow: unset;       /* ✅ Remove ellipsis */
+    word-wrap: break-word;      /* ✅ Break long words if needed */
   }
   
   .status-tag {
