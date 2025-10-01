@@ -117,7 +117,7 @@ export class ServiceRegistry {
       this.cacheInvalidationCallbacks.set(tableName, []);
     }
     this.cacheInvalidationCallbacks.get(tableName)!.push(callback);
-    console.log(`📝 Registered cache invalidation callback for table: ${tableName}`);
+    // Cache invalidation callback registered silently
   }
 
   /**
@@ -125,12 +125,9 @@ export class ServiceRegistry {
    */
   public invalidateCache(tableName: string): void {
     const callbacks = this.cacheInvalidationCallbacks.get(tableName) || [];
-    console.log(`🔄 Triggering cache invalidation for table: ${tableName} (${callbacks.length} callbacks)`);
-    
     callbacks.forEach((callback, index) => {
       try {
         callback();
-        console.log(`✅ Cache invalidation callback ${index + 1} executed successfully`);
       } catch (error) {
         console.error(`❌ Cache invalidation callback ${index + 1} failed:`, error);
       }

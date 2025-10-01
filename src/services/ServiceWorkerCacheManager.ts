@@ -13,7 +13,7 @@ export class ServiceWorkerCacheManager {
     if ('serviceWorker' in navigator) {
       try {
         this.serviceWorker = await navigator.serviceWorker.ready;
-        console.log('✅ ServiceWorkerCacheManager: Service worker ready');
+        // Service worker ready
       } catch (error) {
         console.warn('⚠️ ServiceWorkerCacheManager: Service worker not available:', error);
       }
@@ -33,7 +33,7 @@ export class ServiceWorkerCacheManager {
         type: 'CACHE_DATA',
         payload: { tableName, data }
       });
-      console.log(`✅ ServiceWorkerCacheManager: Cached data for ${tableName}`);
+      // Data cached successfully
     } catch (error) {
       console.error('❌ ServiceWorkerCacheManager: Failed to cache data:', error);
     }

@@ -50,7 +50,7 @@ export class DataInitializationService {
       const syncResult = await serverDataSyncService.syncAllData();
       
       if (syncResult.success) {
-        console.log('✅ Data sync completed successfully');
+        // Data sync completed
         
         // Step 4: Ensure application database tables are synced for admin panel
         await this.ensureApplicationDatabaseSynced();
@@ -141,7 +141,7 @@ export class DataInitializationService {
         }
       }
       
-      console.log('✅ Application database sync completed');
+      // Application database sync completed
     } catch (error) {
       console.warn('⚠️ Application database sync failed:', error);
       // Don't throw error as this is not critical for basic functionality
@@ -170,7 +170,7 @@ export class DataInitializationService {
       const syncResult = await serverDataSyncService.syncAllData();
       
       if (syncResult.success) {
-        console.log('✅ Force refresh completed successfully');
+        // Force refresh completed
         return {
           success: true,
           hasData: true

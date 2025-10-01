@@ -77,12 +77,6 @@ export class AgendaTransformer extends BaseTransformer<AgendaItem> {
 
           // Handle empty object {} - this is the main cause of React Error #31
           if (typeof speaker === 'object' && speaker !== null && Object.keys(speaker).length === 0) {
-            console.warn('🔄 AgendaTransformer: Empty speaker object detected and normalized', {
-              sessionId: data.id,
-              sessionTitle: data.title,
-              speakerValue: speaker,
-              timestamp: new Date().toISOString()
-            });
             return ''
           }
 
@@ -101,15 +95,9 @@ export class AgendaTransformer extends BaseTransformer<AgendaItem> {
             return speaker.value
           }
 
-          // Log unexpected speaker data types for debugging
+          // Handle unexpected speaker data types silently
           if (speaker !== null && speaker !== undefined) {
-            console.warn('🔄 AgendaTransformer: Unexpected speaker data type', {
-              sessionId: data.id,
-              sessionTitle: data.title,
-              speakerType: typeof speaker,
-              speakerValue: speaker,
-              timestamp: new Date().toISOString()
-            });
+            // Silent handling of unexpected data types
           }
 
           return ''

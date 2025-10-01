@@ -133,7 +133,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       let syncResult = null
       try {
         syncResult = await serverDataSyncService.syncAllData()
-        console.log('✅ Admin data sync completed:', syncResult)
+        // Admin data sync completed
         
         if (!syncResult.success) {
           console.warn('⚠️ Admin data sync failed, but authentication succeeded:', syncResult.errors)
@@ -152,7 +152,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
         const { attendeeSyncService } = await import('../services/attendeeSyncService')
         await attendeeSyncService.refreshAttendeeData()
-        console.log('✅ Attendee sync service initialized')
+        // Attendee sync service initialized
       } catch (attendeeError) {
         console.warn('⚠️ Attendee sync initialization failed:', attendeeError)
       }
@@ -250,7 +250,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       }
       
-      console.log('✅ Sign-out completed successfully')
+      // Sign-out completed
       console.log(`📊 Performance: ${clearResult.performanceMetrics.duration.toFixed(2)}ms`)
       
       return { success: true }

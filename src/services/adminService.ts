@@ -183,7 +183,7 @@ export class AdminService {
       });
       
       // Trigger cache invalidation for dining metadata
-      console.log('🔄 Triggering cache invalidation for dining_item_metadata');
+      // Triggering cache invalidation
       serviceRegistry.invalidateCache('dining_item_metadata');
       
     } catch (error) {
@@ -374,7 +374,7 @@ export class AdminService {
         }
       }
       
-      console.log('✅ Application database sync completed for admin panel');
+      // Application database sync completed
     } catch (error) {
       console.error('❌ Application database sync failed for admin panel:', error);
       // Don't throw error as this is not critical for basic functionality
@@ -411,7 +411,7 @@ export class AdminService {
       
       await this.updateLocalSpeakerAssignments(updatedSpeakers);
       
-      console.log('✅ Speaker reordering completed successfully');
+      // Speaker reordering completed
       
     } catch (error) {
       console.error('❌ Failed to reorder speakers:', error);

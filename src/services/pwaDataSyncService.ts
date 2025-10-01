@@ -128,7 +128,7 @@ export class PWADataSyncService extends BaseService {
       () => this.handleAttendeeMetadataInvalidation()
     );
     
-    console.log('📝 PWA Data Sync: Registered cache invalidation callbacks');
+    // Cache invalidation callbacks registered silently
   }
 
   /**
@@ -280,7 +280,7 @@ export class PWADataSyncService extends BaseService {
    */
   private recordApplicationDbSuccess(): void {
     if (this.applicationDbFailureCount > 0) {
-      console.log('✅ Application DB: Success recorded, resetting failure count');
+      // Application DB: Success recorded
       this.applicationDbFailureCount = 0;
       this.applicationDbCircuitOpen = false;
       this.lastApplicationDbFailure = null;
@@ -530,7 +530,7 @@ export class PWADataSyncService extends BaseService {
         const { attendeeSyncService } = await import('./attendeeSyncService');
         const attendeeResult = await attendeeSyncService.refreshAttendeeData();
         if (attendeeResult.success) {
-          console.log('✅ Attendee data sync completed successfully');
+          // Attendee data sync completed
           result.syncedTables.push('attendee_data');
         } else {
           console.warn('⚠️ Attendee data sync failed:', attendeeResult.error);
@@ -827,7 +827,7 @@ export class PWADataSyncService extends BaseService {
             type: 'CACHE_DATA',
             data: { [cacheKey]: data }
           });
-          console.log(`✅ Service Worker: Cached ${tableName} data successfully`);
+          // Service Worker: Data cached successfully
           this.recordServiceWorkerSuccess();
         } else {
           console.warn(`⚠️ Service Worker: No mapping found for table ${tableName} or service worker not active`);

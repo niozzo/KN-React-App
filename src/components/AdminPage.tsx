@@ -279,7 +279,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onLogout }) => {
       // Step 2: Force sync all data (not just application DB)
       console.log(`🔄 [${syncId}] Step 2: Force syncing all data...`);
       const syncResult = await pwaDataSyncService.forceSync();
-      console.log(`✅ [${syncId}] Force sync completed:`, syncResult);
+      // Force sync completed
       
       // Step 3: Force refresh attendee data to update conference_auth
       console.log(`🔄 [${syncId}] Step 3: Force refreshing attendee data...`);
@@ -302,7 +302,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onLogout }) => {
       const syncEndTime = new Date().toISOString();
       const duration = new Date(syncEndTime).getTime() - new Date(syncStartTime).getTime();
       
-      console.log(`✅ [${syncId}] Force global sync completed successfully in ${duration}ms`);
+      // Force global sync completed
       console.log(`📊 [${syncId}] Sync Summary:`, {
         syncId,
         startTime: syncStartTime,
