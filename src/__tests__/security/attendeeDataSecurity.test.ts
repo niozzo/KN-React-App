@@ -8,7 +8,7 @@ import { unifiedCacheService } from '../../services/unifiedCacheService';
 import { AttendeeCacheFilterService } from '../../services/attendeeCacheFilterService';
 import type { Attendee } from '../../types/attendee';
 
-// Mock localStorage
+// Mock localStorage with proper verification support
 const localStorageMock = {
   getItem: vi.fn(),
   setItem: vi.fn(),
@@ -18,15 +18,37 @@ const localStorageMock = {
   key: vi.fn()
 };
 
+// Store for simulation
+const mockStorage: Record<string, string> = {};
+
+// Enhanced localStorage mock that supports verification
+const enhancedLocalStorageMock = {
+  ...localStorageMock,
+  setItem: vi.fn((key: string, value: string) => {
+    // Simulate successful storage
+    mockStorage[key] = value;
+    localStorageMock.setItem(key, value);
+    return value;
+  }),
+  getItem: vi.fn((key: string) => {
+    // Return the stored value for verification
+    return mockStorage[key] || null;
+  }),
+  removeItem: vi.fn((key: string) => {
+    delete mockStorage[key];
+    localStorageMock.removeItem(key);
+  })
+};
+
 // Mock localStorage to work with the cache service
 Object.defineProperty(window, 'localStorage', {
-  value: localStorageMock,
+  value: enhancedLocalStorageMock,
   writable: true
 });
 
 // Mock global localStorage for Node.js environment
 Object.defineProperty(global, 'localStorage', {
-  value: localStorageMock,
+  value: enhancedLocalStorageMock,
   writable: true
 });
 
@@ -35,12 +57,34 @@ describe('Attendee Data Security Tests', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    localStorageMock.getItem.mockReturnValue(null);
-    localStorageMock.setItem.mockImplementation(() => {});
-    localStorageMock.removeItem.mockImplementation(() => {});
-    localStorageMock.clear.mockImplementation(() => {});
-    localStorageMock.length = 0;
-    localStorageMock.key.mockReturnValue(null);
+    
+    // Clear mock storage
+    Object.keys(mockStorage).forEach(key => delete mockStorage[key]);
+    
+    // Configure enhanced localStorage mock
+    enhancedLocalStorageMock.getItem.mockImplementation((key: string) => {
+      // Return stored value for verification
+      return mockStorage[key] || null;
+    });
+    
+    enhancedLocalStorageMock.setItem.mockImplementation((key: string, value: string) => {
+      // Simulate successful storage with verification
+      mockStorage[key] = value;
+      localStorageMock.setItem(key, value);
+      return value;
+    });
+    
+    enhancedLocalStorageMock.removeItem.mockImplementation((key: string) => {
+      delete mockStorage[key];
+      localStorageMock.removeItem(key);
+    });
+    
+    enhancedLocalStorageMock.clear.mockImplementation(() => {
+      Object.keys(mockStorage).forEach(key => delete mockStorage[key]);
+    });
+    
+    enhancedLocalStorageMock.length = 0;
+    enhancedLocalStorageMock.key.mockReturnValue(null);
 
     // Create attendee with all confidential fields
     confidentialAttendee = {
@@ -117,7 +161,7 @@ describe('Attendee Data Security Tests', () => {
       await unifiedCacheService.set('kn_cache_attendees', [confidentialAttendee]);
 
       // Get the stored data
-      const setItemCall = localStorageMock.setItem.mock.calls[0];
+      const setItemCall = enhancedLocalStorageMock.setItem.mock.calls[0];
       const storedData = JSON.parse(setItemCall[1]);
       const cachedAttendee = storedData.data[0];
 
@@ -156,7 +200,7 @@ describe('Attendee Data Security Tests', () => {
     it('should remove nested confidential data (spouse_details)', async () => {
       await unifiedCacheService.set('kn_cache_attendees', [confidentialAttendee]);
 
-      const setItemCall = localStorageMock.setItem.mock.calls[0];
+      const setItemCall = enhancedLocalStorageMock.setItem.mock.calls[0];
       const storedData = JSON.parse(setItemCall[1]);
       const cachedAttendee = storedData.data[0];
 
@@ -168,7 +212,7 @@ describe('Attendee Data Security Tests', () => {
     it('should preserve only safe fields in cache', async () => {
       await unifiedCacheService.set('kn_cache_attendees', [confidentialAttendee]);
 
-      const setItemCall = localStorageMock.setItem.mock.calls[0];
+      const setItemCall = enhancedLocalStorageMock.setItem.mock.calls[0];
       const storedData = JSON.parse(setItemCall[1]);
       const cachedAttendee = storedData.data[0];
 
@@ -208,7 +252,7 @@ describe('Attendee Data Security Tests', () => {
     it('should prevent phone number exposure', async () => {
       await unifiedCacheService.set('kn_cache_attendees', [confidentialAttendee]);
 
-      const setItemCall = localStorageMock.setItem.mock.calls[0];
+      const setItemCall = enhancedLocalStorageMock.setItem.mock.calls[0];
       const storedData = JSON.parse(setItemCall[1]);
       const cachedAttendee = storedData.data[0];
 
@@ -225,7 +269,7 @@ describe('Attendee Data Security Tests', () => {
     it('should prevent address exposure', async () => {
       await unifiedCacheService.set('kn_cache_attendees', [confidentialAttendee]);
 
-      const setItemCall = localStorageMock.setItem.mock.calls[0];
+      const setItemCall = enhancedLocalStorageMock.setItem.mock.calls[0];
       const storedData = JSON.parse(setItemCall[1]);
       const cachedAttendee = storedData.data[0];
 
@@ -242,7 +286,7 @@ describe('Attendee Data Security Tests', () => {
     it('should prevent travel information exposure', async () => {
       await unifiedCacheService.set('kn_cache_attendees', [confidentialAttendee]);
 
-      const setItemCall = localStorageMock.setItem.mock.calls[0];
+      const setItemCall = enhancedLocalStorageMock.setItem.mock.calls[0];
       const storedData = JSON.parse(setItemCall[1]);
       const cachedAttendee = storedData.data[0];
 
@@ -257,7 +301,7 @@ describe('Attendee Data Security Tests', () => {
     it('should prevent personal details exposure', async () => {
       await unifiedCacheService.set('kn_cache_attendees', [confidentialAttendee]);
 
-      const setItemCall = localStorageMock.setItem.mock.calls[0];
+      const setItemCall = enhancedLocalStorageMock.setItem.mock.calls[0];
       const storedData = JSON.parse(setItemCall[1]);
       const cachedAttendee = storedData.data[0];
 
@@ -271,7 +315,7 @@ describe('Attendee Data Security Tests', () => {
     it('should prevent assistant information exposure', async () => {
       await unifiedCacheService.set('kn_cache_attendees', [confidentialAttendee]);
 
-      const setItemCall = localStorageMock.setItem.mock.calls[0];
+      const setItemCall = enhancedLocalStorageMock.setItem.mock.calls[0];
       const storedData = JSON.parse(setItemCall[1]);
       const cachedAttendee = storedData.data[0];
 
@@ -283,7 +327,7 @@ describe('Attendee Data Security Tests', () => {
     it('should prevent system identifier exposure', async () => {
       await unifiedCacheService.set('kn_cache_attendees', [confidentialAttendee]);
 
-      const setItemCall = localStorageMock.setItem.mock.calls[0];
+      const setItemCall = enhancedLocalStorageMock.setItem.mock.calls[0];
       const storedData = JSON.parse(setItemCall[1]);
       const cachedAttendee = storedData.data[0];
 
@@ -297,7 +341,7 @@ describe('Attendee Data Security Tests', () => {
     it('should validate that stored cache contains no confidential data', async () => {
       await unifiedCacheService.set('kn_cache_attendees', [confidentialAttendee]);
 
-      const setItemCall = localStorageMock.setItem.mock.calls[0];
+      const setItemCall = enhancedLocalStorageMock.setItem.mock.calls[0];
       const storedData = JSON.parse(setItemCall[1]);
 
       // Validate the stored data
@@ -335,7 +379,7 @@ describe('Attendee Data Security Tests', () => {
 
       await unifiedCacheService.set('kn_cache_attendees', [attendeeWithNulls]);
 
-      const setItemCall = localStorageMock.setItem.mock.calls[0];
+      const setItemCall = enhancedLocalStorageMock.setItem.mock.calls[0];
       const storedData = JSON.parse(setItemCall[1]);
       const cachedAttendee = storedData.data[0];
 
@@ -355,7 +399,7 @@ describe('Attendee Data Security Tests', () => {
 
       await unifiedCacheService.set('kn_cache_attendees', [attendeeWithUndefined]);
 
-      const setItemCall = localStorageMock.setItem.mock.calls[0];
+      const setItemCall = enhancedLocalStorageMock.setItem.mock.calls[0];
       const storedData = JSON.parse(setItemCall[1]);
       const cachedAttendee = storedData.data[0];
 
@@ -368,7 +412,7 @@ describe('Attendee Data Security Tests', () => {
     it('should handle empty attendee array', async () => {
       await unifiedCacheService.set('kn_cache_attendees', []);
 
-      const setItemCall = localStorageMock.setItem.mock.calls[0];
+      const setItemCall = enhancedLocalStorageMock.setItem.mock.calls[0];
       const storedData = JSON.parse(setItemCall[1]);
       
       expect(storedData.data).toEqual([]);
@@ -386,7 +430,7 @@ describe('Attendee Data Security Tests', () => {
 
       await unifiedCacheService.set('kn_cache_attendees', largeDataset);
 
-      const setItemCall = localStorageMock.setItem.mock.calls[0];
+      const setItemCall = enhancedLocalStorageMock.setItem.mock.calls[0];
       const storedData = JSON.parse(setItemCall[1]);
 
       // Verify all records are filtered

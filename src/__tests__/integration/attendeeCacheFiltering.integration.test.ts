@@ -8,7 +8,7 @@ import { unifiedCacheService } from '../../services/unifiedCacheService';
 import { AttendeeCacheFilterService } from '../../services/attendeeCacheFilterService';
 import type { Attendee } from '../../types/attendee';
 
-// Mock localStorage
+// Mock localStorage with proper verification support
 const localStorageMock = {
   getItem: vi.fn(),
   setItem: vi.fn(),
@@ -18,15 +18,37 @@ const localStorageMock = {
   key: vi.fn()
 };
 
+// Store for simulation
+const mockStorage: Record<string, string> = {};
+
+// Enhanced localStorage mock that supports verification
+const enhancedLocalStorageMock = {
+  ...localStorageMock,
+  setItem: vi.fn((key: string, value: string) => {
+    // Simulate successful storage
+    mockStorage[key] = value;
+    localStorageMock.setItem(key, value);
+    return value;
+  }),
+  getItem: vi.fn((key: string) => {
+    // Return the stored value for verification
+    return mockStorage[key] || null;
+  }),
+  removeItem: vi.fn((key: string) => {
+    delete mockStorage[key];
+    localStorageMock.removeItem(key);
+  })
+};
+
 // Mock localStorage to work with the cache service
 Object.defineProperty(window, 'localStorage', {
-  value: localStorageMock,
+  value: enhancedLocalStorageMock,
   writable: true
 });
 
 // Mock global localStorage for Node.js environment
 Object.defineProperty(global, 'localStorage', {
-  value: localStorageMock,
+  value: enhancedLocalStorageMock,
   writable: true
 });
 
@@ -36,12 +58,34 @@ describe('Attendee Cache Filtering Integration', () => {
   beforeEach(() => {
     // Reset mocks
     vi.clearAllMocks();
-    localStorageMock.getItem.mockReturnValue(null);
-    localStorageMock.setItem.mockImplementation(() => {});
-    localStorageMock.removeItem.mockImplementation(() => {});
-    localStorageMock.clear.mockImplementation(() => {});
-    localStorageMock.length = 0;
-    localStorageMock.key.mockReturnValue(null);
+    
+    // Clear mock storage
+    Object.keys(mockStorage).forEach(key => delete mockStorage[key]);
+    
+    // Configure enhanced localStorage mock
+    enhancedLocalStorageMock.getItem.mockImplementation((key: string) => {
+      // Return stored value for verification
+      return mockStorage[key] || null;
+    });
+    
+    enhancedLocalStorageMock.setItem.mockImplementation((key: string, value: string) => {
+      // Simulate successful storage with verification
+      mockStorage[key] = value;
+      localStorageMock.setItem(key, value);
+      return value;
+    });
+    
+    enhancedLocalStorageMock.removeItem.mockImplementation((key: string) => {
+      delete mockStorage[key];
+      localStorageMock.removeItem(key);
+    });
+    
+    enhancedLocalStorageMock.clear.mockImplementation(() => {
+      Object.keys(mockStorage).forEach(key => delete mockStorage[key]);
+    });
+    
+    enhancedLocalStorageMock.length = 0;
+    enhancedLocalStorageMock.key.mockReturnValue(null);
 
     // Create sample attendee with confidential data
     sampleAttendee = {
@@ -124,7 +168,7 @@ describe('Attendee Cache Filtering Integration', () => {
       );
 
       // Parse the stored data to verify filtering
-      const setItemCall = localStorageMock.setItem.mock.calls[0];
+      const setItemCall = enhancedLocalStorageMock.setItem.mock.calls[0];
       const storedData = JSON.parse(setItemCall[1]);
       
       // Verify confidential fields are removed
@@ -171,7 +215,7 @@ describe('Attendee Cache Filtering Integration', () => {
       );
 
       // Parse and verify filtering
-      const setItemCall = localStorageMock.setItem.mock.calls[0];
+      const setItemCall = enhancedLocalStorageMock.setItem.mock.calls[0];
       const storedData = JSON.parse(setItemCall[1]);
       
       // Verify confidential fields are removed
@@ -190,7 +234,7 @@ describe('Attendee Cache Filtering Integration', () => {
       await unifiedCacheService.set('kn_cache_agenda_items', nonAttendeeData);
 
       // Parse stored data
-      const setItemCall = localStorageMock.setItem.mock.calls[0];
+      const setItemCall = enhancedLocalStorageMock.setItem.mock.calls[0];
       const storedData = JSON.parse(setItemCall[1]);
       
       // Verify data is not filtered
@@ -210,7 +254,11 @@ describe('Attendee Cache Filtering Integration', () => {
         ttl: 3600000
       };
 
-      localStorageMock.getItem.mockReturnValue(JSON.stringify(mockCacheEntry));
+      // Set up mock storage for retrieval
+      mockStorage['kn_cache_attendees'] = JSON.stringify(mockCacheEntry);
+      enhancedLocalStorageMock.getItem.mockImplementation((key: string) => {
+        return mockStorage[key] || null;
+      });
 
       // Retrieve data
       const retrievedData = await unifiedCacheService.get('kn_cache_attendees');
@@ -279,7 +327,7 @@ describe('Attendee Cache Filtering Integration', () => {
         expect.any(String)
       );
 
-      const setItemCall = localStorageMock.setItem.mock.calls[0];
+      const setItemCall = enhancedLocalStorageMock.setItem.mock.calls[0];
       const storedData = JSON.parse(setItemCall[1]);
       expect(storedData.data).toEqual([]);
     });
@@ -301,7 +349,7 @@ describe('Attendee Cache Filtering Integration', () => {
       expect(endTime - startTime).toBeLessThan(1000); // 1 second
 
       // Verify all records were filtered
-      const setItemCall = localStorageMock.setItem.mock.calls[0];
+      const setItemCall = enhancedLocalStorageMock.setItem.mock.calls[0];
       const storedData = JSON.parse(setItemCall[1]);
       expect(storedData.data).toHaveLength(1000);
       expect(storedData.data[0]).not.toHaveProperty('business_phone');
