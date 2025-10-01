@@ -203,7 +203,6 @@ export class AgendaTransformer extends BaseTransformer<AgendaItem> {
   protected handleSchemaEvolution(dbData: any, schemaVersion: SchemaVersion): any {
     const evolved = { ...dbData }
     
-    console.log(`🔄 Agenda schema evolution: ${schemaVersion.version} (confidence: ${schemaVersion.confidence})`)
     
     switch (schemaVersion.version) {
       case '1.0.0':

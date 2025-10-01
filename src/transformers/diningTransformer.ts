@@ -134,7 +134,6 @@ export class DiningTransformer extends BaseTransformer<DiningOption> {
   protected handleSchemaEvolution(dbData: any, schemaVersion: SchemaVersion): any {
     const evolved = { ...dbData }
     
-    console.log(`🔄 Dining schema evolution: ${schemaVersion.version} (confidence: ${schemaVersion.confidence})`)
     
     switch (schemaVersion.version) {
       case '1.0.0':

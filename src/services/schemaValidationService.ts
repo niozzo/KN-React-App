@@ -180,7 +180,6 @@ export class SchemaValidationService extends BaseService {
    * Validate the entire database schema
    */
   async validateSchema(): Promise<SchemaValidationResult> {
-    console.log('🔍 Starting database schema validation...');
     
     const result: SchemaValidationResult = {
       isValid: true,
@@ -666,7 +665,6 @@ export class SchemaValidationService extends BaseService {
    * Validate specific table
    */
   async validateTable(tableName: string): Promise<SchemaValidationResult> {
-    console.log(`🔍 Validating table: ${tableName}`);
     
     const result: SchemaValidationResult = {
       isValid: true,

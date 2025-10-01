@@ -368,14 +368,6 @@ export class PWADataSyncService extends BaseService {
       const willSync = !document.hidden && this.syncStatus.isOnline && this.isUserAuthenticated();
       
       // Log visibility change with sync decision
-      console.log('👁️ VISIBILITY CHANGE:', {
-        hidden: document.hidden,
-        isOnline: this.syncStatus.isOnline,
-        isAuthenticated: this.isUserAuthenticated(),
-        willSync,
-        timestamp: new Date().toISOString(),
-        lastSync: this.syncStatus.lastSync
-      });
       
       cacheMonitoringService.logVisibilityChange(document.hidden, willSync, {
         isOnline: this.syncStatus.isOnline,
@@ -473,7 +465,6 @@ export class PWADataSyncService extends BaseService {
       cacheMonitoringService.logCacheCorruption('sync_health_check', 'Cache health validation failed', { sessionId });
     }
 
-    console.log('🌐 SYNC: Starting sync operation', { sessionId, timestamp: new Date().toISOString() });
     this.syncStatus.syncInProgress = true;
     this.saveSyncStatus();
 
@@ -490,7 +481,6 @@ export class PWADataSyncService extends BaseService {
       try {
         const schemaValidator = await this.getSchemaValidator();
         if (schemaValidator) {
-          console.log('🔍 Running schema validation before sync...');
           const schemaResult = await schemaValidator.validateSchema();
           if (!schemaResult.isValid) {
             console.warn('⚠️ Schema validation failed:', schemaResult.errors);
@@ -541,13 +531,6 @@ export class PWADataSyncService extends BaseService {
       this.syncStatus.syncInProgress = false;
       this.saveSyncStatus();
       
-      console.log('🌐 SYNC: Sync completed', {
-        success: result.success,
-        syncedTables: result.syncedTables.length,
-        errors: result.errors.length,
-        sessionId,
-        timestamp: new Date().toISOString()
-      });
       
       if (result.errors.length > 0) {
         console.warn(`⚠️ Sync completed with errors: ${result.errors.join(', ')}`);
@@ -596,16 +579,12 @@ export class PWADataSyncService extends BaseService {
       if (tableName === 'agenda_items') {
         try {
           // Debug: Log raw data structure
-          console.log('🔍 Raw agenda_items data structure:', records[0] ? Object.keys(records[0]) : 'No data');
-          console.log('🔍 First agenda item raw data:', records[0]);
           
           // Import and apply AgendaTransformer
           const { AgendaTransformer } = await import('../transformers/agendaTransformer.js');
           const agendaTransformer = new AgendaTransformer();
           records = agendaTransformer.transformArrayFromDatabase(records);
           records = agendaTransformer.sortAgendaItems(records);
-          console.log(`🔧 Applied AgendaTransformer to ${records.length} agenda items`);
-          console.log('🔍 Transformed first agenda item:', records[0]);
         } catch (transformError) {
           console.warn(`⚠️ Failed to transform agenda_items:`, transformError);
           // Continue with raw data if transformation fails
@@ -639,7 +618,6 @@ export class PWADataSyncService extends BaseService {
       }
       const supabaseTable = this.tableMappings.application[tableName];
 
-      console.log(`📊 PWA Data Sync: Querying ${supabaseTable} from application database...`);
 
       // Query data from application database using service registry
       const applicationDbClient = serviceRegistry.getApplicationDbClient();
@@ -651,11 +629,6 @@ export class PWADataSyncService extends BaseService {
         throw new Error(`Application database client not available for ${tableName}`);
       }
       
-      console.log(`🔍 PWA Data Sync: Application database client status:`, {
-        clientAvailable: !!applicationDbClient,
-        tableName,
-        supabaseTable
-      });
 
       const { data, error } = await applicationDbClient
         .from(supabaseTable)
@@ -674,19 +647,15 @@ export class PWADataSyncService extends BaseService {
         throw new Error(`Application database query failed: ${error.message}`);
       }
 
-      console.log(`📊 PWA Data Sync: Retrieved ${data?.length || 0} records from ${supabaseTable}`);
       
       // Enhanced debugging for empty results
       if (!data || data.length === 0) {
         console.warn(`⚠️ PWA Data Sync: No records found in ${supabaseTable} for ${tableName}`);
-        console.log(`🔍 PWA Data Sync: Debug info - Table: ${supabaseTable}, Data:`, data);
       } else {
-        console.log(`🔍 PWA Data Sync: Sample record from ${supabaseTable}:`, data[0]);
       }
 
       // Validate data before caching to prevent overwriting user changes
       if (data && data.length > 0) {
-        console.log(`🔍 PWA Data Sync: Validating ${data.length} records for ${tableName}...`);
         
         // Check for data integrity
         const validRecords = data.filter(record => {
@@ -707,7 +676,6 @@ export class PWADataSyncService extends BaseService {
         this.recordApplicationDbSuccess();
       } else {
         // Handle empty results with caution
-        console.log(`🔍 PWA Data Sync: No data to cache for ${tableName} - checking if this overwrites user changes...`);
         
         // For dining_item_metadata, check if we should preserve existing cache
         if (tableName === 'dining_item_metadata') {
@@ -750,13 +718,6 @@ export class PWADataSyncService extends BaseService {
       const cacheEntry = cacheVersioningService.createCacheEntry(sanitizedData, ttl);
       
       // Log cache operation
-      console.log(`💾 Caching ${tableName} with versioning:`, {
-        tableName,
-        recordCount: sanitizedData.length,
-        version: cacheEntry.version,
-        ttl: Math.round(cacheEntry.ttl / 1000) + 's',
-        checksum: cacheEntry.checksum
-      });
 
       localStorage.setItem(cacheKey, JSON.stringify(cacheEntry));
       
