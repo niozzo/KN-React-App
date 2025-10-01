@@ -11,10 +11,16 @@ import { adminService } from '../../../../services/adminService';
 vi.mock('../../../../services/pwaDataSyncService');
 vi.mock('../../../../services/dataInitializationService');
 vi.mock('../../../../services/adminService');
+vi.mock('../../../../services/attendeeSyncService');
 
 const mockPWADataSyncService = vi.mocked(pwaDataSyncService);
 const mockDataInitializationService = vi.mocked(dataInitializationService);
 const mockAdminService = vi.mocked(adminService);
+
+// Mock attendeeSyncService
+const mockAttendeeSyncService = {
+  refreshAttendeeData: vi.fn()
+};
 
 describe('AdminPage Force Global Sync', () => {
   const mockOnLogout = vi.fn();
@@ -44,6 +50,19 @@ describe('AdminPage Force Global Sync', () => {
     mockAdminService.getAgendaItemsWithAssignments.mockResolvedValue([]);
     mockAdminService.getDiningOptionsWithMetadata.mockResolvedValue([]);
     mockAdminService.getAvailableAttendees.mockResolvedValue([]);
+    
+    // Mock attendeeSyncService
+    mockAttendeeSyncService.refreshAttendeeData.mockResolvedValue({
+      success: true,
+      attendee: { id: 'test-attendee', name: 'Test Attendee' },
+      lastSync: new Date(),
+      syncVersion: '1.0.0'
+    });
+    
+    // Mock the dynamic import of attendeeSyncService
+    vi.doMock('../../../../services/attendeeSyncService', () => ({
+      attendeeSyncService: mockAttendeeSyncService
+    }));
   });
 
   afterEach(() => {
@@ -98,7 +117,9 @@ describe('AdminPage Force Global Sync', () => {
       await waitFor(() => {
         expect(mockPWADataSyncService.clearCache).toHaveBeenCalledTimes(1);
         expect(mockPWADataSyncService.forceSync).toHaveBeenCalledTimes(1);
-        expect(mockDataInitializationService.forceRefreshData).toHaveBeenCalledTimes(1);
+        // Note: dataInitializationService.forceRefreshData is no longer called
+        // Instead, attendeeSyncService.refreshAttendeeData is called
+        expect(mockAttendeeSyncService.refreshAttendeeData).toHaveBeenCalledTimes(1);
       });
     });
 

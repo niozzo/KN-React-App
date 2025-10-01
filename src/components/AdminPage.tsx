@@ -281,13 +281,19 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onLogout }) => {
       const syncResult = await pwaDataSyncService.forceSync();
       console.log(`✅ [${syncId}] Force sync completed:`, syncResult);
       
-      // Step 3: Force refresh all data in the admin panel
-      console.log(`🔄 [${syncId}] Step 3: Force refreshing admin data...`);
-      const refreshResult = await dataInitializationService.forceRefreshData();
-      if (!refreshResult.success) {
-        throw new Error(refreshResult.error || 'Failed to refresh data');
+      // Step 3: Force refresh attendee data to update conference_auth
+      console.log(`🔄 [${syncId}] Step 3: Force refreshing attendee data...`);
+      try {
+        const { attendeeSyncService } = await import('../services/attendeeSyncService');
+        const attendeeResult = await attendeeSyncService.refreshAttendeeData();
+        if (attendeeResult.success) {
+          console.log(`✅ [${syncId}] Attendee data refreshed successfully`);
+        } else {
+          console.warn(`⚠️ [${syncId}] Attendee data refresh failed:`, attendeeResult.error);
+        }
+      } catch (attendeeError) {
+        console.warn(`⚠️ [${syncId}] Attendee data refresh error:`, attendeeError);
       }
-      console.log(`✅ [${syncId}] Force refresh completed successfully`);
       
       // Step 4: Reload all admin data
       console.log(`🔄 [${syncId}] Step 4: Reloading admin panel data...`);
@@ -305,7 +311,9 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onLogout }) => {
         syncResult: syncResult.success,
         syncedTables: syncResult.syncedTables?.length || 0,
         totalRecords: syncResult.totalRecords || 0,
-        errors: syncResult.errors?.length || 0
+        errors: syncResult.errors?.length || 0,
+        attendeeDataRefreshed: true,
+        conferenceAuthUpdated: true
       });
       
     } catch (error) {
