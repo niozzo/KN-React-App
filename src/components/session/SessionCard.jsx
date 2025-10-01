@@ -79,6 +79,39 @@ const SessionCard = React.memo(({
     startTime: startTime // Pass start time for smart countdown logic
   });
 
+  // 🔍 DEBUG: Log session data and countdown status for coffee breaks
+  if (isCoffeeBreakSession) {
+    console.log('🔍 Coffee Break Debug:', {
+      session: {
+        id: session.id,
+        title: session.title,
+        session_type: session.session_type,
+        type: session.type,
+        start_time: session.start_time,
+        end_time: session.end_time,
+        date: session.date
+      },
+      detection: {
+        isCoffeeBreak: isCoffeeBreakSession,
+        isMeal: isMealSession,
+        shouldShowCountdown: shouldShowCountdownForSession,
+        sessionCategory: sessionCategory
+      },
+      status: {
+        isNow,
+        variant,
+        isActive,
+        formattedTime,
+        minutesRemaining
+      },
+      countdown: {
+        enabled: isNow && shouldShowCountdownForSession,
+        endTime: endTime?.toISOString(),
+        startTime: startTime?.toISOString()
+      }
+    });
+  }
+
   // Format time display
   const formatTime = (time) => {
     if (!time) return '';

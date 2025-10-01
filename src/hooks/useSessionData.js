@@ -442,9 +442,36 @@ export const useSessionData = (options = {}) => {
       // Find current active event (session or dining)
       const activeEvent = combinedEvents.find(event => {
         if (event.type === 'dining') {
-          const isActive = isDiningActive(event, currentTime);          return isActive;
+          const isActive = isDiningActive(event, currentTime);
+          return isActive;
         } else {
-          return isSessionActive(event, currentTime);
+          const isActive = isSessionActive(event, currentTime);
+          
+          // 🔍 DEBUG: Log coffee break session status detection
+          if (event.title && event.title.toLowerCase().includes('coffee break')) {
+            console.log('🔍 Coffee Break Status Debug:', {
+              session: {
+                id: event.id,
+                title: event.title,
+                session_type: event.session_type,
+                type: event.type,
+                start_time: event.start_time,
+                end_time: event.end_time,
+                date: event.date
+              },
+              time: {
+                currentTime: currentTime.toISOString(),
+                startTime: event.start_time ? new Date(`${event.date}T${event.start_time}`).toISOString() : null,
+                endTime: event.end_time ? new Date(`${event.date}T${event.end_time}`).toISOString() : null
+              },
+              status: {
+                isActive,
+                isSessionActive: isSessionActive(event, currentTime)
+              }
+            });
+          }
+          
+          return isActive;
         }
       });
       
