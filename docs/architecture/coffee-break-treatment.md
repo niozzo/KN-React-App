@@ -275,5 +275,5 @@ graph TD
 
 - [Session Filtering Architecture](./session-filtering-architecture.md)
 - [Now/Next Glance Card Story](../stories/2.1.now-next-glance-card.md)
-- [Coffee Break Treatment Story](../stories/2.2.coffee-break-treatment.md)
+- [Coffee Break Treatment Story](../stories/2.2.COMPLETE coffee-break-treatment.md)
 - [Component Testing Standards](../testing/Testing-Standards.md)
