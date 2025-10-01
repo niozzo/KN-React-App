@@ -541,7 +541,7 @@ const clearCachedData = useCallback(() => {
 - **PWA Architecture**: `docs/architecture/pwa-architecture.md`
 - **Supabase RLS Troubleshooting**: `docs/architecture/supabase-rls-troubleshooting.md`
 - **Frontend Architecture**: `docs/architecture/frontend-refactoring-plan.md`
-- **Security Implementation**: `docs/stories/2.2.4.remove-confidential-attendee-data.md`
+- **Security Implementation**: `docs/stories/2.2.4 COMPLETE remove-confidential-attendee-data.md`
 
 ## Success Metrics
 
