@@ -118,6 +118,20 @@ export abstract class BaseTransformer<T> implements DataTransformer<T> {
           missingFields.push(mapping.source)
         }
         result[mapping.target] = this.convertType(value, mapping.type, mapping.defaultValue)
+        
+        // 🔍 DEBUG: Log session_type transformation for coffee breaks
+        if (mapping.target === 'session_type' && evolvedData.title && evolvedData.title.toLowerCase().includes('coffee break')) {
+          console.log('🔍 Session Type Transformation Debug:', {
+            sessionId: evolvedData.id,
+            title: evolvedData.title,
+            sourceField: mapping.source,
+            sourceValue: value,
+            targetField: mapping.target,
+            resultValue: result[mapping.target],
+            defaultValue: mapping.defaultValue,
+            availableFields: Object.keys(evolvedData)
+          });
+        }
       }
 
       // Log missing required fields
