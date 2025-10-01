@@ -299,11 +299,19 @@ export class AgendaService implements IAgendaService {
         timeOverridesMap.set(override.id, override);
       });
       
-      // Apply time overrides using transformer
-      const transformedItems = await this.agendaTransformer.transformArrayFromDatabaseWithTimeOverrides(
-        agendaItems, 
-        timeOverridesMap
-      );
+      // Apply time overrides directly without re-transforming
+      const transformedItems = agendaItems.map(item => {
+        const override = timeOverridesMap.get(item.id);
+        if (override) {
+          return {
+            ...item,
+            start_time: override.start_time || item.start_time,
+            end_time: override.end_time || item.end_time,
+            date: override.date || item.date
+          };
+        }
+        return item;
+      });
       
       console.log('✅ Time overrides applied successfully');
       return transformedItems;
