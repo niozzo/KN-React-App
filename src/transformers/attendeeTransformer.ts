@@ -6,6 +6,7 @@
 import { BaseTransformer, SchemaVersion } from './baseTransformer'
 import { FieldMapping, ComputedField, ValidationRule } from '../types/transformation'
 import type { Attendee } from '../types/attendee'
+import type { SafeAttendeeCache } from '../services/attendeeCacheFilterService'
 
 export class AttendeeTransformer extends BaseTransformer<Attendee> {
   constructor() {
@@ -226,5 +227,63 @@ export class AttendeeTransformer extends BaseTransformer<Attendee> {
   private isValidPhone(phone: string): boolean {
     const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/
     return phoneRegex.test(phone.replace(/[\s\-\(\)]/g, ''))
+  }
+
+  /**
+   * Transform filtered attendee data from cache
+   * Story 2.2.4: Handle filtered attendee data that has confidential fields removed
+   */
+  transformFromFilteredCache(filteredData: SafeAttendeeCache): Attendee {
+    // Convert SafeAttendeeCache back to Attendee format
+    // Note: Confidential fields will be undefined/null in the result
+    const attendee: Attendee = {
+      ...filteredData,
+      // Add undefined for all confidential fields
+      business_phone: undefined as any,
+      mobile_phone: undefined as any,
+      check_in_date: undefined as any,
+      check_out_date: undefined as any,
+      hotel_selection: undefined as any,
+      custom_hotel: undefined as any,
+      room_type: undefined as any,
+      has_spouse: undefined as any,
+      dietary_requirements: undefined as any,
+      is_spouse: undefined as any,
+      spouse_details: undefined as any,
+      address1: undefined as any,
+      address2: undefined as any,
+      postal_code: undefined as any,
+      city: undefined as any,
+      state: undefined as any,
+      country: undefined as any,
+      country_code: undefined as any,
+      assistant_name: undefined as any,
+      assistant_email: undefined as any,
+      idloom_id: undefined as any,
+      access_code: undefined as any
+    };
+
+    return attendee;
+  }
+
+  /**
+   * Check if attendee data is filtered (missing confidential fields)
+   */
+  isFilteredAttendeeData(data: any): boolean {
+    if (!data || typeof data !== 'object') {
+      return false;
+    }
+
+    // Check if confidential fields are missing (indicating filtered data)
+    const confidentialFields = [
+      'business_phone', 'mobile_phone', 'check_in_date', 'check_out_date',
+      'hotel_selection', 'custom_hotel', 'room_type', 'has_spouse',
+      'dietary_requirements', 'is_spouse', 'spouse_details', 'address1',
+      'address2', 'postal_code', 'city', 'state', 'country', 'country_code',
+      'assistant_name', 'assistant_email', 'idloom_id', 'access_code'
+    ];
+
+    // If all confidential fields are missing, data is likely filtered
+    return confidentialFields.every(field => data[field] === undefined);
   }
 }
