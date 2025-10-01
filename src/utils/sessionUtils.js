@@ -40,6 +40,23 @@ export const isMeal = (session) => {
     return false;
   }
 
+  // 🔍 DEBUG: Log isMeal function calls for coffee breaks
+  if (session.title && session.title.toLowerCase().includes('coffee break')) {
+    console.log('🔍 isMeal Debug for Coffee Break:', {
+      session: session,
+      checks: {
+        hasSession: !!session,
+        session_type: session.session_type,
+        type: session.type,
+        title: session.title,
+        isDiningEvent: session.type === 'dining',
+        sessionTypeCheck: session.session_type === 'meal',
+        typeCheck: session.type && ['breakfast', 'lunch', 'dinner', 'coffee_break', 'meal'].includes(session.type.toLowerCase()),
+        titleCheck: session.title && session.title.toLowerCase().includes('coffee break')
+      }
+    });
+  }
+
   // Check if it's a dining event (from 2.1g.1 integration)
   if (session.type === 'dining') {
     return true;
