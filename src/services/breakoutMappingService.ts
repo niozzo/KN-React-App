@@ -70,7 +70,6 @@ export class BreakoutMappingService {
     }
     
     if (attendeeBreakoutLower.includes('ceo') && sessionTitle.includes('ceo')) {
-      console.log('🎯 CEO match:', { attendeeBreakout, sessionTitle });
       return true;
     }
     

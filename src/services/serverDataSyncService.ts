@@ -67,7 +67,6 @@ export class ServerDataSyncService extends BaseService {
       return this.authenticatedClient;
     }
     
-    console.log('🔐 Authenticating with Supabase admin credentials...');
     
     // Always use singleton service to prevent multiple instances
     const baseClient = supabaseClientService.getClient();
@@ -86,7 +85,6 @@ export class ServerDataSyncService extends BaseService {
       throw new Error(`Admin authentication failed: ${error.message}`);
     }
     
-    console.log('✅ Admin authenticated successfully');
     
     // Cache the authenticated client (same instance as base client)
     this.authenticatedClient = baseClient;
@@ -105,14 +103,12 @@ export class ServerDataSyncService extends BaseService {
     };
 
     try {
-      console.log('🔄 Starting server-side data synchronization...');
       
       const supabaseClient = await this.getAuthenticatedClient();
       
       // Sync each table
       for (const tableName of this.tableToSync) {
         try {
-          console.log(`🔄 Syncing ${tableName}...`);
           
           const { data, error } = await supabaseClient
             .from(tableName)
@@ -130,23 +126,18 @@ export class ServerDataSyncService extends BaseService {
           if (tableName === 'agenda_items') {
             try {
               // Debug: Log raw data structure
-              console.log('🔍 Raw agenda_items data structure:', records[0] ? Object.keys(records[0]) : 'No data');
-              console.log('🔍 First agenda item raw data:', records[0]);
               
               // Import and apply AgendaTransformer
               const { AgendaTransformer } = await import('../transformers/agendaTransformer.js');
               const agendaTransformer = new AgendaTransformer();
               records = agendaTransformer.transformArrayFromDatabase(records);
               records = agendaTransformer.sortAgendaItems(records);
-              console.log(`🔧 Applied AgendaTransformer to ${records.length} agenda items`);
-              console.log('🔍 Transformed first agenda item:', records[0]);
             } catch (transformError) {
               console.warn(`⚠️ Failed to transform agenda_items:`, transformError);
               // Continue with raw data if transformation fails
             }
           }
           
-          console.log(`✅ ${tableName} synced (${records.length} records)`);
           
           // Cache the data locally
           await this.cacheTableData(tableName, records);
@@ -162,10 +153,8 @@ export class ServerDataSyncService extends BaseService {
       }
       
       // Sync application database tables
-      console.log('🔄 Syncing application database tables...');
       for (const tableName of this.applicationTablesToSync) {
         try {
-          console.log(`🔄 Syncing application table ${tableName}...`);
           
           const { data, error } = await applicationDb
             .from(tableName)
@@ -178,7 +167,6 @@ export class ServerDataSyncService extends BaseService {
           }
           
           const records = data || [];
-          console.log(`✅ Application table ${tableName} synced (${records.length} records)`);
           
           // Cache the data locally
           await this.cacheTableData(tableName, records);
@@ -193,7 +181,6 @@ export class ServerDataSyncService extends BaseService {
         }
       }
       
-      console.log(`✅ Server-side sync completed: ${result.syncedTables.length} tables, ${result.totalRecords} total records`);
       
     } catch (error) {
       console.error('❌ Server-side sync failed:', error);
@@ -222,7 +209,6 @@ export class ServerDataSyncService extends BaseService {
       const { unifiedCacheService } = await import('./unifiedCacheService');
       await unifiedCacheService.set(cacheKey, sanitizedData);
       
-      console.log(`💾 Cached ${tableName} with ${sanitizedData.length} records using unified cache`);
       
     } catch (error) {
       console.error(`❌ Failed to cache ${tableName}:`, error);

@@ -672,7 +672,6 @@ export class PWADataSyncService extends BaseService {
         
         // Cache the validated data
         await this.cacheTableData(tableName, validRecords);
-        console.log(`✅ PWA Data Sync: Successfully synced ${tableName} with ${validRecords.length} valid records`);
         this.recordApplicationDbSuccess();
       } else {
         // Handle empty results with caution
@@ -689,7 +688,6 @@ export class PWADataSyncService extends BaseService {
         
         // Cache empty data only if no existing data
         await this.cacheTableData(tableName, []);
-        console.log(`✅ PWA Data Sync: Successfully synced ${tableName} with 0 records`);
         this.recordApplicationDbSuccess();
       }
 

@@ -83,8 +83,6 @@ export const getAllAttendees = async (): Promise<Attendee[]> => {
         const cacheObj = JSON.parse(cachedData)
         const attendees = cacheObj.data || cacheObj
         if (Array.isArray(attendees) && attendees.length > 0) {
-          console.log('🏠 LOCALSTORAGE: Using cached attendees data from localStorage')
-          console.log('🏠 LOCALSTORAGE: Found', attendees.length, 'cached attendees')
           // Ensure stable ordering for UI
           return [...attendees].sort((a, b) => (a.last_name || '').localeCompare(b.last_name || ''))
         }
@@ -124,8 +122,6 @@ export const getCurrentAttendeeData = async (): Promise<Attendee | null> => {
         const attendees = cachedData.data || cachedData
         const cachedAttendee = attendees.find((a: Attendee) => a.id === current.id)
         if (cachedAttendee) {
-          console.log('🏠 CACHE: Using cached attendee data from unified cache')
-          console.log('🏠 CACHE: Found attendee:', { id: cachedAttendee.id, name: `${cachedAttendee.first_name} ${cachedAttendee.last_name}` })
           return cachedAttendee
         }
       }
@@ -284,8 +280,6 @@ export const getAttendeeSeatAssignments = async (attendeeId: string): Promise<Se
         // Handle both direct array format and wrapped format
         const seatAssignments = cacheObj.data || cacheObj
         const attendeeSeats = seatAssignments.filter((seat: SeatAssignment) => seat.attendee_id === attendeeId)
-        console.log('🏠 LOCALSTORAGE: Using cached seat assignments from localStorage')
-        console.log('🏠 LOCALSTORAGE: Found', attendeeSeats.length, 'seat assignments for attendee', attendeeId)
         return attendeeSeats // Return even if empty array
       }
     } catch (cacheError) {

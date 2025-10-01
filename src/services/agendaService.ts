@@ -229,7 +229,6 @@ export class AgendaService implements IAgendaService {
             
             if (attendee) {
               // DEBUG: Log attendee data for RCA
-              console.log('RCA DEBUG (agendaService): Attendee data for assignment:', assignment.attendee_id, attendee);
 
               // Format as "First Name Last Name, Title at Company" (matching mockup)
               const firstName = attendee.first_name || '';
@@ -247,7 +246,6 @@ export class AgendaService implements IAgendaService {
               }
               
               // DEBUG: Log constructed name for RCA
-              console.log('RCA DEBUG (agendaService): Constructed name:', name);
             } else {
               name = `Speaker ${assignment.attendee_id}`;
             }
@@ -332,7 +330,6 @@ export class AgendaService implements IAgendaService {
         const filteredItems = agendaItems.filter((item: any) => item.isActive);
         
         if (agendaItems.length > 0) {
-          console.log('🏠 CACHE: Using cached agenda items');
           
           // Apply time overrides before enrichment
           const itemsWithOverrides = await this.applyTimeOverrides(filteredItems);

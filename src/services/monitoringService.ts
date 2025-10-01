@@ -166,7 +166,6 @@ export class MonitoringService {
     this.trimMetrics('cache');
 
     if (this.config.enableConsoleLogging) {
-      console.log('💾 Cache operation tracked:', cacheMetric);
     }
   }
 

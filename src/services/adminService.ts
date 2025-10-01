@@ -362,9 +362,7 @@ export class AdminService {
       
       for (const tableName of applicationTables) {
         try {
-          console.log(`🔄 Syncing ${tableName}...`);
           await pwaDataSyncService.syncApplicationTable(tableName);
-          console.log(`✅ Application table ${tableName} synced successfully`);
           
           // Verify the data was cached
           const cachedData = await pwaDataSyncService.getCachedTableData(tableName);

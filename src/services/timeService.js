@@ -283,7 +283,6 @@ class TimeService {
       }
     });
     
-    console.log('🕐 Registered session boundaries:', Array.from(this._sessionBoundaries).map(ts => new Date(ts).toISOString()));
   }
 
   /**

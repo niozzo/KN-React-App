@@ -135,7 +135,6 @@ export class DataInitializationService {
       for (const tableName of applicationTables) {
         try {
           await pwaDataSyncService.syncApplicationTable(tableName);
-          console.log(`✅ Application table ${tableName} synced`);
         } catch (error) {
           console.warn(`⚠️ Failed to sync application table ${tableName}:`, error);
           // Continue with other tables even if one fails
