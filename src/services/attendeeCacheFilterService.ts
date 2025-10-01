@@ -15,7 +15,6 @@ export interface SafeAttendeeCache {
   id: string;
   first_name: string;
   last_name: string;
-  email: string;
   title: string;
   company: string;
   bio: string;
@@ -54,6 +53,7 @@ const CONFIDENTIAL_FIELDS = [
   // Contact Information
   'business_phone',
   'mobile_phone',
+  'email',
   
   // Travel & Accommodation
   'check_in_date',
@@ -95,7 +95,6 @@ const SAFE_FIELDS = [
   'id',
   'first_name',
   'last_name',
-  'email',
   'title',
   'company',
   'bio',

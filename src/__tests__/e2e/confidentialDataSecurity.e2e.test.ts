@@ -165,7 +165,6 @@ describe('E2E Confidential Data Prevention', () => {
       expect(cachedAttendee.id).toBe(confidentialAttendee.id)
       expect(cachedAttendee.first_name).toBe(confidentialAttendee.first_name)
       expect(cachedAttendee.last_name).toBe(confidentialAttendee.last_name)
-      expect(cachedAttendee.email).toBe(confidentialAttendee.email)
       expect(cachedAttendee.title).toBe(confidentialAttendee.title)
       expect(cachedAttendee.company).toBe(confidentialAttendee.company)
     })

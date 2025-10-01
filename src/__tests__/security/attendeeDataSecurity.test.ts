@@ -221,7 +221,6 @@ describe('Attendee Data Security Tests', () => {
         'id',
         'first_name',
         'last_name',
-        'email',
         'title',
         'company',
         'bio',
@@ -249,6 +248,21 @@ describe('Attendee Data Security Tests', () => {
   });
 
   describe('Data Exposure Prevention', () => {
+    it('should prevent email exposure', async () => {
+      await unifiedCacheService.set('kn_cache_attendees', [confidentialAttendee]);
+
+      const setItemCall = enhancedLocalStorageMock.setItem.mock.calls[0];
+      const storedData = JSON.parse(setItemCall[1]);
+      const cachedAttendee = storedData.data[0];
+
+      // Verify email is not exposed
+      expect(cachedAttendee.email).toBeUndefined();
+      
+      // Check that the stored JSON string doesn't contain email
+      const storedJson = setItemCall[1];
+      expect(storedJson).not.toContain('test@example.com');
+    });
+
     it('should prevent phone number exposure', async () => {
       await unifiedCacheService.set('kn_cache_attendees', [confidentialAttendee]);
 
