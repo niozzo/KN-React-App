@@ -157,7 +157,7 @@ const filterSessionsForAttendee = (sessions, attendee) => {
   }
   
   const filteredSessions = sessions.filter(session => {
-    if (session.session_type === 'breakout-session') {
+    if (session.session_type === 'breakout') {
       // NEW: Check if attendee is assigned to this breakout using mapping service
       const isAssigned = breakoutMappingService.isAttendeeAssignedToBreakout(session, attendee);
       return isAssigned;
@@ -228,7 +228,11 @@ export const useSessionData = (options = {}) => {
   const [attendee, setAttendee] = useState(null);
   const [seatAssignments, setSeatAssignments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [isOffline, setIsOffline] = useState(() => {
+    // Use PWA service as single source of truth for online status
+    const isOnline = pwaDataSyncService.getOnlineStatus();
+    return !isOnline;
+  });
   const [lastUpdated, setLastUpdated] = useState(null);
   const [error, setError] = useState(null);
   const [diningError, setDiningError] = useState(null);
@@ -531,25 +535,38 @@ export const useSessionData = (options = {}) => {
     }
   }, [sessions, diningOptions, allEvents, currentSession, nextSession, lastUpdated, enableOfflineMode]);
 
-  // Handle online/offline status changes
+  // Handle online/offline status changes - event-driven approach
   useEffect(() => {
     const handleOnline = () => {
-      setIsOffline(false);
+      // Use proper setter method
+      pwaDataSyncService.setOnlineStatus(true);
       if (autoRefresh && isAuthenticated) {
         loadSessionData();
       }
     };
 
     const handleOffline = () => {
-      setIsOffline(true);
+      // Use proper setter method
+      pwaDataSyncService.setOnlineStatus(false);
     };
 
+    // Listen for PWA service status changes via custom events
+    const handlePWAStatusChange = (event) => {
+      const { isOnline } = event.detail;
+      setIsOffline(!isOnline);
+    };
+
+    // Standard browser events
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
+    
+    // Custom PWA service events (event-driven, no polling needed)
+    window.addEventListener('pwa-status-change', handlePWAStatusChange);
 
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('pwa-status-change', handlePWAStatusChange);
     };
   }, [autoRefresh, isAuthenticated, loadSessionData]);
 

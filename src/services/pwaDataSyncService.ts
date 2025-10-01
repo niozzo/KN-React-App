@@ -68,6 +68,10 @@ export class PWADataSyncService extends BaseService {
   private lastServiceWorkerFailure: number | null = null;
   private readonly CIRCUIT_RESET_TIMEOUT = 5 * 60 * 1000; // 5 minutes
   
+  // Circuit breaker for online status changes
+  private lastStatusChange = 0;
+  private readonly STATUS_DEBOUNCE_MS = 1000; // 1 second debounce
+  
   // Protection against recursive cache invalidation calls
   private cacheInvalidationInProgress = new Set<string>();
   
@@ -354,7 +358,7 @@ export class PWADataSyncService extends BaseService {
    */
   private setupEventListeners(): void {
     window.addEventListener('online', () => {
-      this.syncStatus.isOnline = true;
+      this.setOnlineStatus(true);
       this.startPeriodicSync();
       if (this.isUserAuthenticated()) {
         this.syncAllData();
@@ -362,7 +366,7 @@ export class PWADataSyncService extends BaseService {
     });
 
     window.addEventListener('offline', () => {
-      this.syncStatus.isOnline = false;
+      this.setOnlineStatus(false);
       this.stopPeriodicSync();
     });
 
@@ -965,6 +969,48 @@ export class PWADataSyncService extends BaseService {
    */
   getSyncStatus(): SyncStatus {
     return { ...this.syncStatus };
+  }
+
+  /**
+   * Get reliable online status
+   * Uses multiple detection methods for better accuracy
+   */
+  getOnlineStatus(): boolean {
+    // Primary: Use our tracked status
+    if (this.syncStatus.isOnline !== undefined) {
+      return this.syncStatus.isOnline;
+    }
+    
+    // Fallback: Use navigator.onLine
+    return navigator.onLine;
+  }
+
+  /**
+   * Set online status with proper encapsulation and event notification
+   */
+  setOnlineStatus(isOnline: boolean): void {
+    // Prevent rapid state changes with circuit breaker
+    const now = Date.now();
+    if (now - this.lastStatusChange < this.STATUS_DEBOUNCE_MS) {
+      return; // Debounce rapid changes
+    }
+    
+    this.lastStatusChange = now;
+    this.syncStatus.isOnline = isOnline;
+    this.saveSyncStatus();
+    
+    // Notify other components of status change
+    this.notifyStatusChange(isOnline);
+  }
+
+  /**
+   * Notify other components of online status changes
+   */
+  private notifyStatusChange(isOnline: boolean): void {
+    // Emit custom event for other components
+    window.dispatchEvent(new CustomEvent('pwa-status-change', {
+      detail: { isOnline }
+    }));
   }
 
   /**
