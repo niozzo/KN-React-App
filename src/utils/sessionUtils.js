@@ -18,7 +18,7 @@ export const isCoffeeBreak = (session) => {
   // Check if it's explicitly a coffee break type
   const isCoffeeBreakType = session.type && session.type.toLowerCase() === 'coffee_break';
   
-  // Must be a meal type session OR coffee break type
+  // Must be a meal type session OR coffee break type OR have "Coffee Break" in title
   const isMealType = session.session_type === 'meal' || 
                      (session.type && session.type.toLowerCase() === 'meal') ||
                      isCoffeeBreakType;
@@ -26,7 +26,8 @@ export const isCoffeeBreak = (session) => {
   // Title must contain "Coffee Break" (case insensitive) - must be exact phrase
   const hasCoffeeBreakInTitle = session.title.toLowerCase().includes('coffee break');
 
-  return Boolean(isMealType && hasCoffeeBreakInTitle);
+  // Fix: Allow coffee break detection based on title even if session_type is not 'meal'
+  return Boolean((isMealType || hasCoffeeBreakInTitle) && hasCoffeeBreakInTitle);
 };
 
 /**

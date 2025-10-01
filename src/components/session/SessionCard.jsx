@@ -79,53 +79,6 @@ const SessionCard = React.memo(({
     startTime: startTime // Pass start time for smart countdown logic
   });
 
-  // 🔍 DEBUG: Log session data and countdown status for coffee breaks
-  if (isCoffeeBreakSession) {
-    console.log('🔍 Coffee Break Debug:', {
-      session: {
-        id: session.id,
-        title: session.title,
-        session_type: session.session_type,
-        type: session.type,
-        start_time: session.start_time,
-        end_time: session.end_time,
-        date: session.date
-      },
-      detection: {
-        isCoffeeBreak: isCoffeeBreakSession,
-        isMeal: isMealSession,
-        shouldShowCountdown: shouldShowCountdownForSession,
-        sessionCategory: sessionCategory
-      },
-      status: {
-        isNow,
-        variant,
-        isActive,
-        formattedTime,
-        minutesRemaining
-      },
-      countdown: {
-        enabled: isNow && shouldShowCountdownForSession,
-        endTime: endTime?.toISOString(),
-        startTime: startTime?.toISOString()
-      }
-    });
-    
-    // 🔍 ADDITIONAL DEBUG: Check isMeal function step by step
-    console.log('🔍 isMeal Debug for Coffee Break:', {
-      session: session,
-      checks: {
-        hasSession: !!session,
-        session_type: session.session_type,
-        type: session.type,
-        title: session.title,
-        isDiningEvent: session.type === 'dining',
-        sessionTypeCheck: session.session_type === 'meal',
-        typeCheck: session.type && ['breakfast', 'lunch', 'dinner', 'coffee_break', 'meal'].includes(session.type.toLowerCase()),
-        titleCheck: session.title && session.title.toLowerCase().includes('coffee break')
-      }
-    });
-  }
 
   // Format time display
   const formatTime = (time) => {
