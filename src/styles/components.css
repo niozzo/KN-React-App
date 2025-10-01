@@ -720,6 +720,19 @@ body {
   .cta-title {
     font-size: var(--text-2xl) !important;
   }
+  
+  /* Phase 2: Responsive Session Header for Tablets */
+  .session-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-xs);
+  }
+  
+  .session-location {
+    margin-top: var(--space-xs);
+    font-size: var(--text-sm);
+    line-height: 1.4;
+  }
 }
 
 @media (max-width: 480px) {
@@ -749,7 +762,31 @@ body {
     color: var(--coral);
   }
   
+  /* Phase 2: Enhanced Mobile Session Layout */
+  .session-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-xs);
+  }
   
+  .session-time-container {
+    order: 1;
+    margin-bottom: var(--space-xs);
+  }
+  
+  .session-location {
+    margin-top: var(--space-xs);
+    font-size: var(--text-xs);
+    line-height: 1.4;
+    color: var(--coral);
+    font-weight: var(--font-medium);
+  }
+  
+  .status-tag {
+    order: 2;
+    align-self: flex-start;
+    margin-top: var(--space-xs);
+  }
   
   /* Mobile Schedule CTA Fix */
   .schedule-button {
