@@ -129,7 +129,8 @@ export abstract class BaseTransformer<T> implements DataTransformer<T> {
             targetField: mapping.target,
             resultValue: result[mapping.target],
             defaultValue: mapping.defaultValue,
-            availableFields: Object.keys(evolvedData)
+            availableFields: Object.keys(evolvedData),
+            fullDatabaseRecord: evolvedData
           });
         }
       }

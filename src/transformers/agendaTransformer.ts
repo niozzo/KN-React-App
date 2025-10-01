@@ -17,7 +17,7 @@ export class AgendaTransformer extends BaseTransformer<AgendaItem> {
       { source: 'start_time', target: 'start_time', type: 'string', required: true },
       { source: 'end_time', target: 'end_time', type: 'string', required: true },
       { source: 'location', target: 'location', type: 'string', defaultValue: '' },
-      { source: 'session_type', target: 'session_type', type: 'string', defaultValue: 'general' },
+      { source: 'type', target: 'session_type', type: 'string', defaultValue: 'general' },
       { source: 'speaker', target: 'speaker', type: 'any', defaultValue: null },
       { source: 'capacity', target: 'capacity', type: 'number', defaultValue: null },
       { source: 'registered_count', target: 'registered_count', type: 'number', defaultValue: 0 },
