@@ -12,7 +12,12 @@ const diningTransformer = new DiningTransformer()
 // Fetch table rows helper
 async function fetchTableRows(tableName, limit = 100) {
   try {
+    console.log(`🔍 Fetching ${tableName} with limit ${limit}...`)
     const supabaseClient = await getAuthenticatedClient()
+    
+    if (!supabaseClient) {
+      throw new Error('Failed to get authenticated Supabase client')
+    }
     
     const { data, error } = await supabaseClient
       .from(tableName)
@@ -20,18 +25,34 @@ async function fetchTableRows(tableName, limit = 100) {
       .limit(parseInt(limit))
     
     if (error) {
+      console.error(`❌ Supabase error for ${tableName}:`, error.message)
       throw error
     }
     
+    console.log(`✅ Successfully fetched ${data?.length || 0} rows from ${tableName}`)
     return { data: data || [], error: null }
   } catch (error) {
     console.error(`❌ Error fetching ${tableName}:`, error.message)
+    console.error(`❌ Error stack:`, error.stack)
     return { data: null, error }
   }
 }
 
 // Main API handler
 export default async function handler(req, res) {
+  // Set JSON content type header
+  res.setHeader('Content-Type', 'application/json')
+  
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end()
+  }
+  
   // Only allow GET requests
   if (req.method !== 'GET') {
     return res.status(405).json({
@@ -48,10 +69,22 @@ export default async function handler(req, res) {
     const { data: rawData, error } = await fetchTableRows('dining_options', limit)
     
     if (error) {
+      console.error('❌ Database fetch error:', error.message)
       return res.status(500).json({
         success: false,
         data: null,
-        error: error.message,
+        error: `Database error: ${error.message}`,
+        timestamp: new Date().toISOString()
+      })
+    }
+
+    // Validate data before transformation
+    if (!rawData || !Array.isArray(rawData)) {
+      console.error('❌ Invalid data format received from database')
+      return res.status(500).json({
+        success: false,
+        data: null,
+        error: 'Invalid data format received from database',
         timestamp: new Date().toISOString()
       })
     }
@@ -88,10 +121,11 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('❌ API: Unexpected error:', error.message)
+    console.error('❌ API: Error stack:', error.stack)
     return res.status(500).json({
       success: false,
       data: null,
-      error: error.message,
+      error: `Unexpected server error: ${error.message}`,
       timestamp: new Date().toISOString()
     })
   }

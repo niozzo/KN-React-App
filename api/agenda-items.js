@@ -32,6 +32,9 @@ async function fetchTableRows(tableName, limit = 100) {
 
 // Main API handler
 export default async function handler(req, res) {
+  // Set JSON content type header
+  res.setHeader('Content-Type', 'application/json')
+  
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
