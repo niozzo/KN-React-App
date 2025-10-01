@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clear Confidential Cache</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .success { color: green; }
+        .warning { color: orange; }
+        .error { color: red; }
+        .info { color: blue; }
+        button { padding: 10px 20px; margin: 10px; font-size: 16px; }
+        #output { margin-top: 20px; padding: 10px; border: 1px solid #ccc; background: #f9f9f9; }
+    </style>
+</head>
+<body>
+    <h1>🧹 Clear Confidential Data from Cache</h1>
+    <p>This tool will remove all cached attendee data that may contain confidential information.</p>
+    
+    <button onclick="clearConfidentialCache()">Clear Confidential Cache</button>
+    <button onclick="checkCacheStatus()">Check Cache Status</button>
+    <button onclick="location.reload()">Refresh Page</button>
+    
+    <div id="output"></div>
+
+    <script>
+        function log(message, type = 'info') {
+            const output = document.getElementById('output');
+            const div = document.createElement('div');
+            div.className = type;
+            div.textContent = message;
+            output.appendChild(div);
+        }
+
+        function clearConfidentialCache() {
+            log('🧹 Starting confidential data cache cleanup...', 'info');
+            
+            // List of cache keys that may contain confidential attendee data
+            const confidentialCacheKeys = [
+                'kn_cache_attendees',
+                'kn_cache_attendee', 
+                'conference_auth',
+                'attendees', // Legacy key
+                'kn_sync_status',
+                'kn_cache_version'
+            ];
+
+            // Clear each cache key
+            confidentialCacheKeys.forEach(key => {
+                try {
+                    if (localStorage.getItem(key)) {
+                        localStorage.removeItem(key);
+                        log(`✅ Cleared cache key: ${key}`, 'success');
+                    } else {
+                        log(`ℹ️ Cache key not found: ${key}`, 'info');
+                    }
+                } catch (error) {
+                    log(`❌ Failed to clear ${key}: ${error.message}`, 'error');
+                }
+            });
+
+            // Clear all cache keys that start with kn_cache_ (comprehensive cleanup)
+            const allKeys = Object.keys(localStorage);
+            const knCacheKeys = allKeys.filter(key => key.startsWith('kn_cache_'));
+            
+            knCacheKeys.forEach(key => {
+                try {
+                    localStorage.removeItem(key);
+                    log(`✅ Cleared kn_cache key: ${key}`, 'success');
+                } catch (error) {
+                    log(`❌ Failed to clear ${key}: ${error.message}`, 'error');
+                }
+            });
+
+            log('🔒 Confidential data cache cleanup completed', 'success');
+            log('📝 Next login will populate cache with filtered data only', 'info');
+        }
+
+        function checkCacheStatus() {
+            log('🔍 Checking current cache status...', 'info');
+            
+            const allKeys = Object.keys(localStorage);
+            const attendeeKeys = allKeys.filter(key => 
+                key.includes('attendee') || 
+                key.includes('auth') || 
+                key.startsWith('kn_cache_')
+            );
+            
+            if (attendeeKeys.length === 0) {
+                log('✅ No attendee-related cache data found', 'success');
+            } else {
+                log(`⚠️ Found ${attendeeKeys.length} attendee-related cache keys:`, 'warning');
+                attendeeKeys.forEach(key => {
+                    const data = localStorage.getItem(key);
+                    const size = data ? data.length : 0;
+                    log(`  - ${key} (${size} bytes)`, 'info');
+                });
+            }
+        }
+
+        // Auto-check cache status on load
+        window.onload = checkCacheStatus;
+    </script>
+</body>
+</html>

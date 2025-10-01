@@ -198,11 +198,13 @@ export class ServerDataSyncService extends BaseService {
     try {
       const cacheKey = `kn_cache_${tableName}`;
       
-      // Sanitize attendees data to remove access_code before caching
+      // Apply comprehensive confidential data filtering for attendees
       let sanitizedData = data;
       if (tableName === 'attendees') {
-        sanitizedData = data.map(attendee => sanitizeAttendeeForStorage(attendee));
-        console.log(`🔒 Sanitized ${data.length} attendee records (removed access_code)`);
+        // Use AttendeeCacheFilterService for comprehensive filtering
+        const { AttendeeCacheFilterService } = await import('./attendeeCacheFilterService');
+        sanitizedData = AttendeeCacheFilterService.filterAttendeesArray(data);
+        console.log(`🔒 Filtered ${data.length} attendee records for cache storage`);
       }
 
       // Use unified cache service for consistent caching

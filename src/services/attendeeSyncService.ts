@@ -47,8 +47,13 @@ export class AttendeeSyncService extends BaseService {
         };
       }
 
-      // Update conference_auth with fresh data
-      await this.updateConferenceAuth(freshAttendeeData);
+      // Apply confidential data filtering before updating conference_auth
+      const { AttendeeCacheFilterService } = await import('./attendeeCacheFilterService');
+      const filteredAttendeeData = AttendeeCacheFilterService.filterConfidentialFields(freshAttendeeData);
+      console.log('🔒 Applied confidential data filtering to attendee refresh');
+
+      // Update conference_auth with filtered data
+      await this.updateConferenceAuth(filteredAttendeeData);
       
       // Emit change event for reactive updates
       this.emitAttendeeDataUpdated(freshAttendeeData);
@@ -79,7 +84,7 @@ export class AttendeeSyncService extends BaseService {
       const currentAuth = this.getCurrentAuth();
       const updatedAuth = {
         ...currentAuth,
-        attendee: sanitizeAttendeeForStorage(attendeeData),
+        attendee: attendeeData, // Data is already filtered by caller
         lastUpdated: Date.now(),
         syncVersion: this.getSyncVersion(),
         attendeeDataVersion: attendeeData.updated_at || Date.now()
