@@ -5,6 +5,7 @@ import Card, { CardHeader, CardContent } from '../common/Card';
 import StatusTag from '../common/StatusTag';
 import SessionErrorBoundary from '../common/SessionErrorBoundary';
 import useCountdown from '../../hooks/useCountdown';
+import TimeService from '../../services/timeService';
 import { 
   isCoffeeBreak, 
   isMeal, 
@@ -78,6 +79,39 @@ const SessionCard = React.memo(({
     isCoffeeBreak: isCoffeeBreakSession, // Special handling for coffee breaks
     startTime: startTime // Pass start time for smart countdown logic
   });
+
+  // 🔍 DEBUG: Log time sources for coffee break sessions
+  if (isCoffeeBreakSession && isNow) {
+    const sessionTime = new Date(`${session.date}T${session.start_time}`);
+    const endTimeDate = new Date(`${session.date}T${session.end_time}`);
+    const now = new Date();
+    
+    console.log('🔍 Coffee Break Time Debug:', {
+      session: {
+        id: session.id,
+        title: session.title,
+        start_time: session.start_time,
+        end_time: session.end_time,
+        date: session.date
+      },
+      times: {
+        sessionStart: sessionTime.toISOString(),
+        sessionEnd: endTimeDate.toISOString(),
+        currentTime: now.toISOString(),
+        timeService: TimeService.getCurrentTime().toISOString()
+      },
+      status: {
+        isNow,
+        shouldShowCountdown: shouldShowCountdownForSession,
+        enabled: isNow && shouldShowCountdownForSession
+      },
+      countdown: {
+        formattedTime,
+        isActive,
+        minutesRemaining
+      }
+    });
+  }
 
 
   // Format time display

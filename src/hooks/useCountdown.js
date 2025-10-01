@@ -92,19 +92,17 @@ export const useCountdown = (endTime, options = {}) => {
     if (startTime) {
       const start = new Date(startTime);
       
-      // If current time is before session starts, don't show countdown
-      if (now.getTime() < start.getTime()) {
-        return 0;
+      // 🔧 FIX: Align with session status logic - only check if session is active
+      // Session status logic: currentTime >= start && currentTime <= end
+      // So we should show countdown if we're within the session time range
+      if (now.getTime() >= start.getTime() && now.getTime() <= end.getTime()) {
+        // If current time is during the session, calculate remaining time
+        const remaining = end.getTime() - now.getTime();
+        return Math.max(0, remaining);
       }
       
-      // If current time is after session ends, countdown is complete
-      if (now.getTime() > end.getTime()) {
-        return 0;
-      }
-      
-      // If current time is during the session, calculate remaining time
-      const remaining = end.getTime() - now.getTime();
-      return Math.max(0, remaining);
+      // If we're outside the session time range, don't show countdown
+      return 0;
     }
     
     // Fallback to original logic for sessions without start time
