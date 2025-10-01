@@ -16,7 +16,7 @@ import {
   ListItemText,
   Divider
 } from '@mui/material';
-import { ArrowBack as ArrowBackIcon, Save as SaveIcon, Home as HomeIcon, Dashboard as DashboardIcon, AccessTime as AccessTimeIcon } from '@mui/icons-material';
+import { ArrowBack as ArrowBackIcon, Save as SaveIcon, Home as HomeIcon, Dashboard as DashboardIcon, AccessTime as AccessTimeIcon, Sync as SyncIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { SpeakerAssignmentComponent } from './SpeakerAssignment';
 import { adminService } from '../services/adminService';
@@ -47,6 +47,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onLogout }) => {
   const [requiresAuth, setRequiresAuth] = useState(false);
   const [showDashboard, setShowDashboard] = useState(false);
   const [timeOverrideItem, setTimeOverrideItem] = useState<any>(null);
+  const [forceSyncLoading, setForceSyncLoading] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -261,6 +262,72 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onLogout }) => {
     }
   };
 
+  const handleForceGlobalSync = async () => {
+    const syncStartTime = new Date().toISOString();
+    const syncId = `sync_${Date.now()}`;
+    
+    try {
+      console.log(`🔄 [${syncId}] Force global sync started at ${syncStartTime}`);
+      setForceSyncLoading(true);
+      setError('');
+      
+      // Step 1: Clear all cached data to force fresh fetch
+      console.log(`🔄 [${syncId}] Step 1: Clearing all caches...`);
+      await pwaDataSyncService.clearCache();
+      console.log(`✅ [${syncId}] Cleared all PWA caches`);
+      
+      // Step 2: Force sync all data (not just application DB)
+      console.log(`🔄 [${syncId}] Step 2: Force syncing all data...`);
+      const syncResult = await pwaDataSyncService.forceSync();
+      console.log(`✅ [${syncId}] Force sync completed:`, syncResult);
+      
+      // Step 3: Force refresh all data in the admin panel
+      console.log(`🔄 [${syncId}] Step 3: Force refreshing admin data...`);
+      const refreshResult = await dataInitializationService.forceRefreshData();
+      if (!refreshResult.success) {
+        throw new Error(refreshResult.error || 'Failed to refresh data');
+      }
+      console.log(`✅ [${syncId}] Force refresh completed successfully`);
+      
+      // Step 4: Reload all admin data
+      console.log(`🔄 [${syncId}] Step 4: Reloading admin panel data...`);
+      await loadData();
+      
+      const syncEndTime = new Date().toISOString();
+      const duration = new Date(syncEndTime).getTime() - new Date(syncStartTime).getTime();
+      
+      console.log(`✅ [${syncId}] Force global sync completed successfully in ${duration}ms`);
+      console.log(`📊 [${syncId}] Sync Summary:`, {
+        syncId,
+        startTime: syncStartTime,
+        endTime: syncEndTime,
+        duration: `${duration}ms`,
+        syncResult: syncResult.success,
+        syncedTables: syncResult.syncedTables?.length || 0,
+        totalRecords: syncResult.totalRecords || 0,
+        errors: syncResult.errors?.length || 0
+      });
+      
+    } catch (error) {
+      const syncEndTime = new Date().toISOString();
+      const duration = new Date(syncEndTime).getTime() - new Date(syncStartTime).getTime();
+      
+      console.error(`❌ [${syncId}] Force global sync failed after ${duration}ms:`, error);
+      console.error(`📊 [${syncId}] Error Summary:`, {
+        syncId,
+        startTime: syncStartTime,
+        endTime: syncEndTime,
+        duration: `${duration}ms`,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
+      });
+      
+      setError(`Failed to force global sync: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`);
+    } finally {
+      setForceSyncLoading(false);
+    }
+  };
+
   const handleGoToLogin = () => {
     navigate('/');
   };
@@ -352,10 +419,18 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onLogout }) => {
           </Typography>
           <Button
             color="inherit"
-            onClick={handleForceSyncApplicationDb}
-            sx={{ mr: 1 }}
+            startIcon={<SyncIcon />}
+            onClick={handleForceGlobalSync}
+            disabled={forceSyncLoading}
+            sx={{ 
+              mr: 1,
+              backgroundColor: forceSyncLoading ? 'rgba(255,255,255,0.2)' : 'transparent',
+              '&:hover': {
+                backgroundColor: 'rgba(255,255,255,0.1)'
+              }
+            }}
           >
-            Sync App DB
+            {forceSyncLoading ? 'Syncing...' : 'Force Global Sync'}
           </Button>
           <Button
             color="inherit"
