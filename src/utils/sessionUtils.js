@@ -48,11 +48,7 @@ export const isMeal = (session) => {
 
   // Check session_type first (newer format)
   if (session.session_type) {
-    // 🔧 FIX: For coffee breaks, also check title even if session_type is not 'meal'
-    if (session.session_type === 'meal') {
-      return true;
-    }
-    // If session_type is not 'meal', continue to other checks (don't return false yet)
+    return session.session_type === 'meal';
   }
 
   // Check type field (legacy format)
