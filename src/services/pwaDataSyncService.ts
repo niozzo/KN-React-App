@@ -9,7 +9,7 @@
 // All data reads must go through backend endpoints protected by RLS-aware auth
 // import { SchemaValidationService } from './schemaValidationService';
 import { supabase } from '../lib/supabase.js';
-import { sanitizeAttendeeForStorage } from '../types/attendee.ts';
+// Removed sanitizeAttendeeForStorage - now using AttendeeCacheFilterService for comprehensive filtering
 import { applicationDb } from './applicationDatabaseService.ts';
 import { cacheMonitoringService } from './cacheMonitoringService.ts';
 import { cacheVersioningService, type CacheEntry } from './cacheVersioningService.ts';
@@ -721,10 +721,13 @@ export class PWADataSyncService extends BaseService {
     try {
       const cacheKey = `${this.CACHE_PREFIX}${tableName}`;
       
-      // Sanitize attendees data to remove access_code before caching
+      // Apply comprehensive confidential data filtering for attendees
       let sanitizedData = data;
       if (tableName === 'attendees') {
-        sanitizedData = data.map(attendee => sanitizeAttendeeForStorage(attendee));
+        // Use AttendeeCacheFilterService for comprehensive filtering
+        const { AttendeeCacheFilterService } = await import('./attendeeCacheFilterService');
+        sanitizedData = AttendeeCacheFilterService.filterAttendeesArray(data);
+        console.log(`🔒 Filtered ${data.length} attendee records for cache storage`);
       }
       
       // ✅ NEW: Use cache versioning service for proper cache entry creation with environment-aware TTL
