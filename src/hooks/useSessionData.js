@@ -255,6 +255,58 @@ export const useSessionData = (options = {}) => {
       const attendeeData = await getCurrentAttendeeData();
       setAttendee(attendeeData);
 
+      // ✅ NEW: Check if attendee data needs refresh and handle errors
+      try {
+        const { attendeeSyncService } = await import('../services/attendeeSyncService');
+        const { AttendeeSyncErrorHandler } = await import('../services/attendeeSyncErrorHandler');
+        const { AttendeeSyncFallback } = await import('../services/attendeeSyncFallback');
+        
+        if (attendeeSyncService.shouldRefreshAttendeeData()) {
+          console.log('🔄 Attendee data is stale, refreshing...');
+          try {
+            const attendeeResult = await attendeeSyncService.refreshAttendeeData();
+            
+            if (attendeeResult.success && attendeeResult.attendee) {
+              setAttendee(attendeeResult.attendee);
+              console.log('✅ Attendee data refreshed successfully');
+            } else {
+              // Handle sync failure with fallback
+              console.warn('⚠️ Attendee sync failed, using fallback data');
+              const fallbackAttendee = AttendeeSyncFallback.getFallbackAttendeeData();
+              if (fallbackAttendee && AttendeeSyncFallback.validateFallbackData(fallbackAttendee)) {
+                setAttendee(fallbackAttendee);
+              }
+            }
+          } catch (error) {
+            console.error('❌ Attendee sync error:', error);
+            
+            // Use error handler for retry logic
+            try {
+              const errorResult = await AttendeeSyncErrorHandler.handleSyncError(
+                error,
+                () => attendeeSyncService.refreshAttendeeData()
+              );
+              
+              if (errorResult.success && errorResult.attendee) {
+                setAttendee(errorResult.attendee);
+              } else {
+                // Final fallback
+                const fallbackAttendee = AttendeeSyncFallback.getFallbackAttendeeData();
+                if (fallbackAttendee && AttendeeSyncFallback.validateFallbackData(fallbackAttendee)) {
+                  setAttendee(fallbackAttendee);
+                }
+              }
+            } catch (fallbackError) {
+              console.error('❌ Fallback failed:', fallbackError);
+              setError('Failed to load attendee data');
+            }
+          }
+        }
+      } catch (importError) {
+        console.warn('⚠️ Failed to load attendee sync services:', importError);
+        // Continue with existing attendee data
+      }
+
       // Load seat assignments for the attendee
       if (attendeeData && attendeeData.id) {
         try {
@@ -594,6 +646,40 @@ export const useSessionData = (options = {}) => {
   useEffect(() => {
     cacheSessionData();
   }, [cacheSessionData]);
+
+  // ✅ NEW: Event-driven attendee data updates
+  useEffect(() => {
+    const handleAttendeeDataUpdate = (event) => {
+      const { attendee, timestamp, syncVersion } = event.detail;
+      console.log('🔄 Attendee data updated via event:', { timestamp, syncVersion });
+      
+      // Update local attendee state
+      setAttendee(attendee);
+      
+      // Re-apply personalization with fresh attendee data
+      if (allSessions.length > 0) {
+        const personalizedSessions = filterSessionsForAttendee(allSessions, attendee);
+        setSessions(personalizedSessions);
+        
+        // Update combined events with fresh personalization
+        const updatedCombinedEvents = mergeAndSortEvents(
+          personalizedSessions,
+          diningOptions
+        );
+        setAllEvents(updatedCombinedEvents);
+      }
+      
+      // Update last updated timestamp
+      setLastUpdated(new Date());
+    };
+
+    // Listen for attendee data updates
+    window.addEventListener('attendee-data-updated', handleAttendeeDataUpdate);
+    
+    return () => {
+      window.removeEventListener('attendee-data-updated', handleAttendeeDataUpdate);
+    };
+  }, [allSessions, diningOptions]);
 
   // Listen for time override changes and re-evaluate session states
   useEffect(() => {

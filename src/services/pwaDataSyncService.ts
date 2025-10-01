@@ -525,6 +525,22 @@ export class PWADataSyncService extends BaseService {
         }
       }
 
+      // ✅ NEW: Add attendee data sync
+      try {
+        const { attendeeSyncService } = await import('./attendeeSyncService');
+        const attendeeResult = await attendeeSyncService.refreshAttendeeData();
+        if (attendeeResult.success) {
+          console.log('✅ Attendee data sync completed successfully');
+          result.syncedTables.push('attendee_data');
+        } else {
+          console.warn('⚠️ Attendee data sync failed:', attendeeResult.error);
+          result.errors.push(`Attendee sync failed: ${attendeeResult.error}`);
+        }
+      } catch (attendeeError) {
+        console.warn('⚠️ Attendee data sync error:', attendeeError);
+        result.errors.push(`Attendee sync error: ${attendeeError instanceof Error ? attendeeError.message : 'Unknown error'}`);
+      }
+
       // Update sync status
       this.syncStatus.lastSync = new Date().toISOString();
       this.syncStatus.pendingChanges = 0;

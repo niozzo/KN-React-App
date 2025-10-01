@@ -148,6 +148,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsAuthenticated(true)
       setAttendee(authResult.attendee)
       
+      // ✅ NEW: Initialize attendee sync service
+      try {
+        const { attendeeSyncService } = await import('../services/attendeeSyncService')
+        await attendeeSyncService.refreshAttendeeData()
+        console.log('✅ Attendee sync service initialized')
+      } catch (attendeeError) {
+        console.warn('⚠️ Attendee sync initialization failed:', attendeeError)
+      }
+      
       // Load attendee name from the newly cached info
       const cachedName = await attendeeInfoService.getAttendeeName()
       setAttendeeName(cachedName)
@@ -208,6 +217,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           success: false, 
           error: `Data clearing failed: ${clearResult.errors.join(', ')}` 
         }
+      }
+
+      // ✅ NEW: Clear attendee sync service state
+      try {
+        const { attendeeSyncService } = await import('../services/attendeeSyncService')
+        attendeeSyncService.clearSyncState()
+        console.log('🧹 Attendee sync state cleared')
+      } catch (attendeeError) {
+        console.warn('⚠️ Failed to clear attendee sync state:', attendeeError)
       }
       
       // Step 2: Clear authentication state
