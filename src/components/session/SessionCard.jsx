@@ -239,16 +239,12 @@ const SessionCard = React.memo(({
               {speakers && speakers.length > 0 ? (
                 // Display each speaker with name and title on separate lines
                 speakers.map((speaker, index) => {
-                  // DEBUG: Log speaker object before rendering for RCA
-                  console.log('RCA DEBUG (SessionCard): Speaker object before rendering:', speaker);
                   
                   // Parse the speaker name to extract name and title
                   const nameParts = speaker.name.split(', ');
                   const speakerName = nameParts[0] || speaker.name;
                   const speakerTitle = nameParts.slice(1).join(', ') || '';
                   
-                  // DEBUG: Log parsed name and title for RCA
-                  console.log('RCA DEBUG (SessionCard): Parsed speakerName:', speakerName, 'speakerTitle:', speakerTitle);
                   
                   return (
                     <div 

@@ -44,7 +44,6 @@ export class AgendaService implements IAgendaService {
     // Initialize serverDataSyncService for background refresh if not provided
     if (!this.serverDataSyncService) {
       this.serverDataSyncService = new ServerDataSyncService();
-      console.log('✅ AgendaService: ServerDataSyncService initialized for background refresh');
     }
   }
 
@@ -287,7 +286,6 @@ export class AgendaService implements IAgendaService {
     try {
       // Get time overrides from application database
       const timeOverrides = await applicationDatabaseService.getAgendaItemTimeOverrides();
-      console.log('🕐 Applying time overrides to agenda items:', timeOverrides.length, 'overrides found');
       
       if (timeOverrides.length === 0) {
         return agendaItems;
@@ -313,7 +311,6 @@ export class AgendaService implements IAgendaService {
         return item;
       });
       
-      console.log('✅ Time overrides applied successfully');
       return transformedItems;
     } catch (error) {
       console.error('❌ Failed to apply time overrides:', error);
@@ -527,7 +524,6 @@ export class AgendaService implements IAgendaService {
   private async refreshAgendaItemsInBackground(): Promise<void> {
     // Prevent multiple simultaneous background refreshes
     if (this.backgroundRefreshInProgress) {
-      console.log('🔄 Background refresh: Already in progress, skipping');
       return;
     }
 
@@ -539,14 +535,12 @@ export class AgendaService implements IAgendaService {
         this.serverDataSyncService = new ServerDataSyncService();
       }
 
-      console.log('🔄 Background refresh: Starting server sync...');
       
       // Use the injected service
       const syncResult = await this.serverDataSyncService.syncAllData();
       
       if (syncResult.success && syncResult.syncedTables?.includes('agenda_items')) {
         // The data is already cached by serverDataSyncService, so we don't need to cache it again
-        console.log('✅ Background refresh: Successfully synced agenda items');
       } else {
         console.warn('⚠️ Background refresh: serverDataSyncService failed, keeping existing cache');
       }

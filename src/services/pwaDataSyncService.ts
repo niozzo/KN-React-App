@@ -146,11 +146,9 @@ export class PWADataSyncService extends BaseService {
     this.cacheInvalidationInProgress.add(tableName);
     
     try {
-      console.log('🔄 PWA Data Sync: Handling dining metadata cache invalidation');
       // Remove the recursive invalidateCache call - it's already being invalidated
       // await this.invalidateCache('dining_item_metadata'); // ❌ REMOVED - causes infinite loop
       await this.syncApplicationTable('dining_item_metadata');
-      console.log('✅ PWA Data Sync: Dining metadata cache refreshed successfully');
     } catch (error) {
       console.error('❌ PWA Data Sync: Failed to refresh dining metadata cache:', error);
     } finally {
@@ -173,11 +171,9 @@ export class PWADataSyncService extends BaseService {
     this.cacheInvalidationInProgress.add(tableName);
     
     try {
-      console.log('🔄 PWA Data Sync: Handling agenda metadata cache invalidation');
       // Remove the recursive invalidateCache call - it's already being invalidated
       // await this.invalidateCache('agenda_item_metadata'); // ❌ REMOVED - causes infinite loop
       await this.syncApplicationTable('agenda_item_metadata');
-      console.log('✅ PWA Data Sync: Agenda metadata cache refreshed successfully');
     } catch (error) {
       console.error('❌ PWA Data Sync: Failed to refresh agenda metadata cache:', error);
     } finally {
@@ -200,11 +196,9 @@ export class PWADataSyncService extends BaseService {
     this.cacheInvalidationInProgress.add(tableName);
     
     try {
-      console.log('🔄 PWA Data Sync: Handling attendee metadata cache invalidation');
       // Remove the recursive invalidateCache call - it's already being invalidated
       // await this.invalidateCache('attendee_metadata'); // ❌ REMOVED - causes infinite loop
       await this.syncApplicationTable('attendee_metadata');
-      console.log('✅ PWA Data Sync: Attendee metadata cache refreshed successfully');
     } catch (error) {
       console.error('❌ PWA Data Sync: Failed to refresh attendee metadata cache:', error);
     } finally {
@@ -307,7 +301,6 @@ export class PWADataSyncService extends BaseService {
       // Also clear any other corrupted entries
       await unifiedCacheService.clearCorruptedCache();
       
-      console.log('🧹 Startup: Cleared corrupted cache entries including agenda items');
     } catch (error) {
       console.warn('⚠️ Failed to clear corrupted cache on startup:', error);
     }
@@ -580,7 +573,6 @@ export class PWADataSyncService extends BaseService {
    * Sync individual table
    */
   private async syncTable(tableName: MainTableName): Promise<void> {
-    console.log(`🔄 Syncing ${tableName}...`);
 
     try {
       // Validate table name and get Supabase table name
@@ -633,7 +625,6 @@ export class PWADataSyncService extends BaseService {
    * Sync application database table
    */
   async syncApplicationTable(tableName: ApplicationTableName): Promise<void> {
-    console.log(`🔄 PWA Data Sync: Syncing application table ${tableName}...`);
 
     // Check circuit breaker first
     if (this.isApplicationDbCircuitOpen()) {
