@@ -7,6 +7,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import ScheduleView from '../../components/ScheduleView';
+import useSessionData from '../../hooks/useSessionData';
 
 // Mock react-router-dom
 const mockNavigate = vi.fn();
@@ -17,6 +18,11 @@ vi.mock('react-router-dom', async () => {
     useNavigate: () => mockNavigate
   };
 });
+
+// Mock useSessionData hook
+vi.mock('../../hooks/useSessionData', () => ({
+  default: vi.fn()
+}));
 
 // Mock SessionCard to avoid complex dependencies
 vi.mock('../../components/session/SessionCard', () => ({
@@ -34,6 +40,8 @@ vi.mock('../../components/session/SessionCard', () => ({
   )
 }));
 
+const mockUseSessionData = vi.mocked(useSessionData);
+
 // Helper function to render ScheduleView with router
 const renderScheduleView = (props) => {
   return render(
@@ -44,7 +52,7 @@ const renderScheduleView = (props) => {
 };
 
 describe('ScheduleView Container', () => {
-  const mockSessions = [
+  const mockAllEvents = [
     {
       id: '1',
       title: 'Morning Keynote',
@@ -87,9 +95,21 @@ describe('ScheduleView Container', () => {
     }
   ];
 
+  const mockSessionData = {
+    allEvents: mockAllEvents,
+    isLoading: false,
+    error: null,
+    isOffline: false
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUseSessionData.mockReturnValue(mockSessionData);
+  });
+
   describe('Given sessions with multiple days', () => {
     it('When rendering schedule view, Then groups sessions by day', () => {
-      renderScheduleView({ sessions: mockSessions });
+      renderScheduleView({});
 
       // Should have day headers for each day
       expect(screen.getByText(/December 18, 2024/)).toBeInTheDocument();
@@ -101,7 +121,7 @@ describe('ScheduleView Container', () => {
     });
 
     it('When rendering schedule view, Then displays sessions in chronological order', () => {
-      renderScheduleView({ sessions: mockSessions });
+      renderScheduleView({});
 
       // Should display sessions in order
       expect(screen.getByText('Morning Keynote')).toBeInTheDocument();
@@ -111,7 +131,7 @@ describe('ScheduleView Container', () => {
     });
 
     it('When rendering schedule view, Then uses agenda variant for SessionCard', () => {
-      const { container } = renderScheduleView({ sessions: mockSessions });
+      const { container } = renderScheduleView({});
 
       const sessionCards = container.querySelectorAll('.mock-session-card');
       expect(sessionCards).toHaveLength(4);
@@ -123,7 +143,7 @@ describe('ScheduleView Container', () => {
     });
 
     it('When rendering schedule view, Then applies schedule-specific CSS classes', () => {
-      const { container } = renderScheduleView({ sessions: mockSessions });
+      const { container } = renderScheduleView({});
 
       expect(container.querySelector('.schedule-view')).toBeInTheDocument();
       expect(container.querySelector('.schedule-day-group')).toBeInTheDocument();
@@ -132,16 +152,77 @@ describe('ScheduleView Container', () => {
     });
   });
 
+  describe('Given loading state', () => {
+    it('When loading, Then displays loading message', () => {
+      mockUseSessionData.mockReturnValue({
+        ...mockSessionData,
+        isLoading: true
+      });
+
+      renderScheduleView({});
+
+      expect(screen.getByText('Loading your schedule...')).toBeInTheDocument();
+      expect(screen.getByText('Please wait while we fetch your personalized schedule.')).toBeInTheDocument();
+    });
+
+    it('When loading, Then applies loading CSS class', () => {
+      mockUseSessionData.mockReturnValue({
+        ...mockSessionData,
+        isLoading: true
+      });
+
+      const { container } = renderScheduleView({});
+
+      expect(container.querySelector('.schedule-view--loading')).toBeInTheDocument();
+    });
+  });
+
+  describe('Given error state', () => {
+    it('When error occurs, Then displays error message', () => {
+      mockUseSessionData.mockReturnValue({
+        ...mockSessionData,
+        error: 'Network error'
+      });
+
+      renderScheduleView({});
+
+      expect(screen.getByText('Unable to load schedule')).toBeInTheDocument();
+      expect(screen.getByText('There was an error loading your schedule. Please try again later.')).toBeInTheDocument();
+    });
+
+    it('When offline, Then displays offline indicator', () => {
+      mockUseSessionData.mockReturnValue({
+        ...mockSessionData,
+        error: 'Network error',
+        isOffline: true
+      });
+
+      renderScheduleView({});
+
+      expect(screen.getByText('You appear to be offline.')).toBeInTheDocument();
+    });
+  });
+
   describe('Given empty sessions array', () => {
     it('When rendering schedule view, Then displays empty state message', () => {
-      renderScheduleView({ sessions: [] });
+      mockUseSessionData.mockReturnValue({
+        ...mockSessionData,
+        allEvents: []
+      });
+
+      renderScheduleView({});
 
       expect(screen.getByText('No sessions scheduled')).toBeInTheDocument();
       expect(screen.getByText('Your personalized schedule will appear here once sessions are assigned.')).toBeInTheDocument();
     });
 
     it('When rendering schedule view, Then applies empty state CSS class', () => {
-      const { container } = renderScheduleView({ sessions: [] });
+      mockUseSessionData.mockReturnValue({
+        ...mockSessionData,
+        allEvents: []
+      });
+
+      const { container } = renderScheduleView({});
 
       expect(container.querySelector('.schedule-view--empty')).toBeInTheDocument();
     });
@@ -151,18 +232,17 @@ describe('ScheduleView Container', () => {
     it('When session is clicked, Then calls onSessionClick with session data', () => {
       const mockOnSessionClick = vi.fn();
       renderScheduleView({ 
-        sessions: mockSessions, 
         onSessionClick: mockOnSessionClick 
       });
 
       const firstSession = screen.getByText('Morning Keynote');
       fireEvent.click(firstSession);
 
-      expect(mockOnSessionClick).toHaveBeenCalledWith(mockSessions[0]);
+      expect(mockOnSessionClick).toHaveBeenCalledWith(mockAllEvents[0]);
     });
 
     it('When no onSessionClick provided, Then does not throw error', () => {
-      renderScheduleView({ sessions: mockSessions });
+      renderScheduleView({});
 
       const firstSession = screen.getByText('Morning Keynote');
       expect(() => fireEvent.click(firstSession)).not.toThrow();
@@ -171,7 +251,7 @@ describe('ScheduleView Container', () => {
 
   describe('Given session sorting', () => {
     it('When sessions have different start times, Then sorts by start time within day', () => {
-      const unsortedSessions = [
+      const unsortedEvents = [
         {
           id: '1',
           title: 'Late Session',
@@ -194,7 +274,12 @@ describe('ScheduleView Container', () => {
         }
       ];
 
-      renderScheduleView({ sessions: unsortedSessions });
+      mockUseSessionData.mockReturnValue({
+        ...mockSessionData,
+        allEvents: unsortedEvents
+      });
+
+      renderScheduleView({});
 
       const sessionCards = screen.getAllByText(/Session/);
       expect(sessionCards[0]).toHaveTextContent('Early Session');
@@ -202,7 +287,7 @@ describe('ScheduleView Container', () => {
     });
 
     it('When sessions have no start time, Then handles gracefully', () => {
-      const sessionsWithoutTime = [
+      const eventsWithoutTime = [
         {
           id: '1',
           title: 'Session Without Time',
@@ -213,7 +298,12 @@ describe('ScheduleView Container', () => {
         }
       ];
 
-      renderScheduleView({ sessions: sessionsWithoutTime });
+      mockUseSessionData.mockReturnValue({
+        ...mockSessionData,
+        allEvents: eventsWithoutTime
+      });
+
+      renderScheduleView({});
 
       expect(screen.getByText('Session Without Time')).toBeInTheDocument();
     });
@@ -244,7 +334,12 @@ describe('ScheduleView Container', () => {
         }
       ];
 
-      renderScheduleView({ sessions: multiDaySessions });
+      mockUseSessionData.mockReturnValue({
+        ...mockSessionData,
+        allEvents: multiDaySessions
+      });
+
+      renderScheduleView({});
 
       // Should have two day headers
       expect(screen.getByText(/December 18, 2024/)).toBeInTheDocument();
@@ -258,7 +353,6 @@ describe('ScheduleView Container', () => {
   describe('Given custom className', () => {
     it('When custom className provided, Then applies to schedule view', () => {
       const { container } = renderScheduleView({ 
-        sessions: mockSessions,
         className: 'custom-schedule'
       });
 
@@ -268,7 +362,7 @@ describe('ScheduleView Container', () => {
 
   describe('Given accessibility', () => {
     it('When rendering schedule view, Then maintains proper structure', () => {
-      renderScheduleView({ sessions: mockSessions });
+      renderScheduleView({});
 
       // Should have proper heading structure from DayHeader (multiple headings for multiple days)
       const headings = screen.getAllByRole('heading', { level: 2 });

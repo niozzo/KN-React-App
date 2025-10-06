@@ -2,28 +2,36 @@ import React, { useMemo } from 'react';
 import PropTypes from 'prop-types';
 import DayHeader from './DayHeader';
 import SessionCard from './session/SessionCard';
+import useSessionData from '../hooks/useSessionData';
 
 /**
  * Schedule View Container Component
  * Displays personalized schedule with day grouping and session cards
  * Story 2.2: Personalized Schedule View - Task 3
+ * Refactored to use useSessionData directly following architectural patterns
  */
 const ScheduleView = ({
-  sessions = [],
   className = '',
   onSessionClick,
   ...props
 }) => {
-  // Group sessions by date
+  // Use useSessionData directly - following established architectural patterns
+  const { allEvents, isLoading, error, isOffline } = useSessionData();
+
+  // Group sessions by date - view-specific logic in component
   const groupedSessions = useMemo(() => {
+    if (!allEvents || allEvents.length === 0) {
+      return [];
+    }
+
     const groups = {};
     
-    sessions.forEach(session => {
-      const date = session.date;
+    allEvents.forEach(event => {
+      const date = event.date;
       if (!groups[date]) {
         groups[date] = [];
       }
-      groups[date].push(session);
+      groups[date].push(event);
     });
     
     // Sort sessions within each day by start time
@@ -43,7 +51,7 @@ const ScheduleView = ({
       date,
       sessions: groups[date]
     }));
-  }, [sessions]);
+  }, [allEvents]);
 
   // Handle session click
   const handleSessionClick = (session) => {
@@ -52,7 +60,41 @@ const ScheduleView = ({
     }
   };
 
-  if (sessions.length === 0) {
+  // Handle loading state
+  if (isLoading) {
+    return (
+      <div className={`schedule-view schedule-view--loading ${className}`} {...props}>
+        <div style={{
+          textAlign: 'center',
+          padding: 'var(--space-xl)',
+          color: 'var(--text-secondary)'
+        }}>
+          <h3>Loading your schedule...</h3>
+          <p>Please wait while we fetch your personalized schedule.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle error state
+  if (error) {
+    return (
+      <div className={`schedule-view schedule-view--error ${className}`} {...props}>
+        <div style={{
+          textAlign: 'center',
+          padding: 'var(--space-xl)',
+          color: 'var(--text-error)'
+        }}>
+          <h3>Unable to load schedule</h3>
+          <p>There was an error loading your schedule. Please try again later.</p>
+          {isOffline && <p><em>You appear to be offline.</em></p>}
+        </div>
+      </div>
+    );
+  }
+
+  // Handle empty state
+  if (groupedSessions.length === 0) {
     return (
       <div className={`schedule-view schedule-view--empty ${className}`} {...props}>
         <div style={{
@@ -94,23 +136,11 @@ const ScheduleView = ({
 };
 
 ScheduleView.propTypes = {
-  sessions: PropTypes.arrayOf(PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    title: PropTypes.string.isRequired,
-    date: PropTypes.string.isRequired,
-    start_time: PropTypes.string,
-    end_time: PropTypes.string,
-    location: PropTypes.string,
-    speaker: PropTypes.string,
-    type: PropTypes.string,
-    seatInfo: PropTypes.object
-  })),
   className: PropTypes.string,
   onSessionClick: PropTypes.func
 };
 
 ScheduleView.defaultProps = {
-  sessions: [],
   className: '',
   onSessionClick: null
 };
