@@ -53,6 +53,8 @@ const SessionCard = React.memo(({
   } = session;
 
   const isNow = variant === 'now';
+  const isNext = variant === 'next';
+  const isAgenda = variant === 'agenda';
   
   // Use utility functions for session type detection
   const isCoffeeBreakSession = isCoffeeBreak(session);
@@ -72,9 +74,10 @@ const SessionCard = React.memo(({
   
   // Use countdown hook for real-time updates
   // Coffee breaks and meals show countdown when in "Now" status
+  // Disable countdown for agenda variant
   const { formattedTime, isActive, minutesRemaining } = useCountdown(endTime, {
     updateInterval: 60000, // Update every minute
-    enabled: isNow && shouldShowCountdownForSession,
+    enabled: isNow && shouldShowCountdownForSession && !isAgenda,
     isCoffeeBreak: isCoffeeBreakSession, // Special handling for coffee breaks
     startTime: startTime // Pass start time for smart countdown logic
   });
@@ -107,7 +110,8 @@ const SessionCard = React.memo(({
 
   // Determine status text and time display
   // Coffee breaks show countdown in time area, not status badge
-  const statusText = isNow ? 'NOW' : 'Next';
+  // Remove NOW/NEXT labels for agenda variant
+  const statusText = isAgenda ? '' : (isNow ? 'NOW' : 'Next');
   
   // Time display logic: show countdown for coffee breaks in "Now" status, otherwise show time range
   const timeDisplay = isNow && isCoffeeBreakSession && isActive ? formattedTime : formatTimeRange();
@@ -116,7 +120,7 @@ const SessionCard = React.memo(({
   const cardClassName = [
     className,
     getSessionClassName(session),
-    isNow ? 'session-card--now' : 'session-card--next',
+    isNow ? 'session-card--now' : isNext ? 'session-card--next' : isAgenda ? 'session-card--agenda' : '',
     isCoffeeBreakSession ? 'session-card--coffee-break' : '',
     isDiningEventSession ? 'session-card--dining' : '',
     hasSpecialStylingForSession ? 'session-card--special' : ''
@@ -197,9 +201,11 @@ const SessionCard = React.memo(({
             </div>
           )}
         </div>
-        <StatusTag variant={isNow ? 'now' : 'next'}>
-          {statusText}
-        </StatusTag>
+        {!isAgenda && (
+          <StatusTag variant={isNow ? 'now' : 'next'}>
+            {statusText}
+          </StatusTag>
+        )}
       </CardHeader>
       
       <CardContent>
@@ -463,7 +469,7 @@ SessionCard.propTypes = {
     category: PropTypes.string,
     priority: PropTypes.number
   }).isRequired,
-  variant: PropTypes.oneOf(['now', 'next', 'default']),
+  variant: PropTypes.oneOf(['now', 'next', 'default', 'agenda']),
   onClick: PropTypes.func,
   className: PropTypes.string
 };
