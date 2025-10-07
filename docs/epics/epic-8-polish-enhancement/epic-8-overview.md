@@ -6,7 +6,7 @@
 ## Epic Status
 **PLANNING** - Stories being moved from other epics for future enhancement
 
-## Stories in Epic 8 (3 stories)
+## Stories in Epic 8 (4 stories)
 
 ### Story 8.1: Advanced Post-Login Loading Indicator Overlay
 - **Moved from**: Story 1.4 (Epic 1)
@@ -28,6 +28,13 @@
 - **Priority**: Medium - Enhancement feature
 - **Status**: Planning
 - **File**: `docs/epics/epic-8-polish-enhancement/8.3.conference-feedback-survey.md`
+
+### Story 8.4: Supabase Client Consolidation (Tech Debt)
+- **Created**: January 16, 2025
+- **Reason**: Address multiple GoTrueClient instances causing warnings and potential auth conflicts
+- **Priority**: Medium - Tech debt
+- **Status**: Planning
+- **File**: `docs/epics/epic-8-polish-enhancement/8.4.supabase-client-consolidation.md`
 
 ## Epic Goals
 
