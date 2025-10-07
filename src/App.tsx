@@ -54,7 +54,7 @@ function App() {
           <Route path="/" element={<ProtectedHomePage />} />
           <Route path="/home" element={<ProtectedHomePage />} />
           <Route path="/meet" element={<ProtectedMeetPage />} />
-          <Route path="/schedule" element={<ProtectedSchedulePage />} />
+          <Route path="/schedule" element={<ProtectedScheduleView />} />
           <Route path="/sponsors" element={<ProtectedSponsorsPage />} />
           <Route path="/settings" element={<ProtectedSettingsPage />} />
           <Route path="/bio" element={<ProtectedBioPage />} />
