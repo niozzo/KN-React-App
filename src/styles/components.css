@@ -1133,6 +1133,37 @@ body {
   margin-bottom: 200px;
 }
 
+/* Schedule View Components */
+.schedule-view {
+  padding: 0;
+}
+
+.schedule-day-group {
+  margin-bottom: var(--space-xl);
+}
+
+.schedule-day-group:last-child {
+  margin-bottom: 0;
+}
+
+.schedule-day-sessions {
+  background: var(--white);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  border: 0.5px solid var(--purple-500);
+  box-sizing: border-box;
+  border-top: none;
+}
+
+.schedule-session-card {
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.schedule-session-card:last-child {
+  border-bottom: none;
+}
+
 /* Day Headers - Attached to Cards */
 .day-header {
   background: var(--purple-700);
