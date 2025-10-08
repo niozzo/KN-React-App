@@ -227,6 +227,12 @@ export class AdminService {
   }
 
   async assignSpeakerToAgendaItem(agendaItemId: string, attendeeId: string, role: string = 'presenter'): Promise<SpeakerAssignment> {
+    console.log('🔍 ADMIN DEBUG: Creating speaker assignment:', {
+      agendaItemId,
+      attendeeId,
+      role
+    });
+
     // Create assignment object
     const assignment: SpeakerAssignment = {
       id: `local-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -239,18 +245,22 @@ export class AdminService {
     };
 
     try {
+      console.log('🔍 ADMIN DEBUG: Attempting to save to database...');
       // Try to save to database first
       const dbAssignment = await applicationDatabaseService.assignSpeaker(agendaItemId, attendeeId, role);
+      console.log('🔍 ADMIN DEBUG: Database assignment successful:', dbAssignment);
       
       // Update local cache with database assignment (which has real ID)
       await this.updateLocalSpeakerAssignments([dbAssignment]);
+      console.log('🔍 ADMIN DEBUG: Local cache updated with database assignment');
       
       return dbAssignment;
     } catch (error) {
-      console.warn('Database assignment failed, using local assignment:', error);
+      console.warn('🔍 ADMIN DEBUG: Database assignment failed, using local assignment:', error);
       
       // Save to local storage
       await this.updateLocalSpeakerAssignments([assignment]);
+      console.log('🔍 ADMIN DEBUG: Saved to local storage as fallback');
       
       return assignment;
     }
@@ -314,24 +324,38 @@ export class AdminService {
    */
   private async updateLocalSpeakerAssignments(newAssignments: SpeakerAssignment[]): Promise<void> {
     try {
+      console.log('🔍 ADMIN DEBUG: Updating local speaker assignments cache...');
       const existingAssignments = await pwaDataSyncService.getCachedTableData('speaker_assignments');
+      console.log('🔍 ADMIN DEBUG: Existing assignments count:', existingAssignments.length);
       
       // Merge new assignments with existing ones
       const updatedAssignments = [...existingAssignments];
       
       for (const newAssignment of newAssignments) {
+        console.log('🔍 ADMIN DEBUG: Processing new assignment:', {
+          id: newAssignment.id,
+          agenda_item_id: newAssignment.agenda_item_id,
+          attendee_id: newAssignment.attendee_id,
+          role: newAssignment.role
+        });
+        
         const existingIndex = updatedAssignments.findIndex((a: any) => a.id === newAssignment.id);
         if (existingIndex >= 0) {
+          console.log('🔍 ADMIN DEBUG: Updating existing assignment at index:', existingIndex);
           updatedAssignments[existingIndex] = newAssignment;
         } else {
+          console.log('🔍 ADMIN DEBUG: Adding new assignment to cache');
           updatedAssignments.push(newAssignment);
         }
       }
       
+      console.log('🔍 ADMIN DEBUG: Final assignments count:', updatedAssignments.length);
+      
       // Update cache
       await pwaDataSyncService.cacheTableData('speaker_assignments', updatedAssignments);
+      console.log('🔍 ADMIN DEBUG: Cache updated successfully');
     } catch (error) {
-      console.error('Failed to update local speaker assignments:', error);
+      console.error('🔍 ADMIN DEBUG: Failed to update local speaker assignments:', error);
     }
   }
 

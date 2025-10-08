@@ -9,6 +9,10 @@
       "destination": "/api/$1"
     },
     {
+      "source": "/debug-speaker-issue",
+      "destination": "/debug-speaker-issue.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

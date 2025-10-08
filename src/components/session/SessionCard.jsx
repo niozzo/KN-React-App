@@ -52,6 +52,17 @@ const SessionCard = React.memo(({
     type
   } = session;
 
+  // DEBUG: Log speaker data for this session
+  if (title && (title.includes('AI-Powered Transformation') || title.includes('Bonterra'))) {
+    console.log('🔍 SESSION DEBUG: Target event speaker data:', {
+      title: title,
+      speakers: speakers,
+      speakerInfo: speakerInfo,
+      speaker: speaker,
+      speakersLength: speakers?.length || 0
+    });
+  }
+
   const isNow = variant === 'now';
   const isNext = variant === 'next';
   const isAgenda = variant === 'agenda';

@@ -620,6 +620,7 @@ export class PWADataSyncService extends BaseService {
    * Sync application database table
    */
   async syncApplicationTable(tableName: ApplicationTableName): Promise<void> {
+    console.log(`🔍 SYNC DEBUG: syncApplicationTable called for ${tableName}`);
 
     // Check circuit breaker first
     if (this.isApplicationDbCircuitOpen()) {
@@ -634,6 +635,10 @@ export class PWADataSyncService extends BaseService {
       }
       const supabaseTable = this.tableMappings.application[tableName];
 
+      // Special debug logging for speaker_assignments
+      if (tableName === 'speaker_assignments') {
+        console.log('🔍 SYNC DEBUG: Starting sync for speaker_assignments table');
+      }
 
       // Query data from application database using service registry
       const applicationDbClient = serviceRegistry.getApplicationDbClient();
@@ -663,6 +668,35 @@ export class PWADataSyncService extends BaseService {
         throw new Error(`Application database query failed: ${error.message}`);
       }
 
+      // Special debug logging for speaker_assignments
+      if (tableName === 'speaker_assignments') {
+        console.log('🔍 SYNC DEBUG: Raw database data for speaker_assignments:', {
+          count: data?.length || 0,
+          rawData: data
+        });
+        
+        console.log('🔍 SYNC DEBUG: All assignments from database:', data?.map(a => ({
+          id: a.id,
+          agenda_item_id: a.agenda_item_id,
+          attendee_id: a.attendee_id,
+          role: a.role,
+          display_order: a.display_order,
+          created_at: a.created_at
+        })) || []);
+        
+        // Check specifically for our target event
+        const targetAssignments = data?.filter(a => a.agenda_item_id === 'f907802d-bffa-426e-a6fa-08a0fc0b8f0a') || [];
+        console.log('🔍 SYNC DEBUG: Target event assignments from database:', {
+          count: targetAssignments.length,
+          assignments: targetAssignments
+        });
+        
+        if (targetAssignments.length === 0) {
+          console.log('🔍 SYNC DEBUG: ❌ NO assignments found for target event in database!');
+        } else {
+          console.log('🔍 SYNC DEBUG: ✅ Found assignments for target event in database');
+        }
+      }
       
       // Enhanced debugging for empty results
       if (!data || data.length === 0) {
@@ -674,6 +708,12 @@ export class PWADataSyncService extends BaseService {
       if (data && data.length > 0) {
         
         // Check for data integrity
+        // Special debug logging for speaker_assignments validation
+        if (tableName === 'speaker_assignments') {
+          console.log('🔍 SYNC DEBUG: Starting validation of speaker assignments...');
+          console.log('🔍 SYNC DEBUG: Total records before validation:', data.length);
+        }
+        
         const validRecords = data.filter(record => {
           if (!record.id) {
             console.warn(`⚠️ PWA Data Sync: Record missing ID in ${tableName}:`, record);
@@ -684,6 +724,39 @@ export class PWADataSyncService extends BaseService {
         
         if (validRecords.length !== data.length) {
           console.warn(`⚠️ PWA Data Sync: Filtered out ${data.length - validRecords.length} invalid records for ${tableName}`);
+        }
+        
+        // Special debug logging for speaker_assignments validation results
+        if (tableName === 'speaker_assignments') {
+          console.log('🔍 SYNC DEBUG: Validation results:', {
+            originalCount: data.length,
+            validCount: validRecords.length,
+            filteredCount: data.length - validRecords.length
+          });
+          
+          // Check if our target event assignment survived validation
+          const targetValidAssignments = validRecords.filter(a => a.agenda_item_id === 'f907802d-bffa-426e-a6fa-08a0fc0b8f0a');
+          console.log('🔍 SYNC DEBUG: Target event assignments after validation:', {
+            count: targetValidAssignments.length,
+            assignments: targetValidAssignments
+          });
+        }
+        
+        // Special debug logging for speaker_assignments cache storage
+        if (tableName === 'speaker_assignments') {
+          console.log('🔍 SYNC DEBUG: Caching speaker assignments:', {
+            count: validRecords.length,
+            assignments: validRecords.map(a => ({
+              id: a.id,
+              agenda_item_id: a.agenda_item_id,
+              attendee_id: a.attendee_id,
+              role: a.role
+            }))
+          });
+          
+          // Check specifically for our target event in cached data
+          const targetCachedAssignments = validRecords.filter(a => a.agenda_item_id === 'f907802d-bffa-426e-a6fa-08a0fc0b8f0a');
+          console.log('🔍 SYNC DEBUG: Target event assignments being cached:', targetCachedAssignments);
         }
         
         // Cache the validated data
@@ -1183,6 +1256,14 @@ export class PWADataSyncService extends BaseService {
         console.log(`❌ ${table}: Error getting cached data`, error);
       }
     }
+  }
+
+  /**
+   * Debug method to manually trigger speaker assignments sync
+   */
+  async debugSyncSpeakerAssignments(): Promise<void> {
+    console.log('🔍 SYNC DEBUG: Manually triggering speaker assignments sync...');
+    await this.syncApplicationTable('speaker_assignments');
   }
 
   /**

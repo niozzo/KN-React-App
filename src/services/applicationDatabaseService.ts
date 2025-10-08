@@ -64,6 +64,12 @@ class ApplicationDatabaseService extends BaseService {
   }
 
   async assignSpeaker(agendaItemId: string, attendeeId: string, role: string = 'presenter'): Promise<SpeakerAssignment> {
+    console.log('🔍 DB DEBUG: Starting speaker assignment in database:', {
+      agendaItemId,
+      attendeeId,
+      role
+    });
+
     const adminClient = this.getAdminClient();
     
     // Get the next display_order value for this agenda item
@@ -74,9 +80,13 @@ class ApplicationDatabaseService extends BaseService {
       .order('display_order', { ascending: false })
       .limit(1);
     
+    console.log('🔍 DB DEBUG: Existing assignments for this agenda item:', existingAssignments);
+    
     const nextOrder = existingAssignments && existingAssignments.length > 0 
       ? (existingAssignments[0].display_order || 0) + 1 
       : 1;
+
+    console.log('🔍 DB DEBUG: Next display order will be:', nextOrder);
 
     const { data, error } = await adminClient
       .from('speaker_assignments')
@@ -89,7 +99,12 @@ class ApplicationDatabaseService extends BaseService {
       .select()
       .single();
     
-    if (error) throw error;
+    if (error) {
+      console.error('🔍 DB DEBUG: Database assignment failed:', error);
+      throw error;
+    }
+    
+    console.log('🔍 DB DEBUG: Database assignment successful:', data);
     return data;
   }
 

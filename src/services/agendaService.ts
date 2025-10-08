@@ -197,14 +197,19 @@ export class AgendaService implements IAgendaService {
    */
   private async enrichWithSpeakerData(agendaItems: any[]): Promise<any[]> {
     try {
+      console.log('🔍 SPEAKER DEBUG: Starting speaker enrichment for', agendaItems.length, 'items');
+      
       // Get speaker assignments from cache
       const speakerAssignments = await pwaDataSyncService.getCachedTableData('speaker_assignments');
+      console.log('🔍 SPEAKER DEBUG: Loaded', speakerAssignments.length, 'speaker assignments from cache');
       
       // Get attendees from cache for name lookup
       const attendees = await pwaDataSyncService.getCachedTableData('attendees');
+      console.log('🔍 SPEAKER DEBUG: Loaded', attendees.length, 'attendees from cache');
       
       // Get edited titles from application database metadata
       const agendaItemMetadata = await pwaDataSyncService.getCachedTableData('agenda_item_metadata');
+      console.log('🔍 SPEAKER DEBUG: Loaded', agendaItemMetadata.length, 'agenda item metadata records');
       
       // Create attendee lookup map
       const attendeeMap = new Map();
@@ -214,6 +219,7 @@ export class AgendaService implements IAgendaService {
       
       // Enrich each agenda item with ordered speakers and title overrides
       return agendaItems.map(item => {
+        console.log(`🔍 SPEAKER DEBUG: Processing item "${item.title}" (ID: ${item.id})`);
         // Find any edited metadata for this agenda item
         const metadata = agendaItemMetadata.find((meta: any) => meta.id === item.id);
         
@@ -224,11 +230,18 @@ export class AgendaService implements IAgendaService {
           .filter((assignment: any) => assignment.agenda_item_id === item.id)
           .sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0))
           .map((assignment: any) => {
+            console.log(`🔍 SPEAKER DEBUG: Processing assignment ${assignment.id} for attendee ${assignment.attendee_id}`);
             const attendee = attendeeMap.get(assignment.attendee_id);
             let name = '';
             
             if (attendee) {
-              // DEBUG: Log attendee data for RCA
+              console.log(`🔍 SPEAKER DEBUG: Found attendee data:`, {
+                id: attendee.id,
+                first_name: attendee.first_name,
+                last_name: attendee.last_name,
+                title: attendee.title,
+                company: attendee.company
+              });
 
               // Format as "First Name Last Name, Title at Company" (matching mockup)
               const firstName = attendee.first_name || '';
@@ -245,8 +258,9 @@ export class AgendaService implements IAgendaService {
                 name = fullName;
               }
               
-              // DEBUG: Log constructed name for RCA
+              console.log(`🔍 SPEAKER DEBUG: Constructed speaker name: "${name}"`);
             } else {
+              console.log(`🔍 SPEAKER DEBUG: Attendee NOT found for ID ${assignment.attendee_id}`);
               name = `Speaker ${assignment.attendee_id}`;
             }
             
@@ -262,6 +276,12 @@ export class AgendaService implements IAgendaService {
         const speakerInfo = speakers.length > 0 ? 
           speakers.map(s => s.name).join(', ') : 
           null;
+        
+        console.log(`🔍 SPEAKER DEBUG: Final result for "${item.title}":`, {
+          speakersCount: speakers.length,
+          speakers: speakers,
+          speakerInfo: speakerInfo
+        });
         
         return {
           ...item,

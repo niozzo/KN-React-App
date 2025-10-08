@@ -422,6 +422,27 @@ export const useSessionData = (options = {}) => {
           pwaDataSyncService.getCachedTableData('dining_item_metadata')
         ]).then(([agendaResponse, diningResponse, diningMetadata]) => {
           if (agendaResponse.success && agendaResponse.data && agendaResponse.data.length > 0) {            
+            console.log('🔍 SESSION DEBUG: Loaded', agendaResponse.data.length, 'sessions from agenda service');
+            
+            // Check for target event in loaded data
+            const targetEvent = agendaResponse.data.find(session => 
+              session.title.includes('AI-Powered Transformation') || 
+              session.title.includes('Bonterra')
+            );
+            
+            if (targetEvent) {
+              console.log('🔍 SESSION DEBUG: Found target event in loaded data:', {
+                title: targetEvent.title,
+                speakers: targetEvent.speakers,
+                speakerInfo: targetEvent.speakerInfo,
+                speaker: targetEvent.speaker,
+                speakersLength: targetEvent.speakers?.length || 0
+              });
+            } else {
+              console.log('🔍 SESSION DEBUG: Target event NOT found in loaded data');
+              console.log('Available events:', agendaResponse.data.map(s => s.title));
+            }
+            
             // Update conference data (External DB)
             setAllSessions(agendaResponse.data);
             setSessions(filterSessionsForAttendee(agendaResponse.data, attendeeData));
