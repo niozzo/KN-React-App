@@ -1,0 +1,124 @@
+/**
+ * Attendee List Styles
+ * Story 3.1: Attendee Search & Discovery
+ * 
+ * Grid layout and loading states for attendee list
+ */
+
+/* Attendee List Container */
+.attendee-list {
+  margin-top: var(--space-lg);
+}
+
+/* Attendee Grid */
+.attendee-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-lg);
+  margin-bottom: var(--space-lg);
+}
+
+/* Loading Skeleton */
+.loading-skeleton {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-lg);
+}
+
+.attendee-card-skeleton {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  padding: var(--space-lg);
+  display: flex;
+  gap: var(--space-md);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-avatar {
+  width: 64px;
+  height: 64px;
+  background: var(--gray-200);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.skeleton-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.skeleton-name {
+  height: 20px;
+  background: var(--gray-200);
+  border-radius: 4px;
+  width: 70%;
+}
+
+.skeleton-company {
+  height: 16px;
+  background: var(--gray-200);
+  border-radius: 4px;
+  width: 50%;
+}
+
+.skeleton-title {
+  height: 16px;
+  background: var(--gray-200);
+  border-radius: 4px;
+  width: 60%;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: var(--space-xl);
+  color: var(--gray-500);
+}
+
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: var(--space-md);
+}
+
+.empty-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: var(--space-sm);
+  color: var(--gray-700);
+}
+
+.empty-description {
+  font-size: 14px;
+  color: var(--gray-500);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .attendee-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+  }
+  
+  .loading-skeleton {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .attendee-card-skeleton {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .skeleton-avatar {
+    align-self: center;
+  }
+}

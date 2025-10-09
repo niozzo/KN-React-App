@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import PageLayout from '../components/layout/PageLayout';
 import AttendeeCard from '../components/attendee/AttendeeCard';
 import Button from '../components/common/Button';
+import AttendeeSearchSection from '../components/search/AttendeeSearchSection';
 import { useMeetList } from '../hooks/useMeetList';
 import { useSearch } from '../hooks/useSearch';
 import { useSort } from '../hooks/useSort';
@@ -154,49 +155,13 @@ const MeetPage = () => {
       {/* All Attendees Tab */}
       {activeTab === 'all-attendees' && (
         <>
-          {/* Search Section */}
-          <section 
-            className={`search-section-header ${searchExpanded ? 'expanded' : ''}`}
-            style={{
-              background: 'var(--white)',
-              borderRadius: 'var(--radius-xl)',
-              padding: 'var(--space-lg)',
-              marginBottom: 'var(--space-lg)',
-              boxShadow: 'var(--shadow-lg)'
+          {/* Enhanced Search Section */}
+          <AttendeeSearchSection
+            onAttendeeSelect={(attendee) => {
+              // Handle attendee selection - could navigate to bio or add to meet list
+              console.log('Selected attendee:', attendee);
             }}
-          >
-            <button 
-              className="search-toggle"
-              onClick={toggleSearchSection}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                width: '100%',
-                padding: 0,
-                border: 'none',
-                background: 'transparent',
-                color: 'var(--ink-900)',
-                fontFamily: 'var(--font-heading)',
-                fontSize: 'var(--text-xl)',
-                fontWeight: 'var(--font-semibold)',
-                cursor: 'pointer',
-                transition: 'color var(--transition-normal)'
-              }}
-            >
-              <span>Find People to Meet</span>
-              <span 
-                style={{
-                  transition: 'transform var(--transition-normal)',
-                  color: 'var(--ink-500)',
-                  fontSize: 'var(--text-base)',
-                  transform: searchExpanded ? 'rotate(180deg)' : 'rotate(0deg)'
-                }}
-              >
-                ▼
-              </span>
-            </button>
-          </section>
+          />
 
           {searchExpanded && (
             <section 
