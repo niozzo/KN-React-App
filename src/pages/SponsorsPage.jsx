@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PageLayout from '../components/layout/PageLayout';
 import Card from '../components/common/Card';
-import Button from '../components/common/Button';
 import { getAllSponsors } from '../services/dataService';
 
 /**
@@ -33,10 +32,6 @@ const SponsorsPage = () => {
 
     loadSponsors();
   }, []);
-
-  const handleVisitWebsite = (url) => {
-    window.open(url, '_blank');
-  };
 
   // Handle logo loading errors
   const handleLogoError = (e) => {
@@ -77,7 +72,7 @@ const SponsorsPage = () => {
       <div className="sponsor-grid">
         {sponsors.map((sponsor) => (
           <Card key={sponsor.id} className="sponsor-card">
-            <div className="sponsor-logo">
+            <div className="sponsor-logo-container">
               <img
                 src={sponsor.logo}
                 alt={`${sponsor.name} logo`}
@@ -90,21 +85,15 @@ const SponsorsPage = () => {
                 {sponsor.name.charAt(0)}
               </div>
             </div>
-            <div className="sponsor-header">
-              <div className="sponsor-info">
-                <div className="sponsor-name">{sponsor.name}</div>
-              </div>
-            </div>
-            
-            <div className="sponsor-actions">
-              <Button 
-                variant="primary"
-                onClick={() => handleVisitWebsite(sponsor.website)}
-                className="sponsor-button primary"
-              >
-                Visit Website
-              </Button>
-            </div>
+            <div className="sponsor-name">{sponsor.name}</div>
+            <a 
+              href={sponsor.website}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="sponsor-website-link"
+            >
+              Visit Website →
+            </a>
           </Card>
         ))}
       </div>

@@ -1456,12 +1456,15 @@ body {
 }
 
 .sponsor-card {
-  padding: var(--space-lg);
+  padding: var(--space-xl);
   background: var(--white);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
   transition: all var(--transition-normal);
-  position: relative;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .sponsor-card:hover {
@@ -1469,52 +1472,44 @@ body {
   box-shadow: var(--shadow-md);
 }
 
-.sponsor-header {
-  margin-bottom: var(--space-md);
-  padding-right: 80px; /* Space for the logo */
-}
-
-.sponsor-logo {
-  position: absolute;
-  top: var(--space-md);
-  right: var(--space-md);
-  min-width: 60px;
-  min-height: 60px;
-  max-width: 100px;
-  max-height: 100px;
-  width: auto;
-  height: auto;
-  border-radius: var(--radius-lg);
-  background: rgba(217, 119, 111, 0.1);
+.sponsor-logo-container {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1;
-  padding: var(--space-sm);
-  box-sizing: border-box;
+  width: 100%;
+  height: 120px;
+  max-width: 200px;
+  margin: 0 auto;
+  padding: var(--space-md);
+  background: rgba(217, 119, 111, 0.05);
+  border-radius: var(--radius-lg);
+  position: relative;
+  margin-bottom: var(--space-md);
 }
 
-.sponsor-logo img {
+.sponsor-logo-container img {
   width: 100%;
   height: 100%;
   object-fit: contain;
+  object-position: center;
   border-radius: var(--radius-md);
 }
 
 .logo-fallback {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-family: var(--font-heading);
   font-size: var(--text-xl);
   font-weight: var(--font-bold);
   color: var(--coral);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-}
-
-.sponsor-info {
-  /* No longer needs flex properties since it's not in a flex container */
+  background: rgba(217, 119, 111, 0.1);
+  border-radius: var(--radius-lg);
 }
 
 .sponsor-name {
@@ -1522,52 +1517,23 @@ body {
   font-size: var(--text-xl);
   font-weight: var(--font-semibold);
   color: var(--ink-900);
-  margin-bottom: 4px;
-}
-
-
-.sponsor-actions {
-  display: flex;
-  gap: var(--space-sm);
-}
-
-.sponsor-button {
-  flex: 1;
-  padding: var(--space-sm) var(--space-md);
-  border: 1px solid var(--purple-700);
-  border-radius: var(--radius-lg);
-  background: transparent;
-  color: var(--purple-700);
-  font-size: var(--text-base);
-  font-weight: var(--font-medium);
-  cursor: pointer;
-  transition: all var(--transition-normal);
-  text-decoration: none;
+  margin-bottom: var(--space-md);
   text-align: center;
 }
 
-.sponsor-button:hover {
-  background: var(--purple-700);
-  color: var(--white);
+
+.sponsor-website-link {
+  display: inline-block;
+  margin-top: var(--space-sm);
+  font-size: var(--text-base);
+  color: var(--purple-700);
+  text-decoration: none;
+  transition: color var(--transition-normal);
 }
 
-.sponsor-button.primary {
-  background: var(--purple-700);
-  color: var(--white);
-}
-
-.sponsor-button.primary:hover {
-  background: var(--purple-900);
-}
-
-.sponsor-button.secondary {
-  border-color: var(--gray-300);
-  color: var(--ink-700);
-}
-
-.sponsor-button.secondary:hover {
-  background: var(--gray-100);
-  border-color: var(--ink-700);
+.sponsor-website-link:hover {
+  color: var(--purple-900);
+  text-decoration: underline;
 }
 
 .no-results {
@@ -1598,23 +1564,16 @@ body {
   }
   
   .sponsor-card {
-    padding: var(--space-md);
+    padding: var(--space-lg);
   }
   
-  .sponsor-header {
-    padding-right: 70px; /* Smaller space for mobile logo */
+  .sponsor-logo-container {
+    max-width: 160px;
+    height: 100px;
   }
   
-  .sponsor-logo {
-    min-width: 48px;
-    min-height: 48px;
-    max-width: 80px;
-    max-height: 80px;
+  .sponsor-name {
     font-size: var(--text-lg);
-  }
-  
-  .sponsor-actions {
-    flex-direction: column;
   }
 }
 
