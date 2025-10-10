@@ -70,6 +70,13 @@ const MeetPage = () => {
     setSearchParams(newSearchParams);
   };
 
+  // Handle Enter key to blur search field
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' || e.key === 'Return') {
+      e.target.blur();
+    }
+  };
+
   // Clear search and scroll to top
   const handleClearSearch = (e) => {
     // Only prevent default, don't stop propagation
@@ -140,6 +147,7 @@ const MeetPage = () => {
             placeholder="Search by name, company, or role..."
             value={searchTerm}
             onChange={(e) => handleSearchChange(e.target.value)}
+            onKeyDown={handleKeyDown}
             style={{
               width: '100%',
               fontSize: 'var(--text-lg)',
