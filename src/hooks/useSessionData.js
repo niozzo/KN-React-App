@@ -231,6 +231,18 @@ export const useSessionData = (options = {}) => {
   const [isOffline, setIsOffline] = useState(() => {
     // Use PWA service as single source of truth for online status
     const isOnline = pwaDataSyncService.getOnlineStatus();
+    
+    // Additional platform-specific checks
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isSimulator = navigator.userAgent.includes('Simulator');
+    
+    // For iOS simulator, be more conservative with offline detection
+    if (isIOS && isSimulator) {
+      console.log('🍎 iOS Simulator detected in useSessionData - using conservative offline detection');
+      // Only consider offline if we're definitely offline
+      return !isOnline && !navigator.onLine;
+    }
+    
     return !isOnline;
   });
   const [lastUpdated, setLastUpdated] = useState(null);

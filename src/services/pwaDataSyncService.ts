@@ -977,8 +977,26 @@ export class PWADataSyncService extends BaseService {
       return this.syncStatus.isOnline;
     }
     
-    // Fallback: Use navigator.onLine
-    return navigator.onLine;
+    // Enhanced detection with platform-specific handling
+    const basicOnline = navigator.onLine;
+    
+    // Additional connection quality checks
+    const hasGoodConnection = navigator.connection && 
+      navigator.connection.effectiveType !== 'offline' &&
+      navigator.connection.effectiveType !== 'slow-2g';
+    
+    // Platform-specific detection
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isSimulator = navigator.userAgent.includes('Simulator');
+    
+    // For iOS simulator, be more conservative
+    if (isIOS && isSimulator) {
+      console.log('🍎 iOS Simulator detected - using conservative offline detection');
+      return basicOnline && hasGoodConnection !== false;
+    }
+    
+    // For other platforms, use enhanced detection
+    return basicOnline && (hasGoodConnection !== false);
   }
 
   /**
