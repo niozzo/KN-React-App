@@ -75,7 +75,11 @@ const MeetPage = () => {
   };
 
   // Clear search and scroll to top
-  const handleClearSearch = () => {
+  const handleClearSearch = (e) => {
+    // Prevent event propagation to avoid input focus issues
+    e.preventDefault();
+    e.stopPropagation();
+    
     // Clear both URL parameter and local search state
     originalHandleSearchChange('');
     
@@ -158,6 +162,14 @@ const MeetPage = () => {
           {effectiveSearchTerm && (
             <button
               onClick={handleClearSearch}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onMouseUp={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
               style={{
                 position: 'absolute',
                 right: '12px',
@@ -173,7 +185,8 @@ const MeetPage = () => {
                 justifyContent: 'center',
                 transition: 'background-color var(--transition-normal)',
                 color: 'var(--ink-400)',
-                fontSize: '18px'
+                fontSize: '18px',
+                zIndex: 10
               }}
               onMouseEnter={(e) => {
                 e.target.style.backgroundColor = 'var(--ink-100)';
