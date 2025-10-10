@@ -24,6 +24,7 @@ const AttendeeCard = forwardRef(({
     name,
     title,
     company,
+    photo,
     isSponsor = false,
     sharedEvents = []
   } = attendee;
@@ -69,191 +70,127 @@ const AttendeeCard = forwardRef(({
   };
 
   return (
-    <Card ref={ref} className={`attendee-card ${className}`}>
-      <CardHeader>
-        <div style={{
+    <Card 
+      ref={ref} 
+      className={`attendee-card ${className}`}
+      onClick={() => {
+        navigate(`/bio?id=${attendee.id}`);
+        onViewBio?.(attendee);
+      }}
+      style={{ cursor: 'pointer' }}
+    >
+      <div 
+        className="profile-info-section"
+        style={{
           display: 'flex',
-          flexDirection: 'column',
-          gap: 'var(--space-sm)',
-          marginBottom: 'var(--space-sm)',
-          width: '100%'
-        }}>
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'baseline',
-            marginBottom: '2px',
-            width: '100%'
-          }}>
-            <div style={{
-              fontFamily: 'var(--font-heading)',
-              fontSize: 'var(--text-lg)',
-              fontWeight: 'var(--font-semibold)',
-              color: 'var(--ink-900)',
-              overflow: 'hidden',
-              whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              flex: 1,
-              minWidth: 0
-            }}>
-              {name}
-            </div>
-            {shouldShowButton() ? (
-              <Button
-                variant={getButtonVariant()}
-                size="sm"
-                onClick={handleActionClick}
-                style={{
-                  fontSize: 'var(--text-sm)',
-                  whiteSpace: 'nowrap',
-                  marginLeft: 'var(--space-sm)',
-                  flexShrink: 0
-                }}
-              >
-                {getButtonText()}
-              </Button>
-            ) : (
-              <StatusTag variant="success" style={{ marginLeft: 'var(--space-sm)', flexShrink: 0 }}>
-                ✓ In My List
-              </StatusTag>
-            )}
-          </div>
-          
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'baseline',
-            marginBottom: '2px',
-            width: '100%'
-          }}>
-            <div style={{
-              fontSize: 'var(--text-base)',
-              color: 'var(--ink-700)',
-              overflow: 'hidden',
-              whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              flex: 1,
-              minWidth: 0
-            }}>
-              {title}
-            </div>
-            <div style={{
-              display: 'flex',
-              gap: 'var(--space-sm)',
-              alignItems: 'center'
-            }}>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigate(`/bio?id=${attendee.id}`);
-                  onViewBio?.(attendee);
-                }}
-                style={{
-                  color: 'var(--purple-700)',
-                  textDecoration: 'underline',
-                  fontSize: 'var(--text-sm)',
-                  fontWeight: 'var(--font-medium)',
-                  transition: 'color var(--transition-normal)',
-                  whiteSpace: 'nowrap',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: 0
-                }}
-              >
-                View Bio
-              </button>
-            </div>
-          </div>
-          
-          <div style={{
-            fontSize: 'var(--text-base)',
-            color: 'var(--ink-500)',
+          alignItems: 'center',
+          gap: 'var(--space-lg)',
+          marginBottom: 'var(--space-lg)'
+        }}
+      >
+        <div 
+          className="avatar"
+          style={{
+            width: '80px',
+            height: '80px',
+            background: 'var(--purple-100)',
+            borderRadius: '50%',
             display: 'flex',
             alignItems: 'center',
-            gap: 'var(--space-xs)'
-          }}>
-            {company}
-            {isSponsor && <StatusTag variant="sponsor">Sponsor</StatusTag>}
-          </div>
-          
-          {sharedEvents.length > 0 && (
-            <div
-              className={`shared-events-widget ${sharedEventsExpanded ? 'expanded' : ''}`}
+            justifyContent: 'center',
+            fontSize: '32px',
+            color: 'var(--purple-700)',
+            overflow: 'hidden'
+          }}
+        >
+          {photo ? (
+            <img
+              src={photo}
+              alt={`${name} headshot`}
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                background: 'var(--white)',
-                color: 'var(--ink-900)',
-                fontSize: 'var(--text-sm)',
-                fontWeight: 'var(--font-medium)',
-                padding: 'var(--space-xs) var(--space-sm)',
-                borderRadius: sharedEventsExpanded ? 'var(--radius-md) var(--radius-md) 0 0' : 'var(--radius-md)',
-                marginTop: 'var(--space-xs)',
-                cursor: 'pointer',
-                transition: 'all var(--transition-normal)',
-                border: '1px solid var(--green-700)',
-                borderBottom: sharedEventsExpanded ? '1px solid var(--green-700)' : '1px solid var(--green-700)',
-                position: 'relative',
-                minWidth: '140px',
-                boxSizing: 'border-box'
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover'
               }}
-              onClick={toggleSharedEvents}
-            >
-              <span style={{
-                fontWeight: 'var(--font-semibold)',
-                color: 'var(--green-700)'
-              }}>
-                {sharedEvents.length} Shared Event{sharedEvents.length !== 1 ? 's' : ''}
-              </span>
-              <span style={{
-                transition: 'transform var(--transition-normal)',
-                fontSize: 'var(--text-xs)',
-                marginLeft: 'var(--space-xs)',
-                color: 'var(--green-700)',
-                transform: sharedEventsExpanded ? 'rotate(180deg)' : 'rotate(0deg)'
-              }}>
-                ▼
-              </span>
-            </div>
-          )}
-          
-          {sharedEventsExpanded && sharedEvents.length > 0 && (
-            <div 
-              className="shared-events-details"
-              style={{
-                padding: 'var(--space-sm)',
-                background: 'var(--white)',
-                border: '1px solid var(--green-700)',
-                borderTop: 'none',
-                boxShadow: '0 -1px 0 0 var(--white), var(--shadow-sm)',
-                position: 'relative',
-                zIndex: 1,
-                marginTop: 0,
-                minWidth: '140px',
-                boxSizing: 'border-box'
-              }}>
-              {sharedEvents.map((event, index) => (
-                <div
-                  key={index}
-                  style={{
-                    fontSize: 'var(--text-sm)',
-                    color: 'var(--ink-700)',
-                    padding: 'var(--space-sm) 0',
-                    borderBottom: index < sharedEvents.length - 1 ? '1px solid var(--gray-200)' : 'none',
-                    lineHeight: 1.4
-                  }}
-                >
-                  <div><strong>{event.dateTime}</strong></div>
-                  <div>{event.title}</div>
-                  <div>{event.location}</div>
-                </div>
-              ))}
-            </div>
-          )}
+              onError={(e) => {
+                // Fallback to icon if image fails to load
+                e.target.style.display = 'none';
+                e.target.nextSibling.style.display = 'flex';
+              }}
+            />
+          ) : null}
+          <div style={{
+            display: photo ? 'none' : 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '100%',
+            height: '100%'
+          }}>
+            👤
+          </div>
         </div>
-      </CardHeader>
+        <div className="profile-info" style={{ flex: 1 }}>
+          <h1 
+            style={{
+              fontSize: '28px',
+              fontWeight: '700',
+              color: 'var(--ink-900)',
+              marginBottom: '4px'
+            }}
+          >
+            {name}
+          </h1>
+          <div 
+            className="title"
+            style={{
+              fontSize: '16px',
+              color: 'var(--ink-600)',
+              marginBottom: 'var(--space-sm)'
+            }}
+          >
+            {title}
+          </div>
+          <div 
+            className="company"
+            style={{
+              fontSize: '18px',
+              color: 'var(--coral)',
+              fontWeight: '500'
+            }}
+          >
+            {company}
+          </div>
+        </div>
+      </div>
+      
+      <div 
+        className="contact-actions"
+        style={{
+          display: 'flex',
+          gap: 'var(--space-md)'
+        }}
+      >
+        {shouldShowButton() ? (
+          <Button
+            variant={getButtonVariant()}
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleActionClick(attendee, e);
+            }}
+            style={{
+              fontSize: 'var(--text-sm)',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            {getButtonText()}
+          </Button>
+        ) : (
+          <StatusTag variant="success">
+            ✓ In My List
+          </StatusTag>
+        )}
+      </div>
     </Card>
   );
 });
