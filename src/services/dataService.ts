@@ -114,17 +114,19 @@ export const getCurrentAttendeeData = async (): Promise<Attendee | null> => {
     const current = (await import('./authService.js')).getCurrentAttendee?.()
     if (!current?.id) return null
     
-    // PRIMARY: Check unified cache first (populated during login)
+    // PRIMARY: Check localStorage first (populated during login) - Architecture Compliant
     try {
-      const cachedData = await unifiedCacheService.get('kn_cache_attendees')
+      const cachedData = localStorage.getItem('kn_cache_attendees')
       if (cachedData) {
-        // 🔍 DIAGNOSTIC: Log cache structure
-        console.log('🔍 DIAGNOSTIC: Cache data type:', typeof cachedData)
-        console.log('🔍 DIAGNOSTIC: Cache data keys:', Object.keys(cachedData))
-        console.log('🔍 DIAGNOSTIC: Cache data sample:', JSON.stringify(cachedData).substring(0, 200))
+        const cacheObj = JSON.parse(cachedData)
         
-        // Handle both direct array format and wrapped format
-        const attendees = cachedData.data || cachedData
+        // 🔍 DIAGNOSTIC: Log cache structure
+        console.log('🔍 DIAGNOSTIC: Cache data type:', typeof cacheObj)
+        console.log('🔍 DIAGNOSTIC: Cache data keys:', Object.keys(cacheObj))
+        console.log('🔍 DIAGNOSTIC: Cache data sample:', JSON.stringify(cacheObj).substring(0, 200))
+        
+        // Handle both direct array format and wrapped format (Architecture Pattern)
+        const attendees = cacheObj.data || cacheObj
         
         // 🔍 DIAGNOSTIC: Log attendees structure
         console.log('🔍 DIAGNOSTIC: Attendees type:', typeof attendees)
@@ -136,12 +138,12 @@ export const getCurrentAttendeeData = async (): Promise<Attendee | null> => {
         
         const cachedAttendee = attendees.find((a: Attendee) => a.id === current.id)
         if (cachedAttendee) {
+          console.log('✅ LOCALSTORAGE: Using cached attendee data from localStorage')
           return cachedAttendee
         }
       }
     } catch (cacheError) {
-      console.error('⚠️ DIAGNOSTIC: Cache read error:', cacheError)
-      console.error('⚠️ DIAGNOSTIC: Cache error stack:', cacheError.stack)
+      console.warn('⚠️ Failed to load cached attendee data:', cacheError)
     }
     
     // FALLBACK: Use same API endpoint as login for consistency
