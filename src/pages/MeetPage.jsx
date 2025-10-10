@@ -74,6 +74,12 @@ const MeetPage = () => {
     setSearchParams(newSearchParams);
   };
 
+  // Clear search and scroll to top
+  const handleClearSearch = () => {
+    handleSearchChange('');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   // Apply sorting to filtered items
   const { sortedItems } = useSort(filteredItems, 'last_name');                                                                             
 
@@ -124,22 +130,58 @@ const MeetPage = () => {
           marginBottom: 'var(--space-lg)'
         }}
       >
-        <input
-          type="text"
-          className="form-input"
-          placeholder="Search by name, company, or role..."
-          value={effectiveSearchTerm}
-          onChange={(e) => handleSearchChange(e.target.value)}
-          style={{
-            width: '100%',
-            fontSize: 'var(--text-lg)',
-            padding: 'var(--space-md)',
-            border: '2px solid var(--purple-200)',
-            borderRadius: 'var(--radius-lg)',
-            outline: 'none',
-            transition: 'border-color var(--transition-normal)'
-          }}
-        />
+        <div style={{ position: 'relative', width: '100%' }}>
+          <input
+            type="text"
+            className="form-input"
+            placeholder="Search by name, company, or role..."
+            value={effectiveSearchTerm}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            style={{
+              width: '100%',
+              fontSize: 'var(--text-lg)',
+              padding: 'var(--space-md)',
+              paddingRight: effectiveSearchTerm ? '50px' : 'var(--space-md)',
+              border: '2px solid var(--purple-200)',
+              borderRadius: 'var(--radius-lg)',
+              outline: 'none',
+              transition: 'border-color var(--transition-normal), padding-right var(--transition-normal)'
+            }}
+          />
+          {effectiveSearchTerm && (
+            <button
+              onClick={handleClearSearch}
+              style={{
+                position: 'absolute',
+                right: '12px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '4px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'background-color var(--transition-normal)',
+                color: 'var(--ink-400)',
+                fontSize: '18px'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = 'var(--ink-100)';
+                e.target.style.color = 'var(--ink-600)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = 'transparent';
+                e.target.style.color = 'var(--ink-400)';
+              }}
+              title="Clear search"
+            >
+              ✕
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Attendee List */}
