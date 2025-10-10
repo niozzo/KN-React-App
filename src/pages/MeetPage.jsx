@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import PageLayout from '../components/layout/PageLayout';
 import AttendeeCard from '../components/attendee/AttendeeCard';
-import { useSearch } from '../hooks/useSearch';
 import { useSort } from '../hooks/useSort';
 import { attendeeSearchService } from '../services/attendeeSearchService';
 
@@ -41,30 +40,27 @@ const MeetPage = () => {
     loadAllAttendees();
   }, []);
 
-  // Get search term from URL parameters
-  const urlSearchTerm = searchParams.get('search') || '';
+  // Single source of truth: URL parameters
+  const searchTerm = searchParams.get('search') || '';
   
-  const { 
-    searchTerm, 
-    filteredItems, 
-    handleSearchChange: originalHandleSearchChange
-  } = useSearch(allAttendees || [], ['first_name', 'last_name', 'title', 'company']);
-
-  // Initialize search with URL parameter
-  useEffect(() => {
-    if (urlSearchTerm && urlSearchTerm !== searchTerm) {
-      originalHandleSearchChange(urlSearchTerm);
+  // Direct filtering without useSearch hook
+  const filteredItems = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return allAttendees || [];
     }
-  }, [urlSearchTerm, searchTerm, originalHandleSearchChange]);
-
-  // Override search term with URL parameter
-  const effectiveSearchTerm = urlSearchTerm || searchTerm;
-  
-  // Create custom search handler that updates URL
-  const handleSearchChange = (value) => {
-    originalHandleSearchChange(value);
     
-    // Update URL parameters
+    const term = searchTerm.toLowerCase();
+    return (allAttendees || []).filter(attendee => 
+      ['first_name', 'last_name', 'title', 'company'].some(field => {
+        const value = attendee[field];
+        return value && value.toLowerCase().includes(term);
+      })
+    );
+  }, [allAttendees, searchTerm]);
+  
+  // Create search handler that updates URL (single source of truth)
+  const handleSearchChange = (value) => {
+    // Update URL parameters directly
     const newSearchParams = new URLSearchParams(searchParams);
     if (value.trim()) {
       newSearchParams.set('search', value);
@@ -79,10 +75,7 @@ const MeetPage = () => {
     // Only prevent default, don't stop propagation
     e.preventDefault();
     
-    // Clear both URL parameter and local search state
-    originalHandleSearchChange('');
-    
-    // Update URL parameters
+    // Clear URL parameter (single source of truth)
     const newSearchParams = new URLSearchParams(searchParams);
     newSearchParams.delete('search');
     setSearchParams(newSearchParams);
@@ -145,20 +138,20 @@ const MeetPage = () => {
             type="text"
             className="form-input"
             placeholder="Search by name, company, or role..."
-            value={effectiveSearchTerm}
+            value={searchTerm}
             onChange={(e) => handleSearchChange(e.target.value)}
             style={{
               width: '100%',
               fontSize: 'var(--text-lg)',
               padding: 'var(--space-md)',
-              paddingRight: effectiveSearchTerm ? '50px' : 'var(--space-md)',
+              paddingRight: searchTerm ? '50px' : 'var(--space-md)',
               border: '2px solid var(--purple-200)',
               borderRadius: 'var(--radius-lg)',
               outline: 'none',
               transition: 'border-color var(--transition-normal), padding-right var(--transition-normal)'
             }}
           />
-          {effectiveSearchTerm && (
+          {searchTerm && (
             <button
               onClick={handleClearSearch}
               style={{
