@@ -78,7 +78,7 @@ const MeetPage = () => {
 
   return (
     <PageLayout>
-      <h1 className="page-title">Bios</h1>
+      <h1 className="page-title" style={{ marginBottom: 'var(--space-sm)' }}>Bios</h1>
 
       {/* Search Section */}
       {/* Sticky Search Field */}
