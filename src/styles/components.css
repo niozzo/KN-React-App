@@ -1557,6 +1557,29 @@ body {
   font-size: var(--text-lg);
 }
 
+.empty-state {
+  text-align: center;
+  padding: var(--space-xl);
+  color: var(--ink-500);
+}
+
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: var(--space-md);
+}
+
+.empty-title {
+  font-size: var(--text-xl);
+  font-weight: var(--font-semibold);
+  color: var(--ink-700);
+  margin-bottom: var(--space-sm);
+}
+
+.empty-description {
+  font-size: var(--text-base);
+  color: var(--ink-600);
+}
+
 /* Responsive Design for Sponsors */
 @media (max-width: 768px) {
   .sponsor-grid {
