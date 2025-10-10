@@ -1,7 +1,7 @@
 // Service Worker for Apax KnowledgeNow 2025 PWA
 // Comprehensive service worker with advanced caching strategies
 
-const CACHE_VERSION = '1.3.1';
+const CACHE_VERSION = '1.3.2';
 const CACHE_NAME = `apax-knowledge-now-2025-v${CACHE_VERSION}`;
 const DATA_CACHE_NAME = `apax-data-cache-v${CACHE_VERSION}`;
 const IMAGE_CACHE_NAME = `apax-images-cache-v${CACHE_VERSION}`;
@@ -109,8 +109,6 @@ self.addEventListener('fetch', (event) => {
   // Determine caching strategy based on request type
   if (isAPIRequest(request)) {
     event.respondWith(handleAPIRequest(request));
-  } else if (isImageRequest(request)) {
-    event.respondWith(handleImageRequest(request));
   } else if (isNavigationRequest(request)) {
     event.respondWith(handleNavigationRequest(request));
   } else {
@@ -161,34 +159,9 @@ async function handleAPIRequest(request) {
   }
 }
 
-// Handle image requests with cache-first strategy
-async function handleImageRequest(request) {
-  const cache = await caches.open(IMAGE_CACHE_NAME);
-  
-  // Only cache GET requests
-  if (request.method === 'GET') {
-    // Try cache first
-    const cachedResponse = await cache.match(request);
-    if (cachedResponse) {
-      console.log('🖼️ Image served from cache:', request.url);
-      return cachedResponse;
-    }
-  }
-  
-  try {
-    // Fetch from network and cache
-    const networkResponse = await fetch(request);
-    if (networkResponse.ok && request.method === 'GET') {
-      cache.put(request, networkResponse.clone());
-      console.log('🌐 Image cached:', request.url);
-    }
-    return networkResponse;
-  } catch (error) {
-    console.log('❌ Image fetch failed:', request.url);
-    // Return a placeholder image or error
-    return new Response('Image not available', { status: 404 });
-  }
-}
+// Note: Image requests are no longer explicitly cached by the service worker.
+// We rely on browser's native HTTP cache behavior for images to avoid storage overhead.
+// Profile pictures will use browser cache when available, and fallback to placeholder icons when offline.
 
 // Handle navigation requests
 async function handleNavigationRequest(request) {
@@ -248,10 +221,7 @@ function isAPIRequest(request) {
          request.method === 'GET';
 }
 
-function isImageRequest(request) {
-  return request.destination === 'image' || 
-         /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(request.url);
-}
+// isImageRequest function removed - images now use browser HTTP cache
 
 function isNavigationRequest(request) {
   return request.mode === 'navigate' || 

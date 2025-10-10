@@ -63,7 +63,30 @@ const AttendeeCard: React.FC<AttendeeCardProps> = ({
           alt={`${getFullName()}`}
           className="photo-image"
           loading="lazy"
+          onError={(e) => {
+            // Fallback to placeholder when image fails to load (offline scenario)
+            e.currentTarget.style.display = 'none';
+            const fallback = e.currentTarget.parentElement?.querySelector('.photo-fallback');
+            if (fallback) {
+              (fallback as HTMLElement).style.display = 'flex';
+            }
+          }}
         />
+        <div 
+          className="photo-fallback"
+          style={{
+            display: 'none',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'var(--purple-100)',
+            color: 'var(--purple-700)',
+            fontSize: '24px'
+          }}
+        >
+          👤
+        </div>
         {hasSponsorContext && (
           <div className="sponsor-badge" title="Sponsor Attendee">
             🏢

@@ -40,7 +40,7 @@ This document outlines the comprehensive plan to review, update, and clean up al
 **Current Status**: Stories may reference mockup files or outdated implementation
 **Required Updates**:
 - [ ] Update story 2.1 (now-next-glance-card) to reference SessionCard component
-- [ ] Update story 3.1 (attendee-search-discovery) to reference AttendeeCard and search hooks
+- [x] Update story 3.1 (attendee-search-discovery) to reference AttendeeCard and search hooks
 - [ ] Update story 3.2 (meet-list-management) to reference useMeetList hook
 - [ ] Update story 3.3 (overlap-hints-networking-intelligence) to reference shared events functionality
 - [ ] Add acceptance criteria for component-based implementation
