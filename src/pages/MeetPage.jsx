@@ -91,6 +91,11 @@ const MeetPage = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // Back to top functionality
+  const handleBackToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   // Apply sorting to filtered items
   const { sortedItems } = useSort(filteredItems, 'last_name');                                                                             
 
@@ -214,6 +219,44 @@ const MeetPage = () => {
           </div>
         )}
       </div>
+
+      {/* Floating Back to Top Button */}
+      <button
+        onClick={handleBackToTop}
+        style={{
+          position: 'fixed',
+          bottom: '20px',
+          right: '20px',
+          width: '50px',
+          height: '50px',
+          borderRadius: '50%',
+          backgroundColor: 'var(--purple-600)',
+          color: 'var(--white)',
+          border: 'none',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '20px',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+          transition: 'all var(--transition-normal)',
+          zIndex: 1000,
+          opacity: 0.9
+        }}
+        onMouseEnter={(e) => {
+          e.target.style.opacity = '1';
+          e.target.style.transform = 'scale(1.05)';
+          e.target.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.2)';
+        }}
+        onMouseLeave={(e) => {
+          e.target.style.opacity = '0.9';
+          e.target.style.transform = 'scale(1)';
+          e.target.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+        }}
+        title="Back to top"
+      >
+        ↑
+      </button>
     </PageLayout>
   );
 };
