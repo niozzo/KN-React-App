@@ -13,7 +13,7 @@ import { attendeeSearchService } from '../services/attendeeSearchService';
  */
 const MeetPage = () => {
   const navigate = useNavigate();
-  const [searchExpanded, setSearchExpanded] = useState(false);
+  const [searchExpanded, setSearchExpanded] = useState(true);
   const [allAttendees, setAllAttendees] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -41,10 +41,8 @@ const MeetPage = () => {
 
   const { 
     searchTerm, 
-    showSharedEventsOnly, 
     filteredItems, 
-    handleSearchChange, 
-    handleSharedEventsFilterChange 
+    handleSearchChange
   } = useSearch(allAttendees || [], ['name', 'title', 'company']);
 
   const { sortedItems, handleSortChange, getSortOptions } = useSort(filteredItems);                                                                             
@@ -148,17 +146,6 @@ const MeetPage = () => {
               onChange={(e) => handleSearchChange(e.target.value)}
             />
             
-            <div className="filter-section" style={{ marginTop: 'var(--space-md)' }}>                                                                       
-              <label className="toggle-container">
-                <input
-                  type="checkbox"
-                  checked={showSharedEventsOnly}
-                  onChange={(e) => handleSharedEventsFilterChange(e.target.checked)}                                                                        
-                />
-                <span className="toggle-slider"></span>
-                <span className="toggle-label">Shared events only</span>
-              </label>
-            </div>
             
             <div className="sort-section" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)', flexWrap: 'wrap' }}>                      
               <select 
