@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import PageLayout from '../components/layout/PageLayout';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import StatusTag from '../components/common/StatusTag';
+import { attendeeSearchService } from '../services/attendeeSearchService';
 
 /**
  * Bio Page Component
@@ -10,17 +12,52 @@ import StatusTag from '../components/common/StatusTag';
  * Refactored from bio.html (504 lines) to ~120 lines
  */
 const BioPage = () => {
+  const [searchParams] = useSearchParams();
+  const [attendee, setAttendee] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [inMeetList, setInMeetList] = useState(false);
 
-  // Mock data - would come from props or API in real implementation
-  const attendee = {
-    name: "Sarah Chen",
-    title: "Chief Technology Officer",
-    company: "TechCorp",
-    bio: `Sarah Chen is a visionary technology leader with over 15 years of experience driving digital transformation across Fortune 500 companies. As CTO of TechCorp, she has spearheaded the development of cutting-edge AI and machine learning platforms that have revolutionized how businesses approach data analytics and customer engagement. Her innovative approach to technology strategy has resulted in a 300% increase in operational efficiency and positioned TechCorp as a market leader in enterprise software solutions.
+  const attendeeId = searchParams.get('id');
 
-Sarah holds a Ph.D. in Computer Science from Stanford University and has been recognized as one of the "Top 50 Women in Tech" by Forbes. She is passionate about mentoring the next generation of technology leaders and frequently speaks at industry conferences about the future of artificial intelligence and its impact on business transformation. Her leadership philosophy centers on fostering a culture of innovation, collaboration, and continuous learning within her teams.`
-  };
+  // Load attendee data based on ID from URL
+  useEffect(() => {
+    const loadAttendee = async () => {
+      if (!attendeeId) {
+        setError('No attendee ID provided');
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        // Search for the specific attendee by ID
+        const result = await attendeeSearchService.searchAttendees({
+          query: '',
+          // We'll need to filter by ID in the service or find the attendee
+        });
+        
+        // Find the specific attendee by ID
+        const foundAttendee = result.attendees.find(a => a.id === attendeeId);
+        
+        if (foundAttendee) {
+          setAttendee(foundAttendee);
+        } else {
+          setError('Attendee not found');
+        }
+        
+      } catch (err) {
+        console.error('Failed to load attendee:', err);
+        setError(err.message || 'Failed to load attendee');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadAttendee();
+  }, [attendeeId]);
 
   const handleToggleMeetList = () => {
     if (!inMeetList) {
@@ -32,6 +69,42 @@ Sarah holds a Ph.D. in Computer Science from Stanford University and has been re
   const handleBackClick = () => {
     window.history.back();
   };
+
+  // Construct full name from first_name and last_name
+  const fullName = attendee ? `${attendee.first_name} ${attendee.last_name}`.trim() : '';
+
+  if (isLoading) {
+    return (
+      <PageLayout>
+        <div className="loading-state">
+          <div className="loading-spinner"></div>
+          <p>Loading attendee...</p>
+        </div>
+      </PageLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <PageLayout>
+        <div className="error-state">
+          <p>Error: {error}</p>
+          <button onClick={handleBackClick}>Go Back</button>
+        </div>
+      </PageLayout>
+    );
+  }
+
+  if (!attendee) {
+    return (
+      <PageLayout>
+        <div className="error-state">
+          <p>Attendee not found</p>
+          <button onClick={handleBackClick}>Go Back</button>
+        </div>
+      </PageLayout>
+    );
+  }
 
   return (
     <PageLayout>
@@ -85,10 +158,35 @@ Sarah holds a Ph.D. in Computer Science from Stanford University and has been re
               alignItems: 'center',
               justifyContent: 'center',
               fontSize: '32px',
-              color: 'var(--purple-700)'
+              color: 'var(--purple-700)',
+              overflow: 'hidden'
             }}
           >
-            👤
+            {attendee.photo ? (
+              <img
+                src={attendee.photo}
+                alt={`${fullName} headshot`}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover'
+                }}
+                onError={(e) => {
+                  // Fallback to icon if image fails to load
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'flex';
+                }}
+              />
+            ) : null}
+            <div style={{
+              display: attendee.photo ? 'none' : 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '100%',
+              height: '100%'
+            }}>
+              👤
+            </div>
           </div>
           <div className="profile-info" style={{ flex: 1 }}>
             <h1 
@@ -99,7 +197,7 @@ Sarah holds a Ph.D. in Computer Science from Stanford University and has been re
                 marginBottom: '4px'
               }}
             >
-              {attendee.name}
+              {fullName}
             </h1>
             <div 
               className="title"
@@ -175,7 +273,7 @@ Sarah holds a Ph.D. in Computer Science from Stanford University and has been re
               whiteSpace: 'pre-line'
             }}
           >
-            {attendee.bio}
+            {attendee.bio || 'No bio available for this attendee.'}
           </div>
         </div>
       </Card>

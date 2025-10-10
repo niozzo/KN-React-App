@@ -33,40 +33,10 @@ const AttendeeCard = forwardRef(({
   // Construct full name from first_name and last_name
   const name = `${first_name} ${last_name}`.trim();
 
-  const handleActionClick = (event) => {
-    if (currentTab === 'my-meet-list') {
-      // On My Meet List page, always remove
-      onRemoveFromMeetList?.(attendee, event);
-    } else {
-      // On All Attendees page, add to meet list
-      onAddToMeetList?.(attendee, event);
-    }
-  };
-
-  const shouldShowButton = () => {
-    if (currentTab === 'my-meet-list') {
-      // On My Meet List page, always show remove button
-      return true;
-    } else {
-      // On All Attendees page, only show button if not in meet list
-      return !isInMeetList;
-    }
-  };
-
-  const getButtonText = () => {
-    if (currentTab === 'my-meet-list') {
-      return 'Remove';
-    } else {
-      return '+ Add to Meet List';
-    }
-  };
-
-  const getButtonVariant = () => {
-    if (currentTab === 'my-meet-list') {
-      return 'danger';
-    } else {
-      return 'secondary';
-    }
+  const handleViewBioClick = (event) => {
+    event.stopPropagation();
+    navigate(`/bio?id=${attendee.id}`);
+    onViewBio?.(attendee);
   };
 
   const toggleSharedEvents = () => {
@@ -174,26 +144,17 @@ const AttendeeCard = forwardRef(({
           gap: 'var(--space-md)'
         }}
       >
-        {shouldShowButton() ? (
-          <Button
-            variant={getButtonVariant()}
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleActionClick(attendee, e);
-            }}
-            style={{
-              fontSize: 'var(--text-sm)',
-              whiteSpace: 'nowrap'
-            }}
-          >
-            {getButtonText()}
-          </Button>
-        ) : (
-          <StatusTag variant="success">
-            ✓ In My List
-          </StatusTag>
-        )}
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={handleViewBioClick}
+          style={{
+            fontSize: 'var(--text-sm)',
+            whiteSpace: 'nowrap'
+          }}
+        >
+          View Bio
+        </Button>
       </div>
     </Card>
   );
