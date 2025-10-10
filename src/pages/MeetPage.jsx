@@ -96,6 +96,19 @@ const MeetPage = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // Track scroll position for button visibility
+  const [showBackToTop, setShowBackToTop] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      setShowBackToTop(scrollTop > 100);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   // Apply sorting to filtered items
   const { sortedItems } = useSort(filteredItems, 'last_name');                                                                             
 
@@ -221,8 +234,13 @@ const MeetPage = () => {
       </div>
 
       {/* Floating Back to Top Button */}
-      <button
-        onClick={handleBackToTop}
+      {showBackToTop && (
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleBackToTop();
+          }}
         style={{
           position: 'fixed',
           bottom: '80px', // Position above nav bar (nav bar is typically ~60px)
@@ -259,9 +277,10 @@ const MeetPage = () => {
         }}
         title="Back to top"
       >
-        <div style={{ fontSize: '18px', marginBottom: '2px' }}>▲</div>
-        <div style={{ fontSize: '10px', fontWeight: 'normal' }}>Top</div>
-      </button>
+          <div style={{ fontSize: '18px', marginBottom: '2px' }}>▲</div>
+          <div style={{ fontSize: '10px', fontWeight: 'normal' }}>Top</div>
+        </button>
+      )}
     </PageLayout>
   );
 };
