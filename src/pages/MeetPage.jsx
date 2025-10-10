@@ -225,10 +225,10 @@ const MeetPage = () => {
         onClick={handleBackToTop}
         style={{
           position: 'fixed',
-          bottom: '20px',
+          bottom: '80px', // Position above nav bar (nav bar is typically ~60px)
           right: '20px',
-          width: '50px',
-          height: '50px',
+          width: '56px',
+          height: '56px',
           borderRadius: '50%',
           backgroundColor: 'var(--purple-600)',
           color: 'var(--white)',
@@ -237,21 +237,22 @@ const MeetPage = () => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: '20px',
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+          fontSize: '24px',
+          fontWeight: 'bold',
+          boxShadow: '0 6px 20px rgba(139, 69, 19, 0.3)',
           transition: 'all var(--transition-normal)',
           zIndex: 1000,
-          opacity: 0.9
+          opacity: 1
         }}
         onMouseEnter={(e) => {
-          e.target.style.opacity = '1';
-          e.target.style.transform = 'scale(1.05)';
-          e.target.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.2)';
+          e.target.style.transform = 'scale(1.1)';
+          e.target.style.boxShadow = '0 8px 25px rgba(139, 69, 19, 0.4)';
+          e.target.style.backgroundColor = 'var(--purple-700)';
         }}
         onMouseLeave={(e) => {
-          e.target.style.opacity = '0.9';
           e.target.style.transform = 'scale(1)';
-          e.target.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+          e.target.style.boxShadow = '0 6px 20px rgba(139, 69, 19, 0.3)';
+          e.target.style.backgroundColor = 'var(--purple-600)';
         }}
         title="Back to top"
       >
