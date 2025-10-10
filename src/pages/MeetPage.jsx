@@ -230,7 +230,7 @@ const MeetPage = () => {
           width: '60px',
           height: '70px',
           borderRadius: '30px',
-          backgroundColor: '#8B4513', // Purple color
+          backgroundColor: 'var(--purple-600)',
           color: '#ffffff',
           border: 'none',
           cursor: 'pointer',
@@ -250,12 +250,12 @@ const MeetPage = () => {
         onMouseEnter={(e) => {
           e.target.style.transform = 'scale(1.1)';
           e.target.style.boxShadow = '0 8px 25px rgba(139, 69, 19, 0.4)';
-          e.target.style.backgroundColor = '#7A3D0F';
+          e.target.style.backgroundColor = 'var(--purple-700)';
         }}
         onMouseLeave={(e) => {
           e.target.style.transform = 'scale(1)';
           e.target.style.boxShadow = '0 6px 20px rgba(139, 69, 19, 0.3)';
-          e.target.style.backgroundColor = '#8B4513';
+          e.target.style.backgroundColor = 'var(--purple-600)';
         }}
         title="Back to top"
       >
