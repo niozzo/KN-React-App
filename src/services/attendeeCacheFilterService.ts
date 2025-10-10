@@ -7,6 +7,8 @@
  */
 
 import type { Attendee } from '../types/attendee';
+import { applicationDatabaseService } from './applicationDatabaseService';
+import type { AttendeePreferences } from '../types/preferences';
 
 /**
  * Safe attendee cache interface - only includes non-confidential fields
@@ -115,6 +117,45 @@ const SAFE_FIELDS = [
 ] as const;
 
 export class AttendeeCacheFilterService {
+  // Cache for hidden profile IDs to avoid repeated database calls
+  private static hiddenProfileIds: Set<string> | null = null;
+  private static lastPreferencesFetch: number = 0;
+  private static CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+  /**
+   * Get set of hidden profile IDs with caching
+   */
+  private static async getHiddenProfileIds(): Promise<Set<string>> {
+    const now = Date.now();
+    
+    // Use cached data if fresh (5 min TTL)
+    if (this.hiddenProfileIds && (now - this.lastPreferencesFetch) < this.CACHE_TTL) {
+      return this.hiddenProfileIds;
+    }
+    
+    try {
+      const preferences = await applicationDatabaseService.getAllAttendeePreferences();
+      this.hiddenProfileIds = new Set(
+        preferences
+          .filter(p => p.profile_visible === false)
+          .map(p => p.id)
+      );
+      this.lastPreferencesFetch = now;
+      return this.hiddenProfileIds;
+    } catch (error) {
+      console.warn('Failed to load preferences, showing all profiles:', error);
+      return new Set(); // Fail open - show all if preferences unavailable
+    }
+  }
+
+  /**
+   * Clear cached hidden profile IDs (call when preferences change)
+   */
+  static clearHiddenProfilesCache(): void {
+    this.hiddenProfileIds = null;
+    this.lastPreferencesFetch = 0;
+  }
+
   /**
    * Filter confidential fields from attendee data
    * @param attendee - Full attendee object from database
@@ -146,16 +187,25 @@ export class AttendeeCacheFilterService {
   }
 
   /**
-   * Filter an array of attendees
+   * Filter an array of attendees - removes confidential fields AND hidden profiles
    * @param attendees - Array of attendee objects
-   * @returns Array of sanitized attendee objects
+   * @returns Array of sanitized attendee objects with hidden profiles removed
    */
-  static filterAttendeesArray(attendees: Attendee[]): SafeAttendeeCache[] {
+  static async filterAttendeesArray(attendees: Attendee[]): Promise<SafeAttendeeCache[]> {
     if (!Array.isArray(attendees)) {
-      throw new Error('Attendees must be an array');
+      throw new Error('Expected array of attendees');
     }
 
-    return attendees.map(attendee => this.filterConfidentialFields(attendee));
+    // NEW: Filter out hidden profiles BEFORE sanitizing fields
+    const hiddenIds = await this.getHiddenProfileIds();
+    const visibleAttendees = attendees.filter(a => !hiddenIds.has(a.id));
+    
+    if (visibleAttendees.length < attendees.length) {
+      console.log(`🔒 Filtered out ${attendees.length - visibleAttendees.length} hidden profiles from cache`);
+    }
+
+    // Apply confidential field filtering to visible attendees
+    return visibleAttendees.map(attendee => this.filterConfidentialFields(attendee));
   }
 
   /**

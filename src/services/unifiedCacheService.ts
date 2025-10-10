@@ -132,8 +132,8 @@ export class UnifiedCacheService {
     const startTime = performance.now();
     
     try {
-      // Apply attendee data filtering for confidential information
-      const filteredData = this.filterAttendeeData(key, data);
+      // Apply attendee data filtering for confidential information and hidden profiles
+      const filteredData = await this.filterAttendeeData(key, data);
       
       // Create entry with atomic timestamp to prevent race conditions
       const entry = this.cacheVersioning.createCacheEntry(filteredData, ttl, undefined, source);
@@ -606,17 +606,18 @@ export class UnifiedCacheService {
   }
 
   /**
-   * Filter attendee data to remove confidential information
+   * Filter attendee data to remove confidential information and hidden profiles
    * Story 2.2.4: Remove Confidential Attendee Information from Local Cache
+   * Story 6.1: Filter hidden profiles from cache
    */
-  private filterAttendeeData<T>(key: string, data: T): T {
+  private async filterAttendeeData<T>(key: string, data: T): Promise<T> {
     // Only apply filtering to attendee cache keys
     if (key === 'kn_cache_attendees' || key === 'kn_cache_attendee') {
       try {
         // Handle array of attendees
         if (Array.isArray(data)) {
-          const filteredArray = AttendeeCacheFilterService.filterAttendeesArray(data as Attendee[]);
-          console.log(`🔒 Filtered ${data.length} attendee records for cache storage`);
+          const filteredArray = await AttendeeCacheFilterService.filterAttendeesArray(data as Attendee[]);
+          console.log(`🔒 Filtered ${data.length} records, ${filteredArray.length} visible`);
           return filteredArray as T;
         }
         

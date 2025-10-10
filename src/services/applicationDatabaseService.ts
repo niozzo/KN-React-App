@@ -2,6 +2,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { BaseService } from './baseService.ts';
 import { serviceRegistry } from './ServiceRegistry.ts';
+import type { AttendeePreferences } from '../types/preferences';
 
 const APPLICATION_DB_URL = import.meta.env.VITE_APPLICATION_DB_URL;
 const APPLICATION_DB_ANON_KEY = import.meta.env.VITE_APPLICATION_DB_ANON_KEY;
@@ -321,6 +322,56 @@ class ApplicationDatabaseService extends BaseService {
     this.adminDb = null;
     this.isInitialized = false;
   }
+
+  // Attendee Preferences Management Methods
+  async getAllAttendeePreferences(): Promise<AttendeePreferences[]> {
+    const client = this.getClient();
+    const { data, error } = await client
+      .from('attendee_preferences')
+      .select('*');
+    
+    if (error) throw error;
+    return data || [];
+  }
+
+  async getAttendeePreferences(attendeeId: string): Promise<AttendeePreferences | null> {
+    const client = this.getClient();
+    const { data, error } = await client
+      .from('attendee_preferences')
+      .select('*')
+      .eq('id', attendeeId)
+      .single();
+    
+    if (error && error.code !== 'PGRST116') throw error; // PGRST116 = not found
+    return data || { id: attendeeId, profile_visible: true }; // Default to visible
+  }
+
+  async updateProfileVisibility(attendeeId: string, isVisible: boolean): Promise<void> {
+    const adminClient = this.getAdminClient();
+    const { error } = await adminClient
+      .from('attendee_preferences')
+      .upsert({
+        id: attendeeId,
+        profile_visible: isVisible,
+        last_synced: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      });
+    
+    if (error) throw error;
+    
+    this.emitPreferencesUpdatedEvent(attendeeId, isVisible);
+  }
+
+  private emitPreferencesUpdatedEvent(attendeeId: string, isVisible: boolean): void {
+    // Clear the hidden profiles cache in AttendeeCacheFilterService
+    import('./attendeeCacheFilterService').then(({ AttendeeCacheFilterService }) => {
+      AttendeeCacheFilterService.clearHiddenProfilesCache();
+    });
+    
+    window.dispatchEvent(new CustomEvent('attendeePreferencesUpdated', {
+      detail: { attendeeId, profile_visible: isVisible }
+    }));
+  }
 }
 
 // Export singleton instance
@@ -365,4 +416,5 @@ export interface AttendeeMetadata {
   email?: string;
   last_synced: string;
 }
+
 

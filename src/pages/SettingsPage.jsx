@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import PageLayout from '../components/layout/PageLayout';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
+import { applicationDatabaseService } from '../services/applicationDatabaseService';
 
 /**
  * Settings Page Component
@@ -12,27 +13,62 @@ import Button from '../components/common/Button';
  */
 const SettingsPage = () => {
   const navigate = useNavigate();
-  const { logout, isSigningOut } = useAuth();
+  const { logout, isSigningOut, attendee } = useAuth();
   
-  // Settings state - would come from props or API in real implementation
+  // Settings state - simplified to only profile visibility
   const [settings, setSettings] = useState({
-    discoverability: true,
-    overlapHints: true,
-    sessionReminders: true,
-    adminBroadcasts: true,
-    offlineMode: true
+    profileVisible: true,
   });
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [isSavingPreference, setIsSavingPreference] = useState(false);
   
   // Sign-out state
   const [signOutError, setSignOutError] = useState('');
   const [showSignOutError, setShowSignOutError] = useState(false);
 
 
-  const handleToggle = (settingKey) => {
-    setSettings(prev => ({
-      ...prev,
-      [settingKey]: !prev[settingKey]
-    }));
+  // Load user's actual preference on mount
+  useEffect(() => {
+    const loadPreferences = async () => {
+      if (!attendee?.id) return;
+      try {
+        const prefs = await applicationDatabaseService.getAttendeePreferences(attendee.id);
+        setSettings(prev => ({ ...prev, profileVisible: prefs.profile_visible }));
+      } catch (error) {
+        console.error('Failed to load preferences:', error);
+      }
+    };
+    loadPreferences();
+  }, [attendee?.id]);
+
+  // Handle online/offline detection
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // Profile visibility toggle handler
+  const handleProfileVisibilityToggle = async () => {
+    if (!isOnline || !attendee?.id) return;
+    
+    setIsSavingPreference(true);
+    const newValue = !settings.profileVisible;
+    
+    try {
+      await applicationDatabaseService.updateProfileVisibility(attendee.id, newValue);
+      setSettings(prev => ({ ...prev, profileVisible: newValue }));
+      localStorage.removeItem('kn_cache_attendees');
+    } catch (error) {
+      console.error('Failed to update profile visibility:', error);
+    } finally {
+      setIsSavingPreference(false);
+    }
   };
 
 
@@ -61,15 +97,18 @@ const SettingsPage = () => {
   };
 
 
-  const SettingItem = ({ settingKey, title, description, isEnabled, onChange }) => (
-    <div className="setting-item">
+  // Updated SettingItem component with disabled state support
+  const SettingItem = ({ title, description, isEnabled, onChange, disabled, helpText }) => (
+    <div className={`setting-item ${disabled ? 'disabled' : ''}`}>
       <div 
-        className={`toggle-switch ${isEnabled ? 'active' : ''}`}
-        onClick={() => onChange(settingKey)}
+        className={`toggle-switch ${isEnabled ? 'active' : ''} ${disabled ? 'disabled' : ''}`}
+        onClick={() => !disabled && onChange()}
+        style={{ opacity: disabled ? 0.5 : 1, cursor: disabled ? 'not-allowed' : 'pointer' }}
       />
       <div className="setting-info">
         <div className="setting-title">{title}</div>
         <div className="setting-description">{description}</div>
+        {helpText && <div className="setting-help-text" style={{ fontSize: '12px', color: 'var(--orange-500)', marginTop: '4px' }}>{helpText}</div>}
       </div>
     </div>
   );
@@ -79,70 +118,28 @@ const SettingsPage = () => {
       <h1 className="page-title">Settings</h1>
 
 
-      {/* Privacy Controls */}
+      {/* Privacy Controls - SIMPLIFIED */}
       <section className="settings-section">
         <div className="section-header">
           <h2 className="section-title">Privacy Controls</h2>
         </div>
         <div className="section-content">
           <SettingItem
-            settingKey="discoverability"
-            title="Discoverability"
-            description="Allow other attendees to find you in search results"
-            isEnabled={settings.discoverability}
-            onChange={handleToggle}
+            title="Profile Visibility"
+            description="Allow your profile to appear in the Bios page"
+            isEnabled={settings.profileVisible}
+            onChange={handleProfileVisibilityToggle}
+            disabled={!isOnline || isSavingPreference}
+            helpText={!isOnline ? "Connect to internet to change this setting" : ""}
           />
-               <SettingItem
-                 settingKey="overlapHints"
-                 title="Overlap Hints"
-                 description="Allow others to see sessions shared with you"
-                 isEnabled={settings.overlapHints}
-                 onChange={handleToggle}
-               />
         </div>
       </section>
 
-      {/* Notification Settings */}
+      {/* Account - Sign Out */}
       <section className="settings-section">
         <div className="section-header">
-          <h2 className="section-title">Notifications</h2>
+          <h2 className="section-title">Account</h2>
         </div>
-        <div className="section-content">
-          <SettingItem
-            settingKey="sessionReminders"
-            title="End of Break Reminders"
-            description="Get notified 5 minutes before the end of a break"
-            isEnabled={settings.sessionReminders}
-            onChange={handleToggle}
-          />
-          <SettingItem
-            settingKey="adminBroadcasts"
-            title="Admin Broadcasts"
-            description="Receive important conference updates"
-            isEnabled={settings.adminBroadcasts}
-            onChange={handleToggle}
-          />
-        </div>
-      </section>
-
-      {/* App Settings */}
-      <section className="settings-section">
-        <div className="section-header">
-          <h2 className="section-title">App Settings</h2>
-        </div>
-        <div className="section-content">
-          <SettingItem
-            settingKey="offlineMode"
-            title="Offline Mode"
-            description="Download schedule for offline access"
-            isEnabled={settings.offlineMode}
-            onChange={handleToggle}
-          />
-        </div>
-      </section>
-
-      {/* Action Buttons */}
-      <section className="settings-section">
         <div className="section-content">
           <div className="action-buttons">
             <Button 
@@ -151,31 +148,11 @@ const SettingsPage = () => {
               className="action-button"
               disabled={isSigningOut}
             >
-              {isSigningOut ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Signing Out...
-                </>
-              ) : (
-                'Sign Out'
-              )}
+              {isSigningOut ? 'Signing Out...' : 'Sign Out'}
             </Button>
           </div>
-          
-          {/* Sign-out Error Display */}
           {showSignOutError && signOutError && (
-            <div className="error-message" style={{
-              color: 'var(--red-500)',
-              fontSize: 'var(--text-sm)',
-              textAlign: 'center',
-              marginTop: 'var(--space-md)',
-              padding: 'var(--space-sm)',
-              backgroundColor: 'var(--red-50)',
-              border: '1px solid var(--red-200)',
-              borderRadius: 'var(--radius-sm)'
-            }}>
-              {signOutError}
-            </div>
+            <div className="error-message">{signOutError}</div>
           )}
         </div>
       </section>
@@ -184,9 +161,7 @@ const SettingsPage = () => {
       <div className="privacy-notice">
         <div className="privacy-title">Privacy & Data Protection</div>
         <div className="privacy-text">
-          Your privacy is important to us. We collect and process your data in accordance with our 
-          <a href="#" className="privacy-link"> Privacy Policy</a> and applicable data protection laws. 
-          You can manage your data preferences above or contact us for more information.
+          Your privacy is important to us. Contact us for data requests or questions.
         </div>
       </div>
     </PageLayout>
