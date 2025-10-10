@@ -18,20 +18,7 @@
   overflow: hidden;
 }
 
-.attendee-card:hover {
-  border-color: var(--primary-300);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
-}
-
-.attendee-card:focus {
-  outline: 2px solid var(--primary-500);
-  outline-offset: 2px;
-}
-
-.attendee-card:active {
-  transform: translateY(0);
-}
+/* Removed hover effects since card is no longer clickable */
 
 /* Attendee Photo */
 .attendee-photo {
@@ -48,9 +35,7 @@
   transition: border-color 0.2s ease-out;
 }
 
-.attendee-card:hover .photo-image {
-  border-color: var(--primary-300);
-}
+/* Removed photo hover effect since card is no longer clickable */
 
 .sponsor-badge {
   position: absolute;
@@ -238,9 +223,7 @@
     border-width: 2px;
   }
   
-  .attendee-card:hover {
-    border-color: var(--gray-900);
-  }
+  /* Removed hover effect since card is no longer clickable */
   
   .photo-image {
     border-width: 3px;
@@ -253,7 +236,5 @@
     transition: none;
   }
   
-  .attendee-card:hover {
-    transform: none;
-  }
+  /* Removed hover effect since card is no longer clickable */
 }
