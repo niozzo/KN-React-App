@@ -76,9 +76,8 @@ const MeetPage = () => {
 
   // Clear search and scroll to top
   const handleClearSearch = (e) => {
-    // Prevent event propagation to avoid input focus issues
+    // Only prevent default, don't stop propagation
     e.preventDefault();
-    e.stopPropagation();
     
     // Clear both URL parameter and local search state
     originalHandleSearchChange('');
@@ -162,14 +161,6 @@ const MeetPage = () => {
           {effectiveSearchTerm && (
             <button
               onClick={handleClearSearch}
-              onMouseDown={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              }}
-              onMouseUp={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              }}
               style={{
                 position: 'absolute',
                 right: '12px',
@@ -186,7 +177,8 @@ const MeetPage = () => {
                 transition: 'background-color var(--transition-normal)',
                 color: 'var(--ink-400)',
                 fontSize: '18px',
-                zIndex: 10
+                zIndex: 10,
+                pointerEvents: 'auto'
               }}
               onMouseEnter={(e) => {
                 e.target.style.backgroundColor = 'var(--ink-100)';
