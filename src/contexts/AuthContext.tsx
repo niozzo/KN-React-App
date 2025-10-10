@@ -585,7 +585,7 @@ export const LoginPage: React.FC = () => {
             marginTop: 'var(--space-md)',
             fontWeight: '500'
           }}>
-            Sample codes: 629980, 924091
+            Sample codes: 854958, 791705
           </p>
         </div>
       </div>
