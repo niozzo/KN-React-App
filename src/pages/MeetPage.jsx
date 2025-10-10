@@ -77,6 +77,12 @@ const MeetPage = () => {
     }
   };
 
+  // Prevent scroll jump when focusing sticky search field
+  const handleFocus = (e) => {
+    // Prevent browser from adjusting scroll position when focusing
+    e.preventDefault();
+  };
+
   // Clear search and scroll to top
   const handleClearSearch = (e) => {
     // Only prevent default, don't stop propagation
@@ -148,6 +154,7 @@ const MeetPage = () => {
             value={searchTerm}
             onChange={(e) => handleSearchChange(e.target.value)}
             onKeyDown={handleKeyDown}
+            onFocus={handleFocus}
             style={{
               width: '100%',
               fontSize: 'var(--text-lg)',
