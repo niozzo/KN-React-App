@@ -1481,7 +1481,7 @@ body {
   max-width: 200px;
   margin: 0 auto;
   padding: var(--space-md);
-  background: rgba(217, 119, 111, 0.05);
+  background: transparent;
   border-radius: var(--radius-lg);
   position: relative;
   margin-bottom: var(--space-md);
@@ -1508,7 +1508,7 @@ body {
   font-size: var(--text-xl);
   font-weight: var(--font-bold);
   color: var(--coral);
-  background: rgba(217, 119, 111, 0.1);
+  background: rgba(217, 119, 111, 0.05);
   border-radius: var(--radius-lg);
 }
 
