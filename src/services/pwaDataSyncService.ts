@@ -844,7 +844,7 @@ export class PWADataSyncService extends BaseService {
   }
 
   /**
-   * Get cached table data
+   * Get cached table data (stale-while-revalidate pattern)
    */
   async getCachedTableData<T>(tableName: string): Promise<T[]> {
     try {
@@ -856,19 +856,46 @@ export class PWADataSyncService extends BaseService {
       }
 
       const cacheData = JSON.parse(cached);
+      const data = cacheData.data || [];
       
-      // Check if cache is still valid
-      if (this.isCacheValid(cacheData)) {
-        return cacheData.data || [];
+      // Return stale data even if expired (offline-first)
+      if (!this.isCacheValid(cacheData)) {
+        console.log(`⚠️ Cache expired for ${tableName}, returning stale data (${data.length} records)`);
+        
+        // Trigger background revalidation (non-blocking)
+        this.revalidateCache(tableName).catch(err => 
+          console.error(`Failed to revalidate ${tableName}:`, err)
+        );
       } else {
-        // Cache expired, return empty array to prevent infinite recursion
-        console.log(`⚠️ Cache expired for ${tableName}, returning empty data`);
-        return [];
+        console.log(`📱 Using fresh cached data for ${tableName} (${data.length} records)`);
       }
+
+      return data;
 
     } catch (error) {
       console.error(`❌ Failed to get cached ${tableName}:`, error);
       return [];
+    }
+  }
+
+  /**
+   * Revalidate expired cache in background (non-blocking)
+   */
+  private async revalidateCache(tableName: string): Promise<void> {
+    try {
+      console.log(`🔄 Background revalidation started for ${tableName}`);
+      
+      // Attempt to sync from server
+      if (isValidMainTable(tableName)) {
+        await this.syncMainTable(tableName as MainTableName);
+      } else if (isValidApplicationTable(tableName)) {
+        await this.syncApplicationTable(tableName as ApplicationTableName);
+      }
+      
+      console.log(`✅ Background revalidation completed for ${tableName}`);
+    } catch (error) {
+      console.error(`❌ Background revalidation failed for ${tableName}:`, error);
+      // Silently fail - we're already serving stale data
     }
   }
 

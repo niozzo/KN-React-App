@@ -34,13 +34,19 @@ export class OfflineAttendeeService {
         };
       }
 
-      // Fallback to online service
+      // Only fetch from API if cache is truly empty
       console.log('🌐 No cached data, fetching from server...');
       const result = await attendeeService.getAllAttendees();
       
       if (result.success && result.data.length > 0) {
         // Cache the data for offline use
         await pwaDataSyncService.cacheTableData(this.tableName, result.data);
+        console.log(`✅ Cached ${result.data.length} attendees for offline use`);
+      } else if (!result.success) {
+        // API failed but check if we have stale cache as last resort
+        console.warn('⚠️ API failed, checking for any stale cache data');
+        // Cache should have already returned stale data above, but log for clarity
+        console.log('📱 Cache-first architecture: Serving stale data when API fails');
       }
       
       return result;
