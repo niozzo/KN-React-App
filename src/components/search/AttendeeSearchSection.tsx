@@ -97,7 +97,7 @@ const AttendeeSearchSection: React.FC<AttendeeSearchSectionProps> = ({
 
   return (
     <div className={`attendee-search-section ${className}`}>
-      {/* Search Section Header */}
+      {/* Search Section Header - Collapsible */}
       <div 
         ref={headerRef}
         className={`search-section-header ${isExpanded ? 'expanded' : ''}`}
@@ -109,52 +109,53 @@ const AttendeeSearchSection: React.FC<AttendeeSearchSectionProps> = ({
           aria-expanded={isExpanded}
           aria-controls="search-section"
         >
-          <span className="search-toggle-text">Find People to Meet</span>
+          <span>Find People to Meet</span>
           <span className={`search-arrow ${isExpanded ? 'expanded' : ''}`}>
             ▼
           </span>
         </button>
       </div>
 
-      {/* Search Section Content */}
-      <div 
-        id="search-section"
-        ref={searchSectionRef}
-        className={`search-section ${isExpanded ? 'expanded' : ''}`}
-        style={{ display: isExpanded ? 'block' : 'none' }}
-      >
-        {/* Search Controls */}
-        <SearchControls
-          searchQuery={searchQuery}
-          filters={filters}
-          onSearchChange={handleSearchChange}
-          onFilterChange={handleFilterChange}
-          onClearSearch={handleClearSearch}
-          isLoading={isLoading}
-          hasActiveFilters={hasActiveFilters}
-        />
-
-        {/* Search Results */}
-        <SearchResults
-          results={searchResults}
-          totalCount={totalCount}
-          isLoading={isLoading}
-          error={error}
-          searchTime={searchTime}
-          isCached={isCached}
-          hasResults={hasResults}
-          onAttendeeSelect={handleAttendeeSelect}
-        />
-
-        {/* Attendee List */}
-        {hasResults && (
-          <AttendeeList
-            attendees={searchResults}
-            onAttendeeSelect={handleAttendeeSelect}
+      {/* Search Section Content - Collapsible */}
+      {isExpanded && (
+        <div 
+          id="search-section"
+          ref={searchSectionRef}
+          className="search-section"
+        >
+          {/* Search Controls */}
+          <SearchControls
+            searchQuery={searchQuery}
+            filters={filters}
+            onSearchChange={handleSearchChange}
+            onFilterChange={handleFilterChange}
+            onClearSearch={handleClearSearch}
             isLoading={isLoading}
+            hasActiveFilters={hasActiveFilters}
           />
-        )}
-      </div>
+        </div>
+      )}
+
+      {/* Search Results - Always Visible */}
+      <SearchResults
+        results={searchResults}
+        totalCount={totalCount}
+        isLoading={isLoading}
+        error={error}
+        searchTime={searchTime}
+        isCached={isCached}
+        hasResults={hasResults}
+        onAttendeeSelect={handleAttendeeSelect}
+      />
+
+      {/* Attendee List - Always Visible */}
+      {hasResults && (
+        <AttendeeList
+          attendees={searchResults}
+          onAttendeeSelect={handleAttendeeSelect}
+          isLoading={isLoading}
+        />
+      )}
     </div>
   );
 };
