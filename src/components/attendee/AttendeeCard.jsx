@@ -44,7 +44,6 @@ const AttendeeCard = forwardRef(({
       className={`attendee-card ${className}`}
       onClick={() => {
         navigate(`/bio?id=${attendee.id}`);
-        onViewBio?.(attendee);
       }}
       style={{ cursor: 'pointer' }}
     >
