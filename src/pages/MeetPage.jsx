@@ -56,7 +56,7 @@ const MeetPage = () => {
   if (isLoading) {
     return (
       <PageLayout>
-        <h1 className="page-title">Meet List</h1>
+        <h1 className="page-title">Bios</h1>
         <div className="loading-state">
           <div className="loading-spinner"></div>
           <p>Loading attendees...</p>
@@ -68,7 +68,7 @@ const MeetPage = () => {
   if (error) {
     return (
       <PageLayout>
-        <h1 className="page-title">Meet List</h1>
+        <h1 className="page-title">Bios</h1>
         <div className="error-state">
           <p>Error loading attendees: {error}</p>
         </div>
@@ -78,7 +78,7 @@ const MeetPage = () => {
 
   return (
     <PageLayout>
-      <h1 className="page-title">Meet List</h1>
+      <h1 className="page-title">Bios</h1>
 
       {/* Search Section */}
       {/* Sticky Search Field */}

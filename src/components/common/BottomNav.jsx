@@ -9,7 +9,7 @@ const BottomNav = ({
   tabs = [
     { id: "home", label: "Home", icon: "🏠", path: "/home" },
     { id: "schedule", label: "Schedule", icon: "📅", path: "/schedule" },
-    { id: "meet", label: "Meet", icon: "👥", path: "/meet" },
+    { id: "meet", label: "Bios", icon: "👥", path: "/meet" },
     { id: "sponsors", label: "Sponsors", icon: "🏢", path: "/sponsors" },
     { id: "settings", label: "Settings", icon: "⚙️", path: "/settings" }
   ]
