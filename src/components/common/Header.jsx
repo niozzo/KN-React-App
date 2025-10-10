@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -13,6 +13,7 @@ const Header = ({
   onUserClick 
 }) => {
   const { isAuthenticated, attendeeName, attendee } = useAuth();
+  const [imageError, setImageError] = useState(false);
 
   // Generate initials from attendee name
   const getInitials = (name) => {
@@ -49,6 +50,16 @@ const Header = ({
     return '?';
   };
 
+  // Handle image load error - fall back to initials
+  const handleImageError = () => {
+    setImageError(true);
+  };
+
+  // Reset image error when attendee changes
+  React.useEffect(() => {
+    setImageError(false);
+  }, [attendee?.id]);
+
   return (
     <header className="header">
       <div className="header-content">
@@ -66,7 +77,21 @@ const Header = ({
             style={{ cursor: onUserClick ? 'pointer' : 'default' }}
           >
             <div className="user-avatar">
-              {getAvatarInitials()}
+              {attendee?.photo && !imageError ? (
+                <img
+                  src={attendee.photo}
+                  alt={`${getDisplayName()} profile picture`}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    borderRadius: '50%'
+                  }}
+                  onError={handleImageError}
+                />
+              ) : (
+                getAvatarInitials()
+              )}
             </div>
             <span>{getDisplayName()}</span>
           </div>

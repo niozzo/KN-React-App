@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, act, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import Header from '../../components/common/Header';
 
@@ -157,5 +157,136 @@ describe('Header Component', () => {
     
     const userInfo = screen.getByText('John Doe').closest('.user-info');
     expect(userInfo).toHaveStyle('cursor: default');
+  });
+
+  it('should render profile picture when attendee has photo', () => {
+    renderWithAuth(<Header />, {
+      isAuthenticated: true,
+      attendee: {
+        id: '123',
+        first_name: 'John',
+        last_name: 'Doe',
+        email: 'john@example.com',
+        photo: 'https://example.com/profile.jpg'
+      }
+    });
+    
+    const profileImage = screen.getByAltText('John profile picture');
+    expect(profileImage).toBeInTheDocument();
+    expect(profileImage).toHaveAttribute('src', 'https://example.com/profile.jpg');
+    expect(profileImage).toHaveStyle({
+      width: '100%',
+      height: '100%',
+      objectFit: 'cover',
+      borderRadius: '50%'
+    });
+  });
+
+  it('should fall back to initials when attendee has no photo', () => {
+    renderWithAuth(<Header />, {
+      isAuthenticated: true,
+      attendee: {
+        id: '123',
+        first_name: 'Jane',
+        last_name: 'Smith',
+        email: 'jane@example.com',
+        photo: null
+      }
+    });
+    
+    expect(screen.getByText('JS')).toBeInTheDocument(); // Initials
+    expect(screen.queryByAltText('Jane profile picture')).not.toBeInTheDocument();
+  });
+
+  it('should fall back to initials when attendee has empty photo URL', () => {
+    renderWithAuth(<Header />, {
+      isAuthenticated: true,
+      attendee: {
+        id: '123',
+        first_name: 'Alex',
+        last_name: 'Johnson',
+        email: 'alex@example.com',
+        photo: ''
+      }
+    });
+    
+    expect(screen.getByText('AJ')).toBeInTheDocument(); // Initials
+    expect(screen.queryByAltText('Alex profile picture')).not.toBeInTheDocument();
+  });
+
+  it('should handle image load error and fall back to initials', async () => {
+    renderWithAuth(<Header />, {
+      isAuthenticated: true,
+      attendee: {
+        id: '123',
+        first_name: 'Bob',
+        last_name: 'Wilson',
+        email: 'bob@example.com',
+        photo: 'https://invalid-url.com/broken-image.jpg'
+      }
+    });
+    
+    // Initially should show the image
+    const profileImage = screen.getByAltText('Bob profile picture');
+    expect(profileImage).toBeInTheDocument();
+    
+    // Simulate image load error using fireEvent
+    await act(async () => {
+      fireEvent.error(profileImage);
+    });
+    
+    // After error, should show initials
+    expect(screen.getByText('BW')).toBeInTheDocument();
+  });
+
+  it('should reset image error state when attendee changes', async () => {
+    const { rerender } = renderWithAuth(<Header />, {
+      isAuthenticated: true,
+      attendee: {
+        id: '123',
+        first_name: 'John',
+        last_name: 'Doe',
+        email: 'john@example.com',
+        photo: 'https://example.com/profile1.jpg'
+      }
+    });
+    
+    // Simulate image error for first attendee
+    const profileImage = screen.getByAltText('John profile picture');
+    
+    await act(async () => {
+      fireEvent.error(profileImage);
+    });
+    
+    // Should show initials after error
+    expect(screen.getByText('JD')).toBeInTheDocument();
+    
+    // Change to different attendee
+    mockUseAuth.mockReturnValue({
+      isAuthenticated: true,
+      attendee: {
+        id: '456',
+        first_name: 'Jane',
+        last_name: 'Smith',
+        email: 'jane@example.com',
+        photo: 'https://example.com/profile2.jpg'
+      },
+      attendeeName: null,
+      isLoading: false,
+      login: vi.fn(),
+      logout: vi.fn(),
+      checkAuthStatus: vi.fn()
+    });
+    
+    await act(async () => {
+      rerender(
+        <BrowserRouter>
+          <Header />
+        </BrowserRouter>
+      );
+    });
+    
+    // Should show new attendee's image (error state should be reset)
+    expect(screen.getByAltText('Jane profile picture')).toBeInTheDocument();
   });
 });
