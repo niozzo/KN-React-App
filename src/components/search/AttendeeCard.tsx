@@ -11,25 +11,18 @@ import './AttendeeCard.css';
 
 interface AttendeeCardProps {
   attendee: Attendee;
-  onClick?: () => void;
+  onViewBio?: () => void;
   className?: string;
 }
 
 const AttendeeCard: React.FC<AttendeeCardProps> = ({
   attendee,
-  onClick,
+  onViewBio,
   className = ''
 }) => {
-  const handleClick = () => {
-    if (onClick) {
-      onClick();
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      handleClick();
+  const handleViewBio = () => {
+    if (onViewBio) {
+      onViewBio();
     }
   };
 
@@ -60,11 +53,6 @@ const AttendeeCard: React.FC<AttendeeCardProps> = ({
   return (
     <div
       className={`attendee-card ${className}`}
-      onClick={handleClick}
-      onKeyDown={handleKeyDown}
-      tabIndex={0}
-      role="button"
-      aria-label={`View profile for ${getFullName()}`}
     >
       {/* Photo */}
       <div className="attendee-photo">
@@ -138,6 +126,17 @@ const AttendeeCard: React.FC<AttendeeCardProps> = ({
             }
           </div>
         )}
+
+        {/* View Bio Button */}
+        <div className="attendee-actions">
+          <button
+            onClick={handleViewBio}
+            className="view-bio-button"
+            type="button"
+          >
+            View Bio
+          </button>
+        </div>
       </div>
     </div>
   );
