@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import PageLayout from '../components/layout/PageLayout';
 import AttendeeCard from '../components/attendee/AttendeeCard';
 import { useSearch } from '../hooks/useSearch';
-import { useSort } from '../hooks/useSort';
+// Removed useSort import - no longer needed
 import { attendeeSearchService } from '../services/attendeeSearchService';
 
 /**
@@ -13,7 +13,7 @@ import { attendeeSearchService } from '../services/attendeeSearchService';
  */
 const MeetPage = () => {
   const navigate = useNavigate();
-  const [searchExpanded, setSearchExpanded] = useState(true);
+  // Removed searchExpanded state - search is always visible
   const [allAttendees, setAllAttendees] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -45,11 +45,9 @@ const MeetPage = () => {
     handleSearchChange
   } = useSearch(allAttendees || [], ['first_name', 'last_name', 'title', 'company']);
 
-  const { sortedItems, handleSortChange, getSortOptions } = useSort(filteredItems);                                                                             
+  // Removed sort functionality - using filteredItems directly                                                                             
 
-  const toggleSearchSection = () => {
-    setSearchExpanded(!searchExpanded);
-  };
+  // Removed toggleSearchSection - search is always visible
 
   const handleViewBio = (attendee) => {
     navigate(`/bio?id=${attendee.id}`);
@@ -83,90 +81,41 @@ const MeetPage = () => {
       <h1 className="page-title">Meet List</h1>
 
       {/* Search Section */}
-      <section 
-        className={`search-section-header ${searchExpanded ? 'expanded' : ''}`}                                                                             
+      {/* Sticky Search Field */}
+      <div
+        className="sticky-search-container"
         style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 10,
           background: 'var(--white)',
-          borderRadius: 'var(--radius-xl)',
-          padding: 'var(--space-lg)',
-          marginBottom: 'var(--space-lg)',
-          boxShadow: 'var(--shadow-lg)'
+          padding: 'var(--space-md)',
+          borderBottom: '1px solid var(--ink-200)',
+          marginBottom: 'var(--space-lg)'
         }}
       >
-        <button 
-          className="search-toggle"
-          onClick={toggleSearchSection}
+        <input
+          type="text"
+          className="form-input"
+          placeholder="Search by name, company, or role..."
+          value={searchTerm}
+          onChange={(e) => handleSearchChange(e.target.value)}
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
             width: '100%',
-            padding: 0,
-            border: 'none',
-            background: 'transparent',
-            color: 'var(--ink-900)',
-            fontFamily: 'var(--font-heading)',
-            fontSize: 'var(--text-xl)',
-            fontWeight: 'var(--font-semibold)',
-            cursor: 'pointer',
-            transition: 'color var(--transition-normal)'
+            fontSize: 'var(--text-lg)',
+            padding: 'var(--space-md)',
+            border: '2px solid var(--purple-200)',
+            borderRadius: 'var(--radius-lg)',
+            outline: 'none',
+            transition: 'border-color var(--transition-normal)'
           }}
-        >
-          <span>Find People to Meet</span>
-          <span 
-            style={{
-              transition: 'transform var(--transition-normal)',
-              color: 'var(--ink-500)',
-              fontSize: 'var(--text-base)',
-              transform: searchExpanded ? 'rotate(180deg)' : 'rotate(0deg)'
-            }}
-          >
-            ▼
-          </span>
-        </button>
-      </section>
-
-      {searchExpanded && (
-        <section 
-          className="search-section search-section-overlap"
-          style={{
-            background: 'var(--white)',
-            borderRadius: 'var(--radius-xl)',
-            padding: 'var(--space-lg)',
-            marginBottom: 'var(--space-lg)',
-            boxShadow: 'var(--shadow-lg)'
-          }}
-        >
-          <div className="search-controls" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>                                    
-            <input
-              type="text"
-              className="form-input"
-              placeholder="Search by name, company, or role..."
-              value={searchTerm}
-              onChange={(e) => handleSearchChange(e.target.value)}
-            />
-            
-            
-            <div className="sort-section" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)', flexWrap: 'wrap' }}>                      
-              <select 
-                className="form-select"
-                onChange={(e) => handleSortChange(e.target.value)}
-              >
-                {getSortOptions().map(option => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </section>
-      )}
+        />
+      </div>
 
       {/* Attendee List */}
       <div className="attendee-list cards-container" style={{ marginBottom: '200px' }}>                                                                         
-        {sortedItems.length > 0 ? (
-          sortedItems.map((attendee) => (
+        {filteredItems.length > 0 ? (
+          filteredItems.map((attendee) => (
             <AttendeeCard
               key={attendee.id}
               attendee={attendee}
