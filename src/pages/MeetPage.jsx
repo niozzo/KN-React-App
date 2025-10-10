@@ -43,7 +43,7 @@ const MeetPage = () => {
     searchTerm, 
     filteredItems, 
     handleSearchChange
-  } = useSearch(allAttendees || [], ['name', 'title', 'company']);
+  } = useSearch(allAttendees || [], ['first_name', 'last_name', 'title', 'company']);
 
   const { sortedItems, handleSortChange, getSortOptions } = useSort(filteredItems);                                                                             
 
