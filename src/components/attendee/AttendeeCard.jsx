@@ -21,13 +21,17 @@ const AttendeeCard = forwardRef(({
   const [sharedEventsExpanded, setSharedEventsExpanded] = useState(false);
   
   const {
-    name,
+    first_name,
+    last_name,
     title,
     company,
     photo,
     isSponsor = false,
     sharedEvents = []
   } = attendee;
+
+  // Construct full name from first_name and last_name
+  const name = `${first_name} ${last_name}`.trim();
 
   const handleActionClick = (event) => {
     if (currentTab === 'my-meet-list') {
