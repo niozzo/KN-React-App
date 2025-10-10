@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import PageLayout from '../components/layout/PageLayout';
 import AttendeeCard from '../components/attendee/AttendeeCard';
 import { useSearch } from '../hooks/useSearch';
-// Removed useSort import - no longer needed
+import { useSort } from '../hooks/useSort';
 import { attendeeSearchService } from '../services/attendeeSearchService';
 
 /**
@@ -45,7 +45,8 @@ const MeetPage = () => {
     handleSearchChange
   } = useSearch(allAttendees || [], ['first_name', 'last_name', 'title', 'company']);
 
-  // Removed sort functionality - using filteredItems directly                                                                             
+  // Apply sorting to filtered items
+  const { sortedItems } = useSort(filteredItems, 'last_name');                                                                             
 
   // Removed toggleSearchSection - search is always visible
 
@@ -114,8 +115,8 @@ const MeetPage = () => {
 
       {/* Attendee List */}
       <div className="attendee-list cards-container" style={{ marginBottom: '200px' }}>                                                                         
-        {filteredItems.length > 0 ? (
-          filteredItems.map((attendee) => (
+        {sortedItems.length > 0 ? (
+          sortedItems.map((attendee) => (
             <AttendeeCard
               key={attendee.id}
               attendee={attendee}

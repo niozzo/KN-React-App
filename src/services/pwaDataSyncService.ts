@@ -887,7 +887,7 @@ export class PWADataSyncService extends BaseService {
       
       // Attempt to sync from server
       if (isValidMainTable(tableName)) {
-        await this.syncMainTable(tableName as MainTableName);
+        await this.syncTable(tableName as MainTableName);
       } else if (isValidApplicationTable(tableName)) {
         await this.syncApplicationTable(tableName as ApplicationTableName);
       }
