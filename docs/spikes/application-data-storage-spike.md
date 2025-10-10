@@ -330,7 +330,7 @@ CREATE TABLE user_bookmarks (
 
 ## References
 - [Story 3.2: Meet List Management](../stories/3.2.meet-list-management.md)
-- [Story 6.1: Privacy Controls & GDPR Compliance](../stories/6.1.privacy-controls-gdpr-compliance.md)
+- [Story 6.1: Privacy Controls & GDPR Compliance](../stories/6.1.COMPLETE-privacy-controls-gdpr-compliance.md)
 - [Story 7.2: Session Feedback System](../stories/7.2.session-feedback-system.md)
 - [Story 7.3: Post-Conference Content Hub](../stories/7.3.post-conference-content-hub.md)
 - [Technical Preferences](../../.bmad-core/data/technical-preferences.md)

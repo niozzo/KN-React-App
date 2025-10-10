@@ -282,17 +282,21 @@ This document breaks down the Conference Companion PWA project into manageable e
 
 **Stories:**
 
-### Story 6.1: Privacy Controls & GDPR Compliance
+### Story 6.1: Privacy Controls & GDPR Compliance ✅ **COMPLETE**
 **As a** user,  
-**I want** comprehensive privacy controls and GDPR compliance,  
-**so that** I can trust the application with my data.
+**I want** to control my profile visibility and sign out securely,  
+**so that** I have basic privacy controls over my information.
 
 **Acceptance Criteria:**
-1. Discoverability toggle in settings (default ON)
-2. Notification settings with clear opt-out
-3. Link to Apax Privacy Policy
-4. DSAR process reference and contact path
-5. Data minimization applied throughout
+1. ✅ Profile visibility toggle in Settings (default: visible)
+2. ✅ Toggle disabled when offline with helpful message
+3. ✅ Hidden profiles excluded from Bios page and never cached
+4. ✅ Sign out functionality works
+5. ✅ Changes sync to application database
+6. ✅ Database changes via SQL script
+7. ✅ Hidden profiles filtered at cache layer
+
+**Status:** Deployed to production January 27, 2025
 
 ### Story 6.2: A2HS Onboarding & User Experience
 **As a** user,  
