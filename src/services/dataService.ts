@@ -91,10 +91,12 @@ export const getAllAttendees = async (): Promise<Attendee[]> => {
       console.warn('⚠️ Failed to load cached attendees data:', cacheError)
     }
     
-    // FALLBACK: API call if no cached data exists
-    console.log('🌐 API: No cached data found, fetching from API...')
-    const data = await apiGet<Attendee[]>('/api/attendees')
-    console.log('🌐 API: Fetched', data.length, 'attendees from API')
+    // FALLBACK: Sync from database using same method as login
+    console.log('🌐 SYNC: No cached data found, syncing from database...')
+    const { serverDataSyncService } = await import('./serverDataSyncService')
+    const data = await serverDataSyncService.syncAttendees()
+    console.log('🌐 SYNC: Synced', data.length, 'attendees from database')
+    // Data is already filtered and cached by syncAttendees()
     // Ensure stable ordering for UI
     return [...data].sort((a, b) => (a.last_name || '').localeCompare(b.last_name || ''))
   } catch (error) {
@@ -146,32 +148,33 @@ export const getCurrentAttendeeData = async (): Promise<Attendee | null> => {
       console.warn('⚠️ Failed to load cached attendee data:', cacheError)
     }
     
-    // FALLBACK: Use same API endpoint as login for consistency
+    // FALLBACK: Sync from database using same method as login
     try {
-      console.log('🌐 API FALLBACK: No cached data found, fetching from API...')
-      console.log('🌐 API FALLBACK: Current attendee ID:', current.id)
-      console.log('🌐 API FALLBACK: Attempting to fetch from /api/attendees')
+      console.log('🌐 SYNC FALLBACK: No cached data found, syncing from database...')
+      console.log('🌐 SYNC FALLBACK: Current attendee ID:', current.id)
+      console.log('🌐 SYNC FALLBACK: Attempting to sync attendees')
       
-      const allAttendees = await apiGet<Attendee[]>('/api/attendees')
-      console.log('🌐 API FALLBACK: API response received:', Array.isArray(allAttendees) ? `${allAttendees.length} attendees` : 'Not an array')
+      const { serverDataSyncService } = await import('./serverDataSyncService')
+      const allAttendees = await serverDataSyncService.syncAttendees()
+      console.log('🌐 SYNC FALLBACK: Sync response received:', Array.isArray(allAttendees) ? `${allAttendees.length} attendees` : 'Not an array')
       
       // Ensure we have an array before calling find
       if (Array.isArray(allAttendees)) {
         const attendee = allAttendees.find(a => a.id === current.id)
         if (attendee) {
-          console.log('🌐 API SUCCESS: Found attendee using API endpoint')
-          console.log('🌐 API SUCCESS: Found attendee:', { id: attendee.id, name: `${attendee.first_name} ${attendee.last_name}` })
+          console.log('🌐 SYNC SUCCESS: Found attendee using sync service')
+          console.log('🌐 SYNC SUCCESS: Found attendee:', { id: attendee.id, name: `${attendee.first_name} ${attendee.last_name}` })
           return attendee
         } else {
-          console.log('🌐 API FAILED: Attendee not found in API response')
-          console.log('🌐 API FAILED: Available attendee IDs:', allAttendees.map(a => a.id))
+          console.log('🌐 SYNC FAILED: Attendee not found in sync response')
+          console.log('🌐 SYNC FAILED: Available attendee IDs:', allAttendees.map(a => a.id))
         }
       } else {
-        console.log('🌐 API FAILED: Response is not an array')
+        console.log('🌐 SYNC FAILED: Response is not an array')
       }
-    } catch (apiError) {
-      console.warn('🌐 API ERROR:', apiError)
-      console.log('🌐 API ERROR: Details:', apiError)
+    } catch (syncError) {
+      console.warn('🌐 SYNC ERROR:', syncError)
+      console.log('🌐 SYNC ERROR: Details:', syncError)
     }
     
     // NO FALLBACK: Throw error when both API and cache fail
@@ -207,10 +210,11 @@ export const getAllAgendaItems = async (): Promise<AgendaItem[]> => {
       console.warn('⚠️ Failed to load cached agenda items:', cacheError)
     }
     
-    // FALLBACK: API call if no cached data exists
-    console.log('🌐 No cached agenda items found, fetching from API...')
-    const data = await apiGet<AgendaItem[]>('/api/agenda-items')
-    return [...data]
+    // FALLBACK: Sync from database using same method as login
+    console.log('🌐 SYNC: No cached agenda items, syncing from database...')
+    const { serverDataSyncService } = await import('./serverDataSyncService')
+    const data = await serverDataSyncService.syncTable('agenda_items')
+    return data
   } catch (error) {
     console.error('❌ Error fetching agenda items:', error)
     throw new DataServiceError('Failed to fetch agenda items', 'FETCH_ERROR')
@@ -226,12 +230,13 @@ export const getAttendeeSelectedAgendaItems = async (attendeeId: string): Promis
   requireAuthentication()
   
   try {
-    // Get selected_breakouts via server
-    const attendee = await apiGet<{ selected_breakouts?: string[] }>(`/api/attendees/${attendeeId}`)
+    // Get attendee data from cached attendees
+    const allAttendees = await getAllAttendees() // Direct call
+    const attendee = allAttendees.find(a => a.id === attendeeId)
     const selected = Array.isArray(attendee?.selected_breakouts) ? attendee.selected_breakouts : []
     if (selected.length === 0) return []
-    // Small dataset: fetch all agenda items and filter client-side
-    const all = await apiGet<AgendaItem[]>('/api/agenda-items')
+    // Get agenda items from cache or sync
+    const all = await getAllAgendaItems() // Direct call
     return all
       .filter(item => selected.includes(item.id as unknown as string))
       .sort((a, b) => (a.date || '').localeCompare(b.date || ''))
@@ -268,12 +273,11 @@ export const getAllSponsors = async (): Promise<Sponsor[]> => {
       console.warn('⚠️ Failed to load cached sponsors:', cacheError)
     }
     
-    // FALLBACK: API call if no cached data exists
-    console.log('🌐 No cached sponsors found, fetching from API...')
-    const data = await apiGet<Sponsor[]>('/api/sponsors')
-    return [...data]
-      .filter(s => (s as any).is_active !== false)
-      .sort((a, b) => ((a as any).display_order ?? 0) - ((b as any).display_order ?? 0))
+    // FALLBACK: Sync from database using same method as login
+    console.log('🌐 SYNC: No cached sponsors, syncing from database...')
+    const { serverDataSyncService } = await import('./serverDataSyncService')
+    const data = await serverDataSyncService.syncTable('sponsors')
+    return data
   } catch (error) {
     console.error('❌ Error fetching sponsors:', error)
     throw new DataServiceError('Failed to fetch sponsors', 'FETCH_ERROR')
@@ -303,11 +307,18 @@ export const getAttendeeSeatAssignments = async (attendeeId: string): Promise<Se
       console.warn('⚠️ Failed to load cached seat assignments:', cacheError)
     }
     
-    // FALLBACK: API call if no cached data exists
-    console.log('🌐 API: No cached seat assignments found, fetching from API...')
-    const data = await apiGet<SeatAssignment[]>(`/api/attendees/${attendeeId}/seat-assignments`)
-    console.log('🌐 API: Fetched', data.length, 'seat assignments from API for attendee', attendeeId)
-    return data
+    // FALLBACK: Sync seat_assignments table if cache is empty
+    console.log('🌐 SYNC: No cached seat assignments, syncing from database...')
+    const { serverDataSyncService } = await import('./serverDataSyncService')
+    await serverDataSyncService.syncTable('seat_assignments')
+    // Re-read from cache after sync
+    const cachedData = localStorage.getItem('kn_cache_seat_assignments')
+    if (cachedData) {
+      const cacheObj = JSON.parse(cachedData)
+      const seatAssignments = cacheObj.data || cacheObj
+      return seatAssignments.filter((seat: SeatAssignment) => seat.attendee_id === attendeeId)
+    }
+    return []
   } catch (error) {
     console.error('❌ Error fetching seat assignments:', error)
     throw new DataServiceError('Failed to fetch seat assignments', 'FETCH_ERROR')
@@ -322,11 +333,26 @@ export const getAllDiningOptions = async (): Promise<DiningOption[]> => {
   requireAuthentication()
   
   try {
-    const data = await apiGet<DiningOption[]>('/api/dining-options')
-    return [...data]
-      .filter(d => (d as any).is_active !== false)
-      .sort((a, b) => (a.date || '').localeCompare(b.date || ''))
-      .sort((a, b) => (a.time || '').localeCompare(b.time || ''))
+    // PRIMARY: Check localStorage first (populated during login)
+    try {
+      const cachedData = localStorage.getItem('kn_cache_dining_options')
+      if (cachedData) {
+        const cacheObj = JSON.parse(cachedData)
+        const diningOptions = cacheObj.data || cacheObj
+        if (Array.isArray(diningOptions) && diningOptions.length > 0) {
+          console.log('✅ LOCALSTORAGE: Using cached dining options')
+          return diningOptions
+        }
+      }
+    } catch (cacheError) {
+      console.warn('⚠️ Failed to load cached dining options:', cacheError)
+    }
+    
+    // FALLBACK: Sync from database using same method as login
+    console.log('🌐 SYNC: No cached dining options, syncing from database...')
+    const { serverDataSyncService } = await import('./serverDataSyncService')
+    const data = await serverDataSyncService.syncDiningOptions()
+    return data
   } catch (error) {
     console.error('❌ Error fetching dining options:', error)
     throw new DataServiceError('Failed to fetch dining options', 'FETCH_ERROR')
@@ -337,11 +363,14 @@ export const getAllDiningOptions = async (): Promise<DiningOption[]> => {
  * Get attendee's dining selections (personalized data)
  * @param attendeeId - ID of the attendee
  * @returns Array of selected dining options
+ * @deprecated This function is not used anywhere in the codebase and should be removed
  */
 export const getAttendeeDiningSelections = async (attendeeId: string): Promise<DiningOption[]> => {
   requireAuthentication()
   
   try {
+    // NOTE: This API endpoint doesn't exist, so this function is broken
+    // Consider removing this function entirely
     const data = await apiGet<DiningOption[]>(`/api/attendees/${attendeeId}/dining-selections`)
     return data
   } catch (error) {
@@ -358,10 +387,26 @@ export const getAllHotels = async (): Promise<Hotel[]> => {
   requireAuthentication()
   
   try {
-    const data = await apiGet<Hotel[]>('/api/hotels')
-    return [...data]
-      .filter(h => (h as any).is_active !== false)
-      .sort((a, b) => ((a as any).display_order ?? 0) - ((b as any).display_order ?? 0))
+    // PRIMARY: Check localStorage first (populated during login)
+    try {
+      const cachedData = localStorage.getItem('kn_cache_hotels')
+      if (cachedData) {
+        const cacheObj = JSON.parse(cachedData)
+        const hotels = cacheObj.data || cacheObj
+        if (Array.isArray(hotels) && hotels.length > 0) {
+          console.log('✅ LOCALSTORAGE: Using cached hotels')
+          return hotels
+        }
+      }
+    } catch (cacheError) {
+      console.warn('⚠️ Failed to load cached hotels:', cacheError)
+    }
+    
+    // FALLBACK: Sync from database using same method as login
+    console.log('🌐 SYNC: No cached hotels, syncing from database...')
+    const { serverDataSyncService } = await import('./serverDataSyncService')
+    const data = await serverDataSyncService.syncTable('hotels')
+    return data
   } catch (error) {
     console.error('❌ Error fetching hotels:', error)
     throw new DataServiceError('Failed to fetch hotels', 'FETCH_ERROR')
@@ -377,10 +422,14 @@ export const getAttendeeHotelSelection = async (attendeeId: string): Promise<Hot
   requireAuthentication()
   
   try {
-    const attendee = await apiGet<{ hotel_selection?: string }>(`/api/attendees/${attendeeId}`)
+    // Get attendee data from cached attendees
+    const allAttendees = await getAllAttendees() // Direct call
+    const attendee = allAttendees.find(a => a.id === attendeeId)
     if (!attendee?.hotel_selection) return null
-    const hotel = await apiGet<Hotel>(`/api/hotels/${attendee.hotel_selection}`)
-    return hotel
+    // Get hotel data from cached hotels
+    const allHotels = await getAllHotels() // Direct call
+    const hotel = allHotels.find(h => h.id === attendee.hotel_selection)
+    return hotel || null
   } catch (error) {
     console.error('❌ Error fetching hotel selection:', error)
     throw new DataServiceError('Failed to fetch hotel selection', 'FETCH_ERROR')
@@ -395,7 +444,25 @@ export const getAllSeatingConfigurations = async (): Promise<any[]> => {
   requireAuthentication()
   
   try {
-    const data = await apiGet<any[]>('/api/seating-configurations')
+    // PRIMARY: Check localStorage first (populated during login)
+    try {
+      const cachedData = localStorage.getItem('kn_cache_seating_configurations')
+      if (cachedData) {
+        const cacheObj = JSON.parse(cachedData)
+        const configs = cacheObj.data || cacheObj
+        if (Array.isArray(configs) && configs.length > 0) {
+          console.log('✅ LOCALSTORAGE: Using cached seating configurations')
+          return configs
+        }
+      }
+    } catch (cacheError) {
+      console.warn('⚠️ Failed to load cached seating configurations:', cacheError)
+    }
+    
+    // FALLBACK: Sync from database using same method as login
+    console.log('🌐 SYNC: No cached seating configurations, syncing from database...')
+    const { serverDataSyncService } = await import('./serverDataSyncService')
+    const data = await serverDataSyncService.syncTable('seating_configurations')
     return data
   } catch (error) {
     console.error('❌ Error fetching seating configurations:', error)

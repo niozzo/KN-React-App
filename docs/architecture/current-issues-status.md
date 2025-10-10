@@ -56,18 +56,19 @@ const attendees = cacheObj.data || cacheObj
 - Each requires separate Supabase client instances
 - Warning is informational, not an error
 
-### 3. API 500 Errors (Pending 🔄)
+### 3. API 500 Errors (RESOLVED ✅)
 
 **Problem:** `GET /api/attendees 500 (Internal Server Error)`
-**Root Cause:** Missing `SUPABASE_SERVICE_ROLE_KEY` environment variable in Vercel
-**Impact:** Medium - API fallback fails, but localStorage cache works
-**Status:** Pending environment variable configuration
-**Action Required:** Add `SUPABASE_SERVICE_ROLE_KEY` to Vercel environment variables
+**Root Cause:** Retry operations used API endpoints instead of direct Supabase connections
+**Impact:** Medium - API fallback failed, but localStorage cache worked
+**Status:** RESOLVED - Retry now uses same sync method as login
+**Action Taken:** Refactored dataService.ts to reuse serverDataSyncService
 
-**Environment Variables Needed:**
-```bash
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
-```
+**Resolution:**
+- Eliminated dependency on API endpoints
+- Retry operations now use serverDataSyncService.syncTable()
+- Consistent data processing (filtering, transformation) in one place
+- No service role keys needed
 
 ### 4. Schema Validation 404 Errors (By Design ✅)
 

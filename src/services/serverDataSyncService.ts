@@ -58,6 +58,40 @@ export class ServerDataSyncService extends BaseService {
   }
 
   /**
+   * Apply data transformations and filtering for specific tables
+   * @param tableName - Name of table
+   * @param records - Raw records from database
+   * @returns Transformed and filtered records
+   */
+  private async applyTransformations(tableName: string, records: any[]): Promise<any[]> {
+    // Agenda items transformation
+    if (tableName === 'agenda_items') {
+      const { AgendaTransformer } = await import('../transformers/agendaTransformer.js');
+      const agendaTransformer = new AgendaTransformer();
+      records = agendaTransformer.transformArrayFromDatabase(records);
+      records = agendaTransformer.sortAgendaItems(records);
+    }
+    
+    // Dining options transformation
+    if (tableName === 'dining_options') {
+      const { DiningTransformer } = await import('../transformers/diningTransformer.js');
+      const diningTransformer = new DiningTransformer();
+      records = diningTransformer.transformArrayFromDatabase(records);
+      records = diningTransformer.filterActiveDiningOptions(records);
+      records = diningTransformer.sortDiningOptions(records);
+    }
+    
+    // Sponsors and hotels filtering/sorting
+    if (tableName === 'sponsors' || tableName === 'hotels') {
+      records = records
+        .filter(r => r.is_active !== false)
+        .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
+    }
+    
+    return records;
+  }
+
+  /**
    * Get authenticated Supabase client with admin credentials
    * Uses singleton service to prevent multiple GoTrueClient instances
    */
@@ -122,22 +156,8 @@ export class ServerDataSyncService extends BaseService {
           
           let records = data || [];
           
-          // Apply data transformation for specific tables
-          if (tableName === 'agenda_items') {
-            try {
-              // Debug: Log raw data structure
-              
-              // Import and apply AgendaTransformer
-              const { AgendaTransformer } = await import('../transformers/agendaTransformer.js');
-              const agendaTransformer = new AgendaTransformer();
-              records = agendaTransformer.transformArrayFromDatabase(records);
-              records = agendaTransformer.sortAgendaItems(records);
-            } catch (transformError) {
-              console.warn(`⚠️ Failed to transform agenda_items:`, transformError);
-              // Continue with raw data if transformation fails
-            }
-          }
-          
+          // Apply transformations using shared method
+          records = await this.applyTransformations(tableName, records);
           
           // Cache the data locally
           await this.cacheTableData(tableName, records);
@@ -375,6 +395,80 @@ export class ServerDataSyncService extends BaseService {
         error: 'Attendee lookup failed. Please try again.'
       };
     }
+  }
+
+  /**
+   * Sync a single table and return the data
+   * @param tableName - Name of table to sync
+   * @returns Synced and processed data
+   */
+  async syncTable(tableName: string): Promise<any[]> {
+    try {
+      const supabaseClient = await this.getAuthenticatedClient();
+      
+      const { data, error } = await supabaseClient
+        .from(tableName)
+        .select('*');
+      
+      if (error) {
+        throw new Error(`Failed to sync ${tableName}: ${error.message}`);
+      }
+      
+      let records = data || [];
+      
+      // Apply transformations using shared method
+      records = await this.applyTransformations(tableName, records);
+      
+      // Cache the data (includes filtering for attendees)
+      await this.cacheTableData(tableName, records);
+      
+      return records;
+    } catch (error) {
+      console.error(`Failed to sync ${tableName}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Sync attendees table specifically
+   */
+  async syncAttendees(): Promise<any[]> {
+    return this.syncTable('attendees');
+  }
+
+  /**
+   * Sync dining options table specifically
+   */
+  async syncDiningOptions(): Promise<any[]> {
+    return this.syncTable('dining_options');
+  }
+
+  /**
+   * Sync sponsors table specifically
+   */
+  async syncSponsors(): Promise<any[]> {
+    return this.syncTable('sponsors');
+  }
+
+  /**
+   * Sync hotels table specifically
+   */
+  async syncHotels(): Promise<any[]> {
+    return this.syncTable('hotels');
+  }
+
+  /**
+   * Sync seating configurations table specifically
+   */
+  async syncSeatingConfigurations(): Promise<any[]> {
+    return this.syncTable('seating_configurations');
+  }
+
+  /**
+   * Sync agenda items table specifically
+   */
+  async syncAgendaItems(): Promise<any[]> {
+    return this.syncTable('agenda_items');
   }
 
   /**
