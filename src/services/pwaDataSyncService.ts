@@ -59,6 +59,9 @@ export class PWADataSyncService extends BaseService {
     syncInProgress: false
   };
 
+  private isSyncInProgress = false;
+  private syncLockTimeout: NodeJS.Timeout | null = null;
+
   private schemaValidator: any | null = null;
   
   // Circuit breaker for service worker caching failures
@@ -460,7 +463,9 @@ export class PWADataSyncService extends BaseService {
   async syncAllData(): Promise<SyncResult> {
     const sessionId = cacheMonitoringService.getSessionId();
     
-    if (this.syncStatus.syncInProgress) {
+    // Check if sync is already in progress
+    if (this.isSyncInProgress) {
+      console.log('🔍 SYNC: Sync already in progress, skipping duplicate request');
       cacheMonitoringService.logSyncFailure('syncAllData', 'Sync already in progress', { sessionId });
       return {
         success: false,
@@ -469,6 +474,15 @@ export class PWADataSyncService extends BaseService {
         conflicts: []
       };
     }
+    
+    // Set lock
+    this.isSyncInProgress = true;
+    
+    // Set timeout to release lock if sync takes too long (2 minutes)
+    this.syncLockTimeout = setTimeout(() => {
+      console.warn('⚠️ SYNC: Sync operation timed out, releasing lock');
+      this.isSyncInProgress = false;
+    }, 120000);
 
     // Validate cache health before syncing
     if (!this.validateCacheHealth()) {
@@ -572,6 +586,12 @@ export class PWADataSyncService extends BaseService {
       result.errors.push(error instanceof Error ? error.message : 'Unknown error');
       cacheMonitoringService.logSyncFailure('syncAllData', error.message, { sessionId, error });
     } finally {
+      // Always release lock
+      this.isSyncInProgress = false;
+      if (this.syncLockTimeout) {
+        clearTimeout(this.syncLockTimeout);
+        this.syncLockTimeout = null;
+      }
       this.syncStatus.syncInProgress = false;
       this.saveSyncStatus();
     }

@@ -51,6 +51,38 @@ class ApplicationDatabaseService extends BaseService {
     return serviceRegistry.getAdminDbClient();
   }
 
+  /**
+   * Retry operation with exponential backoff
+   */
+  private async retryOperation<T>(
+    operation: () => Promise<T>,
+    operationName: string,
+    maxRetries: number = 3,
+    baseDelay: number = 1000
+  ): Promise<T> {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        return await operation();
+      } catch (error: any) {
+        const isLastAttempt = attempt === maxRetries;
+        const isNetworkError = error.message?.includes('fetch') || 
+                              error.code === 'ECONNRESET' ||
+                              error.message?.includes('ERR_CONNECTION_CLOSED');
+        
+        if (isLastAttempt || !isNetworkError) {
+          console.error(`❌ ${operationName} failed after ${attempt} attempts:`, error);
+          throw error;
+        }
+        
+        const delay = baseDelay * Math.pow(2, attempt - 1); // Exponential backoff
+        console.warn(`⚠️ ${operationName} failed (attempt ${attempt}/${maxRetries}), retrying in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+    
+    throw new Error(`${operationName} failed after ${maxRetries} attempts`);
+  }
+
   // Speaker Assignment Methods
   async getSpeakerAssignments(agendaItemId: string): Promise<SpeakerAssignment[]> {
     const client = this.getClient();
@@ -239,13 +271,15 @@ class ApplicationDatabaseService extends BaseService {
   }
 
   async getAgendaItemTimeOverrides(): Promise<AgendaItemMetadata[]> {
-    const client = this.getClient();
-    const { data, error } = await client
-      .from('agenda_item_metadata')
-      .select('*')
-      .eq('time_override_enabled', true);
-    
-    if (error) throw error;
+    return this.retryOperation(
+      async () => {
+        const client = this.getClient();
+        const { data, error } = await client
+          .from('agenda_item_metadata')
+          .select('*')
+          .eq('time_override_enabled', true);
+        
+        if (error) throw error;
     
     // Convert timestamps back to time format for UI consumption
     const convertTimeForUI = (timeStr: string): string => {
@@ -264,8 +298,11 @@ class ApplicationDatabaseService extends BaseService {
       end_time: convertTimeForUI(item.end_time || '')
     }));
     
-    console.log('🕐 Retrieved time overrides from database:', processedData);
-    return processedData;
+        console.log('🕐 Retrieved time overrides from database:', processedData);
+        return processedData;
+      },
+      'getAgendaItemTimeOverrides'
+    );
   }
 
   async syncAttendeeMetadata(attendee: any): Promise<void> {

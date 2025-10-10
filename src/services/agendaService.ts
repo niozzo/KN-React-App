@@ -311,9 +311,9 @@ export class AgendaService implements IAgendaService {
       
       return transformedItems;
     } catch (error) {
-      console.error('❌ Failed to apply time overrides:', error);
-      // Return original items if override application fails
-      return agendaItems;
+      // Don't fail the entire operation if time overrides fail
+      console.warn('⚠️ Time overrides unavailable, using original times:', error);
+      return agendaItems; // Return original items without overrides
     }
   }
 
