@@ -4,7 +4,7 @@ import { useState, useMemo, useCallback } from 'react';
  * useSort Hook
  * Manages sorting functionality for lists
  */
-export const useSort = (items = [], defaultSortField = 'lastname') => {
+export const useSort = (items = [], defaultSortField = 'last_name') => {
   const [sortField, setSortField] = useState(defaultSortField);
   const [sortDirection, setSortDirection] = useState('asc');
 
@@ -54,8 +54,8 @@ export const useSort = (items = [], defaultSortField = 'lastname') => {
   }, [sortField]);
 
   const getSortOptions = useCallback(() => [
-    { value: 'lastname', label: 'Sort by Last Name' },
-    { value: 'firstname', label: 'Sort by First Name' },
+    { value: 'last_name', label: 'Sort by Last Name' },
+    { value: 'first_name', label: 'Sort by First Name' },
     { value: 'company', label: 'Sort by Company Name' },
     { value: 'title', label: 'Sort by Title' }
   ], []);
