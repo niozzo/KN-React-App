@@ -351,14 +351,17 @@ export class PWADataSyncService extends BaseService {
    */
   private setupEventListeners(): void {
     window.addEventListener('online', () => {
+      console.log('🔍 DIAGNOSTIC: Online event triggered');
       this.setOnlineStatus(true);
       this.startPeriodicSync();
       if (this.isUserAuthenticated()) {
+        console.log('🔍 DIAGNOSTIC: Starting syncAllData due to online event');
         this.syncAllData();
       }
     });
 
     window.addEventListener('offline', () => {
+      console.log('🔍 DIAGNOSTIC: Offline event triggered');
       this.setOnlineStatus(false);
       this.stopPeriodicSync();
     });
@@ -366,6 +369,13 @@ export class PWADataSyncService extends BaseService {
     // Sync when page becomes visible (only if authenticated)
     document.addEventListener('visibilitychange', () => {
       const willSync = !document.hidden && this.syncStatus.isOnline && this.isUserAuthenticated();
+      
+      console.log('🔍 DIAGNOSTIC: Visibility changed', {
+        hidden: document.hidden,
+        isOnline: this.syncStatus.isOnline,
+        isAuthenticated: this.isUserAuthenticated(),
+        willSync
+      });
       
       // Log visibility change with sync decision
       
@@ -376,6 +386,7 @@ export class PWADataSyncService extends BaseService {
       });
       
       if (willSync) {
+        console.log('🔍 DIAGNOSTIC: Starting syncAllData due to visibility change');
         this.syncAllData();
       }
     });
@@ -721,6 +732,15 @@ export class PWADataSyncService extends BaseService {
     try {
       const cacheKey = `${this.CACHE_PREFIX}${tableName}`;
       
+      // 🔍 DIAGNOSTIC: Track cache write timing
+      const cacheWriteTimestamp = Date.now();
+      console.log('🔍 DIAGNOSTIC: Writing to cache:', {
+        table: tableName,
+        recordCount: data.length,
+        timestamp: cacheWriteTimestamp,
+        timestampISO: new Date(cacheWriteTimestamp).toISOString()
+      });
+      
       // Apply comprehensive confidential data filtering for attendees
       let sanitizedData = data;
       if (tableName === 'attendees') {
@@ -738,20 +758,27 @@ export class PWADataSyncService extends BaseService {
 
       localStorage.setItem(cacheKey, JSON.stringify(cacheEntry));
       
+      console.log('🔍 DIAGNOSTIC: LocalStorage write successful for', tableName);
+      
       // Update cache size tracking
       this.updateCacheSize();
       
       // Also cache in service worker for faster access (with sanitized data)
       // This is optional - if it fails, the main localStorage cache still works
       try {
+        console.log('🔍 DIAGNOSTIC: Attempting service worker cache for', tableName);
         await this.cacheInServiceWorker(tableName, sanitizedData);
+        console.log('🔍 DIAGNOSTIC: Service worker cache successful for', tableName);
       } catch (serviceWorkerError) {
+        console.error('🔍 DIAGNOSTIC: Service worker cache FAILED for', tableName);
+        console.error('🔍 DIAGNOSTIC: SW Error details:', serviceWorkerError);
+        console.error('🔍 DIAGNOSTIC: Time after localStorage write:', Date.now() - cacheWriteTimestamp, 'ms');
         // Don't throw - service worker caching is optional
         console.warn(`⚠️ Service worker caching failed for ${tableName}, but localStorage cache succeeded:`, serviceWorkerError);
       }
       
     } catch (error) {
-      console.error(`❌ Failed to cache ${tableName}:`, error);
+      console.error(`🔍 DIAGNOSTIC: ❌ Failed to cache ${tableName}:`, error);
       throw error;
     }
   }
@@ -821,6 +848,30 @@ export class PWADataSyncService extends BaseService {
                              this.tableMappings.main[tableName as MainTableName];
         
         if (supabaseTable && registration.active) {
+          // 🔍 DIAGNOSTIC: Check for Promises in data before posting
+          console.log('🔍 DIAGNOSTIC: Caching to SW - table:', tableName, 'records:', data.length)
+          
+          const hasPromises = data.some(item => {
+            if (!item) return false;
+            return Object.values(item).some(value => value instanceof Promise);
+          });
+          
+          if (hasPromises) {
+            console.error('🔍 DIAGNOSTIC: ❌ FOUND PROMISES IN DATA - This will cause DataCloneError!');
+            console.error('🔍 DIAGNOSTIC: Table:', tableName);
+            console.error('🔍 DIAGNOSTIC: Sample record with Promise:', 
+              data.find(item => Object.values(item).some(v => v instanceof Promise))
+            );
+          }
+          
+          // 🔍 DIAGNOSTIC: Try to serialize and catch specific error
+          try {
+            const testSerialize = JSON.stringify(data);
+            console.log('🔍 DIAGNOSTIC: Data is JSON-serializable, size:', testSerialize.length);
+          } catch (serializeError) {
+            console.error('🔍 DIAGNOSTIC: ❌ Data cannot be JSON-serialized:', serializeError);
+          }
+          
           // Create a cache key for the Supabase table
           const cacheKey = `supabase_${supabaseTable}`;
           registration.active.postMessage({
@@ -838,7 +889,10 @@ export class PWADataSyncService extends BaseService {
         this.recordServiceWorkerFailure();
       }
     } catch (error) {
-      console.warn('⚠️ Failed to cache data in service worker:', error);
+      console.error('🔍 DIAGNOSTIC: Service worker cache failed:', error);
+      console.error('🔍 DIAGNOSTIC: Error name:', error.name);
+      console.error('🔍 DIAGNOSTIC: Error message:', error.message);
+      console.error('🔍 DIAGNOSTIC: Table:', tableName);
       this.recordServiceWorkerFailure();
     }
   }

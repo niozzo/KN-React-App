@@ -118,15 +118,30 @@ export const getCurrentAttendeeData = async (): Promise<Attendee | null> => {
     try {
       const cachedData = await unifiedCacheService.get('kn_cache_attendees')
       if (cachedData) {
+        // 🔍 DIAGNOSTIC: Log cache structure
+        console.log('🔍 DIAGNOSTIC: Cache data type:', typeof cachedData)
+        console.log('🔍 DIAGNOSTIC: Cache data keys:', Object.keys(cachedData))
+        console.log('🔍 DIAGNOSTIC: Cache data sample:', JSON.stringify(cachedData).substring(0, 200))
+        
         // Handle both direct array format and wrapped format
         const attendees = cachedData.data || cachedData
+        
+        // 🔍 DIAGNOSTIC: Log attendees structure
+        console.log('🔍 DIAGNOSTIC: Attendees type:', typeof attendees)
+        console.log('🔍 DIAGNOSTIC: Is array:', Array.isArray(attendees))
+        if (Array.isArray(attendees)) {
+          console.log('🔍 DIAGNOSTIC: First attendee type:', typeof attendees[0])
+          console.log('🔍 DIAGNOSTIC: First attendee keys:', attendees[0] ? Object.keys(attendees[0]) : 'empty')
+        }
+        
         const cachedAttendee = attendees.find((a: Attendee) => a.id === current.id)
         if (cachedAttendee) {
           return cachedAttendee
         }
       }
     } catch (cacheError) {
-      console.warn('⚠️ Failed to load cached attendee data:', cacheError)
+      console.error('⚠️ DIAGNOSTIC: Cache read error:', cacheError)
+      console.error('⚠️ DIAGNOSTIC: Cache error stack:', cacheError.stack)
     }
     
     // FALLBACK: Use same API endpoint as login for consistency
