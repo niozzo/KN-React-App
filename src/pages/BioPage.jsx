@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import PageLayout from '../components/layout/PageLayout';
 import Card from '../components/common/Card';
-import Button from '../components/common/Button';
-import StatusTag from '../components/common/StatusTag';
 import { attendeeSearchService } from '../services/attendeeSearchService';
 
 /**
@@ -16,7 +14,6 @@ const BioPage = () => {
   const [attendee, setAttendee] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [inMeetList, setInMeetList] = useState(false);
 
   const attendeeId = searchParams.get('id');
 
@@ -59,12 +56,6 @@ const BioPage = () => {
     loadAttendee();
   }, [attendeeId]);
 
-  const handleToggleMeetList = () => {
-    if (!inMeetList) {
-      setInMeetList(true);
-    }
-    // Note: In the original HTML, once added to meet list, it becomes a tag and can't be removed
-  };
 
   const handleBackClick = () => {
     window.history.back();
@@ -132,123 +123,93 @@ const BioPage = () => {
       </div>
 
       {/* Profile Header */}
-      <Card 
+      <div 
         className="profile-header"
         style={{
-          marginBottom: 'var(--space-lg)'
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          marginBottom: 'var(--space-xl)'
         }}
       >
         <div 
-          className="profile-info-section"
+          className="avatar"
           style={{
+            maxWidth: '200px',
+            maxHeight: '200px',
+            width: 'auto',
+            height: 'auto',
+            background: 'var(--purple-100)',
+            borderRadius: '50%',
             display: 'flex',
             alignItems: 'center',
-            gap: 'var(--space-lg)',
+            justifyContent: 'center',
+            fontSize: '64px',
+            color: 'var(--purple-700)',
+            overflow: 'hidden',
             marginBottom: 'var(--space-lg)'
           }}
         >
-          <div 
-            className="avatar"
-            style={{
-              width: '80px',
-              height: '80px',
-              background: 'var(--purple-100)',
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '32px',
-              color: 'var(--purple-700)',
-              overflow: 'hidden'
-            }}
-          >
-            {attendee.photo ? (
-              <img
-                src={attendee.photo}
-                alt={`${fullName} headshot`}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover'
-                }}
-                onError={(e) => {
-                  // Fallback to icon if image fails to load
-                  e.target.style.display = 'none';
-                  e.target.nextSibling.style.display = 'flex';
-                }}
-              />
-            ) : null}
-            <div style={{
-              display: attendee.photo ? 'none' : 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '100%',
-              height: '100%'
-            }}>
-              👤
-            </div>
-          </div>
-          <div className="profile-info" style={{ flex: 1 }}>
-            <h1 
+          {attendee.photo ? (
+            <img
+              src={attendee.photo}
+              alt={`${fullName} headshot`}
               style={{
-                fontSize: '28px',
-                fontWeight: '700',
-                color: 'var(--ink-900)',
-                marginBottom: '4px'
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain'
               }}
-            >
-              {fullName}
-            </h1>
-            <div 
-              className="title"
-              style={{
-                fontSize: '16px',
-                color: 'var(--ink-600)',
-                marginBottom: 'var(--space-sm)'
+              onError={(e) => {
+                // Fallback to icon if image fails to load
+                e.target.style.display = 'none';
+                e.target.nextSibling.style.display = 'flex';
               }}
-            >
-              {attendee.title}
-            </div>
-            <div 
-              className="company"
-              style={{
-                fontSize: '18px',
-                color: 'var(--coral)',
-                fontWeight: '500'
-              }}
-            >
-              {attendee.company}
-            </div>
+            />
+          ) : null}
+          <div style={{
+            display: attendee.photo ? 'none' : 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '100%',
+            height: '100%'
+          }}>
+            👤
           </div>
         </div>
         
-        <div 
-          className="contact-actions"
-          style={{
-            display: 'flex',
-            gap: 'var(--space-md)'
-          }}
-        >
-          {inMeetList ? (
-            <StatusTag variant="success">
-              ✓ In My List
-            </StatusTag>
-          ) : (
-            <Button 
-              variant="secondary"
-              size="sm"
-              onClick={handleToggleMeetList}
-              id="meetListBtn"
-              style={{
-                fontSize: 'var(--text-sm)',
-                whiteSpace: 'nowrap'
-              }}
-            >
-              + Add to Meet List
-            </Button>
-          )}
+        <div className="profile-info" style={{ textAlign: 'center' }}>
+          <h1 
+            style={{
+              fontSize: '28px',
+              fontWeight: '700',
+              color: 'var(--ink-900)',
+              marginBottom: '4px'
+            }}
+          >
+            {fullName}
+          </h1>
+          <div 
+            className="title"
+            style={{
+              fontSize: '16px',
+              color: 'var(--ink-600)',
+              marginBottom: 'var(--space-sm)'
+            }}
+          >
+            {attendee.title}
+          </div>
+          <div 
+            className="company"
+            style={{
+              fontSize: '18px',
+              color: 'var(--coral)',
+              fontWeight: '500'
+            }}
+          >
+            {attendee.company}
+          </div>
         </div>
-      </Card>
+      </div>
       
       {/* Bio Content */}
       <Card className="content">
