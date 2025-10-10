@@ -41,13 +41,6 @@ const MeetPage = () => {
     loadAllAttendees();
   }, []);
 
-  // Initialize search with URL parameter
-  useEffect(() => {
-    if (urlSearchTerm && urlSearchTerm !== searchTerm) {
-      originalHandleSearchChange(urlSearchTerm);
-    }
-  }, [urlSearchTerm, searchTerm, originalHandleSearchChange]);
-
   // Get search term from URL parameters
   const urlSearchTerm = searchParams.get('search') || '';
   
@@ -56,6 +49,13 @@ const MeetPage = () => {
     filteredItems, 
     handleSearchChange: originalHandleSearchChange
   } = useSearch(allAttendees || [], ['first_name', 'last_name', 'title', 'company']);
+
+  // Initialize search with URL parameter
+  useEffect(() => {
+    if (urlSearchTerm && urlSearchTerm !== searchTerm) {
+      originalHandleSearchChange(urlSearchTerm);
+    }
+  }, [urlSearchTerm, searchTerm, originalHandleSearchChange]);
 
   // Override search term with URL parameter
   const effectiveSearchTerm = urlSearchTerm || searchTerm;
