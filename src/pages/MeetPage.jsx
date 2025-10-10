@@ -227,37 +227,40 @@ const MeetPage = () => {
           position: 'fixed',
           bottom: '80px', // Position above nav bar (nav bar is typically ~60px)
           right: '20px',
-          width: '56px',
-          height: '56px',
-          borderRadius: '50%',
-          backgroundColor: 'var(--purple-600)',
+          width: '60px',
+          height: '70px',
+          borderRadius: '30px',
+          backgroundColor: '#8B4513', // Purple color
           color: '#ffffff',
           border: 'none',
           cursor: 'pointer',
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: '24px',
+          fontSize: '20px',
           fontWeight: 'bold',
           boxShadow: '0 6px 20px rgba(139, 69, 19, 0.3)',
           transition: 'all var(--transition-normal)',
           zIndex: 1000,
           opacity: 1,
-          textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)'
+          textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
+          padding: '8px 4px'
         }}
         onMouseEnter={(e) => {
           e.target.style.transform = 'scale(1.1)';
           e.target.style.boxShadow = '0 8px 25px rgba(139, 69, 19, 0.4)';
-          e.target.style.backgroundColor = 'var(--purple-700)';
+          e.target.style.backgroundColor = '#7A3D0F';
         }}
         onMouseLeave={(e) => {
           e.target.style.transform = 'scale(1)';
           e.target.style.boxShadow = '0 6px 20px rgba(139, 69, 19, 0.3)';
-          e.target.style.backgroundColor = 'var(--purple-600)';
+          e.target.style.backgroundColor = '#8B4513';
         }}
         title="Back to top"
       >
-        ▲
+        <div style={{ fontSize: '18px', marginBottom: '2px' }}>▲</div>
+        <div style={{ fontSize: '10px', fontWeight: 'normal' }}>Top</div>
       </button>
     </PageLayout>
   );
