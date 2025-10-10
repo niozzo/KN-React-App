@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import PageLayout from '../components/layout/PageLayout';
 import AttendeeCard from '../components/attendee/AttendeeCard';
 import { useSearch } from '../hooks/useSearch';
@@ -13,6 +13,8 @@ import { attendeeSearchService } from '../services/attendeeSearchService';
  */
 const MeetPage = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  
   // Removed searchExpanded state - search is always visible
   const [allAttendees, setAllAttendees] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -39,11 +41,38 @@ const MeetPage = () => {
     loadAllAttendees();
   }, []);
 
+  // Initialize search with URL parameter
+  useEffect(() => {
+    if (urlSearchTerm && urlSearchTerm !== searchTerm) {
+      originalHandleSearchChange(urlSearchTerm);
+    }
+  }, [urlSearchTerm, searchTerm, originalHandleSearchChange]);
+
+  // Get search term from URL parameters
+  const urlSearchTerm = searchParams.get('search') || '';
+  
   const { 
     searchTerm, 
     filteredItems, 
-    handleSearchChange
+    handleSearchChange: originalHandleSearchChange
   } = useSearch(allAttendees || [], ['first_name', 'last_name', 'title', 'company']);
+
+  // Override search term with URL parameter
+  const effectiveSearchTerm = urlSearchTerm || searchTerm;
+  
+  // Create custom search handler that updates URL
+  const handleSearchChange = (value) => {
+    originalHandleSearchChange(value);
+    
+    // Update URL parameters
+    const newSearchParams = new URLSearchParams(searchParams);
+    if (value.trim()) {
+      newSearchParams.set('search', value);
+    } else {
+      newSearchParams.delete('search');
+    }
+    setSearchParams(newSearchParams);
+  };
 
   // Apply sorting to filtered items
   const { sortedItems } = useSort(filteredItems, 'last_name');                                                                             
@@ -99,7 +128,7 @@ const MeetPage = () => {
           type="text"
           className="form-input"
           placeholder="Search by name, company, or role..."
-          value={searchTerm}
+          value={effectiveSearchTerm}
           onChange={(e) => handleSearchChange(e.target.value)}
           style={{
             width: '100%',
