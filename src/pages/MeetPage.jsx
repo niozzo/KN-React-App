@@ -77,14 +77,6 @@ const MeetPage = () => {
     }
   };
 
-  // Prevent scroll jump when focusing sticky search field
-  const handleFocus = (e) => {
-    // Store current scroll position and restore it to prevent jump
-    const currentScrollY = window.scrollY;
-    requestAnimationFrame(() => {
-      window.scrollTo(0, currentScrollY);
-    });
-  };
 
   // Clear search and scroll to top
   const handleClearSearch = (e) => {
@@ -136,13 +128,9 @@ const MeetPage = () => {
       <h1 className="page-title" style={{ marginBottom: 'var(--space-sm)' }}>Bios</h1>
 
       {/* Search Section */}
-      {/* Sticky Search Field */}
       <div
-        className="sticky-search-container"
+        className="search-container"
         style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 10,
           background: 'var(--white)',
           padding: 'var(--space-md)',
           borderBottom: '1px solid var(--ink-200)',
@@ -157,7 +145,6 @@ const MeetPage = () => {
             value={searchTerm}
             onChange={(e) => handleSearchChange(e.target.value)}
             onKeyDown={handleKeyDown}
-            onFocus={handleFocus}
             style={{
               width: '100%',
               fontSize: 'var(--text-lg)',
