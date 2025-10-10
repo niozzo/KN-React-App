@@ -33,11 +33,6 @@ const AttendeeCard = forwardRef(({
   // Construct full name from first_name and last_name
   const name = `${first_name} ${last_name}`.trim();
 
-  const handleViewBioClick = (event) => {
-    event.stopPropagation();
-    navigate(`/bio?id=${attendee.id}`);
-    onViewBio?.(attendee);
-  };
 
   const toggleSharedEvents = () => {
     setSharedEventsExpanded(!sharedEventsExpanded);
@@ -147,10 +142,10 @@ const AttendeeCard = forwardRef(({
         <Button
           variant="secondary"
           size="sm"
-          onClick={handleViewBioClick}
           style={{
             fontSize: 'var(--text-sm)',
-            whiteSpace: 'nowrap'
+            whiteSpace: 'nowrap',
+            pointerEvents: 'none'
           }}
         >
           View Bio
