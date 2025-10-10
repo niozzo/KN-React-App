@@ -21,7 +21,7 @@ const AttendeeSearchSection: React.FC<AttendeeSearchSectionProps> = ({
   className = '',
   onAttendeeSelect
 }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true); // Show by default
   const [isAnimating, setIsAnimating] = useState(false);
   const searchSectionRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);

@@ -72,11 +72,37 @@ export const useAttendeeSearch = (options: UseAttendeeSearchOptions = {}): UseAt
     ...initialFilters
   });
 
+  // Initial load effect - load all attendees when component mounts
+  useEffect(() => {
+    const loadAllAttendees = async () => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        // Load all attendees with empty filters
+        const result = await attendeeSearchService.searchAttendees({});
+        
+        setSearchResults(result.attendees);
+        setTotalCount(result.totalCount);
+        setSearchTime(result.searchTime);
+        setIsCached(result.cached);
+        
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to load attendees';
+        setError(errorMessage);
+        console.error('❌ Load attendees error:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadAllAttendees();
+  }, []); // Only run once on mount
+
   // Debounced search effect
   useEffect(() => {
     if (!searchQuery.trim() && !hasActiveFilters) {
-      setSearchResults([]);
-      setTotalCount(0);
+      // Don't clear results when no query - keep showing all attendees
       return;
     }
 
@@ -90,8 +116,7 @@ export const useAttendeeSearch = (options: UseAttendeeSearchOptions = {}): UseAt
   // Perform search
   const performSearch = useCallback(async () => {
     if (!searchQuery.trim() && !hasActiveFilters) {
-      setSearchResults([]);
-      setTotalCount(0);
+      // Don't clear results when no query - keep showing all attendees
       return;
     }
 
