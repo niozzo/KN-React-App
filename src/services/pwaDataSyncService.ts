@@ -602,6 +602,13 @@ export class PWADataSyncService extends BaseService {
 
       let records = data || [];
 
+      // ✅ FIX: Add defensive check for data before processing
+      if (!records || !Array.isArray(records)) {
+        console.error(`🔍 DIAGNOSTIC: ❌ Invalid data from Supabase for ${tableName}:`, records);
+        console.error(`🔍 DIAGNOSTIC: ❌ Data type: ${typeof records}, isArray: ${Array.isArray(records)}`);
+        throw new Error(`Invalid data received from Supabase for ${tableName}: ${typeof records}`);
+      }
+
       // Apply data transformation for specific tables
       if (tableName === 'agenda_items') {
         try {
@@ -616,6 +623,12 @@ export class PWADataSyncService extends BaseService {
           console.warn(`⚠️ Failed to transform agenda_items:`, transformError);
           // Continue with raw data if transformation fails
         }
+      }
+
+      // ✅ FIX: Validate records before caching
+      if (!records || !Array.isArray(records)) {
+        console.error(`🔍 DIAGNOSTIC: ❌ Records became invalid after processing for ${tableName}:`, records);
+        throw new Error(`Records became invalid after processing for ${tableName}: ${typeof records}`);
       }
 
       // Cache the data
@@ -681,6 +694,14 @@ export class PWADataSyncService extends BaseService {
       } else {
       }
 
+      // ✅ FIX: Add defensive check for data before processing
+      if (!data || !Array.isArray(data)) {
+        console.error(`🔍 DIAGNOSTIC: ❌ Invalid data from application database for ${tableName}:`, data);
+        console.error(`🔍 DIAGNOSTIC: ❌ Data type: ${typeof data}, isArray: ${Array.isArray(data)}`);
+        this.recordApplicationDbFailure();
+        throw new Error(`Invalid data received from application database for ${tableName}: ${typeof data}`);
+      }
+
       // Validate data before caching to prevent overwriting user changes
       if (data && data.length > 0) {
         
@@ -695,6 +716,13 @@ export class PWADataSyncService extends BaseService {
         
         if (validRecords.length !== data.length) {
           console.warn(`⚠️ PWA Data Sync: Filtered out ${data.length - validRecords.length} invalid records for ${tableName}`);
+        }
+        
+        // ✅ FIX: Validate records before caching
+        if (!validRecords || !Array.isArray(validRecords)) {
+          console.error(`🔍 DIAGNOSTIC: ❌ ValidRecords became invalid for ${tableName}:`, validRecords);
+          this.recordApplicationDbFailure();
+          throw new Error(`ValidRecords became invalid for ${tableName}: ${typeof validRecords}`);
         }
         
         // Cache the validated data
@@ -736,10 +764,17 @@ export class PWADataSyncService extends BaseService {
       const cacheWriteTimestamp = Date.now();
       console.log('🔍 DIAGNOSTIC: Writing to cache:', {
         table: tableName,
-        recordCount: data.length,
+        recordCount: data?.length || 0,
         timestamp: cacheWriteTimestamp,
         timestampISO: new Date(cacheWriteTimestamp).toISOString()
       });
+      
+      // ✅ FIX: Add defensive check for undefined data
+      if (!data || !Array.isArray(data)) {
+        console.error(`🔍 DIAGNOSTIC: ❌ Invalid data for cache - table: ${tableName}, data:`, data);
+        console.error(`🔍 DIAGNOSTIC: ❌ Data type: ${typeof data}, isArray: ${Array.isArray(data)}`);
+        throw new Error(`Invalid data provided for caching ${tableName}: ${typeof data}`);
+      }
       
       // Apply comprehensive confidential data filtering for attendees
       let sanitizedData = data;
@@ -748,6 +783,12 @@ export class PWADataSyncService extends BaseService {
         const { AttendeeCacheFilterService } = await import('./attendeeCacheFilterService');
         sanitizedData = AttendeeCacheFilterService.filterAttendeesArray(data);
         console.log(`🔒 Filtered ${data.length} attendee records for cache storage`);
+        
+        // ✅ FIX: Validate filtered data
+        if (!sanitizedData || !Array.isArray(sanitizedData)) {
+          console.error(`🔍 DIAGNOSTIC: ❌ AttendeeCacheFilterService returned invalid data:`, sanitizedData);
+          throw new Error(`AttendeeCacheFilterService returned invalid data for ${tableName}`);
+        }
       }
       
       // ✅ NEW: Use cache versioning service for proper cache entry creation with environment-aware TTL
@@ -836,6 +877,14 @@ export class PWADataSyncService extends BaseService {
     // Check circuit breaker first
     if (this.isServiceWorkerCircuitOpen()) {
       console.log(`🚫 Service Worker: Circuit breaker open - skipping cache for ${tableName}`);
+      return;
+    }
+
+    // ✅ FIX: Add defensive check for undefined data before service worker operations
+    if (!data || !Array.isArray(data)) {
+      console.error(`🔍 DIAGNOSTIC: ❌ Invalid data for service worker cache - table: ${tableName}, data:`, data);
+      console.error(`🔍 DIAGNOSTIC: ❌ Data type: ${typeof data}, isArray: ${Array.isArray(data)}`);
+      this.recordServiceWorkerFailure();
       return;
     }
 
