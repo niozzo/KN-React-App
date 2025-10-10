@@ -231,7 +231,7 @@ const MeetPage = () => {
           height: '56px',
           borderRadius: '50%',
           backgroundColor: 'var(--purple-600)',
-          color: 'var(--white)',
+          color: '#ffffff',
           border: 'none',
           cursor: 'pointer',
           display: 'flex',
@@ -242,7 +242,8 @@ const MeetPage = () => {
           boxShadow: '0 6px 20px rgba(139, 69, 19, 0.3)',
           transition: 'all var(--transition-normal)',
           zIndex: 1000,
-          opacity: 1
+          opacity: 1,
+          textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)'
         }}
         onMouseEnter={(e) => {
           e.target.style.transform = 'scale(1.1)';
@@ -256,7 +257,7 @@ const MeetPage = () => {
         }}
         title="Back to top"
       >
-        ↑
+        ▲
       </button>
     </PageLayout>
   );
