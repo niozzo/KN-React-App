@@ -53,6 +53,8 @@ const AttendeeCard: React.FC<AttendeeCardProps> = ({
   return (
     <div
       className={`attendee-card ${className}`}
+      onClick={(e) => e.stopPropagation()}
+      onMouseDown={(e) => e.preventDefault()}
     >
       {/* Photo */}
       <div className="attendee-photo">
