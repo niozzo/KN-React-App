@@ -76,7 +76,14 @@ const MeetPage = () => {
 
   // Clear search and scroll to top
   const handleClearSearch = () => {
-    handleSearchChange('');
+    // Clear both URL parameter and local search state
+    originalHandleSearchChange('');
+    
+    // Update URL parameters
+    const newSearchParams = new URLSearchParams(searchParams);
+    newSearchParams.delete('search');
+    setSearchParams(newSearchParams);
+    
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
