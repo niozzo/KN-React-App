@@ -79,8 +79,11 @@ const MeetPage = () => {
 
   // Prevent scroll jump when focusing sticky search field
   const handleFocus = (e) => {
-    // Prevent browser from adjusting scroll position when focusing
-    e.preventDefault();
+    // Store current scroll position and restore it to prevent jump
+    const currentScrollY = window.scrollY;
+    requestAnimationFrame(() => {
+      window.scrollTo(0, currentScrollY);
+    });
   };
 
   // Clear search and scroll to top
