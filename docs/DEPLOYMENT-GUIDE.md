@@ -246,7 +246,61 @@ git push origin develop
 - Browser DevTools (Console, Network)
 - User feedback channels
 
+## Using Vercel CLI (Alternative Method)
+
+### When to Use CLI
+- Prefer command-line workflow
+- Troubleshooting auto-deploy issues
+- Manual control over deployments
+- Initial setup of branches in Vercel
+
+### Installation
+```bash
+npm i -g vercel
+vercel login
+```
+
+### Deploy Commands
+```bash
+# Preview/Staging deployment
+git checkout develop
+vercel
+
+# Production deployment
+git checkout main
+vercel --prod
+
+# Force new deployment (skip cache)
+vercel --force
+
+# Deploy specific branch
+git checkout feature/my-feature
+vercel
+```
+
+### Initial Branch Setup
+If Git auto-deploy isn't working, establish branches manually:
+```bash
+# Establish main as production
+git checkout main
+vercel --prod --yes
+
+# Establish develop as preview
+git checkout develop
+vercel --yes
+```
+
+After this one-time setup, Git auto-deploy should work normally.
+
 ## Common Issues
+
+### Auto-Deploy Not Working
+**Symptom:** Pushing to Git doesn't trigger Vercel deployment
+
+**Solutions:**
+1. Check Vercel → Settings → Git → GitHub integration is enabled
+2. Establish branches using CLI (see "Initial Branch Setup" above)
+3. Check if branch is configured in Settings → Git
 
 ### Build Failures
 - Check Node version matches `engines` in `package.json`
@@ -262,6 +316,7 @@ git push origin develop
 - Clear Vercel build cache in dashboard
 - Update service worker version
 - Force refresh in browser (Cmd/Ctrl + Shift + R)
+- Use `vercel --force` to skip cache
 
 ## Database Setup Notes
 

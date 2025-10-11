@@ -73,6 +73,22 @@ Since you're using the **same Supabase database** for all environments, you only
 2. Enable "Vercel for GitHub"
 3. ✅ Comment on Pull Requests
 
+### Troubleshooting: If Vercel Doesn't Auto-Deploy
+
+If pushing to Git doesn't trigger deployments, you may need to establish the branches first using Vercel CLI:
+
+```bash
+# Deploy main as production (one-time)
+git checkout main
+vercel --prod --yes
+
+# Deploy develop as preview (one-time)
+git checkout develop
+vercel --yes
+```
+
+After this, auto-deploy from Git should work normally. See "Alternative: Using Vercel CLI" section below for details.
+
 ## Step 4: Test the Workflow
 
 ### Test Direct Commit to Develop (Staging)
@@ -208,6 +224,42 @@ Before considering this setup complete:
 - [ ] Test PR from develop to main created
 - [ ] Production deployment verified
 - [ ] Documentation reviewed
+
+## Alternative: Using Vercel CLI
+
+If you prefer using the command line or can't find the Vercel UI settings:
+
+### Install Vercel CLI (if not already installed)
+```bash
+npm i -g vercel
+vercel login
+```
+
+### Deploy Main to Production (One-Time Setup)
+```bash
+git checkout main
+vercel --prod --yes
+```
+
+### Deploy Develop as Preview (One-Time Setup)
+```bash
+git checkout develop
+vercel --yes
+```
+
+**After this initial setup**, Git auto-deploy should work for future pushes!
+
+### Optional: Use CLI for All Deployments
+If you prefer CLI over auto-deploy:
+```bash
+# Preview (staging)
+git checkout develop
+vercel
+
+# Production
+git checkout main
+vercel --prod
+```
 
 ## Need Help?
 
