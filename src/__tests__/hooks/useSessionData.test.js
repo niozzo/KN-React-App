@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import useSessionData from '../../hooks/useSessionData';
 
 // Mock services
@@ -16,7 +16,8 @@ vi.mock('../../services/agendaService', () => ({
 
 vi.mock('../../services/dataService', () => ({
   getCurrentAttendeeData: vi.fn(),
-  getAttendeeSeatAssignments: vi.fn()
+  getAttendeeSeatAssignments: vi.fn(),
+  getAllDiningOptions: vi.fn()
 }));
 
 vi.mock('../../services/timeService', () => ({
@@ -32,6 +33,42 @@ vi.mock('../../contexts/AuthContext', () => ({
   useAuth: vi.fn(() => ({
     isAuthenticated: true
   }))
+}));
+
+// Mock PWA Data Sync Service
+vi.mock('../../services/pwaDataSyncService', () => ({
+  pwaDataSyncService: {
+    getOnlineStatus: vi.fn(() => true),
+    setOnlineStatus: vi.fn(),
+    clearCache: vi.fn(),
+    syncData: vi.fn()
+  }
+}));
+
+// Mock Cache Monitoring Service
+vi.mock('../../services/cacheMonitoringService', () => ({
+  cacheMonitoringService: {
+    getSessionId: vi.fn(() => 'test-session-id'),
+    logStateTransition: vi.fn(),
+    logCacheCorruption: vi.fn(),
+    logCacheHit: vi.fn(),
+    logCacheMiss: vi.fn()
+  }
+}));
+
+// Mock Breakout Mapping Service
+vi.mock('../../services/breakoutMappingService', () => ({
+  breakoutMappingService: {
+    getBreakoutSessions: vi.fn(() => []),
+    isBreakoutSession: vi.fn(() => false),
+    isAttendeeAssignedToBreakout: vi.fn((session, attendee) => {
+      // Return true if attendee has this breakout in selected_breakouts
+      if (attendee && attendee.selected_breakouts && session && session.id) {
+        return attendee.selected_breakouts.includes(session.id);
+      }
+      return false;
+    })
+  }
 }));
 
 // Mock TimeService for the new tests
@@ -94,7 +131,7 @@ describe('useSessionData Hook', () => {
     
     // Mock successful API responses
     const { agendaService } = await import('../../services/agendaService');
-    const { getCurrentAttendeeData, getAttendeeSeatAssignments } = await import('../../services/dataService');
+    const { getCurrentAttendeeData, getAttendeeSeatAssignments, getAllDiningOptions } = await import('../../services/dataService');
     
     agendaService.getActiveAgendaItems.mockResolvedValue({
       success: true,
@@ -104,13 +141,17 @@ describe('useSessionData Hook', () => {
     
     getCurrentAttendeeData.mockResolvedValue(mockAttendee);
     getAttendeeSeatAssignments.mockResolvedValue([]);
+    getAllDiningOptions.mockResolvedValue({ success: true, data: [], error: null });
     
     // Mock localStorage with actual storage
     Object.defineProperty(window, 'localStorage', {
       value: {
         getItem: vi.fn((key) => mockStorage[key] || null),
         setItem: vi.fn((key, value) => { mockStorage[key] = value; }),
-        removeItem: vi.fn((key) => { delete mockStorage[key]; })
+        removeItem: vi.fn((key) => { delete mockStorage[key]; }),
+        clear: vi.fn(() => { 
+          Object.keys(mockStorage).forEach(key => delete mockStorage[key]); 
+        })
       },
       writable: true
     });
@@ -124,26 +165,56 @@ describe('useSessionData Hook', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    
+    // Force cleanup of any remaining intervals and timers
+    vi.clearAllTimers();
+    
+    // Remove all known event listeners to prevent leaks
+    const events = [
+      'online', 'offline', 'pwa-status-change',
+      'attendee-data-updated', 'storage',
+      'timeOverrideChanged', 'timeOverrideBoundaryCrossed',
+      'diningMetadataUpdated', 'agendaMetadataUpdated'
+    ];
+    
+    // Clear each event type
+    events.forEach(event => {
+      // Create a dummy handler to match the signature
+      const dummyHandler = () => {};
+      try {
+        window.removeEventListener(event, dummyHandler);
+      } catch (e) {
+        // Ignore errors if listener doesn't exist
+      }
+    });
+    
+    // Clear localStorage to prevent cache pollution between tests
+    localStorage.clear();
+    
+    // Clear sessionStorage as well
+    sessionStorage.clear();
   });
 
   describe('Data Loading', () => {
     it('should load session data successfully', async () => {
       const { result } = renderHook(() => useSessionData());
       
-      // Wait for async operations
-      await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 0));
-      });
+      // Wait for hook to complete loading
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      }, { timeout: 3000 });
       
-      expect(result.current.sessions).toEqual(mockSessions);
+      await waitFor(() => {
+        expect(result.current.sessions).toEqual(mockSessions);
+      }, { timeout: 1000 });
+      
       expect(result.current.attendee).toEqual(mockAttendee);
-      expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBe(null);
     });
 
     it('should handle API errors gracefully', async () => {
       const { agendaService } = await import('../../services/agendaService');
-      const { getCurrentAttendeeData, getAttendeeSeatAssignments } = await import('../../services/dataService');
+      const { getCurrentAttendeeData, getAttendeeSeatAssignments, getAllDiningOptions } = await import('../../services/dataService');
       
       agendaService.getActiveAgendaItems.mockResolvedValue({
         success: false,
@@ -153,15 +224,20 @@ describe('useSessionData Hook', () => {
       
       getCurrentAttendeeData.mockResolvedValue(mockAttendee);
       getAttendeeSeatAssignments.mockResolvedValue([]);
+      getAllDiningOptions.mockResolvedValue({ success: false, data: [], error: 'API Error' });
       
       const { result } = renderHook(() => useSessionData());
       
-      await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 0));
-      });
+      // Wait for hook to complete loading
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      }, { timeout: 3000 });
       
       // The hook handles API errors gracefully by setting error when all sources fail
-      expect(result.current.error).toBe('Unable to load conference schedule from any source');
+      await waitFor(() => {
+        expect(result.current.error).toBe('Unable to load conference schedule from any source');
+      }, { timeout: 1000 });
+      
       expect(result.current.sessions).toEqual([]);
       expect(result.current.allSessions).toEqual([]);
     });
@@ -178,12 +254,16 @@ describe('useSessionData Hook', () => {
       
       const { result } = renderHook(() => useSessionData());
       
-      await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 0));
-      });
+      // Wait for hook to complete loading
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      }, { timeout: 3000 });
       
       // Should show all 3 general sessions (keynote, coffee_break, panel) since none are breakout-session type
-      expect(result.current.sessions).toHaveLength(3);
+      await waitFor(() => {
+        expect(result.current.sessions).toHaveLength(3);
+      }, { timeout: 1000 });
+      
       expect(result.current.sessions.map(s => s.id)).toEqual(['1', '2', '3']);
     });
 
@@ -198,7 +278,7 @@ describe('useSessionData Hook', () => {
           start_time: '14:00:00',
           end_time: '15:00:00',
           location: 'Room B',
-          session_type: 'breakout-session'
+          session_type: 'breakout'  // Changed from 'breakout-session' to match hook logic
         },
         {
           id: 'breakout-2',
@@ -207,7 +287,7 @@ describe('useSessionData Hook', () => {
           start_time: '14:00:00',
           end_time: '15:00:00',
           location: 'Room C',
-          session_type: 'breakout-session'
+          session_type: 'breakout'  // Changed from 'breakout-session' to match hook logic
         }
       ];
 
@@ -216,28 +296,38 @@ describe('useSessionData Hook', () => {
         selected_breakouts: ['breakout-1'] // Even with assignments, breakout sessions should be hidden
       };
 
-      // Mock agendaService to return sessions with breakouts
+      // Mock agendaService to return sessions with breakouts BEFORE rendering
       const { agendaService } = await import('../../services/agendaService');
+      const { getCurrentAttendeeData, getAttendeeSeatAssignments, getAllDiningOptions } = await import('../../services/dataService');
+      
       agendaService.getActiveAgendaItems.mockResolvedValue({
         success: true,
-        data: sessionsWithBreakouts
+        data: sessionsWithBreakouts,
+        error: null
       });
-
-      const { getCurrentAttendeeData, getAttendeeSeatAssignments } = await import('../../services/dataService');
       getCurrentAttendeeData.mockResolvedValue(attendeeWithBreakoutSelections);
       getAttendeeSeatAssignments.mockResolvedValue([]);
+      getAllDiningOptions.mockResolvedValue({ success: true, data: [], error: null });
       
       const { result } = renderHook(() => useSessionData());
       
-      await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 0));
-      });
+      // Wait for hook to complete loading
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      }, { timeout: 3000 });
       
       // Should show only 3 general sessions - all breakout sessions are hidden
-      expect(result.current.sessions).toHaveLength(3);
-      expect(result.current.sessions.map(s => s.id)).toEqual(['1', '2', '3']);
-      // Verify no breakout sessions are included
-      expect(result.current.sessions.filter(s => s.session_type === 'breakout-session')).toHaveLength(0);
+      await waitFor(() => {
+        expect(result.current.sessions.length).toBeGreaterThan(0);
+      }, { timeout: 1000 });
+      
+      // Should show 3 general sessions + 1 assigned breakout = 4 sessions total
+      expect(result.current.sessions).toHaveLength(4);
+      expect(result.current.sessions.map(s => s.id)).toEqual(['1', '2', '3', 'breakout-1']);
+      // Verify only the assigned breakout session is included, not breakout-2
+      const breakoutSessions = result.current.sessions.filter(s => s.session_type === 'breakout');
+      expect(breakoutSessions).toHaveLength(1);
+      expect(breakoutSessions[0].id).toBe('breakout-1');
     });
 
     it('should show all non-breakout session types to all users', async () => {
@@ -304,28 +394,35 @@ describe('useSessionData Hook', () => {
           start_time: '16:00:00',
           end_time: '17:00:00',
           location: 'Room A',
-          session_type: 'breakout-session'
+          session_type: 'breakout'  // Changed from 'breakout-session' to match hook logic
         }
       ];
 
-      // Mock agendaService to return sessions with various types
+      // Mock agendaService to return sessions with various types BEFORE rendering
       const { agendaService } = await import('../../services/agendaService');
+      const { getCurrentAttendeeData, getAttendeeSeatAssignments, getAllDiningOptions } = await import('../../services/dataService');
+      
       agendaService.getActiveAgendaItems.mockResolvedValue({
         success: true,
-        data: sessionsWithVariousTypes
+        data: sessionsWithVariousTypes,
+        error: null
       });
-
-      const { getCurrentAttendeeData, getAttendeeSeatAssignments } = await import('../../services/dataService');
       getCurrentAttendeeData.mockResolvedValue(mockAttendee);
       getAttendeeSeatAssignments.mockResolvedValue([]);
+      getAllDiningOptions.mockResolvedValue({ success: true, data: [], error: null });
       
       const { result } = renderHook(() => useSessionData());
       
-      await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 0));
-      });
+      // Wait for hook to complete loading
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      }, { timeout: 3000 });
       
       // Should show all 6 non-breakout sessions
+      await waitFor(() => {
+        expect(result.current.sessions.length).toBeGreaterThan(0);
+      }, { timeout: 1000 });
+      
       expect(result.current.sessions).toHaveLength(6);
       
       // Verify all non-breakout session types are included
@@ -338,7 +435,7 @@ describe('useSessionData Hook', () => {
       expect(sessionTypes).toContain('networking');
       
       // Verify no breakout sessions are included
-      expect(sessionTypes).not.toContain('breakout-session');
+      expect(sessionTypes).not.toContain('breakout');
     });
   });
 

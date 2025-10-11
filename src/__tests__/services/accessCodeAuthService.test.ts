@@ -103,18 +103,18 @@ describe('AccessCodeAuthService', () => {
   });
 
   describe('validateAccessCode', () => {
-    it('should validate 6-digit access codes', () => {
-      expect(accessCodeAuthService.validateAccessCode('123456')).toBe(true);
-      expect(accessCodeAuthService.validateAccessCode('000000')).toBe(true);
-      expect(accessCodeAuthService.validateAccessCode('999999')).toBe(true);
+    it('should validate 6-digit access codes', async () => {
+      expect(await accessCodeAuthService.validateAccessCode('123456')).toBe(true);
+      expect(await accessCodeAuthService.validateAccessCode('000000')).toBe(true);
+      expect(await accessCodeAuthService.validateAccessCode('999999')).toBe(true);
     });
 
-    it('should reject invalid access codes', () => {
-      expect(accessCodeAuthService.validateAccessCode('12345')).toBe(false);
-      expect(accessCodeAuthService.validateAccessCode('1234567')).toBe(false);
-      expect(accessCodeAuthService.validateAccessCode('abc123')).toBe(false);
-      expect(accessCodeAuthService.validateAccessCode('')).toBe(false);
-      expect(accessCodeAuthService.validateAccessCode('12-34-56')).toBe(false);
+    it('should reject invalid access codes', async () => {
+      expect(await accessCodeAuthService.validateAccessCode('12345')).toBe(false);
+      expect(await accessCodeAuthService.validateAccessCode('1234567')).toBe(false);
+      expect(await accessCodeAuthService.validateAccessCode('abc123')).toBe(false);
+      expect(await accessCodeAuthService.validateAccessCode('')).toBe(false);
+      expect(await accessCodeAuthService.validateAccessCode('12-34-56')).toBe(false);
     });
   });
 

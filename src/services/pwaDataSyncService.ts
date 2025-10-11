@@ -349,50 +349,54 @@ export class PWADataSyncService extends BaseService {
     }
   }
 
+  // Store event handler references for cleanup
+  private handleOnlineEvent = () => {
+    console.log('🔍 DIAGNOSTIC: Online event triggered');
+    this.setOnlineStatus(true);
+    this.startPeriodicSync();
+    if (this.isUserAuthenticated()) {
+      console.log('🔍 DIAGNOSTIC: Starting syncAllData due to online event');
+      this.syncAllData();
+    }
+  };
+
+  private handleOfflineEvent = () => {
+    console.log('🔍 DIAGNOSTIC: Offline event triggered');
+    this.setOnlineStatus(false);
+    this.stopPeriodicSync();
+  };
+
+  private handleVisibilityChange = () => {
+    const willSync = !document.hidden && this.syncStatus.isOnline && this.isUserAuthenticated();
+    
+    console.log('🔍 DIAGNOSTIC: Visibility changed', {
+      hidden: document.hidden,
+      isOnline: this.syncStatus.isOnline,
+      isAuthenticated: this.isUserAuthenticated(),
+      willSync
+    });
+    
+    // Log visibility change with sync decision
+      
+    cacheMonitoringService.logVisibilityChange(document.hidden, willSync, {
+      isOnline: this.syncStatus.isOnline,
+      isAuthenticated: this.isUserAuthenticated(),
+      lastSync: this.syncStatus.lastSync
+    });
+      
+    if (willSync) {
+      console.log('🔍 DIAGNOSTIC: Starting syncAllData due to visibility change');
+      this.syncAllData();
+    }
+  };
+
   /**
    * Setup event listeners for online/offline status
    */
   private setupEventListeners(): void {
-    window.addEventListener('online', () => {
-      console.log('🔍 DIAGNOSTIC: Online event triggered');
-      this.setOnlineStatus(true);
-      this.startPeriodicSync();
-      if (this.isUserAuthenticated()) {
-        console.log('🔍 DIAGNOSTIC: Starting syncAllData due to online event');
-        this.syncAllData();
-      }
-    });
-
-    window.addEventListener('offline', () => {
-      console.log('🔍 DIAGNOSTIC: Offline event triggered');
-      this.setOnlineStatus(false);
-      this.stopPeriodicSync();
-    });
-
-    // Sync when page becomes visible (only if authenticated)
-    document.addEventListener('visibilitychange', () => {
-      const willSync = !document.hidden && this.syncStatus.isOnline && this.isUserAuthenticated();
-      
-      console.log('🔍 DIAGNOSTIC: Visibility changed', {
-        hidden: document.hidden,
-        isOnline: this.syncStatus.isOnline,
-        isAuthenticated: this.isUserAuthenticated(),
-        willSync
-      });
-      
-      // Log visibility change with sync decision
-      
-      cacheMonitoringService.logVisibilityChange(document.hidden, willSync, {
-        isOnline: this.syncStatus.isOnline,
-        isAuthenticated: this.isUserAuthenticated(),
-        lastSync: this.syncStatus.lastSync
-      });
-      
-      if (willSync) {
-        console.log('🔍 DIAGNOSTIC: Starting syncAllData due to visibility change');
-        this.syncAllData();
-      }
-    });
+    window.addEventListener('online', this.handleOnlineEvent);
+    window.addEventListener('offline', this.handleOfflineEvent);
+    document.addEventListener('visibilitychange', this.handleVisibilityChange);
   }
 
   /**
@@ -798,7 +802,8 @@ export class PWADataSyncService extends BaseService {
       
       // Apply comprehensive confidential data filtering for attendees
       let sanitizedData = data;
-      if (tableName === 'attendees') {
+      // QA FIX: Handle both 'attendees' (plural) and 'attendee' (singular) table names
+      if (tableName === 'attendees' || tableName === 'attendee') {
         // Use AttendeeCacheFilterService for comprehensive filtering
         const { AttendeeCacheFilterService } = await import('./attendeeCacheFilterService');
         sanitizedData = await AttendeeCacheFilterService.filterAttendeesArray(data);
@@ -1372,7 +1377,15 @@ export class PWADataSyncService extends BaseService {
    * Cleanup on destroy
    */
   destroy(): void {
+    // Stop periodic sync (clears interval)
     this.stopPeriodicSync();
+    
+    // Remove event listeners to prevent memory leaks
+    window.removeEventListener('online', this.handleOnlineEvent);
+    window.removeEventListener('offline', this.handleOfflineEvent);
+    document.removeEventListener('visibilitychange', this.handleVisibilityChange);
+    
+    console.log('✅ PWADataSyncService: Cleaned up all resources');
   }
 }
 

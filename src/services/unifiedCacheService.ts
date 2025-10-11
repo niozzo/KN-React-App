@@ -611,8 +611,8 @@ export class UnifiedCacheService {
    * Story 6.1: Filter hidden profiles from cache
    */
   private async filterAttendeeData<T>(key: string, data: T): Promise<T> {
-    // Only apply filtering to attendee cache keys
-    if (key === 'kn_cache_attendees' || key === 'kn_cache_attendee') {
+    // QA FIX: Apply filtering to ALL attendee cache keys
+    if (key === 'kn_cache_attendees' || key === 'kn_cache_attendee' || key === 'kn_current_attendee_info') {
       try {
         // Handle array of attendees
         if (Array.isArray(data)) {

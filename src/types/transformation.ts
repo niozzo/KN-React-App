@@ -40,14 +40,16 @@ export interface TransformationError {
   transformer: string
 }
 
-// Error types
-export enum TransformationErrorCode {
-  FIELD_MAPPING_ERROR = 'FIELD_MAPPING_ERROR',
-  TYPE_CONVERSION_ERROR = 'TYPE_CONVERSION_ERROR',
-  VALIDATION_ERROR = 'VALIDATION_ERROR',
-  MISSING_REQUIRED_FIELD = 'MISSING_REQUIRED_FIELD',
-  SCHEMA_MISMATCH = 'SCHEMA_MISMATCH'
-}
+// Error types - converted from enum to const object for esbuild compatibility
+export const TransformationErrorCode = {
+  FIELD_MAPPING_ERROR: 'FIELD_MAPPING_ERROR',
+  TYPE_CONVERSION_ERROR: 'TYPE_CONVERSION_ERROR',
+  VALIDATION_ERROR: 'VALIDATION_ERROR',
+  MISSING_REQUIRED_FIELD: 'MISSING_REQUIRED_FIELD',
+  SCHEMA_MISMATCH: 'SCHEMA_MISMATCH'
+} as const;
+
+export type TransformationErrorCode = typeof TransformationErrorCode[keyof typeof TransformationErrorCode];
 
 // Transformation result interface
 export interface TransformationResult<T> {

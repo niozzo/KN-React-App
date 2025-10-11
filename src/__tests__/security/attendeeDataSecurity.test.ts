@@ -8,6 +8,15 @@ import { unifiedCacheService } from '../../services/unifiedCacheService';
 import { AttendeeCacheFilterService } from '../../services/attendeeCacheFilterService';
 import type { Attendee } from '../../types/attendee';
 
+// Mock applicationDatabaseService to prevent hanging
+vi.mock('../../services/applicationDatabaseService', () => ({
+  applicationDatabaseService: {
+    getAllAttendeePreferences: vi.fn(() => Promise.resolve([])),
+    init: vi.fn(() => Promise.resolve()),
+    isInitialized: true
+  }
+}))
+
 // Mock localStorage with proper verification support
 const localStorageMock = {
   getItem: vi.fn(),
