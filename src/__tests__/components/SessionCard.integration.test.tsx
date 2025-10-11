@@ -208,7 +208,8 @@ describe('SessionCard Integration Tests', () => {
         {
           updateInterval: 60000,
           enabled: true,
-          isCoffeeBreak: true
+          isCoffeeBreak: true,
+          startTime: new Date('2024-12-19T10:00:00')
         }
       );
     });
@@ -223,7 +224,8 @@ describe('SessionCard Integration Tests', () => {
         {
           updateInterval: 60000,
           enabled: false,
-          isCoffeeBreak: false
+          isCoffeeBreak: false,
+          startTime: new Date('2024-12-19T09:00:00')
         }
       );
     });
@@ -238,7 +240,8 @@ describe('SessionCard Integration Tests', () => {
         {
           updateInterval: 60000,
           enabled: false,
-          isCoffeeBreak: true
+          isCoffeeBreak: true,
+          startTime: new Date('2024-12-19T10:00:00')
         }
       );
     });

@@ -32,7 +32,7 @@ export class AccessCodeAuthService implements IAccessCodeAuthService {
       console.log('🔐 Attempting authentication with access code:', accessCode);
 
       // Validate access code format
-      if (!this.validateAccessCode(accessCode)) {
+      if (!(await this.validateAccessCode(accessCode))) {
         return {
           success: false,
           error: 'Invalid access code format. Must be 6 digits.',
