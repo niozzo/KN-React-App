@@ -8,7 +8,6 @@
  */
 
 import { supabase } from '../lib/supabase'
-import { serverDataSyncService } from './serverDataSyncService'
 import type { Attendee, SanitizedAttendee } from '../types/attendee'
 import { sanitizeAttendeeForStorage } from '../types/attendee'
 
@@ -142,8 +141,7 @@ export const signOut = async (): Promise<{ success: boolean; error?: string }> =
   try {
     // Sign out from Supabase first to clear auth tokens
     try {
-      const { signOut: supabaseSignOut } = await import('../lib/supabase')
-      await supabaseSignOut()
+      await supabase.auth.signOut()
     } catch (supabaseError) {
       console.warn('⚠️ Supabase sign out failed:', supabaseError)
       // Continue with local sign out even if Supabase fails
