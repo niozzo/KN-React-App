@@ -284,8 +284,8 @@ export class AgendaTransformer extends BaseTransformer<AgendaItem> {
   /**
    * Helper method to calculate duration
    */
-  private calculateDuration(startTime: string, endTime: string): number | null {
-    if (!startTime || !endTime) return null
+  private calculateDuration(startTime: string, endTime: string): number | undefined {
+    if (!startTime || !endTime) return undefined
     
     try {
       const start = new Date(`2000-01-01T${startTime}`)
@@ -293,16 +293,16 @@ export class AgendaTransformer extends BaseTransformer<AgendaItem> {
       
       // Check if dates are valid
       if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-        return null
+        return undefined
       }
       
       const diffMs = end.getTime() - start.getTime()
       const diffMinutes = Math.round(diffMs / (1000 * 60))
       
-      // Return null for invalid results
-      return isNaN(diffMinutes) ? null : diffMinutes
+      // Return undefined for invalid results
+      return isNaN(diffMinutes) ? undefined : diffMinutes
     } catch (error) {
-      return null
+      return undefined
     }
   }
 
