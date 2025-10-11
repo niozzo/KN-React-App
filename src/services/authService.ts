@@ -141,7 +141,8 @@ export const signOut = async (): Promise<{ success: boolean; error?: string }> =
   try {
     // Sign out from Supabase first to clear auth tokens
     try {
-      await supabase.auth.signOut()
+      const { signOut: supabaseSignOut } = await import('../lib/supabase')
+      await supabaseSignOut()
     } catch (supabaseError) {
       console.warn('⚠️ Supabase sign out failed:', supabaseError)
       // Continue with local sign out even if Supabase fails
