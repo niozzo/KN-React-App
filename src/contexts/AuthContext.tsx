@@ -46,9 +46,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [attendeeName, setAttendeeName] = useState<{ first_name: string; last_name: string; full_name: string } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSigningOut, setIsSigningOut] = useState(false)
-  
-  // Initialize server-side data sync service
-  const [dataSyncService] = useState(() => serverDataSyncService)
 
   // Function to clear all cached data on authentication failure
   const clearCachedData = useCallback(() => {
