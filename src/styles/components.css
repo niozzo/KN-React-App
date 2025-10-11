@@ -1960,3 +1960,13 @@ body {
 .refresh-button:hover {
   background-color: var(--gray-300);
 }
+
+/* Lazy Image Loading Shimmer Animation */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
