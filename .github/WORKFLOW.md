@@ -139,6 +139,8 @@ Once set up, you'll have:
 - **Staging**: `develop-your-app.vercel.app` (from `develop` branch)
 - **Feature Preview**: `feature-xyz-your-app.vercel.app` (from feature branches, optional)
 
+**Note:** All environments use the **same Supabase database** (shared data across staging and production)
+
 ## Questions?
 
 See full documentation:
