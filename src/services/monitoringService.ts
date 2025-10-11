@@ -495,6 +495,14 @@ export class MonitoringService {
       }
     }) as T;
   }
+
+  /**
+   * Cleanup resources
+   */
+  destroy(): void {
+    this.stopReporting();
+    console.log('✅ MonitoringService: Cleaned up all resources');
+  }
 }
 
 // Export singleton instance

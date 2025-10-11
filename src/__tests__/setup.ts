@@ -47,6 +47,28 @@ afterAll(async () => {
   // Cleanup after all tests
   vi.restoreAllMocks()
   
+  // Destroy service singletons to remove event listeners and intervals
+  try {
+    const { pwaDataSyncService } = await import('../services/pwaDataSyncService');
+    pwaDataSyncService.destroy();
+  } catch (e) {
+    // Service may not be loaded in all tests
+  }
+  
+  try {
+    const { errorMonitoringService } = await import('../services/errorMonitoringService');
+    errorMonitoringService.destroy();
+  } catch (e) {
+    // Service may not be loaded in all tests
+  }
+  
+  try {
+    const { monitoringService } = await import('../services/monitoringService');
+    monitoringService.destroy();
+  } catch (e) {
+    // Service may not be loaded in all tests
+  }
+  
   // Clear all timers to prevent hanging
   vi.clearAllTimers()
   
@@ -77,10 +99,8 @@ afterAll(async () => {
   // Wait for any pending operations to complete
   await new Promise(resolve => setTimeout(resolve, 100))
   
-  // Force process exit after cleanup to prevent hanging
-  setTimeout(() => {
-    process.exit(0)
-  }, 200) // Reduced timeout for faster exit
+  // Note: Removed process.exit() call as it causes Vitest errors
+  // Resource leaks have been fixed in services, tests should exit cleanly now
 })
 
 // Mock PWA APIs
@@ -162,3 +182,47 @@ if (!window.workbox) {
     configurable: true
   })
 }
+
+// ===== LEAK DETECTOR SETUP =====
+// Track intervals, timeouts, and event listeners to identify leaks
+
+import { LeakDetector } from './utils/leak-detector';
+
+// Track all intervals and timeouts globally
+const originalSetInterval = global.setInterval;
+const originalClearInterval = global.clearInterval;
+const originalAddEventListener = window.addEventListener;
+const originalRemoveEventListener = window.removeEventListener;
+
+// Disable verbose leak tracking - it causes IPC issues with forks
+// Uncomment for debugging specific leak issues
+/*
+global.setInterval = function(...args: any[]) {
+  const id = originalSetInterval.apply(this, args as any);
+  const stack = new Error().stack?.split('\n')[2] || 'unknown';
+  LeakDetector.trackInterval(id, stack);
+  return id;
+};
+
+global.clearInterval = function(id: any) {
+  LeakDetector.untrackInterval(id, 'cleared');
+  return originalClearInterval.call(this, id);
+};
+
+window.addEventListener = function(event: string, handler: any, ...args: any[]) {
+  const stack = new Error().stack?.split('\n')[2] || 'unknown';
+  LeakDetector.trackListener(event, handler, stack);
+  return originalAddEventListener.call(this, event, handler, ...args);
+};
+
+window.removeEventListener = function(event: string, handler: any, ...args: any[]) {
+  LeakDetector.untrackListener(event, handler, 'removed');
+  return originalRemoveEventListener.call(this, event, handler, ...args);
+};
+
+// Report leaks after each test
+afterEach(() => {
+  LeakDetector.report();
+  LeakDetector.reset();
+});
+*/

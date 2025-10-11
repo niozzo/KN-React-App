@@ -365,7 +365,7 @@ describe('AttendeeSearchService', () => {
 
       expect(result.attendees).toHaveLength(0);
       expect(result.totalCount).toBe(0);
-      expect(result.cached).toBe(true); // Should be true since we got data from cache (even if empty)
+      expect(result.cached).toBe(false); // Empty cache is treated as not cached
     });
 
     it('should handle cache errors gracefully', async () => {

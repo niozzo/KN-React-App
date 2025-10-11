@@ -22,9 +22,12 @@ export interface AttendeeSyncResult {
 }
 
 export class AttendeeSyncError extends Error {
-  constructor(message: string, public originalError?: Error) {
+  public originalError?: Error;
+  
+  constructor(message: string, originalError?: Error) {
     super(message);
     this.name = 'AttendeeSyncError';
+    this.originalError = originalError;
   }
 }
 

@@ -3,8 +3,8 @@
  * Story 1.7: Data Transformation Layer for Schema Evolution
  */
 
-import { BaseTransformer } from './baseTransformer'
-import { FieldMapping, ComputedField, ValidationRule } from '../types/transformation'
+import { BaseTransformer } from './baseTransformer.ts'
+import { FieldMapping, ComputedField, ValidationRule } from '../types/transformation.ts'
 import type { Sponsor } from '../types/sponsor'
 
 export class SponsorTransformer extends BaseTransformer<Sponsor> {
