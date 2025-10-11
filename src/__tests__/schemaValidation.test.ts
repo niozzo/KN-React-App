@@ -135,10 +135,14 @@ describe('SchemaValidationService', () => {
 
       const result = await service.validateSchema();
 
-      // The service is designed to be resilient and fall back to expected tables
-      // when there are connection issues, so it should still validate successfully
-      expect(result.isValid).toBe(true);
+      // The service should detect missing tables and return isValid: false
+      // even when falling back to expected tables
+      expect(result.isValid).toBe(false);
+      expect(result.errors.length).toBeGreaterThan(0);
       expect(result.tables.length).toBeGreaterThan(0);
+      // Verify that missing table errors are reported
+      const missingTableErrors = result.errors.filter(e => e.type === 'missing_table');
+      expect(missingTableErrors.length).toBeGreaterThan(0);
     });
 
     it('should detect missing columns', async () => {
@@ -208,10 +212,14 @@ describe('SchemaValidationService', () => {
 
       const result = await service.validateSchema();
 
-      // The service is designed to be resilient and fall back to expected behavior
-      // when there are connection issues, so it should still validate successfully
-      expect(result.isValid).toBe(true);
+      // The service should detect missing columns and return isValid: false
+      // even when falling back to expected behavior
+      expect(result.isValid).toBe(false);
+      expect(result.errors.length).toBeGreaterThan(0);
       expect(result.tables.length).toBeGreaterThan(0);
+      // Verify that missing column errors are reported
+      const missingColumnErrors = result.errors.filter(e => e.type === 'missing_column');
+      expect(missingColumnErrors.length).toBeGreaterThan(0);
     });
 
     it('should detect type mismatches', async () => {
@@ -244,15 +252,15 @@ describe('SchemaValidationService', () => {
                 eq: vi.fn().mockImplementation(() => ({
                   order: vi.fn().mockImplementation(() => Promise.resolve({
                     data: [
-                      { column_name: 'id', data_type: 'integer', is_nullable: 'NO' }, // Wrong type - should be uuid
-                      { column_name: 'first_name', data_type: 'varchar', is_nullable: 'NO' }, // Wrong type - should be text
-                      { column_name: 'last_name', data_type: 'varchar', is_nullable: 'NO' }, // Wrong type - should be text
-                      { column_name: 'email', data_type: 'varchar', is_nullable: 'NO' }, // Wrong type - should be text
-                      { column_name: 'company', data_type: 'varchar', is_nullable: 'YES' }, // Wrong type - should be text
-                      { column_name: 'title', data_type: 'varchar', is_nullable: 'YES' }, // Wrong type - should be text
-                      { column_name: 'access_code', data_type: 'varchar', is_nullable: 'NO' }, // Wrong type - should be text
-                      { column_name: 'created_at', data_type: 'datetime', is_nullable: 'NO' }, // Wrong type - should be timestamp
-                      { column_name: 'updated_at', data_type: 'datetime', is_nullable: 'NO' } // Wrong type - should be timestamp
+                      { column_name: 'id', data_type: 'integer', is_nullable: 'NO' }, // INCOMPATIBLE: integer vs uuid
+                      { column_name: 'first_name', data_type: 'boolean', is_nullable: 'NO' }, // INCOMPATIBLE: boolean vs text
+                      { column_name: 'last_name', data_type: 'jsonb', is_nullable: 'NO' }, // INCOMPATIBLE: jsonb vs text
+                      { column_name: 'email', data_type: 'numeric', is_nullable: 'NO' }, // INCOMPATIBLE: numeric vs text
+                      { column_name: 'company', data_type: 'uuid', is_nullable: 'YES' }, // INCOMPATIBLE: uuid vs text
+                      { column_name: 'title', data_type: 'timestamp', is_nullable: 'YES' }, // INCOMPATIBLE: timestamp vs text
+                      { column_name: 'access_code', data_type: 'integer', is_nullable: 'NO' }, // INCOMPATIBLE: integer vs text
+                      { column_name: 'created_at', data_type: 'text', is_nullable: 'NO' }, // INCOMPATIBLE: text vs timestamp
+                      { column_name: 'updated_at', data_type: 'integer', is_nullable: 'NO' } // INCOMPATIBLE: integer vs timestamp
                     ],
                     error: null
                   }))
@@ -288,10 +296,16 @@ describe('SchemaValidationService', () => {
 
       const result = await service.validateSchema();
 
-      // The service is designed to be resilient and fall back to expected behavior
-      // when there are connection issues, so it should still validate successfully
-      expect(result.isValid).toBe(true);
+      // The service reports type mismatches as warnings, not errors (per design)
+      // Using truly incompatible types: integer vs uuid, boolean vs text, etc.
+      expect(result.warnings.length).toBeGreaterThan(0);
       expect(result.tables.length).toBeGreaterThan(0);
+      // Verify that type mismatch warnings are reported (not errors - by design)
+      const typeMismatchWarnings = result.warnings.filter(w => w.type === 'type_mismatch');
+      expect(typeMismatchWarnings.length).toBeGreaterThan(0);
+      // The service should still be valid since type mismatches are warnings, not errors
+      // However, it should be invalid if there are missing columns/tables (which the test setup has)
+      expect(result.errors.length).toBeGreaterThan(0);
     });
 
     it('should handle API errors gracefully', async () => {
