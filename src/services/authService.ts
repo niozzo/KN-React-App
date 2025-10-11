@@ -8,7 +8,6 @@
  */
 
 import { supabase } from '../lib/supabase'
-import { serverDataSyncService } from './serverDataSyncService'
 import type { Attendee, SanitizedAttendee } from '../types/attendee'
 import { sanitizeAttendeeForStorage } from '../types/attendee'
 
