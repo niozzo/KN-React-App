@@ -343,15 +343,10 @@ export class ErrorMonitoringService {
         break;
     }
   }
-}
 
-// Export singleton instance
-export const errorMonitoringService = new ErrorMonitoringService();
-
-// Global error handler
-if (typeof window !== 'undefined') {
-  window.addEventListener('error', (event) => {
-    errorMonitoringService.logError(
+  // Store handler references for cleanup
+  private handleGlobalError = (event: ErrorEvent) => {
+    this.logError(
       new Error(event.error?.message || 'Uncaught error'),
       {
         component: 'global',
@@ -361,10 +356,10 @@ if (typeof window !== 'undefined') {
       },
       'high'
     );
-  });
+  };
 
-  window.addEventListener('unhandledrejection', (event) => {
-    errorMonitoringService.logError(
+  private handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+    this.logError(
       new Error(event.reason?.message || 'Unhandled promise rejection'),
       {
         component: 'global',
@@ -374,5 +369,34 @@ if (typeof window !== 'undefined') {
       },
       'high'
     );
-  });
+  };
+
+  /**
+   * Initialize global error handlers
+   */
+  init(): void {
+    if (typeof window !== 'undefined') {
+      window.addEventListener('error', this.handleGlobalError);
+      window.addEventListener('unhandledrejection', this.handleUnhandledRejection);
+    }
+  }
+
+  /**
+   * Cleanup global error handlers
+   */
+  destroy(): void {
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('error', this.handleGlobalError);
+      window.removeEventListener('unhandledrejection', this.handleUnhandledRejection);
+      console.log('✅ ErrorMonitoringService: Cleaned up all resources');
+    }
+  }
+}
+
+// Export singleton instance
+export const errorMonitoringService = new ErrorMonitoringService();
+
+// Initialize global error handlers
+if (typeof window !== 'undefined') {
+  errorMonitoringService.init();
 }
