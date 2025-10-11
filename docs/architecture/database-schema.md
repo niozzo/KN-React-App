@@ -133,7 +133,7 @@ interface SeatAssignment {
 }
 ```
 
-### 5. dining_options (2 rows, 16 columns)
+### 5. dining_options (2 rows, 17 columns)
 **Dining venues and options**
 
 ```typescript
@@ -154,6 +154,7 @@ interface DiningOption {
   is_active: boolean
   display_order: number
   created_at: string
+  updated_at: string
 }
 ```
 

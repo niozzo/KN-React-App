@@ -96,12 +96,12 @@ export const DINING_SEATING_TYPES: {
   description: string 
 }[] = [
   { 
-    value: 'open-seating', 
+    value: 'open', 
     label: 'Open Seating',
     description: 'Guests can sit anywhere'
   },
   { 
-    value: 'assigned-seating', 
+    value: 'assigned', 
     label: 'Assigned Seating',
     description: 'Specific seat assignments managed in Seating Management'
   }
@@ -124,11 +124,11 @@ export const formatDiningDateForDisplay = (date: string): string => {
 }
 
 export const isDiningAssignedSeating = (seatingType: DiningSeatingType): boolean => {
-  return seatingType === 'assigned-seating'
+  return seatingType === 'assigned'
 }
 
 export const isDiningOptionActive = (diningOption: DiningOption): boolean => {
-  return diningOption.active
+  return diningOption.is_active
 }
 
 // API response types
@@ -170,8 +170,8 @@ export const createDiningOptionDisplay = (diningOption: DiningOption): DiningOpt
     formatted_date: formatDiningDateForDisplay(diningOption.date),
     formatted_time: formatDiningTimeForDisplay(diningOption.time),
     seating_description: seatingType?.description || '',
-    capacity_display: diningOption.maximum_capacity 
-      ? `${diningOption.maximum_capacity} attendees`
+    capacity_display: diningOption.capacity 
+      ? `${diningOption.capacity} attendees`
       : 'No capacity limit'
   }
 }
