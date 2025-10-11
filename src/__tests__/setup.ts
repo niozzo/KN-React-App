@@ -47,6 +47,28 @@ afterAll(async () => {
   // Cleanup after all tests
   vi.restoreAllMocks()
   
+  // Destroy service singletons to remove event listeners and intervals
+  try {
+    const { pwaDataSyncService } = await import('../services/pwaDataSyncService');
+    pwaDataSyncService.destroy();
+  } catch (e) {
+    // Service may not be loaded in all tests
+  }
+  
+  try {
+    const { errorMonitoringService } = await import('../services/errorMonitoringService');
+    errorMonitoringService.destroy();
+  } catch (e) {
+    // Service may not be loaded in all tests
+  }
+  
+  try {
+    const { monitoringService } = await import('../services/monitoringService');
+    monitoringService.destroy();
+  } catch (e) {
+    // Service may not be loaded in all tests
+  }
+  
   // Clear all timers to prevent hanging
   vi.clearAllTimers()
   
@@ -78,7 +100,7 @@ afterAll(async () => {
   await new Promise(resolve => setTimeout(resolve, 100))
   
   // Note: Removed process.exit() call as it causes Vitest errors
-  // Relying on other cleanup mechanisms to prevent hanging
+  // Resource leaks have been fixed in services, tests should exit cleanly now
 })
 
 // Mock PWA APIs

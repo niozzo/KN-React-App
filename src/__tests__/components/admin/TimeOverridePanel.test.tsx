@@ -260,7 +260,8 @@ describe('TimeOverridePanel - Basic Functionality', () => {
           'test-session-1',
           '10:00',
           '13:00',
-          true
+          true,
+          'Test Breakout Session'
         );
       });
     });
@@ -326,6 +327,10 @@ describe('TimeOverridePanel - Basic Functionality', () => {
       );
       
       render(<TimeOverridePanel {...defaultProps} />);
+      
+      // Wait for loading to complete
+      await waitForSaveButton();
+      
       const checkbox = screen.getByRole('checkbox', { name: /enable time override/i });
       fireEvent.click(checkbox);
 
@@ -398,6 +403,10 @@ describe('TimeOverridePanel - Basic Functionality', () => {
     it('should reset form to original values when reset button is clicked', async () => {
       // Arrange
       render(<TimeOverridePanel {...defaultProps} />);
+      
+      // Wait for loading to complete
+      await waitForSaveButton();
+      
       const checkbox = screen.getByRole('checkbox', { name: /enable time override/i });
       fireEvent.click(checkbox);
 

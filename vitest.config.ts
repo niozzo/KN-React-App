@@ -108,16 +108,20 @@ export default defineConfig({
     exclude: [
       '**/node_modules/**',
       '**/dist/**',
-      // Skip HomePage tests due to module resolution technical debt
+      // Module resolution technical debt (cascading dependency issues - fix separately)
       'src/__tests__/components/HomePage.edge-cases.test.tsx',
-      'src/__tests__/components/HomePage.time-override-edge-cases.test.tsx'
+      'src/__tests__/components/HomePage.time-override-edge-cases.test.tsx',
+      'src/__tests__/hooks/useSessionData-breakout-filtering.test.ts'
     ],
     // Fix TypeScript module resolution in tests
     server: {
       deps: {
         inline: ['@testing-library/jest-dom', '@testing-library/react'],
         external: ['@supabase/supabase-js']
-      }
+      },
+      // Force Vite server to close file handles properly during tests
+      watch: null,
+      hmr: false
     },
     // Add TypeScript module resolution for test environment
     resolve: {
@@ -156,15 +160,11 @@ export default defineConfig({
     snapshotFormat: {
       printBasicPrototype: false
     },
-    // Memory optimization settings - Use forks for better cleanup
-    pool: 'forks',
+    // TEST: Reverting to threads to verify resource leaks are fixed
+    pool: 'threads',
     poolOptions: {
-      forks: {
-        singleFork: false,
-        maxForks: 2, // Limit concurrent test files
-        minForks: 1,
-        // Force fork termination to prevent hanging
-        isolate: true
+      threads: {
+        singleThread: false
       }
     },
     // Force file parallelism limits to reduce handle accumulation

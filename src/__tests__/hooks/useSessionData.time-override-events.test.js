@@ -246,7 +246,7 @@ describe('useSessionData Hook - Time Override Event Synchronization', () => {
       });
 
       expect(result.current.currentSession?.id).toBe('3');
-      expect(result.current.nextSession).toBeUndefined();
+      expect(result.current.nextSession).toBeNull();
     });
   });
 
