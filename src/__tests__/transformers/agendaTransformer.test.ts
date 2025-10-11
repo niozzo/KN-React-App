@@ -49,7 +49,7 @@ describe('AgendaTransformer', () => {
         end_time: '10:00',
         location: 'Main Hall',
         session_type: 'keynote',
-        speaker_name: 'John Doe',
+        speaker: 'John Doe',
         capacity: 100,
         registered_count: 0,
         attendee_selection: 'everyone',

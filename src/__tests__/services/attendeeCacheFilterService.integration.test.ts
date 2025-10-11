@@ -119,7 +119,7 @@ describe('AttendeeCacheFilterService Integration', () => {
       expect(filtered.id).toBe(sampleAttendee.id);
       expect(filtered.first_name).toBe(sampleAttendee.first_name);
       expect(filtered.last_name).toBe(sampleAttendee.last_name);
-      expect(filtered.email).toBe(sampleAttendee.email);
+      expect(filtered.email).toBeUndefined(); // Email is confidential and correctly filtered
       expect(filtered.title).toBe(sampleAttendee.title);
       expect(filtered.company).toBe(sampleAttendee.company);
       expect(filtered.bio).toBe(sampleAttendee.bio);
