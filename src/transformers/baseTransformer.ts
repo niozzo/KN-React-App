@@ -12,7 +12,7 @@ import {
   TransformationErrorCode,
   ComputedField,
   ValidationRule
-} from '../types/transformation'
+} from '../types/transformation.ts'
 
 export interface SchemaVersion {
   version: string

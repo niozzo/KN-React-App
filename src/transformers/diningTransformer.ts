@@ -3,8 +3,8 @@
  * Story 1.7: Data Transformation Layer for Schema Evolution
  */
 
-import { BaseTransformer, SchemaVersion } from './baseTransformer'
-import { FieldMapping, ComputedField, ValidationRule } from '../types/transformation'
+import { BaseTransformer, SchemaVersion } from './baseTransformer.ts'
+import { FieldMapping, ComputedField, ValidationRule } from '../types/transformation.ts'
 import type { DiningOption } from '../types/dining'
 
 export class DiningTransformer extends BaseTransformer<DiningOption> {

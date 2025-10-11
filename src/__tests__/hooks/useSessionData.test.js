@@ -148,7 +148,10 @@ describe('useSessionData Hook', () => {
       value: {
         getItem: vi.fn((key) => mockStorage[key] || null),
         setItem: vi.fn((key, value) => { mockStorage[key] = value; }),
-        removeItem: vi.fn((key) => { delete mockStorage[key]; })
+        removeItem: vi.fn((key) => { delete mockStorage[key]; }),
+        clear: vi.fn(() => { 
+          Object.keys(mockStorage).forEach(key => delete mockStorage[key]); 
+        })
       },
       writable: true
     });
@@ -162,6 +165,34 @@ describe('useSessionData Hook', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    
+    // Force cleanup of any remaining intervals and timers
+    vi.clearAllTimers();
+    
+    // Remove all known event listeners to prevent leaks
+    const events = [
+      'online', 'offline', 'pwa-status-change',
+      'attendee-data-updated', 'storage',
+      'timeOverrideChanged', 'timeOverrideBoundaryCrossed',
+      'diningMetadataUpdated', 'agendaMetadataUpdated'
+    ];
+    
+    // Clear each event type
+    events.forEach(event => {
+      // Create a dummy handler to match the signature
+      const dummyHandler = () => {};
+      try {
+        window.removeEventListener(event, dummyHandler);
+      } catch (e) {
+        // Ignore errors if listener doesn't exist
+      }
+    });
+    
+    // Clear localStorage to prevent cache pollution between tests
+    localStorage.clear();
+    
+    // Clear sessionStorage as well
+    sessionStorage.clear();
   });
 
   describe('Data Loading', () => {

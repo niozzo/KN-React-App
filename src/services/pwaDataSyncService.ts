@@ -798,7 +798,8 @@ export class PWADataSyncService extends BaseService {
       
       // Apply comprehensive confidential data filtering for attendees
       let sanitizedData = data;
-      if (tableName === 'attendees') {
+      // QA FIX: Handle both 'attendees' (plural) and 'attendee' (singular) table names
+      if (tableName === 'attendees' || tableName === 'attendee') {
         // Use AttendeeCacheFilterService for comprehensive filtering
         const { AttendeeCacheFilterService } = await import('./attendeeCacheFilterService');
         sanitizedData = await AttendeeCacheFilterService.filterAttendeesArray(data);
