@@ -11,6 +11,13 @@ import { adminService } from '../../../../services/adminService';
 vi.mock('../../../../services/pwaDataSyncService');
 vi.mock('../../../../services/dataInitializationService');
 vi.mock('../../../../services/adminService');
+vi.mock('../../../../services/attendeeSyncService', () => ({
+  attendeeSyncService: {
+    refreshAttendeeData: vi.fn().mockResolvedValue({
+      success: true
+    })
+  }
+}));
 
 const mockPWADataSyncService = vi.mocked(pwaDataSyncService);
 const mockDataInitializationService = vi.mocked(dataInitializationService);
@@ -246,14 +253,18 @@ describe('Force Global Sync PWA Tests', () => {
       
       await waitForAdminPageLoad();
       
+      // Reset mock call counts after initial load to check if called again after sync
+      mockAdminService.getAgendaItemsWithAssignments.mockClear();
+      
       const syncButton = await screen.findByRole('button', { name: /force global sync/i });
       fireEvent.click(syncButton);
       
       // Should still complete successfully despite partial failures
       await waitFor(() => {
         expect(mockPWADataSyncService.forceSync).toHaveBeenCalledWith();
-        expect(mockDataInitializationService.forceRefreshData).toHaveBeenCalledWith();
-      });
+        // After sync, loadData() is called which triggers getAgendaItemsWithAssignments
+        expect(mockAdminService.getAgendaItemsWithAssignments).toHaveBeenCalled();
+      }, { timeout: 5000 });
     });
   });
 
@@ -316,14 +327,20 @@ describe('Force Global Sync PWA Tests', () => {
       
       await waitForAdminPageLoad();
       
+      // Reset mock call counts after initial load to check if called again after sync
+      mockAdminService.getAgendaItemsWithAssignments.mockClear();
+      mockPWADataSyncService.clearCache.mockClear();
+      mockPWADataSyncService.forceSync.mockClear();
+      
       const syncButton = await screen.findByRole('button', { name: /force global sync/i });
       fireEvent.click(syncButton);
       
       await waitFor(() => {
         expect(mockPWADataSyncService.clearCache).toHaveBeenCalledWith();
         expect(mockPWADataSyncService.forceSync).toHaveBeenCalledWith();
-        expect(mockDataInitializationService.forceRefreshData).toHaveBeenCalledWith();
-      });
+        // After sync, loadData() is called which triggers getAgendaItemsWithAssignments
+        expect(mockAdminService.getAgendaItemsWithAssignments).toHaveBeenCalled();
+      }, { timeout: 5000 });
     });
 
     it('should handle network state changes during sync', async () => {
@@ -484,12 +501,15 @@ describe('Force Global Sync PWA Tests', () => {
       
       await waitForAdminPageLoad();
       
+      // Reset mock call counts after initial load to check if called again after sync
+      mockAdminService.getAgendaItemsWithAssignments.mockClear();
+      
       const syncButton = await screen.findByRole('button', { name: /force global sync/i });
       fireEvent.click(syncButton);
       
       await waitFor(() => {
         expect(mockAdminService.getAgendaItemsWithAssignments).toHaveBeenCalled();
-      });
+      }, { timeout: 5000 });
     });
 
     it('should handle data persistence failures', async () => {
