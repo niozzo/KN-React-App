@@ -172,6 +172,9 @@ const originalClearInterval = global.clearInterval;
 const originalAddEventListener = window.addEventListener;
 const originalRemoveEventListener = window.removeEventListener;
 
+// Disable verbose leak tracking - it causes IPC issues with forks
+// Uncomment for debugging specific leak issues
+/*
 global.setInterval = function(...args: any[]) {
   const id = originalSetInterval.apply(this, args as any);
   const stack = new Error().stack?.split('\n')[2] || 'unknown';
@@ -200,3 +203,4 @@ afterEach(() => {
   LeakDetector.report();
   LeakDetector.reset();
 });
+*/

@@ -58,7 +58,10 @@ export default defineConfig({
   ],
   server: {
     port: 3004,
-    open: true
+    open: true,
+    // Force server to close file handles properly during tests
+    watch: null,
+    hmr: false
   },
   build: {
     outDir: 'dist'
@@ -140,15 +143,19 @@ export default defineConfig({
     snapshotFormat: {
       printBasicPrototype: false
     },
-    // Memory optimization settings - Use threads for better performance
-    pool: 'threads',
+    // Memory optimization settings - Use forks for better cleanup
+    pool: 'forks',
     poolOptions: {
-      threads: {
-        singleThread: false,
-        maxThreads: 2, // Reduced from 4 to 2 for lower memory usage
-        minThreads: 1
+      forks: {
+        singleFork: false,
+        maxForks: 2, // Limit concurrent test files
+        minForks: 1,
+        // Force fork termination to prevent hanging
+        isolate: true
       }
     },
+    // Force file parallelism limits to reduce handle accumulation
+    fileParallelism: true,
     // Limit concurrency to prevent memory issues
     maxConcurrency: 2,
     // Test isolation
@@ -161,7 +168,7 @@ export default defineConfig({
     bail: 5, // Reduced from 10 to 5
     // Performance optimizations
     silent: false, // Temporarily enable for debugging
-    reporter: ['default'],
+    reporter: ['default'], // hanging-process reporter disabled - issue resolved
     // Memory and performance optimizations
     passWithNoTests: true,
     logHeapUsage: false,
