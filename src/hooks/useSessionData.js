@@ -5,13 +5,13 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { agendaService } from '../services/agendaService.ts';
-import { getCurrentAttendeeData, getAttendeeSeatAssignments, getAllDiningOptions } from '../services/dataService.ts';
+import { agendaService } from '../services/agendaService';
+import { getCurrentAttendeeData, getAttendeeSeatAssignments, getAllDiningOptions } from '../services/dataService';
 import TimeService from '../services/timeService';
 import { useAuth } from '../contexts/AuthContext';
-import { cacheMonitoringService } from '../services/cacheMonitoringService.ts';
-import { pwaDataSyncService } from '../services/pwaDataSyncService.ts';
-import { breakoutMappingService } from '../services/breakoutMappingService.ts';
+import { cacheMonitoringService } from '../services/cacheMonitoringService';
+import { pwaDataSyncService } from '../services/pwaDataSyncService';
+import { breakoutMappingService } from '../services/breakoutMappingService';
 
 /**
  * Determine if a session is currently active

@@ -33,6 +33,21 @@ vi.mock('../../services/pwaDataSyncService', () => ({
   }
 }));
 
+// Mock authService to prevent import errors
+vi.mock('../../services/authService', () => ({
+  isUserAuthenticated: vi.fn(() => true),
+  getCurrentAttendee: vi.fn(() => null)
+}));
+
+// Mock dataService to prevent import errors
+vi.mock('../../services/dataService', () => ({
+  dataService: {
+    getAgendaItems: vi.fn(() => Promise.resolve([])),
+    getDiningOptions: vi.fn(() => Promise.resolve([])),
+    getAttendees: vi.fn(() => Promise.resolve([]))
+  }
+}));
+
 // Mock applicationDatabaseService to prevent import errors
 vi.mock('../../services/applicationDatabaseService', () => ({
   applicationDatabaseService: {
@@ -48,6 +63,20 @@ vi.mock('../../services/applicationDatabaseService', () => ({
           single: vi.fn()
         }))
       }))
+    }))
+  }
+}));
+
+// Mock Supabase client to prevent import errors
+vi.mock('@supabase/supabase-js', () => ({
+  createClient: vi.fn()
+}));
+
+// Mock supabase lib instance
+vi.mock('../../lib/supabase', () => ({
+  supabase: {
+    from: vi.fn(() => ({
+      select: vi.fn(() => Promise.resolve({ data: [], error: null }))
     }))
   }
 }));

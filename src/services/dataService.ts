@@ -23,9 +23,12 @@ import type { Hotel } from '../types/hotel'
  * Base error class for data service errors
  */
 class DataServiceError extends Error {
-  constructor(message: string, public code?: string) {
+  public code?: string;
+  
+  constructor(message: string, code?: string) {
     super(message)
     this.name = 'DataServiceError'
+    this.code = code;
   }
 }
 

@@ -89,7 +89,7 @@ export default defineConfig({
     fullySpecified: false
   },
   esbuild: {
-    target: 'es2020',
+    target: 'esnext',
     // Enable TypeScript parameter properties
     tsconfigRaw: {
       compilerOptions: {
@@ -121,7 +121,13 @@ export default defineConfig({
         '@/hooks': '/Users/nickiozzo/Documents/GitHub/KN-React-App/src/hooks',
         '@/contexts': '/Users/nickiozzo/Documents/GitHub/KN-React-App/src/contexts'
       },
-      extensions: ['.ts', '.tsx', '.js', '.jsx'],
+      extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
+      // Enable automatic TypeScript file resolution
+      extensionAlias: {
+        '.js': ['.js', '.ts', '.tsx', '.jsx'],
+        '.ts': ['.ts', '.tsx'],
+        '.jsx': ['.jsx', '.tsx']
+      },
       conditions: ['import', 'module', 'browser', 'default'],
       mainFields: ['module', 'jsnext:main', 'jsnext', 'main'],
       preserveSymlinks: false,
@@ -137,7 +143,7 @@ export default defineConfig({
     },
     // Enable TypeScript compilation for tests
     esbuild: {
-      target: 'es2020'
+      target: 'esnext'
     },
     // Snapshot configuration
     snapshotFormat: {

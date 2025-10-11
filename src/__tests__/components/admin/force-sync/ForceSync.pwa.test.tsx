@@ -16,11 +16,24 @@ const mockPWADataSyncService = vi.mocked(pwaDataSyncService);
 const mockDataInitializationService = vi.mocked(dataInitializationService);
 const mockAdminService = vi.mocked(adminService);
 
+// Helper to wait for AdminPage to finish loading
+async function waitForAdminPageLoad() {
+  await waitFor(() => {
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+  }, { timeout: 3000 });
+}
+
 describe('Force Global Sync PWA Tests', () => {
   const mockOnLogout = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
+    
+    // FIX: Mock adminService methods to resolve loading state
+    // These methods are called by AdminPage's loadData() function
+    mockAdminService.getAgendaItemsWithAssignments.mockResolvedValue([]);
+    mockAdminService.getDiningOptionsWithMetadata.mockResolvedValue([]);
+    mockAdminService.getAvailableAttendees.mockResolvedValue([]);
     
     // Mock localStorage
     Object.defineProperty(window, 'localStorage', {
@@ -73,7 +86,9 @@ describe('Force Global Sync PWA Tests', () => {
         </BrowserRouter>
       );
       
-      const syncButton = screen.getByRole('button', { name: /force global sync/i });
+      await waitForAdminPageLoad();
+      
+      const syncButton = await screen.findByRole('button', { name: /force global sync/i });
       fireEvent.click(syncButton);
       
       await waitFor(() => {
@@ -90,7 +105,9 @@ describe('Force Global Sync PWA Tests', () => {
         </BrowserRouter>
       );
       
-      const syncButton = screen.getByRole('button', { name: /force global sync/i });
+      await waitForAdminPageLoad();
+      
+      const syncButton = await screen.findByRole('button', { name: /force global sync/i });
       fireEvent.click(syncButton);
       
       await waitFor(() => {
@@ -132,7 +149,9 @@ describe('Force Global Sync PWA Tests', () => {
         </BrowserRouter>
       );
       
-      const syncButton = screen.getByRole('button', { name: /force global sync/i });
+      await waitForAdminPageLoad();
+      
+      const syncButton = await screen.findByRole('button', { name: /force global sync/i });
       fireEvent.click(syncButton);
       
       await waitFor(() => {
@@ -171,7 +190,9 @@ describe('Force Global Sync PWA Tests', () => {
         </BrowserRouter>
       );
       
-      const syncButton = screen.getByRole('button', { name: /force global sync/i });
+      await waitForAdminPageLoad();
+      
+      const syncButton = await screen.findByRole('button', { name: /force global sync/i });
       fireEvent.click(syncButton);
       
       await waitFor(() => {
@@ -189,7 +210,9 @@ describe('Force Global Sync PWA Tests', () => {
         </BrowserRouter>
       );
       
-      const syncButton = screen.getByRole('button', { name: /force global sync/i });
+      await waitForAdminPageLoad();
+      
+      const syncButton = await screen.findByRole('button', { name: /force global sync/i });
       fireEvent.click(syncButton);
       
       await waitFor(() => {
@@ -221,7 +244,9 @@ describe('Force Global Sync PWA Tests', () => {
         </BrowserRouter>
       );
       
-      const syncButton = screen.getByRole('button', { name: /force global sync/i });
+      await waitForAdminPageLoad();
+      
+      const syncButton = await screen.findByRole('button', { name: /force global sync/i });
       fireEvent.click(syncButton);
       
       // Should still complete successfully despite partial failures
@@ -249,7 +274,9 @@ describe('Force Global Sync PWA Tests', () => {
         </BrowserRouter>
       );
       
-      const syncButton = screen.getByRole('button', { name: /force global sync/i });
+      await waitForAdminPageLoad();
+      
+      const syncButton = await screen.findByRole('button', { name: /force global sync/i });
       fireEvent.click(syncButton);
       
       await waitFor(() => {
@@ -287,7 +314,9 @@ describe('Force Global Sync PWA Tests', () => {
         </BrowserRouter>
       );
       
-      const syncButton = screen.getByRole('button', { name: /force global sync/i });
+      await waitForAdminPageLoad();
+      
+      const syncButton = await screen.findByRole('button', { name: /force global sync/i });
       fireEvent.click(syncButton);
       
       await waitFor(() => {
@@ -320,7 +349,9 @@ describe('Force Global Sync PWA Tests', () => {
         </BrowserRouter>
       );
       
-      const syncButton = screen.getByRole('button', { name: /force global sync/i });
+      await waitForAdminPageLoad();
+      
+      const syncButton = await screen.findByRole('button', { name: /force global sync/i });
       fireEvent.click(syncButton);
       
       await waitFor(() => {
@@ -376,7 +407,9 @@ describe('Force Global Sync PWA Tests', () => {
         </BrowserRouter>
       );
       
-      const syncButton = screen.getByRole('button', { name: /force global sync/i });
+      await waitForAdminPageLoad();
+      
+      const syncButton = await screen.findByRole('button', { name: /force global sync/i });
       fireEvent.click(syncButton);
       
       await waitFor(() => {
@@ -387,8 +420,12 @@ describe('Force Global Sync PWA Tests', () => {
     });
 
     it('should handle service worker failures gracefully', async () => {
+      const rejectedPromise = Promise.reject(new Error('Service worker not available'));
+      // Suppress unhandled rejection warning
+      rejectedPromise.catch(() => {});
+      
       const mockServiceWorker = {
-        ready: Promise.reject(new Error('Service worker not available')),
+        ready: rejectedPromise,
       };
       
       Object.defineProperty(navigator, 'serviceWorker', {
@@ -404,7 +441,9 @@ describe('Force Global Sync PWA Tests', () => {
         </BrowserRouter>
       );
       
-      const syncButton = screen.getByRole('button', { name: /force global sync/i });
+      await waitForAdminPageLoad();
+      
+      const syncButton = await screen.findByRole('button', { name: /force global sync/i });
       fireEvent.click(syncButton);
       
       await waitFor(() => {
@@ -443,7 +482,9 @@ describe('Force Global Sync PWA Tests', () => {
         </BrowserRouter>
       );
       
-      const syncButton = screen.getByRole('button', { name: /force global sync/i });
+      await waitForAdminPageLoad();
+      
+      const syncButton = await screen.findByRole('button', { name: /force global sync/i });
       fireEvent.click(syncButton);
       
       await waitFor(() => {
@@ -473,7 +514,9 @@ describe('Force Global Sync PWA Tests', () => {
         </BrowserRouter>
       );
       
-      const syncButton = screen.getByRole('button', { name: /force global sync/i });
+      await waitForAdminPageLoad();
+      
+      const syncButton = await screen.findByRole('button', { name: /force global sync/i });
       fireEvent.click(syncButton);
       
       await waitFor(() => {
