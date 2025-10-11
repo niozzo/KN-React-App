@@ -16,11 +16,29 @@ const mockPWADataSyncService = vi.mocked(pwaDataSyncService);
 const mockDataInitializationService = vi.mocked(dataInitializationService);
 const mockAdminService = vi.mocked(adminService);
 
+// Helper to wait for AdminPage to finish loading
+async function waitForAdminPageLoad() {
+  await waitFor(() => {
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+  }, { timeout: 3000 });
+}
+
 describe('Force Global Sync Integration Tests', () => {
   const mockOnLogout = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
+    
+    // FIX: Mock dataInitializationService.ensureDataLoaded - called by AdminPage.loadData()
+    mockDataInitializationService.ensureDataLoaded.mockResolvedValue({
+      success: true,
+      hasData: true
+    });
+    
+    // FIX: Mock adminService methods to resolve loading state
+    mockAdminService.getAgendaItemsWithAssignments.mockResolvedValue([]);
+    mockAdminService.getDiningOptionsWithMetadata.mockResolvedValue([]);
+    mockAdminService.getAvailableAttendees.mockResolvedValue([]);
   });
 
   afterEach(() => {
@@ -36,6 +54,12 @@ describe('Force Global Sync Integration Tests', () => {
         syncedTables: ['attendees', 'agenda_items', 'sponsors', 'dining_options'],
         totalRecords: 200,
         errors: []
+      });
+      
+      // CRITICAL: These mocks are needed for AdminPage.loadData() to succeed
+      mockDataInitializationService.ensureDataLoaded.mockResolvedValue({
+        success: true,
+        hasData: true
       });
       
       mockDataInitializationService.forceRefreshData.mockResolvedValue({
@@ -62,7 +86,9 @@ describe('Force Global Sync Integration Tests', () => {
         </BrowserRouter>
       );
       
-      const syncButton = screen.getByRole('button', { name: /force global sync/i });
+      await waitForAdminPageLoad(); // Wait for loading to complete
+      
+      const syncButton = await screen.findByRole('button', { name: /force global sync/i });
       fireEvent.click(syncButton);
       
       // Verify all services are called in correct order
