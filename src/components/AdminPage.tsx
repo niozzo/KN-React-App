@@ -19,6 +19,7 @@ import {
 import { ArrowBack as ArrowBackIcon, Save as SaveIcon, Home as HomeIcon, Dashboard as DashboardIcon, AccessTime as AccessTimeIcon, Sync as SyncIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { SpeakerAssignmentComponent } from './SpeakerAssignment';
+import { adminService } from '../services/adminService';
 import { SpeakerAssignment } from '../services/applicationDatabaseService';
 import { dataInitializationService } from '../services/dataInitializationService';
 import { pwaDataSyncService } from '../services/pwaDataSyncService';
@@ -80,7 +81,6 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onLogout }) => {
 
       // Step 2: Load agenda items with assignments
       console.log('📋 Loading agenda items...');
-      const { adminService } = await import('../services/adminService');
       const itemsWithAssignments = await adminService.getAgendaItemsWithAssignments();
       setAgendaItems(itemsWithAssignments);
 
@@ -151,7 +151,6 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onLogout }) => {
     }
 
     // Validate title is not empty
-    const { adminService } = await import('../services/adminService');
     if (!adminService.validateTitle(titleValue)) {
       setError('Title cannot be empty');
       return;
@@ -191,7 +190,6 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onLogout }) => {
     }
 
     // Validate title is not empty
-    const { adminService } = await import('../services/adminService');
     if (!adminService.validateTitle(diningTitleValue)) {
       setError('Title cannot be empty');
       return;
