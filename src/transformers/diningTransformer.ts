@@ -21,7 +21,7 @@ export class DiningTransformer extends BaseTransformer<DiningOption> {
       { source: 'is_active', target: 'is_active', type: 'boolean', defaultValue: true },
       { source: 'display_order', target: 'display_order', type: 'number', defaultValue: 0 },
       { source: 'created_at', target: 'created_at', type: 'date' },
-      { source: 'date', target: 'date', type: 'date' },
+      { source: 'date', target: 'date', type: 'string' },
       { source: 'time', target: 'time', type: 'string' }
     ]
 
