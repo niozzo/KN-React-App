@@ -59,6 +59,9 @@ export class PWADataSyncService extends BaseService {
     syncInProgress: false
   };
 
+  private isSyncInProgress = false;
+  private syncLockTimeout: NodeJS.Timeout | null = null;
+
   private schemaValidator: any | null = null;
   
   // Circuit breaker for service worker caching failures
@@ -351,14 +354,17 @@ export class PWADataSyncService extends BaseService {
    */
   private setupEventListeners(): void {
     window.addEventListener('online', () => {
+      console.log('🔍 DIAGNOSTIC: Online event triggered');
       this.setOnlineStatus(true);
       this.startPeriodicSync();
       if (this.isUserAuthenticated()) {
+        console.log('🔍 DIAGNOSTIC: Starting syncAllData due to online event');
         this.syncAllData();
       }
     });
 
     window.addEventListener('offline', () => {
+      console.log('🔍 DIAGNOSTIC: Offline event triggered');
       this.setOnlineStatus(false);
       this.stopPeriodicSync();
     });
@@ -366,6 +372,13 @@ export class PWADataSyncService extends BaseService {
     // Sync when page becomes visible (only if authenticated)
     document.addEventListener('visibilitychange', () => {
       const willSync = !document.hidden && this.syncStatus.isOnline && this.isUserAuthenticated();
+      
+      console.log('🔍 DIAGNOSTIC: Visibility changed', {
+        hidden: document.hidden,
+        isOnline: this.syncStatus.isOnline,
+        isAuthenticated: this.isUserAuthenticated(),
+        willSync
+      });
       
       // Log visibility change with sync decision
       
@@ -376,6 +389,7 @@ export class PWADataSyncService extends BaseService {
       });
       
       if (willSync) {
+        console.log('🔍 DIAGNOSTIC: Starting syncAllData due to visibility change');
         this.syncAllData();
       }
     });
@@ -449,7 +463,9 @@ export class PWADataSyncService extends BaseService {
   async syncAllData(): Promise<SyncResult> {
     const sessionId = cacheMonitoringService.getSessionId();
     
-    if (this.syncStatus.syncInProgress) {
+    // Check if sync is already in progress
+    if (this.isSyncInProgress) {
+      console.log('🔍 SYNC: Sync already in progress, skipping duplicate request');
       cacheMonitoringService.logSyncFailure('syncAllData', 'Sync already in progress', { sessionId });
       return {
         success: false,
@@ -458,6 +474,15 @@ export class PWADataSyncService extends BaseService {
         conflicts: []
       };
     }
+    
+    // Set lock
+    this.isSyncInProgress = true;
+    
+    // Set timeout to release lock if sync takes too long (2 minutes)
+    this.syncLockTimeout = setTimeout(() => {
+      console.warn('⚠️ SYNC: Sync operation timed out, releasing lock');
+      this.isSyncInProgress = false;
+    }, 120000);
 
     // Validate cache health before syncing
     if (!this.validateCacheHealth()) {
@@ -561,6 +586,12 @@ export class PWADataSyncService extends BaseService {
       result.errors.push(error instanceof Error ? error.message : 'Unknown error');
       cacheMonitoringService.logSyncFailure('syncAllData', error.message, { sessionId, error });
     } finally {
+      // Always release lock
+      this.isSyncInProgress = false;
+      if (this.syncLockTimeout) {
+        clearTimeout(this.syncLockTimeout);
+        this.syncLockTimeout = null;
+      }
       this.syncStatus.syncInProgress = false;
       this.saveSyncStatus();
     }
@@ -591,6 +622,13 @@ export class PWADataSyncService extends BaseService {
 
       let records = data || [];
 
+      // ✅ FIX: Add defensive check for data before processing
+      if (!records || !Array.isArray(records)) {
+        console.error(`🔍 DIAGNOSTIC: ❌ Invalid data from Supabase for ${tableName}:`, records);
+        console.error(`🔍 DIAGNOSTIC: ❌ Data type: ${typeof records}, isArray: ${Array.isArray(records)}`);
+        throw new Error(`Invalid data received from Supabase for ${tableName}: ${typeof records}`);
+      }
+
       // Apply data transformation for specific tables
       if (tableName === 'agenda_items') {
         try {
@@ -605,6 +643,12 @@ export class PWADataSyncService extends BaseService {
           console.warn(`⚠️ Failed to transform agenda_items:`, transformError);
           // Continue with raw data if transformation fails
         }
+      }
+
+      // ✅ FIX: Validate records before caching
+      if (!records || !Array.isArray(records)) {
+        console.error(`🔍 DIAGNOSTIC: ❌ Records became invalid after processing for ${tableName}:`, records);
+        throw new Error(`Records became invalid after processing for ${tableName}: ${typeof records}`);
       }
 
       // Cache the data
@@ -670,6 +714,14 @@ export class PWADataSyncService extends BaseService {
       } else {
       }
 
+      // ✅ FIX: Add defensive check for data before processing
+      if (!data || !Array.isArray(data)) {
+        console.error(`🔍 DIAGNOSTIC: ❌ Invalid data from application database for ${tableName}:`, data);
+        console.error(`🔍 DIAGNOSTIC: ❌ Data type: ${typeof data}, isArray: ${Array.isArray(data)}`);
+        this.recordApplicationDbFailure();
+        throw new Error(`Invalid data received from application database for ${tableName}: ${typeof data}`);
+      }
+
       // Validate data before caching to prevent overwriting user changes
       if (data && data.length > 0) {
         
@@ -684,6 +736,13 @@ export class PWADataSyncService extends BaseService {
         
         if (validRecords.length !== data.length) {
           console.warn(`⚠️ PWA Data Sync: Filtered out ${data.length - validRecords.length} invalid records for ${tableName}`);
+        }
+        
+        // ✅ FIX: Validate records before caching
+        if (!validRecords || !Array.isArray(validRecords)) {
+          console.error(`🔍 DIAGNOSTIC: ❌ ValidRecords became invalid for ${tableName}:`, validRecords);
+          this.recordApplicationDbFailure();
+          throw new Error(`ValidRecords became invalid for ${tableName}: ${typeof validRecords}`);
         }
         
         // Cache the validated data
@@ -721,13 +780,35 @@ export class PWADataSyncService extends BaseService {
     try {
       const cacheKey = `${this.CACHE_PREFIX}${tableName}`;
       
+      // 🔍 DIAGNOSTIC: Track cache write timing
+      const cacheWriteTimestamp = Date.now();
+      console.log('🔍 DIAGNOSTIC: Writing to cache:', {
+        table: tableName,
+        recordCount: data?.length || 0,
+        timestamp: cacheWriteTimestamp,
+        timestampISO: new Date(cacheWriteTimestamp).toISOString()
+      });
+      
+      // ✅ FIX: Add defensive check for undefined data
+      if (!data || !Array.isArray(data)) {
+        console.error(`🔍 DIAGNOSTIC: ❌ Invalid data for cache - table: ${tableName}, data:`, data);
+        console.error(`🔍 DIAGNOSTIC: ❌ Data type: ${typeof data}, isArray: ${Array.isArray(data)}`);
+        throw new Error(`Invalid data provided for caching ${tableName}: ${typeof data}`);
+      }
+      
       // Apply comprehensive confidential data filtering for attendees
       let sanitizedData = data;
       if (tableName === 'attendees') {
         // Use AttendeeCacheFilterService for comprehensive filtering
         const { AttendeeCacheFilterService } = await import('./attendeeCacheFilterService');
-        sanitizedData = AttendeeCacheFilterService.filterAttendeesArray(data);
+        sanitizedData = await AttendeeCacheFilterService.filterAttendeesArray(data);
         console.log(`🔒 Filtered ${data.length} attendee records for cache storage`);
+        
+        // ✅ FIX: Validate filtered data
+        if (!sanitizedData || !Array.isArray(sanitizedData)) {
+          console.error(`🔍 DIAGNOSTIC: ❌ AttendeeCacheFilterService returned invalid data:`, sanitizedData);
+          throw new Error(`AttendeeCacheFilterService returned invalid data for ${tableName}`);
+        }
       }
       
       // ✅ NEW: Use cache versioning service for proper cache entry creation with environment-aware TTL
@@ -738,20 +819,27 @@ export class PWADataSyncService extends BaseService {
 
       localStorage.setItem(cacheKey, JSON.stringify(cacheEntry));
       
+      console.log('🔍 DIAGNOSTIC: LocalStorage write successful for', tableName);
+      
       // Update cache size tracking
       this.updateCacheSize();
       
       // Also cache in service worker for faster access (with sanitized data)
       // This is optional - if it fails, the main localStorage cache still works
       try {
+        console.log('🔍 DIAGNOSTIC: Attempting service worker cache for', tableName);
         await this.cacheInServiceWorker(tableName, sanitizedData);
+        console.log('🔍 DIAGNOSTIC: Service worker cache successful for', tableName);
       } catch (serviceWorkerError) {
+        console.error('🔍 DIAGNOSTIC: Service worker cache FAILED for', tableName);
+        console.error('🔍 DIAGNOSTIC: SW Error details:', serviceWorkerError);
+        console.error('🔍 DIAGNOSTIC: Time after localStorage write:', Date.now() - cacheWriteTimestamp, 'ms');
         // Don't throw - service worker caching is optional
         console.warn(`⚠️ Service worker caching failed for ${tableName}, but localStorage cache succeeded:`, serviceWorkerError);
       }
       
     } catch (error) {
-      console.error(`❌ Failed to cache ${tableName}:`, error);
+      console.error(`🔍 DIAGNOSTIC: ❌ Failed to cache ${tableName}:`, error);
       throw error;
     }
   }
@@ -812,6 +900,14 @@ export class PWADataSyncService extends BaseService {
       return;
     }
 
+    // ✅ FIX: Add defensive check for undefined data before service worker operations
+    if (!data || !Array.isArray(data)) {
+      console.error(`🔍 DIAGNOSTIC: ❌ Invalid data for service worker cache - table: ${tableName}, data:`, data);
+      console.error(`🔍 DIAGNOSTIC: ❌ Data type: ${typeof data}, isArray: ${Array.isArray(data)}`);
+      this.recordServiceWorkerFailure();
+      return;
+    }
+
     try {
       if ('serviceWorker' in navigator && navigator.serviceWorker.ready) {
         const registration = await navigator.serviceWorker.ready;
@@ -821,6 +917,30 @@ export class PWADataSyncService extends BaseService {
                              this.tableMappings.main[tableName as MainTableName];
         
         if (supabaseTable && registration.active) {
+          // 🔍 DIAGNOSTIC: Check for Promises in data before posting
+          console.log('🔍 DIAGNOSTIC: Caching to SW - table:', tableName, 'records:', data.length)
+          
+          const hasPromises = data.some(item => {
+            if (!item) return false;
+            return Object.values(item).some(value => value instanceof Promise);
+          });
+          
+          if (hasPromises) {
+            console.error('🔍 DIAGNOSTIC: ❌ FOUND PROMISES IN DATA - This will cause DataCloneError!');
+            console.error('🔍 DIAGNOSTIC: Table:', tableName);
+            console.error('🔍 DIAGNOSTIC: Sample record with Promise:', 
+              data.find(item => Object.values(item).some(v => v instanceof Promise))
+            );
+          }
+          
+          // 🔍 DIAGNOSTIC: Try to serialize and catch specific error
+          try {
+            const testSerialize = JSON.stringify(data);
+            console.log('🔍 DIAGNOSTIC: Data is JSON-serializable, size:', testSerialize.length);
+          } catch (serializeError) {
+            console.error('🔍 DIAGNOSTIC: ❌ Data cannot be JSON-serialized:', serializeError);
+          }
+          
           // Create a cache key for the Supabase table
           const cacheKey = `supabase_${supabaseTable}`;
           registration.active.postMessage({
@@ -838,7 +958,10 @@ export class PWADataSyncService extends BaseService {
         this.recordServiceWorkerFailure();
       }
     } catch (error) {
-      console.warn('⚠️ Failed to cache data in service worker:', error);
+      console.error('🔍 DIAGNOSTIC: Service worker cache failed:', error);
+      console.error('🔍 DIAGNOSTIC: Error name:', error.name);
+      console.error('🔍 DIAGNOSTIC: Error message:', error.message);
+      console.error('🔍 DIAGNOSTIC: Table:', tableName);
       this.recordServiceWorkerFailure();
     }
   }

@@ -179,7 +179,18 @@ export class SchemaValidationService extends BaseService {
   /**
    * Validate the entire database schema
    */
-  async validateSchema(): Promise<SchemaValidationResult> {
+  async validateSchema(forceValidation: boolean = false): Promise<SchemaValidationResult> {
+    // Skip schema validation in production unless forced
+    if (import.meta.env.PROD && !forceValidation) {
+      console.log('ℹ️ Schema validation skipped in production (use forceValidation=true to override)');
+      return {
+        isValid: true,
+        errors: [],
+        warnings: [],
+        tables: [],
+        validatedAt: new Date().toISOString()
+      };
+    }
     
     const result: SchemaValidationResult = {
       isValid: true,

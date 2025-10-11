@@ -10,27 +10,40 @@ import type { DiningOption } from '../types/dining'
 export class DiningTransformer extends BaseTransformer<DiningOption> {
   constructor() {
     const fieldMappings: FieldMapping[] = [
+      // Primary fields
       { source: 'id', target: 'id', type: 'string', required: true },
+      { source: 'created_at', target: 'created_at', type: 'date' },
+      { source: 'updated_at', target: 'updated_at', type: 'date' },
+      
+      // Event details
       { source: 'name', target: 'name', type: 'string', required: true },
-      { source: 'description', target: 'description', type: 'string', defaultValue: '' },
-      { source: 'type', target: 'type', type: 'string', defaultValue: 'lunch' },
+      { source: 'date', target: 'date', type: 'string' },
+      { source: 'time', target: 'time', type: 'string' },
+      { source: 'location', target: 'location', type: 'string', defaultValue: '' },
+      { source: 'address', target: 'address', type: 'string', defaultValue: '' },
+      { source: 'address_validated', target: 'address_validated', type: 'boolean', defaultValue: false },
+      
+      // Capacity and seating
       { source: 'capacity', target: 'capacity', type: 'number', defaultValue: null },
-      { source: 'price', target: 'price', type: 'number', defaultValue: 0 },
-      { source: 'dietary', target: 'dietary', type: 'array', defaultValue: [] },
+      { source: 'has_table_assignments', target: 'has_table_assignments', type: 'boolean', defaultValue: false },
       { source: 'tables', target: 'tables', type: 'array', defaultValue: [] },
+      { source: 'layout_template_id', target: 'layout_template_id', type: 'string', defaultValue: null },
+      { source: 'seating_notes', target: 'seating_notes', type: 'string', defaultValue: '' },
+      { source: 'seating_type', target: 'seating_type', type: 'string', defaultValue: 'open' },
+      
+      // Status and display
       { source: 'is_active', target: 'is_active', type: 'boolean', defaultValue: true },
-      { source: 'display_order', target: 'display_order', type: 'number', defaultValue: 0 },
-      { source: 'created_at', target: 'created_at', type: 'date' }
+      { source: 'display_order', target: 'display_order', type: 'number', defaultValue: 0 }
     ]
 
     const computedFields: ComputedField[] = [
       {
         name: 'displayName',
-        sourceFields: ['name', 'type'],
+        sourceFields: ['name', 'location'],
         computation: (data: any) => {
           const name = data.name || ''
-          const type = data.type || ''
-          return `${name} (${type})`
+          const location = data.location || ''
+          return location ? `${name} @ ${location}` : name
         },
         type: 'string'
       },
@@ -43,41 +56,24 @@ export class DiningTransformer extends BaseTransformer<DiningOption> {
         type: 'boolean'
       },
       {
-        name: 'isFree',
-        sourceFields: ['price'],
+        name: 'hasSeatingAssignments',
+        sourceFields: ['has_table_assignments', 'tables'],
         computation: (data: any) => {
-          return !data.price || data.price === 0
+          return data.has_table_assignments && Array.isArray(data.tables) && data.tables.length > 0
         },
         type: 'boolean'
-      },
-      {
-        name: 'dietaryInfo',
-        sourceFields: ['dietary'],
-        computation: (data: any) => {
-          const options = data.dietary || []
-          return Array.isArray(options) ? options.join(', ') : ''
-        },
-        type: 'string'
       }
     ]
 
     const validationRules: ValidationRule[] = [
       {
-        field: 'type',
+        field: 'seating_type',
         rule: (value: any) => {
           if (!value) return true
-          const validTypes = ['breakfast', 'lunch', 'dinner', 'snack', 'beverage']
+          const validTypes = ['open', 'assigned']
           return validTypes.includes(value.toLowerCase())
         },
-        message: 'Invalid meal type'
-      },
-      {
-        field: 'price',
-        rule: (value: any) => {
-          if (value === null || value === undefined) return true
-          return typeof value === 'number' && value >= 0
-        },
-        message: 'Price must be a non-negative number'
+        message: 'Invalid seating type - must be "open" or "assigned"'
       },
       {
         field: 'capacity',
@@ -96,6 +92,16 @@ export class DiningTransformer extends BaseTransformer<DiningOption> {
    * Transform dining data with schema evolution support
    */
   transformFromDatabase(dbData: any): DiningOption {
+    // Normalize date format before transformation
+    if (dbData.date) {
+      dbData.date = this.normalizeDateFormat(dbData.date);
+    }
+    
+    // Normalize time format
+    if (dbData.time) {
+      dbData.time = this.normalizeTimeFormat(dbData.time);
+    }
+    
     // Schema evolution is now handled in the base class
     return super.transformFromDatabase(dbData)
   }
@@ -221,10 +227,9 @@ export class DiningTransformer extends BaseTransformer<DiningOption> {
    */
   getSchemaEvolutionMapping(): Record<string, string> {
     return {
-      'type': 'meal_type',           // Database field -> UI field
+      'seating_type': 'type',        // Database field -> UI field  
       'capacity': 'max_capacity',
-      'dietary': 'dietary_options',
-      'active': 'isActive'
+      'is_active': 'active'
     }
   }
 
@@ -275,6 +280,60 @@ export class DiningTransformer extends BaseTransformer<DiningOption> {
    */
   filterActiveDiningOptions(diningOptions: DiningOption[]): DiningOption[] {
     return diningOptions.filter(option => option.is_active !== false)
+  }
+
+  /**
+   * Normalize date format to improve confidence score
+   */
+  private normalizeDateFormat(dateValue: any): string {
+    if (!dateValue) return '';
+    
+    // Handle string dates
+    if (typeof dateValue === 'string') {
+      // Try parsing with Date constructor
+      let parsedDate = new Date(dateValue);
+      
+      // If invalid, try alternative format (replace dashes with slashes)
+      if (isNaN(parsedDate.getTime())) {
+        parsedDate = new Date(dateValue.replace(/-/g, '/'));
+      }
+      
+      // If still invalid, return original
+      if (isNaN(parsedDate.getTime())) {
+        console.warn('⚠️ Invalid date format:', dateValue);
+        return dateValue;
+      }
+      
+      // Return ISO date format (YYYY-MM-DD)
+      return parsedDate.toISOString().split('T')[0];
+    }
+    
+    // Handle Date objects
+    if (dateValue instanceof Date) {
+      return dateValue.toISOString().split('T')[0];
+    }
+    
+    return String(dateValue);
+  }
+
+  /**
+   * Normalize time format to HH:MM
+   */
+  private normalizeTimeFormat(timeValue: any): string {
+    if (!timeValue) return '';
+    
+    // Ensure time is in HH:MM format
+    const timeStr = String(timeValue);
+    const timeRegex = /^(\d{1,2}):(\d{2})(?::(\d{2}))?$/;
+    const match = timeStr.match(timeRegex);
+    
+    if (match) {
+      const hours = match[1].padStart(2, '0');
+      const minutes = match[2];
+      return `${hours}:${minutes}`;
+    }
+    
+    return timeStr;
   }
 
   /**
