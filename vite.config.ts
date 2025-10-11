@@ -163,38 +163,6 @@ export default defineConfig({
     open: true
   },
   build: {
-    outDir: 'dist',
-    chunkSizeWarningLimit: 600, // Increase from default 500 KB
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          // React + MUI together (MUST load together to avoid initialization issues)
-          if (id.includes('node_modules/react') || 
-              id.includes('node_modules/react-dom') || 
-              id.includes('node_modules/react-router-dom') ||
-              id.includes('node_modules/@mui/material') || 
-              id.includes('node_modules/@mui/icons-material') ||
-              id.includes('node_modules/@emotion/react') ||
-              id.includes('node_modules/@emotion/styled')) {
-            return 'vendor-ui';
-          }
-          
-          // Backend infrastructure (safe to separate)
-          if (id.includes('node_modules/@supabase/supabase-js')) {
-            return 'vendor-supabase';
-          }
-          
-          // Services layer (your code, changes more frequently)
-          if (id.includes('src/services/')) {
-            return 'app-services';
-          }
-          
-          // Transformers (can be route-specific later)
-          if (id.includes('src/transformers/')) {
-            return 'app-transformers';
-          }
-        }
-      }
-    }
+    outDir: 'dist'
   }
 })

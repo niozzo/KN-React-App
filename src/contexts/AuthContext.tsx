@@ -11,6 +11,7 @@ import {
   getAuthStatus,
   authenticateWithAccessCode
 } from '../services/authService'
+import { serverDataSyncService } from '../services/serverDataSyncService'
 import { attendeeInfoService } from '../services/attendeeInfoService'
 import { dataClearingService } from '../services/dataClearingService'
 import type { Attendee } from '../types/attendee'
@@ -128,7 +129,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('🔐 Step 2: Authentication successful, syncing data for offline use...')
       let syncResult = null
       try {
-        const { serverDataSyncService } = await import('../services/serverDataSyncService')
         syncResult = await serverDataSyncService.syncAllData()
         // Admin data sync completed
         
