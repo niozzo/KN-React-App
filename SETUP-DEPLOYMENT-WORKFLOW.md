@@ -41,40 +41,53 @@ git push -u origin develop
 - CI will still run automatically on every commit
 - Vercel will still auto-deploy to staging
 
-## Step 3: Configure Vercel
+## Step 3: Verify Vercel Configuration
 
-### Set Production Branch
+### Confirm Production Branch
 1. Go to your Vercel project dashboard
 2. Settings → Git
-3. Production Branch: Change from `main` to `main` (confirm it's set)
+3. Production Branch: Confirm it's set to `main`
 
-### Configure Environment Variables
+### Verify Environment Variables (Single Database Setup)
 
-#### For Production (main branch):
+Since you're using the **same Supabase database** for all environments, you only need to verify your environment variables are set once:
+
 1. Go to Settings → Environment Variables
-2. Add/Edit each variable:
-   - Name: `VITE_SUPABASE_URL`
-   - Value: `[your production supabase URL]`
-   - Environments: ✅ Production only
-   
-   - Name: `VITE_SUPABASE_ANON_KEY`
-   - Value: `[your production key]`
-   - Environments: ✅ Production only
+2. Verify these variables exist:
+   - `VITE_SUPABASE_URL` - Your Supabase project URL
+   - `VITE_SUPABASE_ANON_KEY` - Your Supabase anon key
 
-#### For Preview (develop + feature branches):
-1. Add separate variables:
-   - Name: `VITE_SUPABASE_URL`
-   - Value: `[your staging supabase URL]`
-   - Environments: ✅ Preview only
-   
-   - Name: `VITE_SUPABASE_ANON_KEY`
-   - Value: `[your staging key]`
-   - Environments: ✅ Preview only
+3. **Environment Settings**: Select **ALL** environments (Production, Preview, Development)
+   - This makes the same database accessible from all branches
+   - Simplifies configuration
+   - Both staging and production use the same data
+
+**Note:** If you don't have these variables set yet:
+- Click "Add New"
+- Enter variable name and value
+- Check: ✅ Production, ✅ Preview, ✅ Development
+- Click "Save"
 
 ### Enable Deployment Comments (Optional)
 1. Settings → Git → GitHub
 2. Enable "Vercel for GitHub"
 3. ✅ Comment on Pull Requests
+
+### Troubleshooting: If Vercel Doesn't Auto-Deploy
+
+If pushing to Git doesn't trigger deployments, you may need to establish the branches first using Vercel CLI:
+
+```bash
+# Deploy main as production (one-time)
+git checkout main
+vercel --prod --yes
+
+# Deploy develop as preview (one-time)
+git checkout develop
+vercel --yes
+```
+
+After this, auto-deploy from Git should work normally. See "Alternative: Using Vercel CLI" section below for details.
 
 ## Step 4: Test the Workflow
 
@@ -116,19 +129,27 @@ git push origin develop
 6. Click "Merge pull request"
 7. Verify production deployment on Vercel
 
-## Step 5: Document Your Supabase Environments
+## Step 5: Understanding Your Supabase Setup
 
-Create separate Supabase projects if you haven't:
+**Current Setup: Single Database** ✅
 
-### Option A: Single Database (Quick Start)
-- Use same Supabase project for staging and production
-- Be careful with data
+You're using the **same Supabase database** for both staging (`develop`) and production (`main`) branches:
 
-### Option B: Separate Databases (Recommended)
-- Create "MyApp-Staging" Supabase project
-- Create "MyApp-Production" Supabase project
-- Keep schemas in sync
-- Use test data in staging
+- ✅ **Simpler**: One database to manage
+- ✅ **Faster**: No need to sync schemas or data
+- ⚠️ **Be careful**: Changes in staging affect production data
+
+### Best Practices with Single Database:
+1. Test thoroughly on staging before deploying to production
+2. Use Row Level Security (RLS) policies in Supabase
+3. Back up your database regularly
+4. Consider separate databases later as your app grows
+
+### Future: Separate Databases (Optional)
+When you're ready to scale, you can:
+- Create a staging Supabase project
+- Update Vercel env vars to use different URLs per environment
+- Use test data in staging without affecting production
 
 ## Your New Daily Workflow (Solo Dev - Streamlined)
 
@@ -196,14 +217,49 @@ Before considering this setup complete:
 - [ ] `develop` branch created and pushed
 - [ ] Branch protection rules set for `main` (REQUIRED)
 - [ ] ~~Branch protection rules set for `develop`~~ (Skip for solo dev)
-- [ ] Vercel production environment variables configured
-- [ ] Vercel preview environment variables configured
+- [ ] Vercel environment variables verified (same for all environments)
 - [ ] GitHub Actions workflows committed to repo
 - [ ] Test commit pushed directly to develop
 - [ ] Staging deployment verified
 - [ ] Test PR from develop to main created
 - [ ] Production deployment verified
 - [ ] Documentation reviewed
+
+## Alternative: Using Vercel CLI
+
+If you prefer using the command line or can't find the Vercel UI settings:
+
+### Install Vercel CLI (if not already installed)
+```bash
+npm i -g vercel
+vercel login
+```
+
+### Deploy Main to Production (One-Time Setup)
+```bash
+git checkout main
+vercel --prod --yes
+```
+
+### Deploy Develop as Preview (One-Time Setup)
+```bash
+git checkout develop
+vercel --yes
+```
+
+**After this initial setup**, Git auto-deploy should work for future pushes!
+
+### Optional: Use CLI for All Deployments
+If you prefer CLI over auto-deploy:
+```bash
+# Preview (staging)
+git checkout develop
+vercel
+
+# Production
+git checkout main
+vercel --prod
+```
 
 ## Need Help?
 
