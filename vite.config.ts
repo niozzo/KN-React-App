@@ -163,6 +163,42 @@ export default defineConfig({
     open: true
   },
   build: {
-    outDir: 'dist'
+    outDir: 'dist',
+    chunkSizeWarningLimit: 600, // Increase from default 500 KB
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          // Core framework (changes rarely, excellent caching)
+          if (id.includes('node_modules/react') || 
+              id.includes('node_modules/react-dom') || 
+              id.includes('node_modules/react-router-dom')) {
+            return 'vendor-react';
+          }
+          
+          // UI framework (large, changes rarely)
+          if (id.includes('node_modules/@mui/material') || 
+              id.includes('node_modules/@mui/icons-material') ||
+              id.includes('node_modules/@emotion/react') ||
+              id.includes('node_modules/@emotion/styled')) {
+            return 'vendor-mui';
+          }
+          
+          // Backend infrastructure (stable)
+          if (id.includes('node_modules/@supabase/supabase-js')) {
+            return 'vendor-supabase';
+          }
+          
+          // Services layer (your code, changes more frequently)
+          if (id.includes('src/services/')) {
+            return 'app-services';
+          }
+          
+          // Transformers (can be route-specific later)
+          if (id.includes('src/transformers/')) {
+            return 'app-transformers';
+          }
+        }
+      }
+    }
   }
 })

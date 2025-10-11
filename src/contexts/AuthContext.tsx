@@ -11,7 +11,6 @@ import {
   getAuthStatus,
   authenticateWithAccessCode
 } from '../services/authService'
-import { serverDataSyncService } from '../services/serverDataSyncService'
 import { attendeeInfoService } from '../services/attendeeInfoService'
 import { dataClearingService } from '../services/dataClearingService'
 import type { Attendee } from '../types/attendee'
@@ -46,9 +45,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [attendeeName, setAttendeeName] = useState<{ first_name: string; last_name: string; full_name: string } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSigningOut, setIsSigningOut] = useState(false)
-  
-  // Initialize server-side data sync service
-  const [dataSyncService] = useState(() => serverDataSyncService)
 
   // Function to clear all cached data on authentication failure
   const clearCachedData = useCallback(() => {
@@ -132,6 +128,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('🔐 Step 2: Authentication successful, syncing data for offline use...')
       let syncResult = null
       try {
+        const { serverDataSyncService } = await import('../services/serverDataSyncService')
         syncResult = await serverDataSyncService.syncAllData()
         // Admin data sync completed
         
