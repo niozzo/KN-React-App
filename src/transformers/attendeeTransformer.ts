@@ -3,8 +3,8 @@
  * Story 1.7: Data Transformation Layer for Schema Evolution
  */
 
-import { BaseTransformer, SchemaVersion } from './baseTransformer'
-import { FieldMapping, ComputedField, ValidationRule } from '../types/transformation'
+import { BaseTransformer, SchemaVersion } from './baseTransformer.ts'
+import { FieldMapping, ComputedField, ValidationRule } from '../types/transformation.ts'
 import type { Attendee } from '../types/attendee'
 import type { SafeAttendeeCache } from '../services/attendeeCacheFilterService'
 

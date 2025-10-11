@@ -7,7 +7,7 @@
  */
 
 import type { Attendee } from '../types/attendee';
-import { applicationDatabaseService } from './applicationDatabaseService';
+import { applicationDatabaseService } from './applicationDatabaseService.ts';
 import type { AttendeePreferences } from '../types/preferences';
 
 /**

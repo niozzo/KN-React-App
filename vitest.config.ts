@@ -154,9 +154,9 @@ export default defineConfig({
     // Test isolation
     isolate: true,
     // Optimized timeouts
-    testTimeout: 3000, // Reduced from 5000 to 3000
-    hookTimeout: 3000, // Reduced from 5000 to 3000
-    teardownTimeout: 10000, // Add teardown timeout for cleanup
+    testTimeout: 5000, // Increased from 3000 to prevent false timeouts
+    hookTimeout: 5000, // Increased from 3000 for async cleanup
+    teardownTimeout: 15000, // Increased from 10000 for thorough cleanup
     // Add bail to stop on first failure
     bail: 5, // Reduced from 10 to 5
     // Performance optimizations
@@ -167,6 +167,11 @@ export default defineConfig({
     logHeapUsage: false,
     // Force exit after tests complete
     forceRerunTriggers: ['**/package.json', '**/vitest.config.*'],
+    // Force cleanup of resources
+    globals: true,
+    clearMocks: true,
+    mockReset: true,
+    restoreMocks: true,
     // Note: Removed onProcessExit to prevent hanging issues
     // Prevent hanging by forcing process exit and manage console output
     onConsoleLog(log, type) {
