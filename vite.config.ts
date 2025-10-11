@@ -168,22 +168,18 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          // Core framework (changes rarely, excellent caching)
+          // React + MUI together (MUST load together to avoid initialization issues)
           if (id.includes('node_modules/react') || 
               id.includes('node_modules/react-dom') || 
-              id.includes('node_modules/react-router-dom')) {
-            return 'vendor-react';
-          }
-          
-          // UI framework (large, changes rarely)
-          if (id.includes('node_modules/@mui/material') || 
+              id.includes('node_modules/react-router-dom') ||
+              id.includes('node_modules/@mui/material') || 
               id.includes('node_modules/@mui/icons-material') ||
               id.includes('node_modules/@emotion/react') ||
               id.includes('node_modules/@emotion/styled')) {
-            return 'vendor-mui';
+            return 'vendor-ui';
           }
           
-          // Backend infrastructure (stable)
+          // Backend infrastructure (safe to separate)
           if (id.includes('node_modules/@supabase/supabase-js')) {
             return 'vendor-supabase';
           }
