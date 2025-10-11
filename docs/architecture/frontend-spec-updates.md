@@ -61,6 +61,7 @@ Add new section after Information Architecture:
 - **useMeetList**: Meet list state management and animations
 - **useSearch**: Search and filtering functionality
 - **useSort**: List sorting with multiple field support
+- **useLazyImage**: Intersection Observer-based image lazy loading for bandwidth optimization
 ```
 
 ### 3. Implementation Examples Updates
@@ -137,6 +138,10 @@ Add new section after Information Architecture:
 - Efficient memory usage with React component optimization
 - Reduced bundle size through shared component library
 - Lazy loading for non-critical components
+- Image lazy loading with Intersection Observer API (95% bandwidth reduction for MeetPage)
+  - Preloads images 200px before entering viewport
+  - Graceful fallback for older browsers
+  - Progressive loading with shimmer effects
 ```
 
 ### 7. Accessibility Updates
