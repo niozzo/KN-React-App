@@ -6,6 +6,7 @@
  */
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { 
   signOut as authSignOut,
   getAuthStatus,
@@ -335,10 +336,13 @@ export const withAuth = <P extends object>(
 // Login page component
 export const LoginPage: React.FC = () => {
   const { login } = useAuth()
+  const location = useLocation()
+  const navigate = useNavigate()
   const [accessCode, setAccessCode] = useState('')
   const [error, setError] = useState('')
   const [showError, setShowError] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [autoLoginAttempted, setAutoLoginAttempted] = useState(false)
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const handleSubmit = useCallback(async (e?: React.FormEvent, codeToSubmit?: string) => {
@@ -393,6 +397,24 @@ export const LoginPage: React.FC = () => {
       }
     }
   }, [])
+
+  // Auto-login from URL parameter
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search)
+    const codeParam = searchParams.get('code')
+    
+    if (codeParam && !autoLoginAttempted && !isLoading) {
+      setAutoLoginAttempted(true)
+      setIsLoading(true)
+      
+      // SECURITY: Clear URL parameter immediately (prevent sharing)
+      searchParams.delete('code')
+      navigate({ search: searchParams.toString() }, { replace: true })
+      
+      // Auto-submit login (reuses existing handleSubmit)
+      handleSubmit(undefined, codeParam)
+    }
+  }, [location.search, autoLoginAttempted, isLoading, navigate, handleSubmit])
 
   return (
     <>
@@ -499,7 +521,9 @@ export const LoginPage: React.FC = () => {
               textAlign: 'center',
               fontWeight: '500'
             }}>
-              Enter your 6-character access code
+              {autoLoginAttempted && isLoading 
+                ? 'Logging you in...' 
+                : 'Enter your 6-character access code'}
             </label>
             
             <div style={{ position: 'relative' }}>

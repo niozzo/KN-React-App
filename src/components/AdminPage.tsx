@@ -17,7 +17,7 @@ import {
   Divider
 } from '@mui/material';
 import { ArrowBack as ArrowBackIcon, Save as SaveIcon, Home as HomeIcon, Dashboard as DashboardIcon, AccessTime as AccessTimeIcon, Sync as SyncIcon } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import { SpeakerAssignmentComponent } from './SpeakerAssignment';
 import { adminService } from '../services/adminService';
 import { SpeakerAssignment } from '../services/applicationDatabaseService';
@@ -27,11 +27,12 @@ import CacheHealthDashboard from './CacheHealthDashboard';
 import { ValidationRules } from '../utils/validationUtils';
 import { TimeOverridePanel } from './admin/TimeOverridePanel';
 
-interface AdminPageProps {
+interface OutletContext {
   onLogout: () => void;
 }
 
-export const AdminPage: React.FC<AdminPageProps> = ({ onLogout }) => {
+export const AdminPage: React.FC = () => {
+  const { onLogout } = useOutletContext<OutletContext>();
   const navigate = useNavigate();
   const [agendaItems, setAgendaItems] = useState<any[]>([]);
   const [diningOptions, setDiningOptions] = useState<any[]>([]);
@@ -419,7 +420,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onLogout }) => {
     <Box>
       <AppBar position="static">
         <Toolbar>
-          <IconButton edge="start" color="inherit" onClick={onLogout} sx={{ mr: 2 }}>
+          <IconButton edge="start" color="inherit" onClick={() => navigate('/admin')} sx={{ mr: 2 }}>
             <ArrowBackIcon />
           </IconButton>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
