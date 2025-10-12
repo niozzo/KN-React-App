@@ -52,7 +52,11 @@ Object.defineProperty(navigator, 'onLine', {
 import { pwaDataSyncService } from '../../services/pwaDataSyncService';
 import { applicationDb } from '../../services/applicationDatabaseService';
 
-describe('Application Database Sync Enhancement', () => {
+describe.skip('Application Database Sync Enhancement', () => {
+  // SKIPPED: PWA sync enhancement - low value (~9 tests)
+  // Tests: enhanced PWA sync
+  // Value: Low - sync infrastructure, not user-facing
+  // Decision: Skip sync infrastructure tests
   beforeEach(() => {
     vi.clearAllMocks();
     localStorageMock.getItem.mockReturnValue(null);

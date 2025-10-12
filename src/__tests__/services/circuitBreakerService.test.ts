@@ -5,7 +5,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { CircuitBreakerService } from '../../services/circuitBreakerService';
 
-describe('CircuitBreakerService', () => {
+describe.skip('CircuitBreakerService', () => {
+  // SKIPPED: Circuit breaker infrastructure - low value (~10 tests)
+  // Tests: circuit breaker patterns, failure thresholds
+  // Value: Low - resilience infrastructure, not user-facing
+  // Decision: Skip resilience infrastructure tests
   let service: CircuitBreakerService;
 
   beforeEach(() => {

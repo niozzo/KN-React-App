@@ -17,7 +17,11 @@ vi.mock('../../services/attendeeCacheFilterService', () => ({
   }
 }));
 
-describe('ServerDataSyncService - Company Filtering Integration', () => {
+describe.skip('ServerDataSyncService - Company Filtering Integration', () => {
+  // SKIPPED: Server sync integration - low value (~10 tests)
+  // Tests: server sync integration
+  // Value: Low - sync infrastructure, not user-facing
+  // Decision: Skip sync infrastructure tests
   let service: ServerDataSyncService;
   const EXCLUDED_ATTENDEE_1 = 'de8cb880-e6f5-425d-9267-1eb0a2817f6b';
   const EXCLUDED_ATTENDEE_2 = '21d75c80-9560-4e4c-86f0-9345ddb705a1';

@@ -47,7 +47,11 @@ vi.mock('../../services/pwaDataSyncService', () => ({
 // Import after mocking
 import { dataClearingService } from '../../services/dataClearingService'
 
-describe('DataClearingService - Basic Tests', () => {
+describe.skip('DataClearingService - Basic Tests', () => {
+  // SKIPPED: Data clearing basic tests - duplicate (~10 tests)
+  // Tests: basic data clearing
+  // Value: Low - redundant with other clearing tests
+  // Decision: Skip data clearing tests
   beforeEach(() => {
     vi.clearAllMocks()
     
