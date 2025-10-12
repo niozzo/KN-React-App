@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Card, { CardHeader, CardContent } from '../common/Card';
 import Button from '../common/Button';
 import StatusTag from '../common/StatusTag';
+import { useLazyImage } from '../../hooks/useLazyImage';
 
 /**
  * Attendee Card Component
@@ -33,6 +34,11 @@ const AttendeeCard = forwardRef(({
   // Construct full name from first_name and last_name
   const name = `${first_name} ${last_name}`.trim();
 
+  // Lazy load image hook
+  const { ref: avatarRef, isVisible, isLoading, hasLoaded, onLoad } = useLazyImage({
+    rootMargin: '200px',
+    threshold: 0.01
+  });
 
   const toggleSharedEvents = () => {
     setSharedEventsExpanded(!sharedEventsExpanded);
@@ -57,6 +63,7 @@ const AttendeeCard = forwardRef(({
         }}
       >
         <div 
+          ref={avatarRef}
           className="avatar"
           style={{
             width: '80px',
@@ -68,18 +75,37 @@ const AttendeeCard = forwardRef(({
             justifyContent: 'center',
             fontSize: '32px',
             color: 'var(--purple-700)',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            position: 'relative'
           }}
         >
-          {photo ? (
+          {/* Shimmer loading effect */}
+          {isLoading && !hasLoaded && (
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent)',
+                animation: 'shimmer 1.5s infinite',
+                pointerEvents: 'none'
+              }}
+            />
+          )}
+          
+          {photo && isVisible ? (
             <img
               src={photo}
               alt={`${name} headshot`}
+              loading="lazy"
               style={{
                 width: '100%',
                 height: '100%',
                 objectFit: 'cover'
               }}
+              onLoad={onLoad}
               onError={(e) => {
                 // Fallback to icon if image fails to load
                 e.target.style.display = 'none';
@@ -88,7 +114,7 @@ const AttendeeCard = forwardRef(({
             />
           ) : null}
           <div style={{
-            display: photo ? 'none' : 'flex',
+            display: photo && isVisible ? 'none' : 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             width: '100%',

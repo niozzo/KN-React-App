@@ -6,7 +6,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { agendaService } from '../services/agendaService';
-import { getCurrentAttendeeData, getAttendeeSeatAssignments, getAllDiningOptions } from '../services/dataService';
+import { getCurrentAttendeeData, getAttendeeSeatAssignments, getAllDiningOptions, getAllSeatingConfigurations } from '../services/dataService';
 import TimeService from '../services/timeService';
 import { useAuth } from '../contexts/AuthContext';
 import { cacheMonitoringService } from '../services/cacheMonitoringService';
@@ -227,6 +227,7 @@ export const useSessionData = (options = {}) => {
   const [nextSession, setNextSession] = useState(null);
   const [attendee, setAttendee] = useState(null);
   const [seatAssignments, setSeatAssignments] = useState([]);
+  const [seatingConfigurations, setSeatingConfigurations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isOffline, setIsOffline] = useState(() => {
     // Use PWA service as single source of truth for online status
@@ -320,11 +321,29 @@ export const useSessionData = (options = {}) => {
       }
 
       // Load seat assignments for the attendee
+      // ARCHITECTURE: Synchronous Transform with Async State Persistence
+      // Store in local variables for immediate use, then persist to state for future re-renders
+      let localSeatAssignments = [];
       if (attendeeData && attendeeData.id) {
         try {
           const seatData = await getAttendeeSeatAssignments(attendeeData.id);
-          setSeatAssignments(seatData);
-        } catch (seatError) {          setSeatAssignments([]);
+          localSeatAssignments = seatData;
+          setSeatAssignments(seatData); // Persist to state (async, non-blocking)
+        } catch (seatError) {
+          setSeatAssignments([]);
+        }
+      }
+
+      // Load seating configurations (bridge table between events and seat assignments)
+      let localSeatingConfigurations = [];
+      if (attendeeData && attendeeData.id) {
+        try {
+          const seatingConfigData = await getAllSeatingConfigurations();
+          localSeatingConfigurations = seatingConfigData || [];
+          setSeatingConfigurations(localSeatingConfigurations); // Persist to state (async, non-blocking)
+        } catch (configError) {
+          console.warn('⚠️ Failed to load seating configurations:', configError);
+          setSeatingConfigurations([]);
         }
       }
 
@@ -480,12 +499,11 @@ export const useSessionData = (options = {}) => {
       
       // Merge sessions and dining events (use dining data with metadata overrides)
       const combinedEvents = mergeAndSortEvents(filteredSessions, diningData);
-      setAllEvents(combinedEvents);
+      // AllEvents will be set after enhancement (see below)
       
       // 🔍 DEBUG: Enhanced logging for dining regression investigation      
       // 🔍 DEBUG: Cache data structure analysis      
-      // Set filtered sessions for backward compatibility
-      setSessions(filteredSessions);
+      // Sessions will be set after enhancement (see below)
 
       // Log state transition with detailed data      
       cacheMonitoringService.logStateTransition('useSessionData', 
@@ -494,7 +512,6 @@ export const useSessionData = (options = {}) => {
         'server-success'
       );
 
-      setSessions(filteredSessions);
       setLastUpdated(new Date());
       
       // Register session boundaries with TimeService for boundary detection
@@ -529,30 +546,61 @@ export const useSessionData = (options = {}) => {
         })
         .sort(compareEventsByTime)[0]; // Get the first (earliest) upcoming event
 
-      // Enhance events with seat assignment data (for sessions only)
+      // Enhance events with seat assignment data (for both sessions AND dining events)
+      // ARCHITECTURE: Use local variables for synchronous data transformation
       const enhanceEventWithSeatInfo = (event) => {
-        if (!event || !seatAssignments.length) return event || null;
+        if (!event || !localSeatAssignments.length || !localSeatingConfigurations.length) {
+          return event || null;
+        }
         
-        // Only enhance sessions with seat info, not dining events
+        // Step 1: Find the seating configuration for this event (bridge table lookup)
+        let seatingConfig = null;
+        
         if (event.type === 'dining') {
+          // For dining events, match by dining_option_id
+          seatingConfig = localSeatingConfigurations.find(
+            config => config.dining_option_id === event.id
+          );
+        } else {
+          // For agenda items, match by agenda_item_id
+          seatingConfig = localSeatingConfigurations.find(
+            config => config.agenda_item_id === event.id
+          );
+        }
+        
+        // If no seating configuration found, return event without seat info
+        if (!seatingConfig) {
           return event;
         }
         
-        // Find seat assignment for this session (if any)
-        const seatAssignment = seatAssignments.find(seat => 
-          seat.seating_configuration_id === event.seating_configuration_id
+        // Step 2: Find seat assignment using the configuration ID from bridge table
+        const seatAssignment = localSeatAssignments.find(seat => 
+          seat.seating_configuration_id === seatingConfig.id
         );
         
+        // Step 3: Return enhanced event with seat info
         return {
           ...event,
           seatInfo: seatAssignment ? {
             table: seatAssignment.table_name,
             seat: seatAssignment.seat_number,
+            row: seatAssignment.row_number,
+            column: seatAssignment.column_number,
             position: seatAssignment.seat_position
           } : null
         };
       };
 
+      // CRITICAL FIX: Enhance ALL sessions, not just current/next
+      const enhancedSessions = filteredSessions.map(session => enhanceEventWithSeatInfo(session));
+      const enhancedDiningOptions = diningData.map(dining => enhanceEventWithSeatInfo(dining));
+      const enhancedCombinedEvents = combinedEvents.map(event => enhanceEventWithSeatInfo(event));
+      
+      // Update state with enhanced data
+      setSessions(enhancedSessions);
+      setDiningOptions(enhancedDiningOptions);
+      setAllEvents(enhancedCombinedEvents);
+      
       const enhancedActiveEvent = enhanceEventWithSeatInfo(activeEvent);
       const enhancedUpcomingEvent = enhanceEventWithSeatInfo(upcomingEvent);
       

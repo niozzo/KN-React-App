@@ -397,18 +397,13 @@ const SessionCard = React.memo(({
         {seatInfo && (
           <div 
             className="seat-assignment"
-            onClick={(e) => {
-              e.stopPropagation();
-              // Navigate to seat map with focus on this session's seating
-              navigate(`/seat-map?session=${session.id}&table=${seatInfo.table}`);
-            }}
             style={{ 
-              cursor: 'pointer',
+              cursor: 'default',
               background: 'white',
               borderRadius: 'var(--radius-md)',
               padding: 'var(--space-sm)',
               marginTop: 'var(--space-sm)',
-              border: '1px solid var(--border-light)'
+              border: '1px solid var(--purple-500)'
             }}
           >
             <div className="seat-label" style={{ 
@@ -419,24 +414,58 @@ const SessionCard = React.memo(({
             }}>
               Your Seat
             </div>
-            <div className="seat-details" style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}>
+            <div className="seat-details">
               <span style={{ 
                 fontSize: 'var(--text-base)', 
                 fontWeight: '500',
                 color: 'var(--text-primary)'
               }}>
-                {seatInfo.table} • Seat {seatInfo.seat}
+                {/* Support both table/seat format (dining) and row/column format (theater seating) */}
+                {seatInfo.table && seatInfo.seat ? (
+                  `${seatInfo.table} • Seat ${seatInfo.seat}`
+                ) : seatInfo.row && seatInfo.column ? (
+                  `Table ${seatInfo.row} • Seat ${seatInfo.column}`
+                ) : seatInfo.row ? (
+                  `Table ${seatInfo.row}`
+                ) : seatInfo.table ? (
+                  seatInfo.table
+                ) : (
+                  'Seat assigned'
+                )}
               </span>
-              <span className="seat-map-link" style={{
-                fontSize: 'var(--text-sm)',
-                color: 'var(--primary-600)',
-                textDecoration: 'underline'
+            </div>
+          </div>
+        )}
+        
+        {/* Show pending message for any event with assigned seating but no seat assignment yet */}
+        {session.seating_type === 'assigned' && !seatInfo && (
+          <div 
+            className="seat-assignment pending"
+            style={{ 
+              cursor: 'default',
+              background: 'white',
+              borderRadius: 'var(--radius-md)',
+              padding: 'var(--space-sm)',
+              marginTop: 'var(--space-sm)',
+              border: '1px solid var(--purple-500)',
+              opacity: 0.8
+            }}
+          >
+            <div className="seat-label" style={{ 
+              fontSize: 'var(--text-sm)', 
+              fontWeight: '600',
+              color: 'var(--text-secondary)',
+              marginBottom: 'var(--space-xs)'
+            }}>
+              Seat Assignment
+            </div>
+            <div className="seat-details">
+              <span style={{ 
+                fontSize: 'var(--text-base)', 
+                color: 'var(--text-secondary)',
+                fontStyle: 'italic'
               }}>
-                Find my seat
+                Assignment pending
               </span>
             </div>
           </div>
