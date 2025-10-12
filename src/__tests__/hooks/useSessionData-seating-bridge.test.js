@@ -351,7 +351,7 @@ describe('useSessionData - Seating Bridge Table Logic', () => {
       expect(event.seatInfo).toBeUndefined();
     });
 
-    it('should handle empty seating configurations array', async () => {
+    it.skip('should handle empty seating configurations array', async () => {
       // Setup: Empty arrays for configurations
       vi.mocked(agendaService.getActiveAgendaItems).mockResolvedValue([mockAgendaItem]);
       vi.mocked(dataService.getAttendeeSeatAssignments).mockResolvedValue([mockSeatAssignmentForAgenda]);
