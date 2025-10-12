@@ -1,11 +1,21 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, useOutletContext } from 'react-router-dom';
 import { AdminPage } from '../../../../components/AdminPage';
 import { pwaDataSyncService } from '../../../../services/pwaDataSyncService';
 import { dataInitializationService } from '../../../../services/dataInitializationService';
 import { adminService } from '../../../../services/adminService';
+
+// Mock React Router hooks
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    useOutletContext: vi.fn(),
+    useNavigate: () => vi.fn()
+  };
+});
 
 // Mock the services
 vi.mock('../../../../services/pwaDataSyncService');
@@ -43,6 +53,11 @@ describe('Force Global Sync Integration Tests', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    
+    // Mock useOutletContext to provide onLogout
+    vi.mocked(useOutletContext).mockReturnValue({
+      onLogout: mockOnLogout
+    });
     
     // FIX: Mock dataInitializationService.ensureDataLoaded - called by AdminPage.loadData()
     mockDataInitializationService.ensureDataLoaded.mockResolvedValue({
@@ -97,7 +112,7 @@ describe('Force Global Sync Integration Tests', () => {
 
       render(
         <BrowserRouter>
-          <AdminPage onLogout={mockOnLogout} />
+          <AdminPage />
         </BrowserRouter>
       );
       
@@ -149,7 +164,7 @@ describe('Force Global Sync Integration Tests', () => {
 
       render(
         <BrowserRouter>
-          <AdminPage onLogout={mockOnLogout} />
+          <AdminPage />
         </BrowserRouter>
       );
       
@@ -173,7 +188,7 @@ describe('Force Global Sync Integration Tests', () => {
       
       render(
         <BrowserRouter>
-          <AdminPage onLogout={mockOnLogout} />
+          <AdminPage />
         </BrowserRouter>
       );
       
@@ -214,7 +229,7 @@ describe('Force Global Sync Integration Tests', () => {
 
       render(
         <BrowserRouter>
-          <AdminPage onLogout={mockOnLogout} />
+          <AdminPage />
         </BrowserRouter>
       );
       
@@ -248,7 +263,7 @@ describe('Force Global Sync Integration Tests', () => {
 
       render(
         <BrowserRouter>
-          <AdminPage onLogout={mockOnLogout} />
+          <AdminPage />
         </BrowserRouter>
       );
       
@@ -284,7 +299,7 @@ describe('Force Global Sync Integration Tests', () => {
 
       render(
         <BrowserRouter>
-          <AdminPage onLogout={mockOnLogout} />
+          <AdminPage />
         </BrowserRouter>
       );
       
@@ -325,7 +340,7 @@ describe('Force Global Sync Integration Tests', () => {
 
       render(
         <BrowserRouter>
-          <AdminPage onLogout={mockOnLogout} />
+          <AdminPage />
         </BrowserRouter>
       );
       
@@ -372,7 +387,7 @@ describe('Force Global Sync Integration Tests', () => {
 
       render(
         <BrowserRouter>
-          <AdminPage onLogout={mockOnLogout} />
+          <AdminPage />
         </BrowserRouter>
       );
       
@@ -416,7 +431,7 @@ describe('Force Global Sync Integration Tests', () => {
 
       render(
         <BrowserRouter>
-          <AdminPage onLogout={mockOnLogout} />
+          <AdminPage />
         </BrowserRouter>
       );
       
@@ -462,7 +477,7 @@ describe('Force Global Sync Integration Tests', () => {
 
       render(
         <BrowserRouter>
-          <AdminPage onLogout={mockOnLogout} />
+          <AdminPage />
         </BrowserRouter>
       );
       

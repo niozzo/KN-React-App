@@ -284,6 +284,8 @@ describe('Force Global Sync PWA Tests', () => {
       
       // Reset mock call counts after initial load to check if called again after sync
       mockAdminService.getAgendaItemsWithAssignments.mockClear();
+      // Re-setup mock to resolve for the post-sync load
+      mockAdminService.getAgendaItemsWithAssignments.mockResolvedValue([]);
       
       const syncButton = await screen.findByRole('button', { name: /force global sync/i });
       fireEvent.click(syncButton);
