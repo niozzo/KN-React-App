@@ -104,7 +104,7 @@ describe('LoginPage - Enhanced Functionality', () => {
         attendee: null
       })
 
-      render(
+      renderWithRouter(
         <AuthProvider>
           <LoginPage />
         </AuthProvider>
