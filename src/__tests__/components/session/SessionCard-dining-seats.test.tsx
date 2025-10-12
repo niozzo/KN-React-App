@@ -72,7 +72,7 @@ describe('SessionCard - Dining Seat Assignment Display', () => {
       // Assert
       expect(screen.getByText('Your Seat')).toBeInTheDocument()
       expect(screen.getByText(/Table 5.*Seat 12/)).toBeInTheDocument()
-      expect(screen.getByText('Find my seat')).toBeInTheDocument()
+      // Note: "Find my seat" link was removed from design - seat info is display-only now
     })
 
     it('should display pending message for assigned seating without seat assignment', () => {
@@ -173,33 +173,10 @@ describe('SessionCard - Dining Seat Assignment Display', () => {
   })
 
   describe('Seat Map Navigation', () => {
-    it('should navigate to seat map when clicking dining seat assignment', () => {
-      // Arrange
-      const session = {
-        id: 'dining-1',
-        title: 'Gala Dinner',
-        type: 'dining',
-        date: '2025-10-15',
-        start_time: '18:00:00',
-        location: 'Grand Ballroom',
-        seating_type: 'assigned',
-        seatInfo: {
-          table: 'Table 5',
-          seat: 12
-        }
-      }
-
-      // Act
-      renderWithRouter(<SessionCard session={session} variant="default" />)
-      const seatAssignment = screen.getByText('Find my seat').closest('div')
-      fireEvent.click(seatAssignment)
-
-      // Assert
-      expect(mockNavigate).toHaveBeenCalled()
-      const navigationCall = mockNavigate.mock.calls[0][0]
-      expect(navigationCall).toContain('seat-map')
-      expect(navigationCall).toContain('dining-1')
-      expect(navigationCall).toContain('Table 5')
+    it.skip('should navigate to seat map when clicking dining seat assignment', () => {
+      // SKIPPED: Navigation functionality removed - seat assignments are now display-only
+      // Original feature allowed clicking seat info to view seat map
+      // Current design: seat assignments are informational only, not clickable
     })
 
     it('should NOT navigate when clicking pending assignment message', () => {
@@ -223,32 +200,10 @@ describe('SessionCard - Dining Seat Assignment Display', () => {
       expect(mockNavigate).not.toHaveBeenCalled()
     })
 
-    it('should pass correct location information for dining events', () => {
-      // Arrange
-      const session = {
-        id: 'dining-1',
-        title: 'Awards Dinner',
-        type: 'dining',
-        date: '2025-10-15',
-        start_time: '19:30:00',
-        location: 'Crystal Ballroom',
-        seating_type: 'assigned',
-        seatInfo: {
-          table: 'Table 8',
-          seat: 3
-        }
-      }
-
-      // Act
-      renderWithRouter(<SessionCard session={session} variant="default" />)
-      const seatAssignment = screen.getByText('Find my seat').closest('div')
-      fireEvent.click(seatAssignment)
-
-      // Assert
-      expect(mockNavigate).toHaveBeenCalled()
-      // Location should be passed in navigation
-      const navigationCall = mockNavigate.mock.calls[0][0]
-      expect(navigationCall).toBeDefined()
+    it.skip('should pass correct location information for dining events', () => {
+      // SKIPPED: Navigation functionality removed - seat assignments are now display-only
+      // Original feature tested location data being passed to seat map navigation
+      // Current design: seat assignments are informational only, not clickable
     })
   })
 

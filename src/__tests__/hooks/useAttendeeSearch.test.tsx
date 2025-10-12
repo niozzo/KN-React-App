@@ -33,8 +33,24 @@ describe('useAttendeeSearch', () => {
   });
 
   describe('Initial State', () => {
-    it('should initialize with default values', () => {
+    it('should initialize with default values', async () => {
+      const mockResults = {
+        attendees: [],
+        totalCount: 0,
+        searchTime: 0,
+        cached: false
+      };
+      vi.mocked(mockSearchService.searchAttendees).mockResolvedValue(mockResults);
+
       const { result } = renderHook(() => useAttendeeSearch());
+
+      // Hook starts with isLoading: true due to initial load effect
+      expect(result.current.isLoading).toBe(true);
+      
+      // Wait for initial load to complete
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 0));
+      });
 
       expect(result.current.searchResults).toEqual([]);
       expect(result.current.totalCount).toBe(0);
@@ -64,6 +80,12 @@ describe('useAttendeeSearch', () => {
 
   describe('Search Functionality', () => {
     it('should perform search when query changes', async () => {
+      const mockInitialResults = {
+        attendees: [],
+        totalCount: 0,
+        searchTime: 0,
+        cached: false
+      };
       const mockResults = {
         attendees: [
           { id: '1', first_name: 'John', last_name: 'Doe', company: 'TechCorp' }
@@ -73,12 +95,26 @@ describe('useAttendeeSearch', () => {
         cached: true
       };
 
-      vi.mocked(mockSearchService.searchAttendees).mockResolvedValue(mockResults);
+      // Mock initial load and search
+      vi.mocked(mockSearchService.searchAttendees)
+        .mockResolvedValueOnce(mockInitialResults) // Initial load
+        .mockResolvedValueOnce(mockResults); // Search
 
       const { result } = renderHook(() => useAttendeeSearch({ debounceDelay: 0 }));
 
+      // Wait for initial load
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 0));
+      });
+
+      // Now perform search
       await act(async () => {
         result.current.setSearchQuery('John');
+      });
+
+      // Wait for search to complete
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 10));
       });
 
       expect(mockSearchService.searchAttendees).toHaveBeenCalledWith({
@@ -104,16 +140,34 @@ describe('useAttendeeSearch', () => {
     });
 
     it('should use cached results when available', async () => {
+      const mockInitialResults = {
+        attendees: [],
+        totalCount: 0,
+        searchTime: 0,
+        cached: false
+      };
       const cachedResults = [
         { id: '1', first_name: 'John', last_name: 'Doe' }
       ] as Attendee[];
 
+      vi.mocked(mockSearchService.searchAttendees).mockResolvedValue(mockInitialResults);
       vi.mocked(mockSearchService.getCachedResults).mockReturnValue(cachedResults);
 
       const { result } = renderHook(() => useAttendeeSearch({ debounceDelay: 0 }));
 
+      // Wait for initial load
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 0));
+      });
+
+      // Set search query to trigger cache check
       await act(async () => {
         result.current.setSearchQuery('John');
+      });
+
+      // Wait for cache check
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 10));
       });
 
       expect(result.current.searchResults).toEqual(cachedResults);

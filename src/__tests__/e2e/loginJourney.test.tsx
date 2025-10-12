@@ -10,6 +10,7 @@
 import React from 'react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { AuthProvider, LoginPage } from '../../contexts/AuthContext'
 import { serverDataSyncService } from '../../services/serverDataSyncService'
 import { getAuthStatus, authenticateWithAccessCode } from '../../services/authService'
@@ -46,6 +47,15 @@ const localStorageMock = {
 Object.defineProperty(window, 'localStorage', {
   value: localStorageMock
 })
+
+// Helper to render with Router context
+const renderWithRouter = (component: React.ReactElement) => {
+  return render(
+    <MemoryRouter>
+      {component}
+    </MemoryRouter>
+  );
+};
 
 // Mock console methods to avoid noise in tests
 const originalConsoleLog = console.log
@@ -100,7 +110,7 @@ describe('Complete Login Journey', () => {
       })
 
       // Render the actual login page
-      render(
+      renderWithRouter(
         <AuthProvider>
           <LoginPage />
         </AuthProvider>
@@ -193,7 +203,7 @@ describe('Complete Login Journey', () => {
       })
 
       // Render the app with authenticated user
-      render(
+      renderWithRouter(
         <AuthProvider>
           <div data-testid="app">
             <div data-testid="user-info">Welcome, Adam Garson!</div>
@@ -291,7 +301,7 @@ describe('Complete Login Journey', () => {
       })
 
       // Render the actual login page
-      render(
+      renderWithRouter(
         <AuthProvider>
           <LoginPage />
         </AuthProvider>
@@ -331,7 +341,7 @@ describe('Complete Login Journey', () => {
       })
 
       // Render the actual login page
-      render(
+      renderWithRouter(
         <AuthProvider>
           <LoginPage />
         </AuthProvider>
