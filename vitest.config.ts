@@ -167,17 +167,18 @@ export default defineConfig(({ mode }) => {
     snapshotFormat: {
       printBasicPrototype: false
     },
-    // Use forks for better test isolation (prevents hanging)
-    pool: 'forks',
+    // CRITICAL FIX: Use single thread to prevent worker process accumulation
+    // Multiple worker processes (7+) were causing deadlocks and hangs
+    pool: 'threads',
     poolOptions: {
-      forks: {
-        singleFork: false
+      threads: {
+        singleThread: true  // Run all tests in ONE thread sequentially
       }
     },
-    // Force file parallelism limits to reduce handle accumulation
-    fileParallelism: true,
-    // Limit concurrency to prevent memory issues
-    maxConcurrency: 2,
+    // Disable file parallelism to prevent worker process buildup
+    fileParallelism: false,
+    // Run tests sequentially (no concurrent execution)
+    maxConcurrency: 1,
     // Test isolation
     isolate: true,
     // Optimized timeouts - increased to prevent hanging
