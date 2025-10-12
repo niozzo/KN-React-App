@@ -115,8 +115,8 @@ export abstract class BaseTransformer<T> implements DataTransformer<T> {
       const schemaVersion = this.detectSchemaVersion(dbData)
       const evolvedData = this.handleSchemaEvolution(dbData, schemaVersion)
       
-      // Log schema version for monitoring
-      if (schemaVersion.confidence < 0.8) {
+      // Log schema version for monitoring (only in development, only for critical issues)
+      if (import.meta.env.DEV && schemaVersion.confidence < 0.5) {
         console.warn(`⚠️ Low confidence schema detection for ${this.tableName}:`, schemaVersion)
       }
 
