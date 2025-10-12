@@ -9,12 +9,7 @@ import {
   Card,
   CardContent,
   Typography,
-  TextField,
   Button,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemText,
   CircularProgress,
   Alert,
   AppBar,
@@ -22,7 +17,9 @@ import {
   IconButton,
   Paper,
   Divider,
-  Stack
+  Stack,
+  Autocomplete,
+  TextField
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
@@ -50,9 +47,7 @@ export const QRCodeGenerator: React.FC = () => {
   const { onLogout } = useOutletContext<OutletContext>();
 
   const [attendees, setAttendees] = useState<AttendeeWithCode[]>([]);
-  const [filteredAttendees, setFilteredAttendees] = useState<AttendeeWithCode[]>([]);
   const [selectedAttendee, setSelectedAttendee] = useState<AttendeeWithCode | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [copySuccess, setCopySuccess] = useState(false);
@@ -61,32 +56,12 @@ export const QRCodeGenerator: React.FC = () => {
     loadAttendees();
   }, []);
 
-  useEffect(() => {
-    // Filter attendees based on search query
-    // Only show results when user types at least 2 characters
-    if (searchQuery.trim().length < 2) {
-      setFilteredAttendees([]);
-    } else {
-      const query = searchQuery.toLowerCase();
-      setFilteredAttendees(
-        attendees.filter(
-          (a) =>
-            a.first_name.toLowerCase().includes(query) ||
-            a.last_name.toLowerCase().includes(query) ||
-            a.email.toLowerCase().includes(query) ||
-            a.access_code.toLowerCase().includes(query)
-        )
-      );
-    }
-  }, [searchQuery, attendees]);
-
   const loadAttendees = async () => {
     try {
       setLoading(true);
       setError('');
       const data = await adminService.getAllAttendeesWithAccessCodes();
       setAttendees(data);
-      setFilteredAttendees(data);
     } catch (err) {
       setError('Failed to load attendees. Please try again.');
       console.error('Error loading attendees:', err);
@@ -207,61 +182,72 @@ export const QRCodeGenerator: React.FC = () => {
         )}
 
         <Box sx={{ display: 'flex', gap: 3, flexDirection: { xs: 'column', md: 'row' } }}>
-          {/* Attendee List */}
+          {/* Attendee Selector */}
           <Card sx={{ flex: 1, maxWidth: { md: 400 } }}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
                 Select Attendee
               </Typography>
 
-              <TextField
-                fullWidth
-                variant="outlined"
-                placeholder="Search by name, email, or code..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                sx={{ mb: 2 }}
-                size="small"
-              />
-
               {loading ? (
                 <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
                   <CircularProgress />
                 </Box>
               ) : (
-                <>
-                  <Typography variant="body2" color="text.secondary" gutterBottom>
-                    {searchQuery.trim().length < 2 
-                      ? 'Enter at least 2 characters to search' 
-                      : `${filteredAttendees.length} attendee${filteredAttendees.length !== 1 ? 's' : ''} found`}
-                  </Typography>
+                <Autocomplete
+                  options={attendees}
+                  value={selectedAttendee}
+                  onChange={(_, newValue) => setSelectedAttendee(newValue)}
+                  getOptionLabel={(option) => `${option.first_name} ${option.last_name}`}
+                  renderOption={(props, option) => (
+                    <li {...props} key={option.id}>
+                      <Box>
+                        <Typography variant="body1">
+                          {option.first_name} {option.last_name}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {option.email} • {option.access_code}
+                        </Typography>
+                      </Box>
+                    </li>
+                  )}
+                  filterOptions={(options, state) => {
+                    // Only show options if user types at least 2 characters
+                    if (state.inputValue.trim().length < 2) {
+                      return [];
+                    }
+                    
+                    const query = state.inputValue.toLowerCase();
+                    return options.filter(
+                      (option) =>
+                        option.first_name.toLowerCase().includes(query) ||
+                        option.last_name.toLowerCase().includes(query) ||
+                        option.email.toLowerCase().includes(query) ||
+                        option.access_code.toLowerCase().includes(query)
+                    );
+                  }}
+                  noOptionsText="Enter at least 2 characters to search"
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      placeholder="Search by name, email, or code..."
+                      variant="outlined"
+                      size="small"
+                    />
+                  )}
+                  isOptionEqualToValue={(option, value) => option.id === value.id}
+                />
+              )}
 
-                  <List sx={{ maxHeight: 500, overflow: 'auto', bgcolor: '#fafafa', borderRadius: 1 }}>
-                    {filteredAttendees.length === 0 && searchQuery.trim().length >= 2 ? (
-                      <ListItem>
-                        <ListItemText
-                          primary="No attendees found"
-                          secondary="Try a different search term"
-                          sx={{ textAlign: 'center', py: 3 }}
-                        />
-                      </ListItem>
-                    ) : (
-                      filteredAttendees.map((attendee) => (
-                        <ListItem key={attendee.id} disablePadding>
-                          <ListItemButton
-                            selected={selectedAttendee?.id === attendee.id}
-                            onClick={() => setSelectedAttendee(attendee)}
-                          >
-                            <ListItemText
-                              primary={`${attendee.first_name} ${attendee.last_name}`}
-                              secondary={`${attendee.email} • ${attendee.access_code}`}
-                            />
-                          </ListItemButton>
-                        </ListItem>
-                      ))
-                    )}
-                  </List>
-                </>
+              {selectedAttendee && !loading && (
+                <Box sx={{ mt: 2, p: 2, bgcolor: '#f5f5f5', borderRadius: 1 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    <strong>Selected:</strong> {selectedAttendee.first_name} {selectedAttendee.last_name}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {selectedAttendee.email}
+                  </Typography>
+                </Box>
               )}
             </CardContent>
           </Card>
