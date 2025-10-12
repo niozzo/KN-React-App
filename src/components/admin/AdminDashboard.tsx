@@ -19,8 +19,6 @@ import {
 import {
   Dashboard as DashboardIcon,
   QrCode2 as QrCodeIcon,
-  Speed as SpeedIcon,
-  AccessTime as AccessTimeIcon,
   ExitToApp as ExitIcon
 } from '@mui/icons-material';
 import { useNavigate, useOutletContext } from 'react-router-dom';
@@ -44,7 +42,7 @@ export const AdminDashboard: React.FC = () => {
   const adminCards: AdminCard[] = [
     {
       title: 'Agenda Management',
-      description: 'Manage agenda items, speaker assignments, and dining options',
+      description: 'Manage agenda items, speaker assignments, dining options, cache health, and time overrides',
       icon: <DashboardIcon sx={{ fontSize: 48 }} />,
       path: '/admin/manage',
       color: '#1976d2'
@@ -55,20 +53,6 @@ export const AdminDashboard: React.FC = () => {
       icon: <QrCodeIcon sx={{ fontSize: 48 }} />,
       path: '/admin/qr-generator',
       color: '#2e7d32'
-    },
-    {
-      title: 'Cache Health',
-      description: 'Monitor cache status and data synchronization',
-      icon: <SpeedIcon sx={{ fontSize: 48 }} />,
-      path: '/admin/cache-health',
-      color: '#ed6c02'
-    },
-    {
-      title: 'Time Override',
-      description: 'Override breakout session times',
-      icon: <AccessTimeIcon sx={{ fontSize: 48 }} />,
-      path: '/admin/time-override',
-      color: '#9c27b0'
     }
   ];
 
@@ -100,7 +84,7 @@ export const AdminDashboard: React.FC = () => {
         
         <Grid container spacing={3}>
           {adminCards.map((card) => (
-            <Grid item xs={12} sm={6} md={6} key={card.title}>
+            <Grid item xs={12} sm={6} key={card.title}>
               <Card 
                 sx={{ 
                   height: '100%',
