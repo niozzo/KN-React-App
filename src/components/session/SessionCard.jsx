@@ -429,7 +429,18 @@ const SessionCard = React.memo(({
                 fontWeight: '500',
                 color: 'var(--text-primary)'
               }}>
-                {seatInfo.table} • Seat {seatInfo.seat}
+                {/* Support both table/seat format (dining) and row/column format (theater seating) */}
+                {seatInfo.table && seatInfo.seat ? (
+                  `${seatInfo.table} • Seat ${seatInfo.seat}`
+                ) : seatInfo.row && seatInfo.column ? (
+                  `Row ${seatInfo.row} • Column ${seatInfo.column}`
+                ) : seatInfo.row ? (
+                  `Row ${seatInfo.row}`
+                ) : seatInfo.table ? (
+                  seatInfo.table
+                ) : (
+                  'Seat assigned'
+                )}
               </span>
               <span className="seat-map-link" style={{
                 fontSize: 'var(--text-sm)',
@@ -442,8 +453,8 @@ const SessionCard = React.memo(({
           </div>
         )}
         
-        {/* Show pending message for dining events with assigned seating but no seat assignment yet */}
-        {isDiningEventSession && session.seating_type === 'assigned' && !seatInfo && (
+        {/* Show pending message for any event with assigned seating but no seat assignment yet */}
+        {session.seating_type === 'assigned' && !seatInfo && (
           <div 
             className="seat-assignment pending"
             style={{ 
