@@ -45,7 +45,6 @@ export const AdminPage: React.FC = () => {
   const [diningTitleValue, setDiningTitleValue] = useState('');
   const [titleValidationError, setTitleValidationError] = useState('');
   const [diningTitleValidationError, setDiningTitleValidationError] = useState('');
-  const [requiresAuth, setRequiresAuth] = useState(false);
   const [showDashboard, setShowDashboard] = useState(false);
   const [timeOverrideItem, setTimeOverrideItem] = useState<any>(null);
   const [forceSyncLoading, setForceSyncLoading] = useState(false);
@@ -58,21 +57,14 @@ export const AdminPage: React.FC = () => {
     try {
       setLoading(true);
       setError('');
-      setRequiresAuth(false);
 
-      // Step 1: Ensure data is loaded (follows authentication-first pattern)
+      // Step 1: Ensure data is loaded (admin-specific, no user auth required)
       console.log('🔄 Initializing admin data...');
-      const initResult = await dataInitializationService.ensureDataLoaded();
+      const initResult = await dataInitializationService.ensureDataLoadedForAdmin();
       
       if (!initResult.success) {
-        if (initResult.requiresAuthentication) {
-          setRequiresAuth(true);
-          setError('Please log in to access the admin panel.');
-          return;
-        } else {
-          setError(initResult.error || 'Failed to load conference data.');
-          return;
-        }
+        setError(initResult.error || 'Failed to load conference data.');
+        return;
       }
 
       if (!initResult.hasData) {
@@ -158,7 +150,11 @@ export const AdminPage: React.FC = () => {
     }
 
     try {
+      const oldTitle = agendaItems.find(item => item.id === itemId)?.title;
       await adminService.updateAgendaItemTitle(itemId, titleValue);
+      
+      // Admin action logging
+      console.log('🔧 Admin modified agenda item:', { itemId, oldTitle, newTitle: titleValue });
       
       // Update local state
       setAgendaItems(items => 
@@ -197,7 +193,11 @@ export const AdminPage: React.FC = () => {
     }
 
     try {
+      const oldName = diningOptions.find(option => option.id === itemId)?.name;
       await adminService.updateDiningOptionTitle(itemId, diningTitleValue);
+      
+      // Admin action logging
+      console.log('🔧 Admin modified dining option:', { itemId, oldName, newName: diningTitleValue });
       
       // Update local state
       setDiningOptions(options => 
@@ -337,10 +337,6 @@ export const AdminPage: React.FC = () => {
     }
   };
 
-  const handleGoToLogin = () => {
-    navigate('/');
-  };
-
   const extractTimeFromTimestamp = (timestamp: string): string => {
     if (!timestamp) return '';
     
@@ -460,18 +456,12 @@ export const AdminPage: React.FC = () => {
       <Box sx={{ p: 3 }}>
         {error && (
           <Alert 
-            severity={requiresAuth ? "warning" : "error"} 
+            severity="error" 
             sx={{ mb: 3 }}
             action={
-              requiresAuth ? (
-                <Button color="inherit" size="small" onClick={handleGoToLogin}>
-                  Go to Login
-                </Button>
-              ) : (
-                <Button color="inherit" size="small" onClick={handleRefreshData}>
-                  Refresh Data
-                </Button>
-              )
+              <Button color="inherit" size="small" onClick={handleRefreshData}>
+                Refresh Data
+              </Button>
             }
           >
             {error}
