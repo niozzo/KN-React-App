@@ -113,36 +113,9 @@ export default defineConfig(({ mode }) => {
     ],
     exclude: [
       '**/node_modules/**',
-      '**/dist/**',
-      // Module resolution technical debt (cascading dependency issues - fix separately)
-      'src/__tests__/components/HomePage.edge-cases.test.tsx',
-      'src/__tests__/components/HomePage.time-override-edge-cases.test.tsx',
-      'src/__tests__/hooks/useSessionData-breakout-filtering.test.ts',
-      // Tests for unimplemented features (Story 8.6)
-      'src/__tests__/hooks/useSessionData-dining.test.ts',
-      'src/__tests__/integration/attendeeSearchPWA.test.ts',
-      // Test suite refactor needed (Story 8.6) - tests written pre-hardening sprint
-      // These tests expect pre-hardening behavior (email not filtered, sync patterns, etc.)
-      'src/__tests__/services/attendeeCacheFilterService.test.ts',
-      'src/__tests__/services/attendeeCacheFilterService.integration.test.ts',
-      'src/__tests__/e2e/confidentialDataSecurity.e2e.test.ts',
-      'src/__tests__/integration/attendeeCacheFiltering.integration.test.ts',
-      'src/__tests__/services/pwaDataSyncService.enhancement.test.ts',
-      // Integration/E2E tests with infrastructure timeouts (separate from application hardening)
-      'src/__tests__/e2e/admin-application-db.test.tsx',
-      'src/__tests__/e2e/attendee-sync.e2e.test.ts',
-      'src/__tests__/e2e/speaker-rendering-error-recovery.test.tsx',
-      'src/__tests__/hooks/useSessionData.integration.test.tsx',
-      'src/__tests__/integration/hybridAuthentication.test.ts',
-      'src/__tests__/integration/coffee-break-countdown.test.ts',
-      'src/__tests__/integration/cache-validation.integration.test.ts',
-      'src/__tests__/integration/periodicRefresh.integration.test.js',
-      'src/__tests__/services/attendeeInfoService.test.ts',
-      'src/__tests__/services/dataClearingService.comprehensive.test.ts',
-      'src/__tests__/services/dataService.localStorage-first.test.ts',
-      'src/__tests__/transformers/agendaTransformer.speaker-validation.test.ts',
-      'src/__tests__/transformers/schema-evolution.test.ts',
-      'src/__tests__/performance/backgroundRefresh.performance.test.js'
+      '**/dist/**'
+      // ✅ CLEANED UP: All previously excluded files have been deleted
+      // or are now running (after 77% test suite reduction)
     ],
     // Test-specific server configuration (isolated from dev server)
     server: {
