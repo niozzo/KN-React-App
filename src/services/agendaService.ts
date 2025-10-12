@@ -252,6 +252,7 @@ export class AgendaService implements IAgendaService {
             
             return {
               id: assignment.id,
+              attendee_id: assignment.attendee_id,
               name,
               role: assignment.role,
               display_order: assignment.display_order

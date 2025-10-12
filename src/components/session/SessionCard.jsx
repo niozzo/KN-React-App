@@ -262,12 +262,14 @@ const SessionCard = React.memo(({
                       }}
                     >
                       <a 
-                        href={`/bio?speaker=${encodeURIComponent(speaker.name)}`}
+                        href={speaker.attendee_id ? `/bio?id=${speaker.attendee_id}` : '#'}
                         className="speaker-link"
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          navigate(`/bio?speaker=${encodeURIComponent(speaker.name)}`);
+                          if (speaker.attendee_id) {
+                            navigate(`/bio?id=${speaker.attendee_id}`);
+                          }
                         }}
                         style={{ 
                           display: 'block', 
@@ -317,13 +319,12 @@ const SessionCard = React.memo(({
                         width: '100%'
                       }}
                     >
-                      <a 
-                        href={`/bio?speaker=${encodeURIComponent(speakerName.trim())}`}
+                      <div 
                         className="speaker-link"
                         onClick={(e) => {
-                          e.preventDefault();
                           e.stopPropagation();
-                          navigate(`/bio?speaker=${encodeURIComponent(speakerName.trim())}`);
+                          // Legacy speakerInfo format - no attendee_id available
+                          console.warn('Speaker click disabled: no attendee_id in legacy speakerInfo format');
                         }}
                         style={{ 
                           display: 'block', 
@@ -352,7 +353,7 @@ const SessionCard = React.memo(({
                             {speakerTitle}
                           </div>
                         )}
-                      </a>
+                      </div>
                     </div>
                   );
                 })
@@ -365,13 +366,12 @@ const SessionCard = React.memo(({
                     width: '100%'
                   }}
                 >
-                  <a 
-                    href={`/bio?speaker=${encodeURIComponent(speaker)}`}
+                  <div 
                     className="speaker-link"
                     onClick={(e) => {
-                      e.preventDefault();
                       e.stopPropagation();
-                      navigate(`/bio?speaker=${encodeURIComponent(speaker)}`);
+                      // Legacy speaker string format - no attendee_id available
+                      console.warn('Speaker click disabled: no attendee_id in legacy speaker format');
                     }}
                     style={{ 
                       display: 'block',
@@ -387,7 +387,7 @@ const SessionCard = React.memo(({
                     }}>
                       {speaker}
                     </div>
-                  </a>
+                  </div>
                 </div>
               ) : null}
             </div>
