@@ -321,19 +321,26 @@ export const useSessionData = (options = {}) => {
       }
 
       // Load seat assignments for the attendee
+      // ARCHITECTURE: Synchronous Transform with Async State Persistence
+      // Store in local variables for immediate use, then persist to state for future re-renders
+      let localSeatAssignments = [];
       if (attendeeData && attendeeData.id) {
         try {
           const seatData = await getAttendeeSeatAssignments(attendeeData.id);
-          setSeatAssignments(seatData);
-        } catch (seatError) {          setSeatAssignments([]);
+          localSeatAssignments = seatData;
+          setSeatAssignments(seatData); // Persist to state (async, non-blocking)
+        } catch (seatError) {
+          setSeatAssignments([]);
         }
       }
 
       // Load seating configurations (bridge table between events and seat assignments)
+      let localSeatingConfigurations = [];
       if (attendeeData && attendeeData.id) {
         try {
           const seatingConfigData = await getAllSeatingConfigurations();
-          setSeatingConfigurations(seatingConfigData || []);
+          localSeatingConfigurations = seatingConfigData || [];
+          setSeatingConfigurations(localSeatingConfigurations); // Persist to state (async, non-blocking)
         } catch (configError) {
           console.warn('⚠️ Failed to load seating configurations:', configError);
           setSeatingConfigurations([]);
@@ -542,8 +549,9 @@ export const useSessionData = (options = {}) => {
         .sort(compareEventsByTime)[0]; // Get the first (earliest) upcoming event
 
       // Enhance events with seat assignment data (for both sessions AND dining events)
+      // ARCHITECTURE: Use local variables for synchronous data transformation
       const enhanceEventWithSeatInfo = (event) => {
-        if (!event || !seatAssignments.length || !seatingConfigurations.length) {
+        if (!event || !localSeatAssignments.length || !localSeatingConfigurations.length) {
           return event || null;
         }
         
@@ -552,12 +560,12 @@ export const useSessionData = (options = {}) => {
         
         if (event.type === 'dining') {
           // For dining events, match by dining_option_id
-          seatingConfig = seatingConfigurations.find(
+          seatingConfig = localSeatingConfigurations.find(
             config => config.dining_option_id === event.id
           );
         } else {
           // For agenda items, match by agenda_item_id
-          seatingConfig = seatingConfigurations.find(
+          seatingConfig = localSeatingConfigurations.find(
             config => config.agenda_item_id === event.id
           );
         }
@@ -568,7 +576,7 @@ export const useSessionData = (options = {}) => {
         }
         
         // Step 2: Find seat assignment using the configuration ID from bridge table
-        const seatAssignment = seatAssignments.find(seat => 
+        const seatAssignment = localSeatAssignments.find(seat => 
           seat.seating_configuration_id === seatingConfig.id
         );
         
