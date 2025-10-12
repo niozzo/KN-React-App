@@ -497,7 +497,7 @@ export const testDatabaseConnection = async (): Promise<{
     } catch (_) {
       // Non-fatal; continue
     }
-    const tables = ['attendees', 'agenda_items', 'sponsors', 'seat_assignments', 'dining_options', 'hotels', 'seating_configurations', 'user_profiles']
+    const tables = ['attendees', 'agenda_items', 'sponsors', 'seat_assignments', 'dining_options', 'hotels', 'seating_configurations']
     const tableCounts: Record<string, number> = {}
     await Promise.all(
       tables.map(async (table) => {
