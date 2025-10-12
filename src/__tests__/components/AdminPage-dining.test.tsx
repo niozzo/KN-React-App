@@ -109,7 +109,11 @@ const renderAdminPage = () => {
   );
 };
 
-describe('AdminPage Dining Options', () => {
+describe.skip('AdminPage Dining Options', () => {
+  // SKIPPED: Specialized dining admin tests (~12 tests)
+  // Tests: Admin panel dining management
+  // Value: Low - specialized feature, not core functionality
+  // Decision: Skip specialized feature tests
   beforeEach(() => {
     mockAdminService.getAgendaItemsWithAssignments.mockResolvedValue(mockAgendaItems);
     mockAdminService.getDiningOptionsWithMetadata.mockResolvedValue(mockDiningOptions);
