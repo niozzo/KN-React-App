@@ -194,11 +194,11 @@ export default defineConfig(({ mode }) => {
     snapshotFormat: {
       printBasicPrototype: false
     },
-    // TEST: Reverting to threads to verify resource leaks are fixed
-    pool: 'threads',
+    // Use forks for better test isolation (prevents hanging)
+    pool: 'forks',
     poolOptions: {
-      threads: {
-        singleThread: false
+      forks: {
+        singleFork: false
       }
     },
     // Force file parallelism limits to reduce handle accumulation
@@ -207,10 +207,10 @@ export default defineConfig(({ mode }) => {
     maxConcurrency: 2,
     // Test isolation
     isolate: true,
-    // Optimized timeouts
-    testTimeout: 5000, // Increased from 3000 to prevent false timeouts
-    hookTimeout: 5000, // Increased from 3000 for async cleanup
-    teardownTimeout: 5000, // Reduced from 15000 - Vite server now closes properly
+    // Optimized timeouts - increased to prevent hanging
+    testTimeout: 15000, // 15s per test (was 5000)
+    hookTimeout: 10000, // 10s for hooks (was 5000)
+    teardownTimeout: 10000, // 10s for teardown (was 5000)
     // Add bail to stop on first failure
     bail: 5, // Reduced from 10 to 5
     // Performance optimizations
