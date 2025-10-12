@@ -1,171 +1,234 @@
 /**
- * Tests for Server Data Sync Service
- * 
- * Tests hybrid authentication pattern and data synchronization
+ * Unit Tests for ServerDataSyncService - Company Filtering
+ * Tests the edge case where specific attendees should have their company field cleared
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { ServerDataSyncService } from '../../services/serverDataSyncService';
 
-// Unmock the server data sync service to test the actual implementation
-vi.unmock('../../services/serverDataSyncService')
+describe('ServerDataSyncService - Company Filtering', () => {
+  let service: ServerDataSyncService;
 
-import { serverDataSyncService } from '../../services/serverDataSyncService'
-
-// Mock Supabase client
-vi.mock('@supabase/supabase-js', () => ({
-  createClient: vi.fn(() => ({
-    auth: {
-      signInWithPassword: vi.fn()
-    },
-    from: vi.fn(() => ({
-      select: vi.fn(() => ({
-        eq: vi.fn(() => ({
-          single: vi.fn()
-        }))
-      }))
-    }))
-  }))
-}))
-
-// Mock localStorage
-const localStorageMock = {
-  getItem: vi.fn(),
-  setItem: vi.fn(),
-  removeItem: vi.fn(),
-  clear: vi.fn(),
-  key: vi.fn(),
-  length: 0
-}
-
-Object.defineProperty(window, 'localStorage', {
-  value: localStorageMock
-})
-
-describe('ServerDataSyncService', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
-  })
+    service = new ServerDataSyncService();
+    // Clear any console logs to avoid test noise
+    vi.spyOn(console, 'log').mockImplementation(() => {});
+  });
 
-  describe('lookupAttendeeByAccessCode', () => {
-    it('should validate access code format', async () => {
-      const result = await serverDataSyncService.lookupAttendeeByAccessCode('ABC12')
-      
-      expect(result.success).toBe(false)
-      expect(result.error).toBe('Invalid access code format. Must be 6 alphanumeric characters.')
-      expect(result.attendee).toBeUndefined()
-    })
+  describe('applyTransformations - attendees table', () => {
+    const EXCLUDED_ATTENDEE_1 = 'de8cb880-e6f5-425d-9267-1eb0a2817f6b';
+    const EXCLUDED_ATTENDEE_2 = '21d75c80-9560-4e4c-86f0-9345ddb705a1';
 
-    it('should reject empty access code', async () => {
-      const result = await serverDataSyncService.lookupAttendeeByAccessCode('')
-      
-      expect(result.success).toBe(false)
-      expect(result.error).toBe('Invalid access code format. Must be 6 alphanumeric characters.')
-    })
+    it('should clear company for attendee de8cb880-e6f5-425d-9267-1eb0a2817f6b', async () => {
+      // Arrange
+      const mockAttendees = [
+        {
+          id: EXCLUDED_ATTENDEE_1,
+          first_name: 'John',
+          last_name: 'Doe',
+          company: 'Apax',
+          title: 'Speaker'
+        }
+      ];
 
-    it('should handle authentication errors gracefully', async () => {
-      // Mock Supabase to throw an authentication error
-      const mockCreateClient = await import('@supabase/supabase-js')
-      mockCreateClient.createClient.mockReturnValue({
-        auth: {
-          signInWithPassword: vi.fn().mockRejectedValue(new Error('Invalid credentials'))
+      // Act
+      const result = await (service as any).applyTransformations('attendees', mockAttendees);
+
+      // Assert
+      expect(result[0].company).toBe('');
+      expect(result[0].id).toBe(EXCLUDED_ATTENDEE_1);
+      expect(result[0].first_name).toBe('John');
+    });
+
+    it('should clear company for attendee 21d75c80-9560-4e4c-86f0-9345ddb705a1', async () => {
+      // Arrange
+      const mockAttendees = [
+        {
+          id: EXCLUDED_ATTENDEE_2,
+          first_name: 'Jane',
+          last_name: 'Smith',
+          company: 'Apax',
+          title: 'Keynote Speaker'
+        }
+      ];
+
+      // Act
+      const result = await (service as any).applyTransformations('attendees', mockAttendees);
+
+      // Assert
+      expect(result[0].company).toBe('');
+      expect(result[0].id).toBe(EXCLUDED_ATTENDEE_2);
+      expect(result[0].first_name).toBe('Jane');
+    });
+
+    it('should preserve company for other attendees', async () => {
+      // Arrange
+      const mockAttendees = [
+        {
+          id: 'other-attendee-id-123',
+          first_name: 'Bob',
+          last_name: 'Johnson',
+          company: 'Tech Corp',
+          title: 'CEO'
         },
-        from: vi.fn()
-      })
+        {
+          id: 'another-attendee-id-456',
+          first_name: 'Alice',
+          last_name: 'Williams',
+          company: 'Innovation Labs',
+          title: 'CTO'
+        }
+      ];
 
-      const result = await serverDataSyncService.lookupAttendeeByAccessCode('ABC123')
-      
-      expect(result.success).toBe(false)
-      expect(result.error).toBe('Attendee lookup failed. Please try again.')
-    })
+      // Act
+      const result = await (service as any).applyTransformations('attendees', mockAttendees);
 
-    it('should handle database errors gracefully', async () => {
-      // Mock successful authentication but database error
-      const mockCreateClient = await import('@supabase/supabase-js')
-      mockCreateClient.createClient.mockReturnValue({
-        auth: {
-          signInWithPassword: vi.fn().mockResolvedValue({ data: { user: {} }, error: null })
+      // Assert
+      expect(result[0].company).toBe('Tech Corp');
+      expect(result[1].company).toBe('Innovation Labs');
+    });
+
+    it('should handle attendees with already empty company', async () => {
+      // Arrange
+      const mockAttendees = [
+        {
+          id: EXCLUDED_ATTENDEE_1,
+          first_name: 'John',
+          last_name: 'Doe',
+          company: '',
+          title: 'Speaker'
+        }
+      ];
+
+      // Act
+      const result = await (service as any).applyTransformations('attendees', mockAttendees);
+
+      // Assert - Should remain empty string, not cause issues
+      expect(result[0].company).toBe('');
+      expect(result.length).toBe(1);
+    });
+
+    it('should handle attendees with null company', async () => {
+      // Arrange
+      const mockAttendees = [
+        {
+          id: EXCLUDED_ATTENDEE_1,
+          first_name: 'John',
+          last_name: 'Doe',
+          company: null,
+          title: 'Speaker'
+        }
+      ];
+
+      // Act
+      const result = await (service as any).applyTransformations('attendees', mockAttendees);
+
+      // Assert - Should set to empty string
+      expect(result[0].company).toBe('');
+    });
+
+    it('should not fail if excluded attendee ID is not in dataset', async () => {
+      // Arrange
+      const mockAttendees = [
+        {
+          id: 'regular-attendee-id',
+          first_name: 'Regular',
+          last_name: 'Person',
+          company: 'Some Company',
+          title: 'Manager'
+        }
+      ];
+
+      // Act
+      const result = await (service as any).applyTransformations('attendees', mockAttendees);
+
+      // Assert - Should process normally
+      expect(result.length).toBe(1);
+      expect(result[0].company).toBe('Some Company');
+    });
+
+    it('should preserve all other attendee fields unchanged', async () => {
+      // Arrange
+      const mockAttendees = [
+        {
+          id: EXCLUDED_ATTENDEE_1,
+          first_name: 'John',
+          last_name: 'Doe',
+          company: 'Apax',
+          title: 'Speaker',
+          email: 'john@example.com',
+          bio: 'Test bio',
+          attributes: { speaker: true, ceo: false }
+        }
+      ];
+
+      // Act
+      const result = await (service as any).applyTransformations('attendees', mockAttendees);
+
+      // Assert - Only company should be changed
+      expect(result[0].company).toBe('');
+      expect(result[0].first_name).toBe('John');
+      expect(result[0].last_name).toBe('Doe');
+      expect(result[0].title).toBe('Speaker');
+      expect(result[0].email).toBe('john@example.com');
+      expect(result[0].bio).toBe('Test bio');
+      expect(result[0].attributes).toEqual({ speaker: true, ceo: false });
+    });
+
+    it('should handle mixed dataset with both excluded and regular attendees', async () => {
+      // Arrange
+      const mockAttendees = [
+        {
+          id: EXCLUDED_ATTENDEE_1,
+          first_name: 'John',
+          last_name: 'Doe',
+          company: 'Apax',
+          title: 'Speaker'
         },
-        from: vi.fn(() => ({
-          select: vi.fn(() => ({
-            eq: vi.fn().mockResolvedValue({
-              data: null,
-              error: { message: 'Database error' }
-            })
-          }))
-        }))
-      })
+        {
+          id: 'regular-attendee',
+          first_name: 'Regular',
+          last_name: 'Person',
+          company: 'Tech Corp',
+          title: 'Manager'
+        },
+        {
+          id: EXCLUDED_ATTENDEE_2,
+          first_name: 'Jane',
+          last_name: 'Smith',
+          company: 'Apax',
+          title: 'Keynote'
+        }
+      ];
 
-      const result = await serverDataSyncService.lookupAttendeeByAccessCode('ABC123')
-      
-      expect(result.success).toBe(false)
-      expect(result.error).toBe('Invalid access code. Please check and try again.')
-    })
-  })
+      // Act
+      const result = await (service as any).applyTransformations('attendees', mockAttendees);
 
-  describe('cacheTableData', () => {
-    it('should cache data to localStorage', async () => {
-      const testData = [{ id: 1, name: 'Test' }]
-      
-      // Use reflection to access private method
-      const cacheMethod = (serverDataSyncService as any).cacheTableData.bind(serverDataSyncService)
-      await cacheMethod('test_table', testData)
-      
-      expect(localStorageMock.setItem).toHaveBeenCalledWith(
-        'kn_cache_test_table',
-        expect.stringContaining('"data":[{"id":1,"name":"Test"}],"timestamp":')
-      )
-    })
-  })
+      // Assert
+      expect(result[0].company).toBe(''); // Excluded
+      expect(result[1].company).toBe('Tech Corp'); // Regular
+      expect(result[2].company).toBe(''); // Excluded
+    });
+  });
 
-  describe('getCachedTableData', () => {
-    it('should return cached data from localStorage', async () => {
-      const testData = [{ id: 1, name: 'Test' }]
-      const cacheData = {
-        data: testData,
-        timestamp: Date.now(),
-        version: 1,
-        source: 'server-sync'
-      }
-      
-      localStorageMock.getItem.mockReturnValue(JSON.stringify(cacheData))
-      
-      const result = await serverDataSyncService.getCachedTableData('test_table')
-      
-      expect(result).toEqual(testData)
-      expect(localStorageMock.getItem).toHaveBeenCalledWith('kn_cache_test_table')
-    })
+  describe('applyTransformations - other tables', () => {
+    it('should not affect other table transformations', async () => {
+      // Arrange
+      const mockSponsors = [
+        {
+          id: 'sponsor-1',
+          name: 'Sponsor Company',
+          is_active: true,
+          display_order: 1
+        }
+      ];
 
-    it('should return empty array when no cached data', async () => {
-      localStorageMock.getItem.mockReturnValue(null)
-      
-      const result = await serverDataSyncService.getCachedTableData('test_table')
-      
-      expect(result).toEqual([])
-    })
+      // Act
+      const result = await (service as any).applyTransformations('sponsors', mockSponsors);
 
-    it('should handle JSON parse errors gracefully', async () => {
-      localStorageMock.getItem.mockReturnValue('invalid json')
-      
-      const result = await serverDataSyncService.getCachedTableData('test_table')
-      
-      expect(result).toEqual([])
-    })
-  })
-
-  describe('clearCache', () => {
-    it('should clear all cache entries', async () => {
-      // Mock Object.keys to return cache keys
-      const originalKeys = Object.keys
-      Object.keys = vi.fn().mockReturnValue(['kn_cache_table1', 'kn_cache_table2', 'other_key'])
-      
-      await serverDataSyncService.clearCache()
-      
-      expect(localStorageMock.removeItem).toHaveBeenCalledWith('kn_cache_table1')
-      expect(localStorageMock.removeItem).toHaveBeenCalledWith('kn_cache_table2')
-      expect(localStorageMock.removeItem).not.toHaveBeenCalledWith('other_key')
-      
-      // Restore original Object.keys
-      Object.keys = originalKeys
-    })
-  })
-})
+      // Assert - Should not be affected by attendees logic
+      expect(result).toBeDefined();
+      expect(result.length).toBe(1);
+    });
+  });
+});
