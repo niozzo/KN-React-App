@@ -72,14 +72,26 @@ export abstract class BaseTransformer<T> implements DataTransformer<T> {
 
   /**
    * Calculate confidence score for version detection
+   * Only checks required fields - optional fields being absent is normal
    */
   protected calculateConfidence(data: any, version: string): number {
-    // Simple confidence calculation based on expected fields
-    const expectedFields = this.fieldMappings.map(m => m.source)
-    const presentFields = Object.keys(data || {})
-    const matchingFields = expectedFields.filter(field => presentFields.includes(field))
+    // Only check required fields - missing optional fields shouldn't reduce confidence
+    const requiredFields = this.fieldMappings
+      .filter(m => m.required)
+      .map(m => m.source)
     
-    return matchingFields.length / expectedFields.length
+    // If no required fields defined, fall back to all fields
+    if (requiredFields.length === 0) {
+      const expectedFields = this.fieldMappings.map(m => m.source)
+      const presentFields = Object.keys(data || {})
+      const matchingFields = expectedFields.filter(field => presentFields.includes(field))
+      return matchingFields.length / expectedFields.length
+    }
+    
+    const presentFields = Object.keys(data || {})
+    const matchingRequiredFields = requiredFields.filter(field => presentFields.includes(field))
+    
+    return matchingRequiredFields.length / requiredFields.length
   }
 
   /**
