@@ -6,6 +6,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { AuthProvider, LoginPage } from '../../contexts/AuthContext'
 import { getAuthStatus, authenticateWithAccessCode } from '../../services/authService'
 import React from 'react'
@@ -28,6 +29,15 @@ vi.mock('../../services/serverDataSyncService', () => ({
     })
   }
 }))
+
+// Helper to render with Router context
+const renderWithRouter = (component: React.ReactElement) => {
+  return render(
+    <MemoryRouter>
+      {component}
+    </MemoryRouter>
+  );
+};
 
 describe('LoginPage - Enhanced Functionality', () => {
   beforeEach(() => {
@@ -56,7 +66,7 @@ describe('LoginPage - Enhanced Functionality', () => {
       })
 
       // Render the actual LoginPage component
-      render(
+      renderWithRouter(
         <AuthProvider>
           <LoginPage />
         </AuthProvider>
