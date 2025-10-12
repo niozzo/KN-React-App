@@ -292,6 +292,44 @@ export class AdminService {
     return attendees;
   }
 
+  async getAllAttendeesWithAccessCodes(): Promise<Array<{
+    id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    access_code: string;
+  }>> {
+    try {
+      // ADMIN-ONLY: Fetch directly from Supabase to get access codes
+      // Note: access_code is filtered from cached data for security,
+      // so we must fetch from database for admin functions
+      console.log('🔐 Admin: Fetching attendees with access codes from database...');
+      
+      // Use the existing Supabase client (following architecture pattern)
+      const { supabase } = await import('../lib/supabase');
+      
+      const { data, error } = await supabase
+        .from('attendees')
+        .select('id, first_name, last_name, email, access_code')
+        .not('access_code', 'is', null)
+        .order('last_name', { ascending: true });
+      
+      if (error) {
+        console.error('❌ Error fetching attendees:', error);
+        throw error;
+      }
+      
+      console.log(`✅ Fetched ${data?.length || 0} attendees with access codes`);
+      
+      return data || [];
+      
+    } catch (error) {
+      console.error('❌ getAllAttendeesWithAccessCodes error:', error);
+      // Return empty array on error rather than throwing
+      return [];
+    }
+  }
+
   // Validation methods
   validatePasscode(passcode: string): boolean {
     return passcode === '616161';
