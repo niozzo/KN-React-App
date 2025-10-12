@@ -10,43 +10,48 @@
 
 ## Problem Statement
 
-When clicking on a speaker's name in the agenda view, the application would only log to the console instead of navigating to the speaker's bio details page. Users expected to be redirected to `/bio?speaker={speakerName}` but no navigation occurred.
+When clicking on a speaker's name in the agenda view, users experienced navigation issues:
+1. **Initial Issue**: Click handlers only logged to console instead of navigating
+2. **Secondary Issue**: Navigation used wrong parameter format (`?speaker={name}` instead of `?id={attendeeId}`), causing "No attendee ID provided" error on BioPage
 
 ---
 
 ## Root Cause Analysis
 
-### Technical Details
+### Part 1: Missing Navigation Implementation
 
 **Location**: `src/components/session/SessionCard.jsx`
 
-**Issue**: Three speaker link click handlers (lines ~267, ~323, ~371) were only calling `console.log()` instead of using the React Router's `navigate()` function. While the `useNavigate` hook was imported, it was never actually invoked in the speaker link handlers.
+**Issue**: Speaker link click handlers only called `console.log()` instead of using React Router's `navigate()` function. The `useNavigate` hook was imported but never invoked.
 
 **Code Pattern (Before Fix)**:
 ```javascript
 onClick={(e) => {
   e.stopPropagation();
-  // Handle navigation to speaker bio
   console.log('Navigate to speaker bio:', speaker.name);
 }}
 ```
 
-### Affected Patterns
+### Part 2: Incorrect URL Parameter Format
 
-The bug existed in all three speaker rendering patterns:
-1. **Speakers Array** - When `speakers` prop contains array of speaker objects
-2. **SpeakerInfo String** - When `speakerInfo` contains comma-separated speaker list
-3. **Speaker String** - Fallback when `speaker` prop is a simple string
+**Location**: `src/components/session/SessionCard.jsx` and `src/services/agendaService.ts`
+
+**Issue**: BioPage expects `?id={attendeeId}` (UUID) but SessionCard was passing `?speaker={name}` (formatted string like "Seth Brody, Partner..."). Speaker objects from agendaService lacked `attendee_id` field.
+
+### Affected Components
+
+1. **SessionCard.jsx** - Speaker link handlers
+2. **agendaService.ts** - Speaker data transformation
+3. **BioPage.jsx** - Expected `id` parameter but received `speaker` parameter
 
 ---
 
 ## Solution Implemented
 
-### Changes Made
+### Fix Part 1: Add Navigation (Commit 388d805)
 
-Updated all three speaker link click handlers to properly use the `navigate()` hook:
+Updated speaker link click handlers to use `navigate()`:
 
-**Code Pattern (After Fix)**:
 ```javascript
 onClick={(e) => {
   e.preventDefault();
@@ -55,12 +60,41 @@ onClick={(e) => {
 }}
 ```
 
+### Fix Part 2: Use Attendee IDs (Commits dd4959e, 9f530cb)
+
+**File 1: `src/services/agendaService.ts`**
+Added `attendee_id` to speaker objects:
+```typescript
+return {
+  id: assignment.id,
+  attendee_id: assignment.attendee_id,  // ← Added
+  name,
+  role: assignment.role,
+  display_order: assignment.display_order
+};
+```
+
+**File 2: `src/components/session/SessionCard.jsx`**
+Updated navigation to use attendee ID:
+```javascript
+<a 
+  href={speaker.attendee_id ? `/bio?id=${speaker.attendee_id}` : '#'}
+  onClick={(e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (speaker.attendee_id) {
+      navigate(`/bio?id=${speaker.attendee_id}`);
+    }
+  }}
+```
+
 ### Key Improvements
 
 1. **Added `e.preventDefault()`** - Prevents default anchor tag behavior
-2. **Added `navigate()` call** - Properly routes to bio page with speaker query parameter
-3. **Maintained `e.stopPropagation()`** - Prevents triggering the parent card's click handler
-4. **Preserved URL encoding** - Ensures speaker names with special characters work correctly
+2. **Added `navigate()` call** - Properly routes to bio page
+3. **Changed to ID-based routing** - Uses attendee UUID instead of formatted name string
+4. **Maintained `e.stopPropagation()`** - Prevents parent card click
+5. **Added attendee_id to data flow** - Ensures proper lookup on BioPage
 
 ---
 
@@ -123,9 +157,12 @@ No regressions detected:
 ## Files Modified
 
 1. **src/components/session/SessionCard.jsx**
-   - Line 267-270: Fixed speakers array click handler
-   - Line 323-326: Fixed speakerInfo string click handler
-   - Line 371-374: Fixed speaker string fallback click handler
+   - Lines 264-277: Updated speakers array click handler with attendee_id navigation
+   - Lines 322-328: Disabled legacy speakerInfo format (no attendee_id available)
+   - Lines 369-375: Disabled legacy speaker string format (no attendee_id available)
+
+2. **src/services/agendaService.ts**
+   - Line 255: Added `attendee_id` field to speaker object transformation
 
 ---
 
@@ -134,8 +171,8 @@ No regressions detected:
 - No database migrations required
 - No environment variable changes
 - No dependency updates
-- Safe to deploy immediately
-- No cache clearing needed
+- **⚠️ Cache clearing required**: Users may need to hard refresh (Ctrl+Shift+R / Cmd+Shift+R) to clear cached agenda data that lacks `attendee_id` field
+- Consider cache version bump or invalidation for production deployment
 
 ---
 
@@ -158,12 +195,15 @@ None required. Bug is fully resolved and tested.
 
 1. **Always implement navigation when importing hooks** - The `useNavigate` hook was imported but never used, suggesting incomplete implementation
 2. **Console logs can mask incomplete features** - The console.log gave the appearance of functionality without actual implementation
-3. **Test existing integration tests** - The integration test only verified that card click wasn't triggered, not that navigation occurred
-4. **preventDefault is important** - When using onClick on anchor tags, preventDefault prevents double navigation attempts
+3. **Verify parameter contracts between components** - BioPage expected `id` parameter but SessionCard passed `speaker` name
+4. **Test the full user flow end-to-end** - Unit tests passed but actual navigation failed due to parameter mismatch
+5. **Consider cache invalidation for data structure changes** - Adding `attendee_id` field required cache refresh for users
+6. **preventDefault is important** - When using onClick on anchor tags, preventDefault prevents double navigation attempts
 
 ---
 
 **Fix Author**: BMad Orchestrator  
-**Reviewed By**: Automated Test Suite  
-**Deployment**: Ready for production
+**Reviewed By**: Automated Test Suite + User Testing  
+**Deployment**: ✅ Deployed to develop and verified working  
+**Commits**: 388d805 (navigation), dd4959e (attendee_id), 9f530cb (debug removed)
 

@@ -267,12 +267,8 @@ const SessionCard = React.memo(({
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          console.log('Speaker clicked:', speaker);
-                          console.log('Attendee ID:', speaker.attendee_id);
                           if (speaker.attendee_id) {
                             navigate(`/bio?id=${speaker.attendee_id}`);
-                          } else {
-                            console.warn('No attendee_id found for speaker:', speaker);
                           }
                         }}
                         style={{ 
