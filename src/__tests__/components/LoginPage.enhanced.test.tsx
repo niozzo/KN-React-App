@@ -144,7 +144,7 @@ describe('LoginPage - Enhanced Functionality', () => {
         })
       )
 
-      render(
+      renderWithRouter(
         <AuthProvider>
           <LoginPage />
         </AuthProvider>
@@ -183,7 +183,7 @@ describe('LoginPage - Enhanced Functionality', () => {
         error: 'Invalid access code. Please try again or ask at the registration desk for help.'
       })
 
-      render(
+      renderWithRouter(
         <AuthProvider>
           <LoginPage />
         </AuthProvider>
@@ -213,7 +213,7 @@ describe('LoginPage - Enhanced Functionality', () => {
         error: 'Invalid access code. Please try again or ask at the registration desk for help.'
       })
 
-      render(
+      renderWithRouter(
         <AuthProvider>
           <LoginPage />
         </AuthProvider>
@@ -247,7 +247,7 @@ describe('LoginPage - Enhanced Functionality', () => {
         attendee: null
       })
 
-      render(
+      renderWithRouter(
         <AuthProvider>
           <LoginPage />
         </AuthProvider>
@@ -272,7 +272,7 @@ describe('LoginPage - Enhanced Functionality', () => {
         attendee: null
       })
 
-      render(
+      renderWithRouter(
         <AuthProvider>
           <LoginPage />
         </AuthProvider>
@@ -317,7 +317,7 @@ describe('LoginPage - Enhanced Functionality', () => {
         totalRecords: 10
       })
 
-      render(
+      renderWithRouter(
         <AuthProvider>
           <LoginPage />
         </AuthProvider>
