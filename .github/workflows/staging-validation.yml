@@ -9,6 +9,7 @@ on:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    timeout-minutes: 5  # Safety timeout: typical run ~2min, max 5min
     steps:
       - uses: actions/checkout@v4
       
