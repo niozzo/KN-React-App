@@ -13,6 +13,9 @@ import OfflinePage from './components/OfflinePage'
 import { pwaService } from './services/pwaService'
 import { AuthProvider, withAuth, LoginPage } from './contexts/AuthContext'
 import { AdminApp } from './components/AdminApp'
+import { AdminDashboard } from './components/admin/AdminDashboard'
+import { AdminPage } from './components/AdminPage'
+import { QRCodeGenerator } from './components/admin/QRCodeGenerator'
 
 // Component to handle scroll restoration
 function ScrollToTop() {
@@ -59,7 +62,11 @@ function App() {
           <Route path="/settings" element={<ProtectedSettingsPage />} />
           <Route path="/bio" element={<ProtectedBioPage />} />
           <Route path="/seat-map" element={<ProtectedSeatMapPage />} />
-          <Route path="/admin" element={<AdminApp />} />
+          <Route path="/admin" element={<AdminApp />}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="manage" element={<AdminPage />} />
+            <Route path="qr-generator" element={<QRCodeGenerator />} />
+          </Route>
           <Route path="/offline" element={<OfflinePage />} />
         </Routes>
       </div>

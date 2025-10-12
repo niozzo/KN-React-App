@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { Outlet } from 'react-router-dom';
 import { PasscodeScreen } from './PasscodeScreen';
-import { AdminPage } from './AdminPage';
 
 export const AdminApp: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -33,5 +33,6 @@ export const AdminApp: React.FC = () => {
     return <PasscodeScreen onPasscodeValid={handlePasscodeValid} />;
   }
 
-  return <AdminPage onLogout={handleLogout} />;
+  // Pass onLogout via Outlet context (accessible via useOutletContext in children)
+  return <Outlet context={{ onLogout: handleLogout }} />;
 };

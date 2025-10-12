@@ -292,6 +292,44 @@ export class AdminService {
     return attendees;
   }
 
+  async getAllAttendeesWithAccessCodes(): Promise<Array<{
+    id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    access_code: string;
+  }>> {
+    // Follow architecture: localStorage-first (same pattern as getAvailableAttendees)
+    let attendees = [];
+    
+    // Try kn_cache_attendees first (current structure)
+    const cachedData = localStorage.getItem('kn_cache_attendees');
+    if (cachedData) {
+      try {
+        const parsed = JSON.parse(cachedData);
+        attendees = parsed.data || parsed || [];
+      } catch (error) {
+        console.error('Error parsing kn_cache_attendees:', error);
+      }
+    }
+    
+    // Fallback to attendees if kn_cache_attendees is empty
+    if (attendees.length === 0) {
+      attendees = JSON.parse(localStorage.getItem('attendees') || '[]');
+    }
+    
+    // Return filtered fields for admin use (only attendees with access codes)
+    return attendees
+      .filter((a: any) => a.access_code) // Only attendees with codes
+      .map((a: any) => ({
+        id: a.id,
+        first_name: a.first_name,
+        last_name: a.last_name,
+        email: a.email,
+        access_code: a.access_code
+      }));
+  }
+
   // Validation methods
   validatePasscode(passcode: string): boolean {
     return passcode === '616161';
