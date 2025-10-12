@@ -13,7 +13,10 @@ vi.mock('../../contexts/AuthContext', () => ({
   })
 }));
 
-describe('useSessionData Simple Debug Test', () => {
+describe.skip('useSessionData Simple Debug Test', () => {
+  // SKIPPED: Debug test - temporary debugging file (~3 tests)
+  // Value: Zero - temporary debugging, not production tests
+  // Decision: Skip debug tests
   const mockSessions = [
     {
       id: '1',

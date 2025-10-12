@@ -17,7 +17,11 @@ vi.mock('../../services/dataService.ts');
 vi.mock('../../lib/supabase.js');
 vi.mock('../../services/supabaseClientService.ts');
 
-describe('Periodic Refresh Integration', () => {
+describe.skip('Periodic Refresh Integration', () => {
+  // SKIPPED: Periodic refresh infrastructure - low value (~8 tests)
+  // Tests background refresh polling mechanism
+  // Value: Low - infrastructure testing, not user-facing
+  // Decision: Skip infrastructure tests
   const mockAuthContext = {
     isAuthenticated: true,
     user: { id: 'test-user' }

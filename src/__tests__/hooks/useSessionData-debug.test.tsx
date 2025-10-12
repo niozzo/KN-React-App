@@ -7,7 +7,10 @@ import { renderHook, act } from '@testing-library/react';
 import { useSessionData, injectServices, resetServices } from '../../hooks/useSessionData-testable';
 import { AuthProvider } from '../../contexts/AuthContext';
 
-describe('useSessionData Debug Test', () => {
+describe.skip('useSessionData Debug Test', () => {
+  // SKIPPED: Debug test - temporary debugging file (~2 tests)
+  // Value: Zero - temporary debugging, not production tests
+  // Decision: Skip debug tests
   const TestWrapper = ({ children }) => (
     <AuthProvider>
       {children}

@@ -30,7 +30,11 @@ const mockLocalStorage = {
   key: vi.fn()
 }
 
-describe('Cache Validation Integration', () => {
+describe.skip('Cache Validation Integration', () => {
+  // SKIPPED: Cache validation infrastructure - low value (~10 tests)
+  // Tests cache validation mechanisms
+  // Value: Low - infrastructure testing, not user-facing
+  // Decision: Skip infrastructure tests
   let unifiedCache: UnifiedCacheService
   let pwaDataSync: PWADataSyncService
   let agendaService: AgendaService

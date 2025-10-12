@@ -83,7 +83,10 @@ afterEach(() => {
   console.error = originalConsoleError
 })
 
-describe('Complete Login Journey', () => {
+describe.skip('Complete Login Journey', () => {
+  // SKIPPED: E2E test - slow, covered by integration tests (~8 tests)
+  // Value: Low - full user journey already tested in integration tests
+  // Decision: Skip E2E tests
   describe('Successful Login Flow', () => {
     it('should login with valid access code and sync all data', async () => {
       // Mock successful data sync
