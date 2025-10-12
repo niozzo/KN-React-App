@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
 /**
@@ -12,8 +12,10 @@ const Header = ({
   onLogoClick,
   onUserClick 
 }) => {
-  const { isAuthenticated, attendeeName, attendee } = useAuth();
+  const { isAuthenticated, attendeeName, attendee, logout, isSigningOut } = useAuth();
+  const navigate = useNavigate();
   const [imageError, setImageError] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   // Generate initials from attendee name
   const getInitials = (name) => {
@@ -60,6 +62,24 @@ const Header = ({
     setImageError(false);
   }, [attendee?.id]);
 
+  // Toggle dropdown
+  const toggleDropdown = () => {
+    setIsDropdownOpen(!isDropdownOpen);
+  };
+
+  // Handle logout
+  const handleLogout = async () => {
+    setIsDropdownOpen(false);
+    try {
+      const result = await logout();
+      if (result.success) {
+        navigate('/login');
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
   return (
     <header className="header">
       <div className="header-content">
@@ -71,30 +91,56 @@ const Header = ({
           {logoText}
         </Link>
         {isAuthenticated && (
-          <div 
-            className="user-info"
-            onClick={onUserClick}
-            style={{ cursor: onUserClick ? 'pointer' : 'default' }}
-          >
-            <div className="user-avatar">
-              {attendee?.photo && !imageError ? (
-                <img
-                  src={attendee.photo}
-                  alt={`${getDisplayName()} profile picture`}
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                    borderRadius: '50%'
-                  }}
-                  onError={handleImageError}
-                />
-              ) : (
-                getAvatarInitials()
-              )}
+          <>
+            <div 
+              className="user-info"
+              onClick={toggleDropdown}
+              style={{ cursor: 'pointer' }}
+            >
+              <div className="user-avatar">
+                {attendee?.photo && !imageError ? (
+                  <img
+                    src={attendee.photo}
+                    alt={`${getDisplayName()} profile picture`}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      borderRadius: '50%'
+                    }}
+                    onError={handleImageError}
+                  />
+                ) : (
+                  getAvatarInitials()
+                )}
+              </div>
+              <span>{getDisplayName()}</span>
             </div>
-            <span>{getDisplayName()}</span>
-          </div>
+
+            {/* Dropdown backdrop - click outside to close */}
+            {isDropdownOpen && (
+              <div 
+                className="profile-dropdown-backdrop"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsDropdownOpen(false);
+                }}
+              />
+            )}
+
+            {/* Dropdown menu */}
+            {isDropdownOpen && (
+              <div className="profile-dropdown">
+                <button 
+                  className="profile-dropdown-item"
+                  onClick={handleLogout}
+                  disabled={isSigningOut}
+                >
+                  {isSigningOut ? 'Logging out...' : 'Log out'}
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </header>
