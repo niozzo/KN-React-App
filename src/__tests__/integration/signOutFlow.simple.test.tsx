@@ -51,11 +51,8 @@ vi.mock('../../services/dataClearingService', () => ({
   }
 }))
 
-describe.skip('Sign-Out Flow Integration - Simplified', () => {
-  // SKIPPED: Button text mismatch + workflow TIMED OUT at 10 minutes (6 tests)
-  // Failed: Test looks for "Sign out" button, actual UI has "Log out" button
-  // Value: Low - trivial text assertion, logout tested elsewhere
-  // Decision: Skip immediately - caused 10-min timeout
+describe('Sign-Out Flow Integration - Simplified', () => {
+  // FIXED: Changed "Sign out" to "Log out" to match actual UI
   let mockDataClearingService: any
   let mockAuthService: any
 
@@ -101,7 +98,7 @@ describe.skip('Sign-Out Flow Integration - Simplified', () => {
     expect(screen.getByRole('heading', { name: 'Settings' })).toBeInTheDocument()
     
     // Verify sign-out button exists
-    const signOutButton = screen.getByRole('button', { name: /sign out/i })
+    const signOutButton = screen.getByRole('button', { name: /log out/i })
     expect(signOutButton).toBeInTheDocument()
     expect(signOutButton).not.toBeDisabled()
   })
@@ -125,7 +122,7 @@ describe.skip('Sign-Out Flow Integration - Simplified', () => {
       </BrowserRouter>
     )
 
-    const signOutButton = screen.getByRole('button', { name: /sign out/i })
+    const signOutButton = screen.getByRole('button', { name: /log out/i })
     
     // Click sign-out button
     fireEvent.click(signOutButton)
@@ -162,7 +159,7 @@ describe.skip('Sign-Out Flow Integration - Simplified', () => {
       </BrowserRouter>
     )
 
-    const signOutButton = screen.getByRole('button', { name: /sign out/i })
+    const signOutButton = screen.getByRole('button', { name: /log out/i })
     fireEvent.click(signOutButton)
 
     // Wait for data clearing to be called
@@ -201,7 +198,7 @@ describe.skip('Sign-Out Flow Integration - Simplified', () => {
       </BrowserRouter>
     )
 
-    const signOutButton = screen.getByRole('button', { name: /sign out/i })
+    const signOutButton = screen.getByRole('button', { name: /log out/i })
     fireEvent.click(signOutButton)
 
     // Wait for data clearing to complete
@@ -227,7 +224,7 @@ describe.skip('Sign-Out Flow Integration - Simplified', () => {
       </BrowserRouter>
     )
 
-    const signOutButton = screen.getByRole('button', { name: /sign out/i })
+    const signOutButton = screen.getByRole('button', { name: /log out/i })
     fireEvent.click(signOutButton)
 
     // Wait for error handling
@@ -245,7 +242,7 @@ describe.skip('Sign-Out Flow Integration - Simplified', () => {
       </BrowserRouter>
     )
 
-    const signOutButton = screen.getByRole('button', { name: /sign out/i })
+    const signOutButton = screen.getByRole('button', { name: /log out/i })
     fireEvent.click(signOutButton)
 
     // Wait for verification to be called
