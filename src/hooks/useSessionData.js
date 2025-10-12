@@ -6,7 +6,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { agendaService } from '../services/agendaService';
-import { getCurrentAttendeeData, getAttendeeSeatAssignments, getAllDiningOptions } from '../services/dataService';
+import { getCurrentAttendeeData, getAttendeeSeatAssignments, getAllDiningOptions, getAllSeatingConfigurations } from '../services/dataService';
 import TimeService from '../services/timeService';
 import { useAuth } from '../contexts/AuthContext';
 import { cacheMonitoringService } from '../services/cacheMonitoringService';
@@ -328,6 +328,18 @@ export const useSessionData = (options = {}) => {
         }
       }
 
+      // Load seating configurations (bridge table between events and seat assignments)
+      let seatingConfigurations = [];
+      if (attendeeData && attendeeData.id) {
+        try {
+          const seatingConfigData = await getAllSeatingConfigurations();
+          seatingConfigurations = seatingConfigData || [];
+        } catch (configError) {
+          console.warn('⚠️ Failed to load seating configurations:', configError);
+          seatingConfigurations = [];
+        }
+      }
+
       // Progressive data loading: Try cache first, then server, then fallback
       let allSessionsData = [];
       let loadSource = 'unknown';
@@ -531,40 +543,43 @@ export const useSessionData = (options = {}) => {
 
       // Enhance events with seat assignment data (for both sessions AND dining events)
       const enhanceEventWithSeatInfo = (event) => {
-        if (!event || !seatAssignments.length) return event || null;
-        
-        // DEBUG: Log event details for troubleshooting
-        if (event.id === '4c057931-0223-491f-8a7f-ba232bc2a95c') {
-          console.log('🔍 DEBUG Event 4c057931:', {
-            id: event.id,
-            type: event.type,
-            seating_type: event.seating_type,
-            seating_configuration_id: event.seating_configuration_id,
-            seatAssignmentsCount: seatAssignments.length
-          });
-          console.log('🔍 All seat assignments:', seatAssignments.map(s => ({
-            id: s.id,
-            seating_config_id: s.seating_configuration_id,
-            table: s.table_name,
-            seat: s.seat_number
-          })));
+        if (!event || !seatAssignments.length || !seatingConfigurations.length) {
+          return event || null;
         }
         
-        // Find seat assignment for this event (works for both agenda items and dining events)
-        // The seating_configuration_id links to seat_assignments for both event types
+        // Step 1: Find the seating configuration for this event (bridge table lookup)
+        let seatingConfig = null;
+        
+        if (event.type === 'dining') {
+          // For dining events, match by dining_option_id
+          seatingConfig = seatingConfigurations.find(
+            config => config.dining_option_id === event.id
+          );
+        } else {
+          // For agenda items, match by agenda_item_id
+          seatingConfig = seatingConfigurations.find(
+            config => config.agenda_item_id === event.id
+          );
+        }
+        
+        // If no seating configuration found, return event without seat info
+        if (!seatingConfig) {
+          return event;
+        }
+        
+        // Step 2: Find seat assignment using the configuration ID from bridge table
         const seatAssignment = seatAssignments.find(seat => 
-          seat.seating_configuration_id === event.seating_configuration_id
+          seat.seating_configuration_id === seatingConfig.id
         );
         
-        if (event.id === '4c057931-0223-491f-8a7f-ba232bc2a95c') {
-          console.log('🔍 Found seat assignment:', seatAssignment);
-        }
-        
+        // Step 3: Return enhanced event with seat info
         return {
           ...event,
           seatInfo: seatAssignment ? {
             table: seatAssignment.table_name,
             seat: seatAssignment.seat_number,
+            row: seatAssignment.row_number,
+            column: seatAssignment.column_number,
             position: seatAssignment.seat_position
           } : null
         };
