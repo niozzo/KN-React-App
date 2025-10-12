@@ -397,13 +397,8 @@ const SessionCard = React.memo(({
         {seatInfo && (
           <div 
             className="seat-assignment"
-            onClick={(e) => {
-              e.stopPropagation();
-              // Navigate to seat map with focus on this session's seating
-              navigate(`/seat-map?session=${session.id}&table=${seatInfo.table}`);
-            }}
             style={{ 
-              cursor: 'pointer',
+              cursor: 'default',
               background: 'white',
               borderRadius: 'var(--radius-md)',
               padding: 'var(--space-sm)',
@@ -419,11 +414,7 @@ const SessionCard = React.memo(({
             }}>
               Your Seat
             </div>
-            <div className="seat-details" style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}>
+            <div className="seat-details">
               <span style={{ 
                 fontSize: 'var(--text-base)', 
                 fontWeight: '500',
@@ -441,13 +432,6 @@ const SessionCard = React.memo(({
                 ) : (
                   'Seat assigned'
                 )}
-              </span>
-              <span className="seat-map-link" style={{
-                fontSize: 'var(--text-sm)',
-                color: 'var(--primary-600)',
-                textDecoration: 'underline'
-              }}>
-                Find my seat
               </span>
             </div>
           </div>
