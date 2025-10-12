@@ -299,35 +299,35 @@ export class AdminService {
     email: string;
     access_code: string;
   }>> {
-    // Follow architecture: localStorage-first (same pattern as getAvailableAttendees)
-    let attendees = [];
-    
-    // Try kn_cache_attendees first (current structure)
-    const cachedData = localStorage.getItem('kn_cache_attendees');
-    if (cachedData) {
-      try {
-        const parsed = JSON.parse(cachedData);
-        attendees = parsed.data || parsed || [];
-      } catch (error) {
-        console.error('Error parsing kn_cache_attendees:', error);
+    try {
+      // ADMIN-ONLY: Fetch directly from Supabase to get access codes
+      // Note: access_code is filtered from cached data for security,
+      // so we must fetch from database for admin functions
+      console.log('🔐 Admin: Fetching attendees with access codes from database...');
+      
+      const { SupabaseClientFactory } = await import('./SupabaseClientFactory');
+      const supabaseClient = SupabaseClientFactory.getInstance().getExternalClient();
+      
+      const { data, error } = await supabaseClient
+        .from('attendees')
+        .select('id, first_name, last_name, email, access_code')
+        .not('access_code', 'is', null)
+        .order('last_name', { ascending: true });
+      
+      if (error) {
+        console.error('❌ Error fetching attendees:', error);
+        throw error;
       }
+      
+      console.log(`✅ Fetched ${data?.length || 0} attendees with access codes`);
+      
+      return data || [];
+      
+    } catch (error) {
+      console.error('❌ getAllAttendeesWithAccessCodes error:', error);
+      // Return empty array on error rather than throwing
+      return [];
     }
-    
-    // Fallback to attendees if kn_cache_attendees is empty
-    if (attendees.length === 0) {
-      attendees = JSON.parse(localStorage.getItem('attendees') || '[]');
-    }
-    
-    // Return filtered fields for admin use (only attendees with access codes)
-    return attendees
-      .filter((a: any) => a.access_code) // Only attendees with codes
-      .map((a: any) => ({
-        id: a.id,
-        first_name: a.first_name,
-        last_name: a.last_name,
-        email: a.email,
-        access_code: a.access_code
-      }));
   }
 
   // Validation methods

@@ -1,19 +1,42 @@
 /**
  * AdminService.getAllAttendeesWithAccessCodes Tests
  * Tests for the method that retrieves attendees with access codes for QR generation
+ * 
+ * Note: This method fetches directly from Supabase because access_code is filtered
+ * from cached data for security reasons.
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { adminService } from '../../services/adminService';
+import { SupabaseClientFactory } from '../../services/SupabaseClientFactory';
+
+// Mock SupabaseClientFactory
+vi.mock('../../services/SupabaseClientFactory', () => ({
+  SupabaseClientFactory: {
+    getInstance: vi.fn()
+  }
+}));
 
 describe('AdminService.getAllAttendeesWithAccessCodes', () => {
+  let mockSupabaseClient: any;
+
   beforeEach(() => {
-    // Clear localStorage before each test
-    localStorage.clear();
     vi.clearAllMocks();
+    
+    // Setup mock Supabase client
+    mockSupabaseClient = {
+      from: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
+      not: vi.fn().mockReturnThis(),
+      order: vi.fn().mockResolvedValue({ data: [], error: null })
+    };
+
+    (SupabaseClientFactory.getInstance as any).mockReturnValue({
+      getExternalClient: () => mockSupabaseClient
+    });
   });
 
-  it('should load attendees from kn_cache_attendees localStorage', async () => {
+  it('should fetch attendees from Supabase with access codes', async () => {
     // Arrange
     const mockAttendees = [
       {
@@ -21,8 +44,7 @@ describe('AdminService.getAllAttendeesWithAccessCodes', () => {
         first_name: 'John',
         last_name: 'Doe',
         email: 'john@example.com',
-        access_code: 'ABC123',
-        other_field: 'should not be included'
+        access_code: 'ABC123'
       },
       {
         id: '2',
@@ -33,128 +55,32 @@ describe('AdminService.getAllAttendeesWithAccessCodes', () => {
       }
     ];
 
-    localStorage.setItem('kn_cache_attendees', JSON.stringify({ data: mockAttendees }));
+    mockSupabaseClient.order.mockResolvedValue({ data: mockAttendees, error: null });
 
     // Act
     const result = await adminService.getAllAttendeesWithAccessCodes();
 
     // Assert
     expect(result).toHaveLength(2);
-    expect(result[0]).toEqual({
-      id: '1',
-      first_name: 'John',
-      last_name: 'Doe',
-      email: 'john@example.com',
-      access_code: 'ABC123'
-    });
-    expect(result[0]).not.toHaveProperty('other_field');
+    expect(result[0]).toEqual(mockAttendees[0]);
+    expect(mockSupabaseClient.from).toHaveBeenCalledWith('attendees');
+    expect(mockSupabaseClient.select).toHaveBeenCalledWith('id, first_name, last_name, email, access_code');
+    expect(mockSupabaseClient.not).toHaveBeenCalledWith('access_code', 'is', null);
+    expect(mockSupabaseClient.order).toHaveBeenCalledWith('last_name', { ascending: true });
   });
 
-  it('should fallback to attendees key if kn_cache_attendees empty', async () => {
+  it('should return attendees ordered by last name', async () => {
     // Arrange
     const mockAttendees = [
       {
         id: '1',
-        first_name: 'John',
-        last_name: 'Doe',
-        email: 'john@example.com',
-        access_code: 'ABC123'
-      }
-    ];
-
-    // Empty kn_cache_attendees
-    localStorage.setItem('kn_cache_attendees', JSON.stringify({ data: [] }));
-    // Fallback data
-    localStorage.setItem('attendees', JSON.stringify(mockAttendees));
-
-    // Act
-    const result = await adminService.getAllAttendeesWithAccessCodes();
-
-    // Assert
-    expect(result).toHaveLength(1);
-    expect(result[0].access_code).toBe('ABC123');
-  });
-
-  it('should filter out attendees without access codes', async () => {
-    // Arrange
-    const mockAttendees = [
-      {
-        id: '1',
-        first_name: 'John',
-        last_name: 'Doe',
-        email: 'john@example.com',
-        access_code: 'ABC123'
+        first_name: 'Jane',
+        last_name: 'Anderson',
+        email: 'jane@example.com',
+        access_code: 'XYZ789'
       },
       {
         id: '2',
-        first_name: 'Jane',
-        last_name: 'Smith',
-        email: 'jane@example.com',
-        access_code: null // No access code
-      },
-      {
-        id: '3',
-        first_name: 'Bob',
-        last_name: 'Johnson',
-        email: 'bob@example.com'
-        // Missing access_code field
-      }
-    ];
-
-    localStorage.setItem('kn_cache_attendees', JSON.stringify({ data: mockAttendees }));
-
-    // Act
-    const result = await adminService.getAllAttendeesWithAccessCodes();
-
-    // Assert
-    expect(result).toHaveLength(1);
-    expect(result[0].id).toBe('1');
-  });
-
-  it('should return only required fields (id, name, email, code)', async () => {
-    // Arrange
-    const mockAttendees = [
-      {
-        id: '1',
-        first_name: 'John',
-        last_name: 'Doe',
-        email: 'john@example.com',
-        access_code: 'ABC123',
-        business_phone: '555-1234',
-        dietary_requirements: 'Vegetarian',
-        hotel_selection: 'Marriott',
-        check_in_date: '2025-01-15'
-      }
-    ];
-
-    localStorage.setItem('kn_cache_attendees', JSON.stringify({ data: mockAttendees }));
-
-    // Act
-    const result = await adminService.getAllAttendeesWithAccessCodes();
-
-    // Assert
-    expect(result).toHaveLength(1);
-    expect(Object.keys(result[0])).toEqual(['id', 'first_name', 'last_name', 'email', 'access_code']);
-    expect(result[0]).not.toHaveProperty('business_phone');
-    expect(result[0]).not.toHaveProperty('dietary_requirements');
-  });
-
-  it('should handle empty localStorage gracefully', async () => {
-    // Arrange
-    // No data in localStorage
-
-    // Act
-    const result = await adminService.getAllAttendeesWithAccessCodes();
-
-    // Assert
-    expect(result).toEqual([]);
-  });
-
-  it('should handle direct array format in kn_cache_attendees', async () => {
-    // Arrange
-    const mockAttendees = [
-      {
-        id: '1',
         first_name: 'John',
         last_name: 'Doe',
         email: 'john@example.com',
@@ -162,20 +88,24 @@ describe('AdminService.getAllAttendeesWithAccessCodes', () => {
       }
     ];
 
-    // Direct array format (not wrapped in { data: ... })
-    localStorage.setItem('kn_cache_attendees', JSON.stringify(mockAttendees));
+    mockSupabaseClient.order.mockResolvedValue({ data: mockAttendees, error: null });
 
     // Act
     const result = await adminService.getAllAttendeesWithAccessCodes();
 
     // Assert
-    expect(result).toHaveLength(1);
-    expect(result[0].access_code).toBe('ABC123');
+    expect(result).toHaveLength(2);
+    expect(result[0].last_name).toBe('Anderson');
+    expect(result[1].last_name).toBe('Doe');
   });
 
-  it('should handle JSON parse errors gracefully', async () => {
+  it('should return empty array on Supabase error', async () => {
     // Arrange
-    localStorage.setItem('kn_cache_attendees', 'invalid json');
+    mockSupabaseClient.order.mockResolvedValue({ 
+      data: null, 
+      error: { message: 'Database error' }
+    });
+
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     // Act
@@ -189,7 +119,23 @@ describe('AdminService.getAllAttendeesWithAccessCodes', () => {
     consoleSpy.mockRestore();
   });
 
-  it('should handle multiple attendees with various edge cases', async () => {
+  it('should return empty array on exception', async () => {
+    // Arrange
+    mockSupabaseClient.order.mockRejectedValue(new Error('Network error'));
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    // Act
+    const result = await adminService.getAllAttendeesWithAccessCodes();
+
+    // Assert
+    expect(result).toEqual([]);
+    expect(consoleSpy).toHaveBeenCalled();
+
+    // Cleanup
+    consoleSpy.mockRestore();
+  });
+
+  it('should filter out attendees without access codes via SQL', async () => {
     // Arrange
     const mockAttendees = [
       {
@@ -198,39 +144,61 @@ describe('AdminService.getAllAttendeesWithAccessCodes', () => {
         last_name: 'Doe',
         email: 'john@example.com',
         access_code: 'ABC123'
-      },
-      {
-        id: '2',
-        first_name: 'Jane',
-        last_name: 'Smith',
-        email: 'jane@example.com',
-        access_code: '' // Empty string - should be filtered
-      },
-      {
-        id: '3',
-        first_name: 'Bob',
-        last_name: 'Johnson',
-        email: 'bob@example.com',
-        access_code: 'XYZ789'
-      },
-      {
-        id: '4',
-        first_name: 'Alice',
-        last_name: 'Williams',
-        email: 'alice@example.com',
-        access_code: undefined // Undefined - should be filtered
       }
     ];
 
-    localStorage.setItem('kn_cache_attendees', JSON.stringify({ data: mockAttendees }));
+    mockSupabaseClient.order.mockResolvedValue({ data: mockAttendees, error: null });
+
+    // Act
+    await adminService.getAllAttendeesWithAccessCodes();
+
+    // Assert - verify SQL filter was applied
+    expect(mockSupabaseClient.not).toHaveBeenCalledWith('access_code', 'is', null);
+  });
+
+  it('should return only required fields from database', async () => {
+    // Arrange
+    const mockAttendees = [
+      {
+        id: '1',
+        first_name: 'John',
+        last_name: 'Doe',
+        email: 'john@example.com',
+        access_code: 'ABC123'
+      }
+    ];
+
+    mockSupabaseClient.order.mockResolvedValue({ data: mockAttendees, error: null });
 
     // Act
     const result = await adminService.getAllAttendeesWithAccessCodes();
 
     // Assert
-    expect(result).toHaveLength(2);
-    expect(result[0].id).toBe('1');
-    expect(result[1].id).toBe('3');
+    expect(result).toHaveLength(1);
+    expect(Object.keys(result[0])).toEqual(['id', 'first_name', 'last_name', 'email', 'access_code']);
+    expect(mockSupabaseClient.select).toHaveBeenCalledWith('id, first_name, last_name, email, access_code');
+  });
+
+  it('should handle empty result set gracefully', async () => {
+    // Arrange
+    mockSupabaseClient.order.mockResolvedValue({ data: [], error: null });
+
+    // Act
+    const result = await adminService.getAllAttendeesWithAccessCodes();
+
+    // Assert
+    expect(result).toEqual([]);
+  });
+
+  it('should handle null data response gracefully', async () => {
+    // Arrange
+    mockSupabaseClient.order.mockResolvedValue({ data: null, error: null });
+
+    // Act
+    const result = await adminService.getAllAttendeesWithAccessCodes();
+
+    // Assert
+    expect(result).toEqual([]);
   });
 });
 
