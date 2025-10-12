@@ -109,7 +109,7 @@ describe('AdminPage Force Global Sync', () => {
         </BrowserRouter>
       );
       
-      const syncButton = screen.getByRole('button', { name: /force global sync/i });
+      const syncButton = await screen.findByRole('button', { name: /force global sync/i });
       fireEvent.click(syncButton);
       
       // Should show loading state
@@ -124,7 +124,7 @@ describe('AdminPage Force Global Sync', () => {
         </BrowserRouter>
       );
       
-      const syncButton = screen.getByRole('button', { name: /force global sync/i });
+      const syncButton = await screen.findByRole('button', { name: /force global sync/i });
       fireEvent.click(syncButton);
       
       await waitFor(() => {
@@ -145,7 +145,7 @@ describe('AdminPage Force Global Sync', () => {
         </BrowserRouter>
       );
       
-      const syncButton = screen.getByRole('button', { name: /force global sync/i });
+      const syncButton = await screen.findByRole('button', { name: /force global sync/i });
       fireEvent.click(syncButton);
       
       await waitFor(() => {
@@ -162,7 +162,7 @@ describe('AdminPage Force Global Sync', () => {
         </BrowserRouter>
       );
       
-      const syncButton = screen.getByRole('button', { name: /force global sync/i });
+      const syncButton = await screen.findByRole('button', { name: /force global sync/i });
       fireEvent.click(syncButton);
       
       await waitFor(() => {
@@ -183,7 +183,7 @@ describe('AdminPage Force Global Sync', () => {
         </BrowserRouter>
       );
       
-      const syncButton = screen.getByRole('button', { name: /force global sync/i });
+      const syncButton = await screen.findByRole('button', { name: /force global sync/i });
       fireEvent.click(syncButton);
       
       await waitFor(() => {
@@ -200,7 +200,7 @@ describe('AdminPage Force Global Sync', () => {
         </BrowserRouter>
       );
       
-      const syncButton = screen.getByRole('button', { name: /force global sync/i });
+      const syncButton = await screen.findByRole('button', { name: /force global sync/i });
       fireEvent.click(syncButton);
       
       await waitFor(() => {
