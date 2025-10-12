@@ -1,10 +1,10 @@
 name: Tests
 
 on:
-  push:
-    branches: [ develop, main ]
   pull_request:
     branches: [ develop, main ]
+  # Note: Not triggered on push to avoid duplication with staging-validation.yml
+  # This workflow provides fast test feedback during PR review
 
 jobs:
   test:
