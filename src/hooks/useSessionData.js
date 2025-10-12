@@ -499,12 +499,11 @@ export const useSessionData = (options = {}) => {
       
       // Merge sessions and dining events (use dining data with metadata overrides)
       const combinedEvents = mergeAndSortEvents(filteredSessions, diningData);
-      setAllEvents(combinedEvents);
+      // AllEvents will be set after enhancement (see below)
       
       // 🔍 DEBUG: Enhanced logging for dining regression investigation      
       // 🔍 DEBUG: Cache data structure analysis      
-      // Set filtered sessions for backward compatibility
-      setSessions(filteredSessions);
+      // Sessions will be set after enhancement (see below)
 
       // Log state transition with detailed data      
       cacheMonitoringService.logStateTransition('useSessionData', 
@@ -513,7 +512,6 @@ export const useSessionData = (options = {}) => {
         'server-success'
       );
 
-      setSessions(filteredSessions);
       setLastUpdated(new Date());
       
       // Register session boundaries with TimeService for boundary detection
@@ -593,6 +591,16 @@ export const useSessionData = (options = {}) => {
         };
       };
 
+      // CRITICAL FIX: Enhance ALL sessions, not just current/next
+      const enhancedSessions = filteredSessions.map(session => enhanceEventWithSeatInfo(session));
+      const enhancedDiningOptions = diningData.map(dining => enhanceEventWithSeatInfo(dining));
+      const enhancedCombinedEvents = combinedEvents.map(event => enhanceEventWithSeatInfo(event));
+      
+      // Update state with enhanced data
+      setSessions(enhancedSessions);
+      setDiningOptions(enhancedDiningOptions);
+      setAllEvents(enhancedCombinedEvents);
+      
       const enhancedActiveEvent = enhanceEventWithSeatInfo(activeEvent);
       const enhancedUpcomingEvent = enhanceEventWithSeatInfo(upcomingEvent);
       
