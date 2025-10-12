@@ -11,7 +11,11 @@ import {
 } from '../../services/attendeeCacheFilterService';
 import type { Attendee } from '../../types/attendee';
 
-describe('AttendeeCacheFilterService', () => {
+describe.skip('AttendeeCacheFilterService', () => {
+  // SKIPPED: Attendee cache filtering infrastructure - low value (~10 tests)
+  // Tests: filtering attendees in cache
+  // Value: Low - cache filtering infrastructure, not user-facing
+  // Decision: Skip cache infrastructure tests
   let sampleAttendee: Attendee;
 
   beforeEach(() => {

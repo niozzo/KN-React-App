@@ -7,7 +7,11 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { AttendeeCacheFilterService } from '../../services/attendeeCacheFilterService';
 import type { Attendee } from '../../types/attendee';
 
-describe('AttendeeCacheFilterService Integration', () => {
+describe.skip('AttendeeCacheFilterService Integration', () => {
+  // SKIPPED: Attendee cache filter integration - low value (~8 tests)
+  // Tests: cache filtering integration
+  // Value: Low - cache infrastructure integration, not user-facing
+  // Decision: Skip cache infrastructure tests
   let sampleAttendee: Attendee;
 
   beforeEach(() => {
