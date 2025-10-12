@@ -408,7 +408,7 @@ const SessionCard = React.memo(({
               borderRadius: 'var(--radius-md)',
               padding: 'var(--space-sm)',
               marginTop: 'var(--space-sm)',
-              border: '1px solid var(--border-light)'
+              border: '1px solid var(--purple-500)'
             }}
           >
             <div className="seat-label" style={{ 
@@ -433,9 +433,9 @@ const SessionCard = React.memo(({
                 {seatInfo.table && seatInfo.seat ? (
                   `${seatInfo.table} • Seat ${seatInfo.seat}`
                 ) : seatInfo.row && seatInfo.column ? (
-                  `Row ${seatInfo.row} • Column ${seatInfo.column}`
+                  `Table ${seatInfo.row} • Seat ${seatInfo.column}`
                 ) : seatInfo.row ? (
-                  `Row ${seatInfo.row}`
+                  `Table ${seatInfo.row}`
                 ) : seatInfo.table ? (
                   seatInfo.table
                 ) : (
@@ -463,7 +463,7 @@ const SessionCard = React.memo(({
               borderRadius: 'var(--radius-md)',
               padding: 'var(--space-sm)',
               marginTop: 'var(--space-sm)',
-              border: '1px solid var(--border-light)',
+              border: '1px solid var(--purple-500)',
               opacity: 0.8
             }}
           >
