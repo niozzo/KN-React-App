@@ -364,4 +364,46 @@ describe('AgendaTransformer', () => {
       }).toThrow()
     })
   })
+
+  describe('filterActiveAgendaItems', () => {
+    it('should filter out inactive items', () => {
+      const items: AgendaItem[] = [
+        { id: '1', isActive: true, title: 'Active Session', description: '', date: '2024-01-15', start_time: '09:00', end_time: '10:00', location: '', type: 'session' } as AgendaItem,
+        { id: '2', isActive: false, title: 'Inactive Session', description: '', date: '2024-01-15', start_time: '10:00', end_time: '11:00', location: '', type: 'session' } as AgendaItem,
+        { id: '3', isActive: true, title: 'Another Active', description: '', date: '2024-01-15', start_time: '11:00', end_time: '12:00', location: '', type: 'session' } as AgendaItem
+      ]
+
+      const filtered = transformer.filterActiveAgendaItems(items)
+      
+      expect(filtered).toHaveLength(2)
+      expect(filtered[0].id).toBe('1')
+      expect(filtered[1].id).toBe('3')
+    })
+
+    it('should treat undefined isActive as active', () => {
+      const items: AgendaItem[] = [
+        { id: '1', title: 'No Active Field', description: '', date: '2024-01-15', start_time: '09:00', end_time: '10:00', location: '', type: 'session' } as AgendaItem
+      ]
+
+      const filtered = transformer.filterActiveAgendaItems(items)
+      
+      expect(filtered).toHaveLength(1)
+    })
+
+    it('should return empty array for empty input', () => {
+      const filtered = transformer.filterActiveAgendaItems([])
+      expect(filtered).toHaveLength(0)
+    })
+
+    it('should return all items when all are active', () => {
+      const items: AgendaItem[] = [
+        { id: '1', isActive: true, title: 'Active 1', description: '', date: '2024-01-15', start_time: '09:00', end_time: '10:00', location: '', type: 'session' } as AgendaItem,
+        { id: '2', isActive: true, title: 'Active 2', description: '', date: '2024-01-15', start_time: '10:00', end_time: '11:00', location: '', type: 'session' } as AgendaItem
+      ]
+
+      const filtered = transformer.filterActiveAgendaItems(items)
+      
+      expect(filtered).toHaveLength(2)
+    })
+  })
 })

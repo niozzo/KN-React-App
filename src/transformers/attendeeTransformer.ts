@@ -286,4 +286,12 @@ export class AttendeeTransformer extends BaseTransformer<Attendee> {
     // If all confidential fields are missing, data is likely filtered
     return confidentialFields.every(field => data[field] === undefined);
   }
+
+  /**
+   * Filter active attendees (isActive !== false)
+   * Treats undefined/null as active (default behavior)
+   */
+  filterActiveAttendees(attendees: Attendee[]): Attendee[] {
+    return attendees.filter(attendee => attendee.isActive !== false)
+  }
 }

@@ -34,13 +34,10 @@ describe('AgendaService Cache Validation', () => {
   });
 
   describe('getActiveAgendaItems cache validation', () => {
-    it('should use cache when data exists even if no active items', async () => {
-      // Mock cache with data but no active items
+    it('should use cache when empty data exists (all inactive filtered)', async () => {
+      // Cache is empty because ServerDataSyncService filtered all inactive items
       const cachedData = {
-        data: [
-          { id: '1', title: 'Past Session', isActive: false, date: '2024-01-01', start_time: '09:00' },
-          { id: '2', title: 'Future Session', isActive: false, date: '2024-12-31', start_time: '10:00' },
-        ],
+        data: [],
         timestamp: new Date().toISOString(),
         version: '1.0'
       };
@@ -50,7 +47,7 @@ describe('AgendaService Cache Validation', () => {
       const result = await agendaService.getActiveAgendaItems();
 
       expect(result.success).toBe(true);
-      expect(result.data).toEqual([]); // No active items, but cache was used
+      expect(result.data).toEqual([]); // Empty because all were inactive
       expect(localStorageMock.getItem).toHaveBeenCalledWith('kn_cache_agenda_items');
     });
 
@@ -73,12 +70,12 @@ describe('AgendaService Cache Validation', () => {
       expect(localStorageMock.removeItem).toHaveBeenCalledWith('kn_cache_agenda_items');
     });
 
-    it('should use cache when valid data exists with active items', async () => {
-      // Mock cache with valid data and active items
+    it('should use cache when valid pre-filtered data exists', async () => {
+      // Cache only contains active items (ServerDataSyncService already filtered)
       const cachedData = {
         data: [
           { id: '1', title: 'Active Session', isActive: true, date: '2024-01-01', start_time: '09:00' },
-          { id: '2', title: 'Inactive Session', isActive: false, date: '2024-01-01', start_time: '10:00' },
+          { id: '3', title: 'Another Active', isActive: true, date: '2024-01-01', start_time: '10:00' },
         ],
         timestamp: new Date().toISOString(),
         version: '1.0'
@@ -89,7 +86,7 @@ describe('AgendaService Cache Validation', () => {
       const result = await agendaService.getActiveAgendaItems();
 
       expect(result.success).toBe(true);
-      expect(result.data).toHaveLength(1); // Only active items
+      expect(result.data).toHaveLength(2); // Both are active
       expect(result.data[0].title).toBe('Active Session');
     });
 

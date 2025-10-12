@@ -211,7 +211,7 @@ describe('AttendeeTransformer', () => {
         first_name: 'John',
         last_name: 'Doe',
         email: 'john.doe@example.com',
-        phone: 'invalid-phone',
+        business_phone: 'invalid-phone',
         company: 'Acme Corp',
         isActive: true
       }
@@ -219,7 +219,7 @@ describe('AttendeeTransformer', () => {
       const result = transformer.validateAttendee(attendee)
 
       expect(result.isValid).toBe(false)
-      expect(result.errors).toContain('Invalid phone number format')
+      expect(result.errors).toContain('Invalid business phone number format')
     })
   })
 
@@ -272,6 +272,48 @@ describe('AttendeeTransformer', () => {
       expect(() => {
         transformer.transformFromDatabase(undefined)
       }).toThrow()
+    })
+  })
+
+  describe('filterActiveAttendees', () => {
+    it('should filter out inactive attendees', () => {
+      const attendees = [
+        { id: '1', firstName: 'John', lastName: 'Doe', isActive: true } as any,
+        { id: '2', firstName: 'Jane', lastName: 'Smith', isActive: false } as any,
+        { id: '3', firstName: 'Bob', lastName: 'Johnson', isActive: true } as any
+      ]
+
+      const filtered = transformer.filterActiveAttendees(attendees)
+      
+      expect(filtered).toHaveLength(2)
+      expect(filtered[0].id).toBe('1')
+      expect(filtered[1].id).toBe('3')
+    })
+
+    it('should treat undefined isActive as active', () => {
+      const attendees = [
+        { id: '1', firstName: 'John', lastName: 'Doe' } as any
+      ]
+
+      const filtered = transformer.filterActiveAttendees(attendees)
+      
+      expect(filtered).toHaveLength(1)
+    })
+
+    it('should return empty array for empty input', () => {
+      const filtered = transformer.filterActiveAttendees([])
+      expect(filtered).toHaveLength(0)
+    })
+
+    it('should return all attendees when all are active', () => {
+      const attendees = [
+        { id: '1', firstName: 'John', lastName: 'Doe', isActive: true } as any,
+        { id: '2', firstName: 'Jane', lastName: 'Smith', isActive: true } as any
+      ]
+
+      const filtered = transformer.filterActiveAttendees(attendees)
+      
+      expect(filtered).toHaveLength(2)
     })
   })
 })
