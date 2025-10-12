@@ -10,21 +10,43 @@ import type { SafeAttendeeCache } from '../services/attendeeCacheFilterService'
 
 export class AttendeeTransformer extends BaseTransformer<Attendee> {
   constructor() {
+    // Only map SAFE_FIELDS (non-confidential fields) per attendeeCacheFilterService
+    // Confidential fields (email, phone, address, etc.) are excluded to avoid wasted transformation cycles
     const fieldMappings: FieldMapping[] = [
+      // Core Identity (required)
       { source: 'id', target: 'id', type: 'string', required: true },
       { source: 'first_name', target: 'first_name', type: 'string', required: true },
       { source: 'last_name', target: 'last_name', type: 'string', required: true },
-      // Database field names as primary sources
-      { source: 'email_address', target: 'email', type: 'string', required: true },
-      { source: 'phone_number', target: 'phone', type: 'string', defaultValue: null },
-      { source: 'company_name', target: 'company', type: 'string', defaultValue: '' },
-      { source: 'is_active', target: 'isActive', type: 'boolean', defaultValue: true },
+      
+      // Public Profile Information
+      { source: 'salutation', target: 'salutation', type: 'string', defaultValue: '' },
+      { source: 'title', target: 'title', type: 'string', defaultValue: '' },
+      { source: 'company', target: 'company', type: 'string', defaultValue: '' },
+      { source: 'bio', target: 'bio', type: 'string', defaultValue: '' },
+      { source: 'photo', target: 'photo', type: 'string', defaultValue: '' },
+      
+      // Registration Information
+      { source: 'registration_status', target: 'registration_status', type: 'string', defaultValue: '' },
+      { source: 'registration_id', target: 'registration_id', type: 'string', defaultValue: '' },
+      
+      // Event Preferences (non-confidential)
+      { source: 'dining_selections', target: 'dining_selections', type: 'object', defaultValue: {} },
+      { source: 'selected_breakouts', target: 'selected_breakouts', type: 'array', defaultValue: [] },
+      
+      // Role Attributes
+      { source: 'attributes', target: 'attributes', type: 'object', defaultValue: {} },
+      { source: 'is_cfo', target: 'is_cfo', type: 'boolean', defaultValue: false },
+      { source: 'is_apax_ep', target: 'is_apax_ep', type: 'boolean', defaultValue: false },
+      
+      // System Fields
+      { source: 'primary_attendee_id', target: 'primary_attendee_id', type: 'string', defaultValue: null },
+      { source: 'company_name_standardized', target: 'company_name_standardized', type: 'string', defaultValue: '' },
+      { source: 'last_synced_at', target: 'last_synced_at', type: 'string', defaultValue: null },
       { source: 'created_at', target: 'created_at', type: 'date' },
       { source: 'updated_at', target: 'updated_at', type: 'date' },
-      { source: 'selected_breakouts', target: 'selected_breakouts', type: 'array', defaultValue: [] },
-      { source: 'hotel_selection', target: 'hotel_selection', type: 'string', defaultValue: null },
-      { source: 'dining_selections', target: 'dining_selections', type: 'array', defaultValue: [] },
-      { source: 'attributes', target: 'attributes', type: 'object', defaultValue: {} }
+      
+      // Business Logic Field (not cached, but used for filtering)
+      { source: 'is_active', target: 'isActive', type: 'boolean', defaultValue: true }
     ]
 
     const computedFields: ComputedField[] = [
@@ -52,26 +74,8 @@ export class AttendeeTransformer extends BaseTransformer<Attendee> {
       }
     ]
 
-    const validationRules: ValidationRule[] = [
-      {
-        field: 'email',
-        rule: (value: any) => {
-          if (!value) return false
-          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-          return emailRegex.test(value)
-        },
-        message: 'Invalid email format'
-      },
-      {
-        field: 'phone',
-        rule: (value: any) => {
-          if (!value) return true // Optional field
-          const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/
-          return phoneRegex.test(value.replace(/[\s\-\(\)]/g, ''))
-        },
-        message: 'Invalid phone number format'
-      }
-    ]
+    // No validation rules needed - confidential fields are not mapped
+    const validationRules: ValidationRule[] = []
 
     super(fieldMappings, 'attendees', 'Attendee', '1.0.0', computedFields, validationRules)
   }
@@ -89,21 +93,9 @@ export class AttendeeTransformer extends BaseTransformer<Attendee> {
    * Override version detection for attendee-specific schema evolution
    */
   protected inferVersion(data: any): string {
-    // Detect schema version based on field presence and data types
-    if (data.email_address && !data.email) {
-      return '1.0.0' // Legacy schema with email_address
-    }
-    
-    if (data.phone_number && !data.phone) {
-      return '1.1.0' // Schema with phone_number
-    }
-    
-    if (data.company_name && !data.company) {
-      return '1.2.0' // Schema with company_name
-    }
-    
+    // Simple version detection based on boolean field types
     if (data.is_active && typeof data.is_active === 'string') {
-      return '1.3.0' // Schema with string boolean fields
+      return '1.0.0' // Legacy schema with string boolean fields
     }
     
     return '2.0.0' // Current schema
@@ -112,38 +104,20 @@ export class AttendeeTransformer extends BaseTransformer<Attendee> {
 
   /**
    * Handle common data type issues across all versions
+   * Note: Only handles non-confidential fields that are mapped
    */
   private handleCommonDataTypes(evolved: any): void {
-    // Handle null/undefined values
-    if (evolved.phone === null || evolved.phone === undefined) {
-      evolved.phone = null
-    }
-    
+    // Handle null/undefined values for safe fields
     if (evolved.company === null || evolved.company === undefined) {
       evolved.company = ''
     }
     
-    // Handle empty objects - convert to empty arrays
-    if (evolved.dining_selections && typeof evolved.dining_selections === 'object' && !Array.isArray(evolved.dining_selections) && Object.keys(evolved.dining_selections).length === 0) {
-      evolved.dining_selections = []
-    }
-    
-    if (evolved.selected_breakouts && typeof evolved.selected_breakouts === 'object' && !Array.isArray(evolved.selected_breakouts) && Object.keys(evolved.selected_breakouts).length === 0) {
-      evolved.selected_breakouts = []
-    }
-    
+    // Handle empty objects - convert to appropriate types
     if (evolved.attributes && typeof evolved.attributes === 'object' && Object.keys(evolved.attributes).length === 0) {
       evolved.attributes = {}
     }
     
     // Filter empty objects from arrays
-    if (Array.isArray(evolved.dining_selections)) {
-      evolved.dining_selections = evolved.dining_selections.filter((item: any) => 
-        item !== null && item !== undefined && 
-        (typeof item !== 'object' || Object.keys(item).length > 0)
-      )
-    }
-    
     if (Array.isArray(evolved.selected_breakouts)) {
       evolved.selected_breakouts = evolved.selected_breakouts.filter((item: any) => 
         item !== null && item !== undefined && 
@@ -157,9 +131,6 @@ export class AttendeeTransformer extends BaseTransformer<Attendee> {
    */
   getSchemaEvolutionMapping(): Record<string, string> {
     return {
-      'email_address': 'email',  // Database field -> UI field
-      'phone_number': 'phone',
-      'company_name': 'company',
       'is_active': 'isActive'
     }
   }
@@ -168,29 +139,13 @@ export class AttendeeTransformer extends BaseTransformer<Attendee> {
    * Handle schema evolution for field name changes
    */
   protected handleSchemaEvolution(dbData: any, schemaVersion: SchemaVersion): any {
-    const evolvedData = { ...dbData }
-    
-    // Handle field name evolution
-    if (evolvedData.email && !evolvedData.email_address) {
-      // New schema: email field exists, map to email_address for consistency
-      evolvedData.email_address = evolvedData.email
-    }
-    
-    if (evolvedData.phone && !evolvedData.phone_number) {
-      // New schema: phone field exists, map to phone_number for consistency
-      evolvedData.phone_number = evolvedData.phone
-    }
-    
-    if (evolvedData.company && !evolvedData.company_name) {
-      // New schema: company field exists, map to company_name for consistency
-      evolvedData.company_name = evolvedData.company
-    }
-    
-    return evolvedData
+    // No field name evolution needed - using direct field mappings
+    return dbData
   }
 
   /**
    * Validate attendee-specific business rules
+   * Note: Only validates non-confidential fields that are mapped
    */
   validateAttendee(attendee: Attendee): { isValid: boolean; errors: string[] } {
     const errors: string[] = []
@@ -203,30 +158,13 @@ export class AttendeeTransformer extends BaseTransformer<Attendee> {
       errors.push('Last name is required')
     }
 
-    if (!attendee.email?.trim()) {
-      errors.push('Email is required')
-    }
-
-    if (attendee.business_phone && !this.isValidPhone(attendee.business_phone)) {
-      errors.push('Invalid business phone number format')
-    }
-    
-    if (attendee.mobile_phone && !this.isValidPhone(attendee.mobile_phone)) {
-      errors.push('Invalid mobile phone number format')
-    }
+    // Confidential fields (email, phone) are not validated here
+    // as they are not mapped in the transformer
 
     return {
       isValid: errors.length === 0,
       errors
     }
-  }
-
-  /**
-   * Validate phone number format
-   */
-  private isValidPhone(phone: string): boolean {
-    const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/
-    return phoneRegex.test(phone.replace(/[\s\-\(\)]/g, ''))
   }
 
   /**
