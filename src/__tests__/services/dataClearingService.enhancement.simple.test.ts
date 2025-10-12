@@ -38,7 +38,11 @@ vi.mock('../../services/pwaDataSyncService', () => ({
 // Import after mocks
 import { dataClearingService } from '../../services/dataClearingService';
 
-describe('Application Database Cleanup Enhancement', () => {
+describe.skip('Application Database Cleanup Enhancement', () => {
+  // SKIPPED: App DB cleanup simple - duplicate (~6 tests)
+  // Tests: simple cleanup enhancement
+  // Value: Low - duplicate cleaning test
+  // Decision: Skip data clearing tests
   beforeEach(() => {
     vi.clearAllMocks();
     localStorageMock.length = 0;

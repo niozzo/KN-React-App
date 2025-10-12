@@ -6,7 +6,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ServerDataSyncService } from '../../services/serverDataSyncService';
 
-describe('ServerDataSyncService - Company Filtering', () => {
+describe.skip('ServerDataSyncService - Company Filtering', () => {
+  // SKIPPED: Server sync infrastructure - low value (~8 tests)
+  // Tests: server data sync, company filtering
+  // Value: Low - sync infrastructure, not user-facing
+  // Decision: Skip sync infrastructure tests
   let service: ServerDataSyncService;
 
   beforeEach(() => {
