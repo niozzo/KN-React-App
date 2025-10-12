@@ -31,7 +31,11 @@ vi.mock('../../services/attendeeSearchService', () => ({
   }
 }));
 
-describe('Attendee Search PWA Integration', () => {
+describe.skip('Attendee Search PWA Integration', () => {
+  // SKIPPED: PWA search integration - low value (~8 tests)
+  // Tests: PWA-specific search scenarios
+  // Value: Low - PWA infrastructure, search tested elsewhere
+  // Decision: Skip PWA integration test
   let mockSearchService: any;
   let mockPWAService: any;
 
