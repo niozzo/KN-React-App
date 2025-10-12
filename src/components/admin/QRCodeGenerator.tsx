@@ -63,8 +63,9 @@ export const QRCodeGenerator: React.FC = () => {
 
   useEffect(() => {
     // Filter attendees based on search query
-    if (searchQuery.trim() === '') {
-      setFilteredAttendees(attendees);
+    // Only show results when user types at least 2 characters
+    if (searchQuery.trim().length < 2) {
+      setFilteredAttendees([]);
     } else {
       const query = searchQuery.toLowerCase();
       setFilteredAttendees(
@@ -230,23 +231,35 @@ export const QRCodeGenerator: React.FC = () => {
               ) : (
                 <>
                   <Typography variant="body2" color="text.secondary" gutterBottom>
-                    {filteredAttendees.length} attendee{filteredAttendees.length !== 1 ? 's' : ''} found
+                    {searchQuery.trim().length < 2 
+                      ? 'Enter at least 2 characters to search' 
+                      : `${filteredAttendees.length} attendee${filteredAttendees.length !== 1 ? 's' : ''} found`}
                   </Typography>
 
                   <List sx={{ maxHeight: 500, overflow: 'auto', bgcolor: '#fafafa', borderRadius: 1 }}>
-                    {filteredAttendees.map((attendee) => (
-                      <ListItem key={attendee.id} disablePadding>
-                        <ListItemButton
-                          selected={selectedAttendee?.id === attendee.id}
-                          onClick={() => setSelectedAttendee(attendee)}
-                        >
-                          <ListItemText
-                            primary={`${attendee.first_name} ${attendee.last_name}`}
-                            secondary={`${attendee.email} • ${attendee.access_code}`}
-                          />
-                        </ListItemButton>
+                    {filteredAttendees.length === 0 && searchQuery.trim().length >= 2 ? (
+                      <ListItem>
+                        <ListItemText
+                          primary="No attendees found"
+                          secondary="Try a different search term"
+                          sx={{ textAlign: 'center', py: 3 }}
+                        />
                       </ListItem>
-                    ))}
+                    ) : (
+                      filteredAttendees.map((attendee) => (
+                        <ListItem key={attendee.id} disablePadding>
+                          <ListItemButton
+                            selected={selectedAttendee?.id === attendee.id}
+                            onClick={() => setSelectedAttendee(attendee)}
+                          >
+                            <ListItemText
+                              primary={`${attendee.first_name} ${attendee.last_name}`}
+                              secondary={`${attendee.email} • ${attendee.access_code}`}
+                            />
+                          </ListItemButton>
+                        </ListItem>
+                      ))
+                    )}
                   </List>
                 </>
               )}
