@@ -1,11 +1,20 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, useOutletContext } from 'react-router-dom';
 import { AdminPage } from '../../../../components/AdminPage';
 import { pwaDataSyncService } from '../../../../services/pwaDataSyncService';
 import { dataInitializationService } from '../../../../services/dataInitializationService';
 import { adminService } from '../../../../services/adminService';
+
+// Mock react-router-dom to provide outlet context
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    useOutletContext: vi.fn(),
+  };
+});
 
 // Mock the services
 vi.mock('../../../../services/pwaDataSyncService');
@@ -16,6 +25,7 @@ vi.mock('../../../../services/attendeeSyncService');
 const mockPWADataSyncService = vi.mocked(pwaDataSyncService);
 const mockDataInitializationService = vi.mocked(dataInitializationService);
 const mockAdminService = vi.mocked(adminService);
+const mockUseOutletContext = vi.mocked(useOutletContext);
 
 // Mock attendeeSyncService
 const mockAttendeeSyncService = {
@@ -27,6 +37,9 @@ describe('AdminPage Force Global Sync', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    
+    // Mock useOutletContext to provide onLogout
+    mockUseOutletContext.mockReturnValue({ onLogout: mockOnLogout });
     
     // Mock successful service responses
     mockPWADataSyncService.clearCache.mockResolvedValue();
@@ -73,7 +86,7 @@ describe('AdminPage Force Global Sync', () => {
     it('should render Force Global Sync button with sync icon', async () => {
       render(
         <BrowserRouter>
-          <AdminPage onLogout={mockOnLogout} />
+          <AdminPage />
         </BrowserRouter>
       );
       
@@ -92,7 +105,7 @@ describe('AdminPage Force Global Sync', () => {
 
       render(
         <BrowserRouter>
-          <AdminPage onLogout={mockOnLogout} />
+          <AdminPage />
         </BrowserRouter>
       );
       
@@ -107,7 +120,7 @@ describe('AdminPage Force Global Sync', () => {
     it('should call all sync services in correct order', async () => {
       render(
         <BrowserRouter>
-          <AdminPage onLogout={mockOnLogout} />
+          <AdminPage />
         </BrowserRouter>
       );
       
@@ -128,7 +141,7 @@ describe('AdminPage Force Global Sync', () => {
       
       render(
         <BrowserRouter>
-          <AdminPage onLogout={mockOnLogout} />
+          <AdminPage />
         </BrowserRouter>
       );
       
@@ -145,7 +158,7 @@ describe('AdminPage Force Global Sync', () => {
       
       render(
         <BrowserRouter>
-          <AdminPage onLogout={mockOnLogout} />
+          <AdminPage />
         </BrowserRouter>
       );
       
@@ -166,7 +179,7 @@ describe('AdminPage Force Global Sync', () => {
       
       render(
         <BrowserRouter>
-          <AdminPage onLogout={mockOnLogout} />
+          <AdminPage />
         </BrowserRouter>
       );
       
@@ -183,7 +196,7 @@ describe('AdminPage Force Global Sync', () => {
       
       render(
         <BrowserRouter>
-          <AdminPage onLogout={mockOnLogout} />
+          <AdminPage />
         </BrowserRouter>
       );
       
@@ -209,7 +222,7 @@ describe('AdminPage Force Global Sync', () => {
       
       render(
         <BrowserRouter>
-          <AdminPage onLogout={mockOnLogout} />
+          <AdminPage />
         </BrowserRouter>
       );
       
@@ -243,7 +256,7 @@ describe('AdminPage Force Global Sync', () => {
       
       render(
         <BrowserRouter>
-          <AdminPage onLogout={mockOnLogout} />
+          <AdminPage />
         </BrowserRouter>
       );
       
@@ -275,7 +288,7 @@ describe('AdminPage Force Global Sync', () => {
     it('should reset loading state after sync completion', async () => {
       render(
         <BrowserRouter>
-          <AdminPage onLogout={mockOnLogout} />
+          <AdminPage />
         </BrowserRouter>
       );
       
@@ -297,7 +310,7 @@ describe('AdminPage Force Global Sync', () => {
       
       render(
         <BrowserRouter>
-          <AdminPage onLogout={mockOnLogout} />
+          <AdminPage />
         </BrowserRouter>
       );
       
@@ -321,7 +334,7 @@ describe('AdminPage Force Global Sync', () => {
       
       render(
         <BrowserRouter>
-          <AdminPage onLogout={mockOnLogout} />
+          <AdminPage />
         </BrowserRouter>
       );
       
@@ -338,7 +351,7 @@ describe('AdminPage Force Global Sync', () => {
       
       render(
         <BrowserRouter>
-          <AdminPage onLogout={mockOnLogout} />
+          <AdminPage />
         </BrowserRouter>
       );
       
@@ -355,7 +368,7 @@ describe('AdminPage Force Global Sync', () => {
     it('should integrate with PWADataSyncService', async () => {
       render(
         <BrowserRouter>
-          <AdminPage onLogout={mockOnLogout} />
+          <AdminPage />
         </BrowserRouter>
       );
       
@@ -371,7 +384,7 @@ describe('AdminPage Force Global Sync', () => {
     it('should integrate with DataInitializationService', async () => {
       render(
         <BrowserRouter>
-          <AdminPage onLogout={mockOnLogout} />
+          <AdminPage />
         </BrowserRouter>
       );
       
@@ -386,7 +399,7 @@ describe('AdminPage Force Global Sync', () => {
     it('should reload admin data after successful sync', async () => {
       render(
         <BrowserRouter>
-          <AdminPage onLogout={mockOnLogout} />
+          <AdminPage />
         </BrowserRouter>
       );
       
