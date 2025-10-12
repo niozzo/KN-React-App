@@ -265,9 +265,9 @@ const SessionCard = React.memo(({
                         href={`/bio?speaker=${encodeURIComponent(speaker.name)}`}
                         className="speaker-link"
                         onClick={(e) => {
+                          e.preventDefault();
                           e.stopPropagation();
-                          // Handle navigation to speaker bio
-                          console.log('Navigate to speaker bio:', speaker.name);
+                          navigate(`/bio?speaker=${encodeURIComponent(speaker.name)}`);
                         }}
                         style={{ 
                           display: 'block', 
@@ -321,9 +321,9 @@ const SessionCard = React.memo(({
                         href={`/bio?speaker=${encodeURIComponent(speakerName.trim())}`}
                         className="speaker-link"
                         onClick={(e) => {
+                          e.preventDefault();
                           e.stopPropagation();
-                          // Handle navigation to speaker bio
-                          console.log('Navigate to speaker bio:', speakerName.trim());
+                          navigate(`/bio?speaker=${encodeURIComponent(speakerName.trim())}`);
                         }}
                         style={{ 
                           display: 'block', 
@@ -369,9 +369,9 @@ const SessionCard = React.memo(({
                     href={`/bio?speaker=${encodeURIComponent(speaker)}`}
                     className="speaker-link"
                     onClick={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
-                      // Handle navigation to speaker bio
-                      console.log('Navigate to speaker bio:', speaker);
+                      navigate(`/bio?speaker=${encodeURIComponent(speaker)}`);
                     }}
                     style={{ 
                       display: 'block',
