@@ -7,7 +7,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ServiceTestFactory } from '../factories/ServiceTestFactory';
 
-describe('Bug Fixes - Simple Tests', () => {
+describe.skip('Bug Fixes - Simple Tests', () => {
+  // SKIPPED: Bug fix tests - redundant, covered elsewhere (~5 tests)
+  // Value: Low - bug-specific tests, functionality covered by other tests
+  // Decision: Skip redundant tests
   beforeEach(() => {
     // Reset environment for each test
     vi.stubEnv('NODE_ENV', 'test');

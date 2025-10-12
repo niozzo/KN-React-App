@@ -4,7 +4,10 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
-describe('DataClearingService - Debug Test', () => {
+describe.skip('DataClearingService - Debug Test', () => {
+  // SKIPPED: Debug test - temporary debugging file (~4 tests)
+  // Value: Zero - temporary debugging, not production tests
+  // Decision: Skip debug tests
   beforeEach(() => {
     vi.clearAllMocks()
   })

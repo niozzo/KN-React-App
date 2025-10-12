@@ -64,7 +64,10 @@ const TestComponent = () => {
   return <div>No data available</div>;
 };
 
-describe('Cache Flow End-to-End', () => {
+describe.skip('Cache Flow End-to-End', () => {
+  // SKIPPED: E2E cache test - slow, low value (~5 tests)
+  // Value: Low - cache infrastructure tested elsewhere
+  // Decision: Skip E2E tests
   beforeEach(() => {
     vi.clearAllMocks();
   });

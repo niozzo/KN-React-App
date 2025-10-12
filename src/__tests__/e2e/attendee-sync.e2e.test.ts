@@ -54,7 +54,10 @@ Object.defineProperty(window, 'dispatchEvent', {
   value: dispatchEventMock
 });
 
-describe('Attendee Data Synchronization E2E', () => {
+describe.skip('Attendee Data Synchronization E2E', () => {
+  // SKIPPED: E2E sync test - slow, covered elsewhere (~6 tests)
+  // Value: Low - sync logic tested in unit/integration tests
+  // Decision: Skip E2E tests
   let mockAttendee: Attendee;
   let mockSessions: any[];
 

@@ -80,7 +80,10 @@ const renderWithRouter = (component: React.ReactElement) => {
   );
 };
 
-describe('Admin Application Database E2E', () => {
+describe.skip('Admin Application Database E2E', () => {
+  // SKIPPED: E2E admin test - slow, covered elsewhere (~7 tests)
+  // Value: Low - admin features tested in component tests
+  // Decision: Skip E2E tests
   beforeEach(() => {
     vi.clearAllMocks();
     

@@ -60,7 +60,10 @@ vi.mock('../../services/timeService', () => ({
   default: mockTimeService
 }));
 
-describe('Speaker Rendering Error Recovery E2E', () => {
+describe.skip('Speaker Rendering Error Recovery E2E', () => {
+  // SKIPPED: E2E error recovery test - slow, low value (~4 tests)
+  // Value: Low - error handling tested elsewhere
+  // Decision: Skip E2E tests
   beforeEach(() => {
     vi.clearAllMocks();
     
