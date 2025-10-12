@@ -73,7 +73,7 @@ const SettingsPage = () => {
 
 
   const handleSignOut = async () => {
-    console.log('🔄 Sign out clicked');
+    console.log('🔄 Log out clicked');
     setSignOutError('');
     setShowSignOutError(false);
     
@@ -81,17 +81,17 @@ const SettingsPage = () => {
       const result = await logout();
       
       if (result.success) {
-        console.log('✅ Sign-out successful, navigating to login page');
-        // Navigate to login page after successful sign-out
+        console.log('✅ Logout successful, navigating to login page');
+        // Navigate to login page after successful logout
         navigate('/login');
       } else {
-        console.error('❌ Sign-out failed:', result.error);
-        setSignOutError(result.error || 'Sign-out failed. Please try again.');
+        console.error('❌ Logout failed:', result.error);
+        setSignOutError(result.error || 'Logout failed. Please try again.');
         setShowSignOutError(true);
       }
     } catch (error) {
-      console.error('❌ Sign-out error:', error);
-      setSignOutError('Sign-out failed. Please try again.');
+      console.error('❌ Logout error:', error);
+      setSignOutError('Logout failed. Please try again.');
       setShowSignOutError(true);
     }
   };
@@ -148,7 +148,7 @@ const SettingsPage = () => {
               className="action-button"
               disabled={isSigningOut}
             >
-              {isSigningOut ? 'Signing Out...' : 'Sign Out'}
+              {isSigningOut ? 'Logging out...' : 'Log out'}
             </Button>
           </div>
           {showSignOutError && signOutError && (
