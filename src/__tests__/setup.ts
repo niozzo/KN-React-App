@@ -40,7 +40,7 @@ afterEach(async () => {
   
   // CRITICAL: Clear and restore ALL mocks to prevent state bleeding
   vi.clearAllMocks()    // Clear call history
-  vi.restoreMocks()     // Restore original implementations
+  vi.restoreAllMocks()  // Restore original implementations
   
   // Clear all timers to prevent hanging
   vi.clearAllTimers()
