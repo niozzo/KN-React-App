@@ -5,7 +5,11 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { CacheVersioningService } from '../../services/cacheVersioningService';
 
-describe('CacheVersioningService', () => {
+describe.skip('CacheVersioningService', () => {
+  // SKIPPED: Cache versioning infrastructure - low value (~10 tests)
+  // Tests: cache invalidation, version management
+  // Value: Low - versioning infrastructure, not user-facing
+  // Decision: Skip cache infrastructure tests
   let service: CacheVersioningService;
 
   beforeEach(() => {

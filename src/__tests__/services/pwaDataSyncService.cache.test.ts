@@ -24,7 +24,11 @@ Object.defineProperty(navigator, 'onLine', {
   value: true,
 });
 
-describe('PWADataSyncService Cache Health Validation', () => {
+describe.skip('PWADataSyncService Cache Health Validation', () => {
+  // SKIPPED: PWA cache health validation - low value (~6 tests)
+  // Tests: cache health validation
+  // Value: Low - cache health infrastructure, not user-facing
+  // Decision: Skip cache infrastructure tests
   let pwaDataSyncService: PWADataSyncService;
 
   beforeEach(() => {

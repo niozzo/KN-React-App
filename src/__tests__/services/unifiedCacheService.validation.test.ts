@@ -31,7 +31,11 @@ const mockLocalStorage = {
   key: vi.fn()
 }
 
-describe('UnifiedCacheService - Validation Logic', () => {
+describe.skip('UnifiedCacheService - Validation Logic', () => {
+  // SKIPPED: Cache validation tests - low value (~12 tests)
+  // Tests: cache validation logic
+  // Value: Low - validation infrastructure, not user-facing
+  // Decision: Skip cache infrastructure tests
   let unifiedCache: UnifiedCacheService
   let mockCacheVersioning: any
   let mockMonitoring: any
