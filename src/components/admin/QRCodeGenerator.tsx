@@ -238,17 +238,6 @@ export const QRCodeGenerator: React.FC = () => {
                   isOptionEqualToValue={(option, value) => option.id === value.id}
                 />
               )}
-
-              {selectedAttendee && !loading && (
-                <Box sx={{ mt: 2, p: 2, bgcolor: '#f5f5f5', borderRadius: 1 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    <strong>Selected:</strong> {selectedAttendee.first_name} {selectedAttendee.last_name}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {selectedAttendee.email}
-                  </Typography>
-                </Box>
-              )}
             </CardContent>
           </Card>
 
