@@ -441,6 +441,40 @@ const SessionCard = React.memo(({
             </div>
           </div>
         )}
+        
+        {/* Show pending message for dining events with assigned seating but no seat assignment yet */}
+        {isDiningEventSession && session.seating_type === 'assigned' && !seatInfo && (
+          <div 
+            className="seat-assignment pending"
+            style={{ 
+              cursor: 'default',
+              background: 'white',
+              borderRadius: 'var(--radius-md)',
+              padding: 'var(--space-sm)',
+              marginTop: 'var(--space-sm)',
+              border: '1px solid var(--border-light)',
+              opacity: 0.8
+            }}
+          >
+            <div className="seat-label" style={{ 
+              fontSize: 'var(--text-sm)', 
+              fontWeight: '600',
+              color: 'var(--text-secondary)',
+              marginBottom: 'var(--space-xs)'
+            }}>
+              Seat Assignment
+            </div>
+            <div className="seat-details">
+              <span style={{ 
+                fontSize: 'var(--text-base)', 
+                color: 'var(--text-secondary)',
+                fontStyle: 'italic'
+              }}>
+                Assignment pending
+              </span>
+            </div>
+          </div>
+        )}
       </CardContent>
       </Card>
     </SessionErrorBoundary>

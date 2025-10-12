@@ -529,16 +529,12 @@ export const useSessionData = (options = {}) => {
         })
         .sort(compareEventsByTime)[0]; // Get the first (earliest) upcoming event
 
-      // Enhance events with seat assignment data (for sessions only)
+      // Enhance events with seat assignment data (for both sessions AND dining events)
       const enhanceEventWithSeatInfo = (event) => {
         if (!event || !seatAssignments.length) return event || null;
         
-        // Only enhance sessions with seat info, not dining events
-        if (event.type === 'dining') {
-          return event;
-        }
-        
-        // Find seat assignment for this session (if any)
+        // Find seat assignment for this event (works for both agenda items and dining events)
+        // The seating_configuration_id links to seat_assignments for both event types
         const seatAssignment = seatAssignments.find(seat => 
           seat.seating_configuration_id === event.seating_configuration_id
         );
