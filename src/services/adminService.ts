@@ -305,10 +305,10 @@ export class AdminService {
       // so we must fetch from database for admin functions
       console.log('🔐 Admin: Fetching attendees with access codes from database...');
       
-      const { SupabaseClientFactory } = await import('./SupabaseClientFactory');
-      const supabaseClient = SupabaseClientFactory.getInstance().getExternalClient();
+      // Use the existing Supabase client (following architecture pattern)
+      const { supabase } = await import('../lib/supabase');
       
-      const { data, error } = await supabaseClient
+      const { data, error } = await supabase
         .from('attendees')
         .select('id, first_name, last_name, email, access_code')
         .not('access_code', 'is', null)

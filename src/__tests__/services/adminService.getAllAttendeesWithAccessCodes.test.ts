@@ -8,32 +8,30 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { adminService } from '../../services/adminService';
-import { SupabaseClientFactory } from '../../services/SupabaseClientFactory';
 
-// Mock SupabaseClientFactory
-vi.mock('../../services/SupabaseClientFactory', () => ({
-  SupabaseClientFactory: {
-    getInstance: vi.fn()
-  }
-}));
-
-describe('AdminService.getAllAttendeesWithAccessCodes', () => {
-  let mockSupabaseClient: any;
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-    
-    // Setup mock Supabase client
-    mockSupabaseClient = {
+// Mock supabase lib
+vi.mock('../../lib/supabase', () => {
+  return {
+    supabase: {
       from: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
       not: vi.fn().mockReturnThis(),
       order: vi.fn().mockResolvedValue({ data: [], error: null })
-    };
+    }
+  };
+});
 
-    (SupabaseClientFactory.getInstance as any).mockReturnValue({
-      getExternalClient: () => mockSupabaseClient
-    });
+// Import the mocked supabase after the mock is defined
+const { supabase: mockSupabase } = await import('../../lib/supabase');
+
+describe('AdminService.getAllAttendeesWithAccessCodes', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // Reset mock implementations
+    (mockSupabase.from as any).mockReturnThis();
+    (mockSupabase.select as any).mockReturnThis();
+    (mockSupabase.not as any).mockReturnThis();
+    (mockSupabase.order as any).mockResolvedValue({ data: [], error: null });
   });
 
   it('should fetch attendees from Supabase with access codes', async () => {
@@ -55,7 +53,7 @@ describe('AdminService.getAllAttendeesWithAccessCodes', () => {
       }
     ];
 
-    mockSupabaseClient.order.mockResolvedValue({ data: mockAttendees, error: null });
+    mockSupabase.order.mockResolvedValue({ data: mockAttendees, error: null });
 
     // Act
     const result = await adminService.getAllAttendeesWithAccessCodes();
@@ -63,10 +61,10 @@ describe('AdminService.getAllAttendeesWithAccessCodes', () => {
     // Assert
     expect(result).toHaveLength(2);
     expect(result[0]).toEqual(mockAttendees[0]);
-    expect(mockSupabaseClient.from).toHaveBeenCalledWith('attendees');
-    expect(mockSupabaseClient.select).toHaveBeenCalledWith('id, first_name, last_name, email, access_code');
-    expect(mockSupabaseClient.not).toHaveBeenCalledWith('access_code', 'is', null);
-    expect(mockSupabaseClient.order).toHaveBeenCalledWith('last_name', { ascending: true });
+    expect(mockSupabase.from).toHaveBeenCalledWith('attendees');
+    expect(mockSupabase.select).toHaveBeenCalledWith('id, first_name, last_name, email, access_code');
+    expect(mockSupabase.not).toHaveBeenCalledWith('access_code', 'is', null);
+    expect(mockSupabase.order).toHaveBeenCalledWith('last_name', { ascending: true });
   });
 
   it('should return attendees ordered by last name', async () => {
@@ -88,7 +86,7 @@ describe('AdminService.getAllAttendeesWithAccessCodes', () => {
       }
     ];
 
-    mockSupabaseClient.order.mockResolvedValue({ data: mockAttendees, error: null });
+    mockSupabase.order.mockResolvedValue({ data: mockAttendees, error: null });
 
     // Act
     const result = await adminService.getAllAttendeesWithAccessCodes();
@@ -101,7 +99,7 @@ describe('AdminService.getAllAttendeesWithAccessCodes', () => {
 
   it('should return empty array on Supabase error', async () => {
     // Arrange
-    mockSupabaseClient.order.mockResolvedValue({ 
+    mockSupabase.order.mockResolvedValue({ 
       data: null, 
       error: { message: 'Database error' }
     });
@@ -121,7 +119,7 @@ describe('AdminService.getAllAttendeesWithAccessCodes', () => {
 
   it('should return empty array on exception', async () => {
     // Arrange
-    mockSupabaseClient.order.mockRejectedValue(new Error('Network error'));
+    mockSupabase.order.mockRejectedValue(new Error('Network error'));
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     // Act
@@ -147,13 +145,13 @@ describe('AdminService.getAllAttendeesWithAccessCodes', () => {
       }
     ];
 
-    mockSupabaseClient.order.mockResolvedValue({ data: mockAttendees, error: null });
+    mockSupabase.order.mockResolvedValue({ data: mockAttendees, error: null });
 
     // Act
     await adminService.getAllAttendeesWithAccessCodes();
 
     // Assert - verify SQL filter was applied
-    expect(mockSupabaseClient.not).toHaveBeenCalledWith('access_code', 'is', null);
+    expect(mockSupabase.not).toHaveBeenCalledWith('access_code', 'is', null);
   });
 
   it('should return only required fields from database', async () => {
@@ -168,7 +166,7 @@ describe('AdminService.getAllAttendeesWithAccessCodes', () => {
       }
     ];
 
-    mockSupabaseClient.order.mockResolvedValue({ data: mockAttendees, error: null });
+    mockSupabase.order.mockResolvedValue({ data: mockAttendees, error: null });
 
     // Act
     const result = await adminService.getAllAttendeesWithAccessCodes();
@@ -176,12 +174,12 @@ describe('AdminService.getAllAttendeesWithAccessCodes', () => {
     // Assert
     expect(result).toHaveLength(1);
     expect(Object.keys(result[0])).toEqual(['id', 'first_name', 'last_name', 'email', 'access_code']);
-    expect(mockSupabaseClient.select).toHaveBeenCalledWith('id, first_name, last_name, email, access_code');
+    expect(mockSupabase.select).toHaveBeenCalledWith('id, first_name, last_name, email, access_code');
   });
 
   it('should handle empty result set gracefully', async () => {
     // Arrange
-    mockSupabaseClient.order.mockResolvedValue({ data: [], error: null });
+    mockSupabase.order.mockResolvedValue({ data: [], error: null });
 
     // Act
     const result = await adminService.getAllAttendeesWithAccessCodes();
@@ -192,7 +190,7 @@ describe('AdminService.getAllAttendeesWithAccessCodes', () => {
 
   it('should handle null data response gracefully', async () => {
     // Arrange
-    mockSupabaseClient.order.mockResolvedValue({ data: null, error: null });
+    mockSupabase.order.mockResolvedValue({ data: null, error: null });
 
     // Act
     const result = await adminService.getAllAttendeesWithAccessCodes();
