@@ -533,11 +533,32 @@ export const useSessionData = (options = {}) => {
       const enhanceEventWithSeatInfo = (event) => {
         if (!event || !seatAssignments.length) return event || null;
         
+        // DEBUG: Log event details for troubleshooting
+        if (event.id === '4c057931-0223-491f-8a7f-ba232bc2a95c') {
+          console.log('🔍 DEBUG Event 4c057931:', {
+            id: event.id,
+            type: event.type,
+            seating_type: event.seating_type,
+            seating_configuration_id: event.seating_configuration_id,
+            seatAssignmentsCount: seatAssignments.length
+          });
+          console.log('🔍 All seat assignments:', seatAssignments.map(s => ({
+            id: s.id,
+            seating_config_id: s.seating_configuration_id,
+            table: s.table_name,
+            seat: s.seat_number
+          })));
+        }
+        
         // Find seat assignment for this event (works for both agenda items and dining events)
         // The seating_configuration_id links to seat_assignments for both event types
         const seatAssignment = seatAssignments.find(seat => 
           seat.seating_configuration_id === event.seating_configuration_id
         );
+        
+        if (event.id === '4c057931-0223-491f-8a7f-ba232bc2a95c') {
+          console.log('🔍 Found seat assignment:', seatAssignment);
+        }
         
         return {
           ...event,
