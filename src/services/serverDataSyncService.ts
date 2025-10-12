@@ -72,6 +72,25 @@ export class ServerDataSyncService extends BaseService {
       records = agendaTransformer.sortAgendaItems(records);
     }
     
+    // Attendees transformation - filter company for specific edge cases
+    if (tableName === 'attendees') {
+      // Edge case: These speakers were assigned "Apax" in the main DB but 
+      // don't have a company affiliation. Clear company to prevent display.
+      const ATTENDEES_WITHOUT_COMPANY = [
+        'de8cb880-e6f5-425d-9267-1eb0a2817f6b',
+        '21d75c80-9560-4e4c-86f0-9345ddb705a1'
+      ];
+      
+      records = records.map(attendee => {
+        if (ATTENDEES_WITHOUT_COMPANY.includes(attendee.id)) {
+          return { ...attendee, company: '' };
+        }
+        return attendee;
+      });
+      
+      console.log(`🔧 Cleared company field for ${ATTENDEES_WITHOUT_COMPANY.length} attendees without company affiliation`);
+    }
+    
     // Dining options transformation
     if (tableName === 'dining_options') {
       const { DiningTransformer } = await import('../transformers/diningTransformer.js');
