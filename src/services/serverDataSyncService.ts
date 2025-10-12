@@ -34,15 +34,15 @@ export class ServerDataSyncService extends BaseService {
     'agenda_items',
     'dining_options',
     'hotels',
-    'seating_configurations',
-    'user_profiles'
+    'seating_configurations'
+    // 'user_profiles' removed - table is unused (see login-cache-optimization-findings.md)
   ];
 
   // Application database tables (from separate Supabase project)
   private readonly applicationTablesToSync = [
     'speaker_assignments',
     'agenda_item_metadata', 
-    'attendee_metadata',
+    // 'attendee_metadata' removed - no read operations found (see login-cache-optimization-findings.md)
     'dining_item_metadata'
   ];
 
