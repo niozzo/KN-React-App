@@ -227,6 +227,7 @@ export const useSessionData = (options = {}) => {
   const [nextSession, setNextSession] = useState(null);
   const [attendee, setAttendee] = useState(null);
   const [seatAssignments, setSeatAssignments] = useState([]);
+  const [seatingConfigurations, setSeatingConfigurations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isOffline, setIsOffline] = useState(() => {
     // Use PWA service as single source of truth for online status
@@ -329,14 +330,13 @@ export const useSessionData = (options = {}) => {
       }
 
       // Load seating configurations (bridge table between events and seat assignments)
-      let seatingConfigurations = [];
       if (attendeeData && attendeeData.id) {
         try {
           const seatingConfigData = await getAllSeatingConfigurations();
-          seatingConfigurations = seatingConfigData || [];
+          setSeatingConfigurations(seatingConfigData || []);
         } catch (configError) {
           console.warn('⚠️ Failed to load seating configurations:', configError);
-          seatingConfigurations = [];
+          setSeatingConfigurations([]);
         }
       }
 
