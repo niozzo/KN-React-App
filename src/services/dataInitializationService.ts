@@ -149,6 +149,57 @@ export class DataInitializationService {
   }
 
   /**
+   * Ensure data is loaded for admin panel access (no user authentication required)
+   * Admin panel has its own passcode protection, so we skip user auth check
+   * See: ADR-005 for architectural justification
+   */
+  async ensureDataLoadedForAdmin(): Promise<DataInitializationResult> {
+    try {
+      console.log('🔓 Admin data access (passcode only, no user auth required)');
+
+      // Step 1: Check if data already exists in cache (fast path)
+      const hasCachedData = await this.hasCachedData();
+      if (hasCachedData) {
+        console.log('✅ Cached data found, admin panel ready');
+        return {
+          success: true,
+          hasData: true
+        };
+      }
+
+      // Step 2: No cached data? Sync using admin credentials
+      console.log('🔄 No cached data, syncing with admin credentials...');
+      const syncResult = await serverDataSyncService.syncAllData();
+      
+      if (syncResult.success) {
+        // Step 3: Ensure application database tables are synced for admin panel
+        await this.ensureApplicationDatabaseSynced();
+        
+        console.log('✅ Admin data loaded successfully');
+        return {
+          success: true,
+          hasData: true
+        };
+      } else {
+        console.warn('⚠️ Data sync failed:', syncResult.errors);
+        return {
+          success: false,
+          hasData: false,
+          error: 'Failed to load conference data. Please check your connection and try again.'
+        };
+      }
+
+    } catch (error) {
+      console.error('❌ Admin data initialization failed:', error);
+      return {
+        success: false,
+        hasData: false,
+        error: 'Failed to load admin data. Please check your connection and try again.'
+      };
+    }
+  }
+
+  /**
    * Force refresh of all data
    */
   async forceRefreshData(): Promise<DataInitializationResult> {

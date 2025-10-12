@@ -1,18 +1,30 @@
 # Security Architecture
 
-**Version:** 1.0  
-**Last Updated:** 2025-01-16  
+**Version:** 1.1  
+**Last Updated:** 2025-10-12  
 **Status:** CRITICAL - Security Foundation  
 
 ## Overview
 
 This document defines the security architecture for the Knowledge Now React application, including authentication flows, data protection mechanisms, and security best practices.
 
+**Version 1.1 Updates:**
+- Added Admin Panel Security Model (separate from user authentication)
+- Documented dual authentication pattern
+- See ADR-005 for admin authentication architectural decision
+
 ## 🔒 Authentication Security Model
 
-### **Security-First Authentication Flow**
+The application implements a **dual authentication model** with separate authentication requirements for different user roles:
 
-The application implements a **security-first authentication pattern** where data access is strictly gated behind successful authentication:
+1. **Attendee Authentication**: QR code-based (6 characters) for conference participants
+2. **Admin Authentication**: Passcode-based ("616161") for conference organizers
+
+See **Admin Panel Security Model** section below for admin-specific authentication.
+
+### **Security-First Authentication Flow (Attendees)**
+
+The application implements a **security-first authentication pattern** for attendees where data access is strictly gated behind successful authentication:
 
 ```typescript
 // ✅ SECURE PATTERN: Authentication-First Flow
@@ -392,8 +404,8 @@ console.log('✅ All cached data cleared')
 
 ### **Security Audit Checklist**
 
-- [x] Authentication flow follows security-first pattern
-- [x] Data sync only occurs after successful authentication
+- [x] Authentication flow follows security-first pattern (attendees)
+- [x] Data sync only occurs after successful authentication (attendees)
 - [x] Data cleanup implemented for auth failures
 - [x] Comprehensive logout data clearing implemented
 - [x] Dynamic Supabase token clearing (future-proof)
@@ -402,6 +414,149 @@ console.log('✅ All cached data cleared')
 - [x] Security tests cover all critical paths
 - [x] No sensitive data in error messages
 - [x] Proper logging for security events
+- [x] Admin authentication documented and justified (ADR-005)
+- [x] Admin actions logged for audit trail
+- [x] Dual authentication pattern security boundaries tested
+
+## 👨‍💼 Admin Panel Security Model
+
+**Version:** 1.1 (Added 2025-10-12)  
+**Related ADR:** ADR-005 (Admin Authentication Pattern)
+
+### **Overview**
+
+The admin panel uses a **separate authentication model** from attendee authentication to support conference organizers who may not be attending the conference.
+
+### **Admin Authentication Flow**
+
+```typescript
+// ✅ ADMIN PATTERN: Passcode-Only Authentication
+const accessAdminPanel = async (passcode: string) => {
+  // Step 1: Validate admin passcode (no user QR code required)
+  if (passcode !== ADMIN_PASSCODE) {
+    return { success: false, error: 'Invalid passcode' }
+  }
+  
+  // Step 2: Check for cached data (fast path)
+  if (await hasCachedData()) {
+    return { success: true, hasData: true }
+  }
+  
+  // Step 3: Sync using admin credentials (not user auth)
+  const syncResult = await serverDataSyncService.syncAllData()
+  
+  return syncResult
+}
+```
+
+### **Key Differences from Attendee Authentication**
+
+| Aspect | Attendee Authentication | Admin Authentication |
+|--------|------------------------|---------------------|
+| **Method** | QR Code (6 characters) | Passcode ("616161") |
+| **Purpose** | Personal conference access | Conference management |
+| **Data Access** | Personalized view | Full conference data |
+| **Required** | Yes (for app features) | No (admin-only function) |
+| **Authentication Check** | `getAuthStatus()` in `dataInitializationService` | Passcode in `AdminApp` component |
+| **Session Storage** | `conference_auth` | `admin_authenticated` |
+
+### **Security Justification**
+
+**Why Admin Authentication is Different:**
+
+1. **Role Separation**: Admin manages conference, attendee consumes conference
+2. **Non-Attendee Admins**: Some conference organizers don't attend (no QR code)
+3. **Operational Need**: Admin must access system independently
+4. **Data Scope**: Admin needs full visibility, attendee needs personal view
+
+### **Admin Data Access Rights**
+
+Admin with valid passcode can access:
+
+✅ **Full Conference Data**:
+- All agenda items (schedule management)
+- All attendee records (speaker assignment)
+- Attendee personal data (dietary preferences for planning)
+- Seating assignments (venue management)
+- Dining selections (catering coordination)
+- Sponsor information (conference organization)
+
+✅ **Management Functions**:
+- Edit agenda item titles
+- Assign speakers to sessions
+- Modify dining option titles
+- Force global data sync
+- View cache health dashboard
+
+### **Admin Security Measures**
+
+**Protection Layers:**
+
+1. **Passcode Protection**: `"616161"` (to be updated before production)
+2. **Session-Based**: Authentication persists in sessionStorage
+3. **Audit Logging**: Admin actions logged to console
+4. **No Delete**: Admin cannot delete data (only modify)
+
+**Acceptable Risk:**
+
+The admin passcode grants significant access, but:
+- Internal conference tool (trusted environment)
+- Small admin team (3-5 people)
+- All changes are visible and reversible
+- Actions are logged for troubleshooting
+- No destructive operations implemented
+
+### **Admin Audit Logging**
+
+```typescript
+// Authentication
+console.log('🔐 Admin authenticated via passcode');
+console.log('🔓 Admin logged out');
+
+// Data Access
+console.log('🔓 Admin data access (passcode only, no user auth required)');
+console.log('✅ Cached data found, admin panel ready');
+console.log('🔄 No cached data, syncing with admin credentials...');
+
+// Modifications
+console.log('🔧 Admin modified agenda item:', { itemId, oldTitle, newTitle });
+console.log('🔧 Admin modified dining option:', { itemId, oldName, newName });
+console.log('🔄 Admin triggered force global sync');
+```
+
+### **Implementation Details**
+
+**Admin Components:**
+- `AdminApp.tsx`: Passcode screen, session management
+- `AdminPage.tsx`: Management interface, data modification
+- `PasscodeScreen.tsx`: Passcode validation (hardcoded "616161")
+
+**Admin Services:**
+- `dataInitializationService.ensureDataLoadedForAdmin()`: No user auth required
+- `serverDataSyncService.syncAllData()`: Uses admin Supabase credentials
+- `adminService`: CRUD operations for agenda items, speakers, dining
+
+**Security Boundaries:**
+- Admin passcode ≠ User authentication
+- Admin session ≠ User session
+- Admin data access uses admin credentials, not user credentials
+- Regular app features still require user authentication
+
+### **Future Enhancements**
+
+**Potential Improvements:**
+1. Environment variable for passcode
+2. Stronger/randomized passcode
+3. Two-factor authentication
+4. Time-based access tokens
+5. Role-based access control (multiple admin levels)
+6. Comprehensive audit trail in database
+
+**When to Upgrade:**
+- Admin team grows beyond 5 people
+- Multiple conferences managed simultaneously
+- Compliance/audit requirements emerge
+- External stakeholders need admin access
 
 ## 🚀 Future Security Enhancements
 
