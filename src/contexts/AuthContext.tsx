@@ -502,7 +502,7 @@ export const LoginPage: React.FC = () => {
         alignItems: 'flex-start', 
         justifyContent: 'center',
         background: 'linear-gradient(135deg, #F5F6F7 0%, #F2ECFB 100%)',
-        padding: 'var(--space-xl) var(--space-lg) 60px',
+        padding: 'var(--space-xl) var(--space-lg) 120px',
         position: 'relative',
         overflow: 'hidden'
       }}>

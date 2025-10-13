@@ -3,7 +3,7 @@ import React from 'react';
 /**
  * Footer Component
  * Legal footer with links to Apax privacy policy and terms
- * Compact single-line on desktop, stacked on mobile
+ * Three-row centered layout for login page
  * 
  * @param {boolean} transparent - If true, footer has no background/border (for login page)
  */
@@ -11,9 +11,11 @@ const Footer = ({ transparent = false }) => {
   return (
     <footer className={`app-footer ${transparent ? 'app-footer-transparent' : ''}`}>
       <div className="footer-content">
-        <span className="footer-copyright">© 2025 Apax Partners.</span>
-        <span className="footer-separator" aria-hidden="true"> | </span>
-        <span className="footer-links">
+        <div className="footer-row">
+          © 2025 Apax Partners
+        </div>
+        
+        <div className="footer-row footer-links">
           <a 
             href="https://www.apax.com/privacy-policy/" 
             target="_blank"
@@ -23,7 +25,7 @@ const Footer = ({ transparent = false }) => {
           >
             Privacy Policy
           </a>
-          <span className="footer-separator" aria-hidden="true">|</span>
+          <span className="footer-separator" aria-hidden="true"> | </span>
           <a 
             href="https://www.apax.com/terms-conditions/" 
             target="_blank"
@@ -31,11 +33,13 @@ const Footer = ({ transparent = false }) => {
             className="footer-link"
             aria-label="Terms & Conditions (opens in new window)"
           >
-            Terms
+            Terms & Conditions
           </a>
-        </span>
-        <span className="footer-separator" aria-hidden="true"> | </span>
-        <span className="footer-notice">Confidential</span>
+        </div>
+        
+        <div className="footer-row footer-notice">
+          Confidential information for authorized KnowledgeNow attendees only
+        </div>
       </div>
     </footer>
   );
