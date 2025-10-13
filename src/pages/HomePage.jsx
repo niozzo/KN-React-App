@@ -630,10 +630,10 @@ const HomePage = () => {
         </Card>
       </section>
 
-      {/* PWA Install Button */}
-      <section className="install-prompt-section">
+      {/* PWA Install Button - Hidden for now */}
+      {/* <section className="install-prompt-section">
         <InstallPrompt placement="home" />
-      </section>
+      </section> */}
     </PageLayout>
   );
 };
