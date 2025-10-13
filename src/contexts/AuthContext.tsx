@@ -146,6 +146,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsAuthenticated(true)
       setAttendee(authResult.attendee)
       
+      // ✅ NEW: Start periodic sync now that user is authenticated
+      try {
+        const { pwaDataSyncService } = await import('../services/pwaDataSyncService')
+        pwaDataSyncService.startPeriodicSync()
+        console.log('🔄 Periodic sync started after successful login')
+      } catch (syncError) {
+        console.warn('⚠️ Failed to start periodic sync:', syncError)
+      }
+      
       // ✅ NEW: Initialize attendee sync service
       try {
         const { attendeeSyncService } = await import('../services/attendeeSyncService')
