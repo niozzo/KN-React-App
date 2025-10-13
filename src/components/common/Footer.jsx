@@ -4,10 +4,12 @@ import React from 'react';
  * Footer Component
  * Legal footer with links to Apax privacy policy and terms
  * Compact single-line on desktop, stacked on mobile
+ * 
+ * @param {boolean} transparent - If true, footer has no background/border (for login page)
  */
-const Footer = () => {
+const Footer = ({ transparent = false }) => {
   return (
-    <footer className="app-footer">
+    <footer className={`app-footer ${transparent ? 'app-footer-transparent' : ''}`}>
       <div className="footer-content">
         <span className="footer-copyright">© 2025 Apax Partners.</span>
         <span className="footer-separator" aria-hidden="true"> | </span>
