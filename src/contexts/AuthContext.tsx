@@ -47,6 +47,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [attendeeName, setAttendeeName] = useState<{ first_name: string; last_name: string; full_name: string } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSigningOut, setIsSigningOut] = useState(false)
+  
+  // Track active login process to abort if logout is called during login
+  const loginAbortControllerRef = useRef<AbortController | null>(null)
 
   // Function to clear all cached data on authentication failure
   const clearCachedData = useCallback(() => {
@@ -108,12 +111,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, [isAuthenticated, checkAuthStatus])
 
   const login = async (accessCode: string): Promise<{ success: boolean; error?: string }> => {
+    // Create abort controller for this login attempt
+    const abortController = new AbortController()
+    loginAbortControllerRef.current = abortController
+    
     try {
       console.log('🔄 Starting authentication process...')
       
       // Step 1: Authenticate with the auth service FIRST (validate access code)
       console.log('🔐 Step 1: Authenticating with access code...')
       const authResult = await authenticateWithAccessCode(accessCode)
+      
+      // ✅ CHECK: If logout was called during auth, abort here
+      if (abortController.signal.aborted) {
+        console.log('⏸️ Login aborted - logout was called during authentication')
+        return { success: false, error: 'Login cancelled' }
+      }
       
       // Step 2: Only proceed with data sync if authentication is successful
       if (!authResult.success || !authResult.attendee) {
@@ -130,15 +143,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('🔐 Step 2: Authentication successful, syncing data for offline use...')
       let syncResult = null
       try {
-        syncResult = await serverDataSyncService.syncAllData()
-        // Admin data sync completed
+        // ✅ CHECK: If logout was called, skip sync
+        if (abortController.signal.aborted) {
+          console.log('⏸️ Login aborted - skipping data sync')
+          return { success: false, error: 'Login cancelled' }
+        }
         
+        syncResult = await serverDataSyncService.syncAllData()
+        
+        // ✅ CHECK: If logout was called during sync, abort
+        if (abortController.signal.aborted) {
+          console.log('⏸️ Login aborted - logout called during sync')
+          return { success: false, error: 'Login cancelled' }
+        }
+        
+        // Admin data sync completed
         if (!syncResult.success) {
           console.warn('⚠️ Admin data sync failed, but authentication succeeded:', syncResult.errors)
         }
       } catch (syncError) {
         console.warn('⚠️ Admin data sync error, but authentication succeeded:', syncError)
         // Authentication succeeded, but data sync failed - still allow login
+      }
+      
+      // ✅ CHECK: Final abort check before setting state
+      if (abortController.signal.aborted) {
+        console.log('⏸️ Login aborted - not setting authentication state')
+        return { success: false, error: 'Login cancelled' }
       }
       
       // Set authentication state (we already validated authResult.success above)
@@ -157,6 +188,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       // ✅ NEW: Initialize attendee sync service
       try {
+        // ✅ CHECK: One more abort check before final async operation
+        if (abortController.signal.aborted) {
+          console.log('⏸️ Login aborted - skipping attendee sync')
+          return { success: false, error: 'Login cancelled' }
+        }
+        
         const { attendeeSyncService } = await import('../services/attendeeSyncService')
         await attendeeSyncService.refreshAttendeeData()
         // Attendee sync service initialized
@@ -199,6 +236,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         success: false, 
         error: 'Authentication failed. Please try again or contact support.' 
       }
+    } finally {
+      // Clear the abort controller reference
+      if (loginAbortControllerRef.current === abortController) {
+        loginAbortControllerRef.current = null
+      }
     }
   }
 
@@ -209,6 +251,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
 
     setIsSigningOut(true)
+    
+    // ✅ CRITICAL: Abort any in-flight login process
+    if (loginAbortControllerRef.current) {
+      console.log('🛑 Aborting in-flight login process...')
+      loginAbortControllerRef.current.abort()
+      loginAbortControllerRef.current = null
+    }
     
     try {
       console.log('🔄 Starting comprehensive sign-out process...')
