@@ -152,7 +152,7 @@ const AttendeeCard = forwardRef(({
               fontWeight: '500'
             }}
           >
-            {company}
+            {attendee.companyDisplayName || company}
           </div>
         </div>
       </div>
