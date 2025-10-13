@@ -42,7 +42,12 @@ const SettingsPage = () => {
         const prefs = await applicationDatabaseService.getAttendeePreferences(attendee.id);
         setSettings(prev => ({ ...prev, profileVisible: prefs.profile_visible }));
       } catch (error) {
-        console.error('Failed to load preferences:', error);
+        // Expected: User doesn't have preferences row yet
+        // Will be created when they toggle a setting for the first time
+        if (import.meta.env.DEV) {
+          console.log('No preferences found for user, using defaults');
+        }
+        // Silently use default: profileVisible: true
       }
     };
     loadPreferences();
