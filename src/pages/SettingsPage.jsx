@@ -209,9 +209,10 @@ const SettingsPage = () => {
               className="action-button"
               disabled={isRefreshing || !isOnline}
               style={{
-                color: 'var(--purple-700)',
+                color: isRefreshing ? 'white' : 'var(--purple-700)',
                 borderColor: 'var(--purple-700)',
-                backgroundColor: 'white'
+                backgroundColor: isRefreshing ? 'var(--purple-700)' : 'white',
+                transition: 'all 0.2s ease'
               }}
             >
               {isRefreshing ? 'Refreshing...' : 'Refresh Conference Data'}
