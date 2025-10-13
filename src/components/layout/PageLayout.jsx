@@ -1,6 +1,7 @@
 import React from 'react';
 import Header from '../common/Header';
 import BottomNav from '../common/BottomNav';
+import Footer from '../common/Footer';
 
 /**
  * Page Layout Component
@@ -23,6 +24,7 @@ const PageLayout = ({
         {children}
       </main>
       
+      <Footer />
       <BottomNav />
     </div>
   );
