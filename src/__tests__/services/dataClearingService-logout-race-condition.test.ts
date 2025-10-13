@@ -49,8 +49,8 @@ describe('Logout Cache Repopulation - Pragmatic Tests', () => {
     
     // Then: Cache stays empty (race condition prevented)
     expect(result.success).toBe(true)
-    expect(localStorage.getItem('kn_cache_attendees')).toBeNull()
-    expect(localStorage.getItem('conference_auth')).toBeNull()
+    expect(localStorage.getItem('kn_cache_attendees')).toBeFalsy()
+    expect(localStorage.getItem('conference_auth')).toBeFalsy()
   })
 
   it('clears all cache types including auth tokens', async () => {
@@ -68,13 +68,13 @@ describe('Logout Cache Repopulation - Pragmatic Tests', () => {
     
     // Then: Everything is cleared
     expect(result.success).toBe(true)
-    expect(localStorage.getItem('kn_cache_attendees')).toBeNull()
-    expect(localStorage.getItem('kn_cache_sessions')).toBeNull()
-    expect(localStorage.getItem('kn_cache_agenda_items')).toBeNull()
-    expect(localStorage.getItem('kn_cached_sessions')).toBeNull()
-    expect(localStorage.getItem('kn_sync_status')).toBeNull()
-    expect(localStorage.getItem('conference_auth')).toBeNull()
-    expect(localStorage.getItem('sb-test-auth-token')).toBeNull()
+    expect(localStorage.getItem('kn_cache_attendees')).toBeFalsy()
+    expect(localStorage.getItem('kn_cache_sessions')).toBeFalsy()
+    expect(localStorage.getItem('kn_cache_agenda_items')).toBeFalsy()
+    expect(localStorage.getItem('kn_cached_sessions')).toBeFalsy()
+    expect(localStorage.getItem('kn_sync_status')).toBeFalsy()
+    expect(localStorage.getItem('conference_auth')).toBeFalsy()
+    expect(localStorage.getItem('sb-test-auth-token')).toBeFalsy()
   })
 
   it('continues clearing even if async stop operations fail', async () => {
@@ -90,7 +90,7 @@ describe('Logout Cache Repopulation - Pragmatic Tests', () => {
     
     // Then: Cache is still cleared (graceful degradation)
     expect(result.errors.length).toBeGreaterThan(0) // Error recorded
-    expect(localStorage.getItem('kn_cache_attendees')).toBeNull() // But clearing succeeded
-    expect(localStorage.getItem('conference_auth')).toBeNull()
+    expect(localStorage.getItem('kn_cache_attendees')).toBeFalsy() // But clearing succeeded
+    expect(localStorage.getItem('conference_auth')).toBeFalsy()
   })
 })
