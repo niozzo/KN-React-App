@@ -2136,3 +2136,26 @@ body {
     display: block;
   }
 }
+
+/* Transparent variant for login page */
+.app-footer-transparent {
+  background-color: transparent;
+  border-top: none;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+}
+
+.app-footer-transparent .footer-content {
+  color: var(--gray-700);
+}
+
+.app-footer-transparent .footer-link {
+  color: var(--purple-700);
+}
+
+.app-footer-transparent .footer-link:hover {
+  color: var(--purple-800);
+}
