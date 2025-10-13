@@ -208,6 +208,11 @@ const SettingsPage = () => {
               onClick={handleRefreshData}
               className="action-button"
               disabled={isRefreshing || !isOnline}
+              style={{
+                color: 'var(--purple-700)',
+                borderColor: 'var(--purple-700)',
+                backgroundColor: 'white'
+              }}
             >
               {isRefreshing ? 'Refreshing...' : 'Refresh Conference Data'}
             </Button>
@@ -240,6 +245,11 @@ const SettingsPage = () => {
               onClick={handleSignOut}
               className="action-button"
               disabled={isSigningOut}
+              style={{
+                color: 'var(--purple-700)',
+                borderColor: 'var(--purple-700)',
+                backgroundColor: 'white'
+              }}
             >
               {isSigningOut ? 'Logging out...' : 'Log out'}
             </Button>
