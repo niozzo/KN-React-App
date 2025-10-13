@@ -79,7 +79,12 @@ const SettingsPage = () => {
   };
 
   // Refresh conference data handler
-  const handleRefreshData = async () => {
+  const handleRefreshData = async (event) => {
+    // Remove focus from button to prevent stuck appearance
+    if (event?.currentTarget) {
+      event.currentTarget.blur();
+    }
+
     if (!isOnline) {
       setRefreshError('You must be online to refresh conference data');
       return;
@@ -194,7 +199,7 @@ const SettingsPage = () => {
           )}
           <div className="action-buttons">
             <Button 
-              variant="primary"
+              variant="secondary"
               onClick={handleRefreshData}
               className="action-button"
               disabled={isRefreshing || !isOnline}
