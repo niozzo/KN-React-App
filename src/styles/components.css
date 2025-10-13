@@ -45,7 +45,6 @@ body {
 
 .logo {
   font-family: var(--font-heading);
-  font-size: var(--text-3xl);
   font-weight: var(--font-bold);
   color: var(--purple-700);
   text-decoration: none;
@@ -54,6 +53,36 @@ body {
 
 .logo:hover {
   color: var(--purple-500);
+}
+
+/* Logo responsive adjustments */
+.logo img {
+  height: 24px;
+}
+
+.logo-text {
+  font-size: var(--text-lg);
+  white-space: nowrap;
+}
+
+@media (min-width: 480px) {
+  .logo img {
+    height: 28px;
+  }
+  
+  .logo-text {
+    font-size: var(--text-xl);
+  }
+}
+
+@media (min-width: 768px) {
+  .logo img {
+    height: 32px;
+  }
+  
+  .logo-text {
+    font-size: var(--text-2xl);
+  }
 }
 
 
