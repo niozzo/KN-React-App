@@ -69,11 +69,15 @@ export class ServerDataSyncService extends BaseService {
       const { AgendaTransformer } = await import('../transformers/agendaTransformer.js');
       const agendaTransformer = new AgendaTransformer();
       records = agendaTransformer.transformArrayFromDatabase(records);
+      records = agendaTransformer.filterActiveAgendaItems(records); // Filter before caching
       records = agendaTransformer.sortAgendaItems(records);
     }
     
     // Attendees transformation - filter company for specific edge cases
     if (tableName === 'attendees') {
+      const { AttendeeTransformer } = await import('../transformers/attendeeTransformer.js');
+      const attendeeTransformer = new AttendeeTransformer();
+      
       // Edge case: These speakers were assigned "Apax" in the main DB but 
       // don't have a company affiliation. Clear company to prevent display.
       const ATTENDEES_WITHOUT_COMPANY = [
@@ -88,7 +92,10 @@ export class ServerDataSyncService extends BaseService {
         return attendee;
       });
       
-      console.log(`🔧 Cleared company field for ${ATTENDEES_WITHOUT_COMPANY.length} attendees without company affiliation`);
+      records = attendeeTransformer.transformArrayFromDatabase(records);
+      records = attendeeTransformer.filterActiveAttendees(records); // Filter before caching
+      
+      console.log(`🔧 Filtered to ${records.length} active attendees`);
     }
     
     // Dining options transformation

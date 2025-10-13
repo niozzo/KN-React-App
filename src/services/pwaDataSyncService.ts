@@ -61,6 +61,7 @@ export class PWADataSyncService extends BaseService {
 
   private isSyncInProgress = false;
   private syncLockTimeout: NodeJS.Timeout | null = null;
+  private syncAbortController?: AbortController;
 
   private schemaValidator: any | null = null;
   
@@ -479,8 +480,9 @@ export class PWADataSyncService extends BaseService {
       };
     }
     
-    // Set lock
+    // Set lock and create abort controller for this sync
     this.isSyncInProgress = true;
+    this.syncAbortController = new AbortController();
     
     // Set timeout to release lock if sync takes too long (2 minutes)
     this.syncLockTimeout = setTimeout(() => {
@@ -1379,6 +1381,21 @@ export class PWADataSyncService extends BaseService {
   destroy(): void {
     // Stop periodic sync (clears interval)
     this.stopPeriodicSync();
+    
+    // Abort any pending sync operations
+    if (this.syncAbortController) {
+      this.syncAbortController.abort();
+      this.syncAbortController = undefined;
+    }
+    
+    // Clear sync lock timeout
+    if (this.syncLockTimeout) {
+      clearTimeout(this.syncLockTimeout);
+      this.syncLockTimeout = null;
+    }
+    
+    // Reset sync state
+    this.isSyncInProgress = false;
     
     // Remove event listeners to prevent memory leaks
     window.removeEventListener('online', this.handleOnlineEvent);

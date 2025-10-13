@@ -372,4 +372,12 @@ export class AgendaTransformer extends BaseTransformer<AgendaItem> {
       return (a.start_time || '').localeCompare(b.start_time || '')
     })
   }
+
+  /**
+   * Filter active agenda items (isActive !== false)
+   * Treats undefined/null as active (default behavior)
+   */
+  filterActiveAgendaItems(agendaItems: AgendaItem[]): AgendaItem[] {
+    return agendaItems.filter(item => item.isActive !== false)
+  }
 }
