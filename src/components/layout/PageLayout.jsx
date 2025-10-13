@@ -10,7 +10,6 @@ import BottomNav from '../common/BottomNav';
 const PageLayout = ({
   children,
   onLogoClick,
-  onUserClick,
   className = '',
   ...props
 }) => {
@@ -18,7 +17,6 @@ const PageLayout = ({
     <div className={`page-layout ${className}`} style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }} {...props}>
       <Header 
         onLogoClick={onLogoClick}
-        onUserClick={onUserClick}
       />
       
       <main className="main-content" data-testid="main-content">

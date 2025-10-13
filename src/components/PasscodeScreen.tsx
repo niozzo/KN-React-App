@@ -6,11 +6,9 @@ import {
   TextField,
   Button,
   Typography,
-  Alert,
   CircularProgress
 } from '@mui/material';
 import { Lock as LockIcon } from '@mui/icons-material';
-import { ValidationRules, createValidationResult } from '../utils/validationUtils';
 
 interface PasscodeScreenProps {
   onPasscodeValid: () => void;
@@ -18,49 +16,22 @@ interface PasscodeScreenProps {
 
 export const PasscodeScreen: React.FC<PasscodeScreenProps> = ({ onPasscodeValid }) => {
   const [passcode, setPasscode] = useState('');
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [validationError, setValidationError] = useState('');
-
-  // Validate passcode format
-  const validatePasscode = (value: string) => {
-    const result = ValidationRules.passcode(value, 'Passcode');
-    setValidationError(result.isValid ? '' : result.message);
-    return result.isValid;
-  };
 
   const handlePasscodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setPasscode(value);
-    setError(''); // Clear submission error
-    
-    // Real-time validation
-    if (value.length > 0) {
-      validatePasscode(value);
-    } else {
-      setValidationError('');
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
-    setValidationError('');
-
-    // Validate passcode format first
-    if (!validatePasscode(passcode)) {
-      setLoading(false);
-      return;
-    }
 
     // Simulate validation delay
     await new Promise(resolve => setTimeout(resolve, 500));
 
-    if (passcode === '616161') {
+    if (passcode === 'da1sy') {
       onPasscodeValid();
-    } else {
-      setError('Invalid passcode. Please try again.');
     }
     
     setLoading(false);
@@ -97,15 +68,8 @@ export const PasscodeScreen: React.FC<PasscodeScreenProps> = ({ onPasscodeValid 
               value={passcode}
               onChange={handlePasscodeChange}
               disabled={loading}
-              error={!!error || !!validationError}
-              helperText={validationError || error}
               sx={{ mb: 3 }}
               autoFocus
-              inputProps={{
-                maxLength: 6,
-                pattern: '[0-9]*',
-                inputMode: 'numeric'
-              }}
             />
 
             <Button
@@ -119,12 +83,6 @@ export const PasscodeScreen: React.FC<PasscodeScreenProps> = ({ onPasscodeValid 
               {loading ? <CircularProgress size={24} /> : 'Access Admin Panel'}
             </Button>
           </form>
-
-          {error && (
-            <Alert severity="error" sx={{ mt: 2 }}>
-              {error}
-            </Alert>
-          )}
         </CardContent>
       </Card>
     </Box>
