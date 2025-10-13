@@ -2054,25 +2054,31 @@ body {
 .app-footer {
   background-color: var(--white);
   border-top: 1px solid var(--gray-200);
-  padding: var(--space-sm) var(--space-md);
+  padding: var(--space-md);
   margin-top: auto;
   font-size: var(--text-xs);
   color: var(--gray-600);
-  position: relative;
-  z-index: 100;
+  text-align: center;
 }
 
 .footer-content {
-  max-width: var(--container-xl);
+  max-width: 600px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
 }
 
-.footer-copyright {
+.footer-row {
   margin: 0;
 }
 
 .footer-links {
-  display: inline;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
 }
 
 .footer-link {
@@ -2094,47 +2100,11 @@ body {
 
 .footer-separator {
   color: var(--gray-400);
-  margin: 0 var(--space-xs);
 }
 
 .footer-notice {
-  margin: 0;
-  display: inline;
-}
-
-/* Mobile: Left-aligned, stacked */
-@media (max-width: 767px) {
-  .app-footer {
-    text-align: left;
-    padding-bottom: calc(var(--space-md) + 60px); /* Account for bottom nav */
-  }
-  
-  .footer-content {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-xs);
-  }
-  
-  .footer-links {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-xs);
-  }
-  
-  .footer-separator {
-    display: none;
-  }
-}
-
-/* Desktop: One line, centered */
-@media (min-width: 768px) {
-  .app-footer {
-    text-align: center;
-  }
-  
-  .footer-content {
-    display: block;
-  }
+  font-style: italic;
+  color: var(--gray-500);
 }
 
 /* Transparent variant for login page */
@@ -2142,7 +2112,7 @@ body {
   background-color: transparent;
   border-top: none;
   position: absolute;
-  bottom: 0;
+  bottom: var(--space-lg);
   left: 0;
   right: 0;
   z-index: 10;
