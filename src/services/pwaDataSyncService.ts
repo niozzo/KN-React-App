@@ -62,6 +62,7 @@ export class PWADataSyncService extends BaseService {
   private isSyncInProgress = false;
   private syncLockTimeout: NodeJS.Timeout | null = null;
   private syncAbortController?: AbortController;
+  private isLogoutInProgress = false;
 
   private schemaValidator: any | null = null;
   
@@ -454,11 +455,13 @@ export class PWADataSyncService extends BaseService {
 
   /**
    * Stop periodic synchronization
+   * Made public to support logout cleanup
    */
-  private stopPeriodicSync(): void {
+  public stopPeriodicSync(): void {
     if (this.syncTimer) {
       clearInterval(this.syncTimer);
       this.syncTimer = null;
+      console.log('🛑 Periodic sync stopped');
     }
   }
 
@@ -466,6 +469,17 @@ export class PWADataSyncService extends BaseService {
    * Sync all data tables
    */
   async syncAllData(): Promise<SyncResult> {
+    // 🛑 GUARD: Don't start sync if logout is in progress
+    if (this.isLogoutInProgress) {
+      console.log('🚫 Skipping sync - logout in progress');
+      return {
+        success: false,
+        syncedTables: [],
+        errors: ['Sync cancelled - logout in progress'],
+        timestamp: new Date().toISOString()
+      };
+    }
+
     const sessionId = cacheMonitoringService.getSessionId();
     
     // Check if sync is already in progress
@@ -784,6 +798,12 @@ export class PWADataSyncService extends BaseService {
    */
   async cacheTableData(tableName: string, data: any[]): Promise<void> {
     try {
+      // 🛑 GUARD: Prevent cache writes during logout
+      if (this.isLogoutInProgress) {
+        console.log(`🚫 Skipping cache write for ${tableName} - logout in progress`);
+        return;
+      }
+
       const cacheKey = `${this.CACHE_PREFIX}${tableName}`;
       
       // 🔍 DIAGNOSTIC: Track cache write timing
@@ -1376,26 +1396,52 @@ export class PWADataSyncService extends BaseService {
   }
 
   /**
-   * Cleanup on destroy
+   * Abort any pending sync operations
+   * Public method to support logout cleanup
    */
-  destroy(): void {
-    // Stop periodic sync (clears interval)
-    this.stopPeriodicSync();
-    
+  public abortPendingSyncOperations(): void {
     // Abort any pending sync operations
     if (this.syncAbortController) {
       this.syncAbortController.abort();
       this.syncAbortController = undefined;
+      console.log('🛑 Aborted pending sync operations');
     }
     
     // Clear sync lock timeout
     if (this.syncLockTimeout) {
       clearTimeout(this.syncLockTimeout);
       this.syncLockTimeout = null;
+      console.log('🛑 Cleared sync lock timeout');
     }
     
     // Reset sync state
     this.isSyncInProgress = false;
+  }
+
+  /**
+   * Set logout in progress flag to prevent cache writes during logout
+   */
+  public setLogoutInProgress(value: boolean): void {
+    this.isLogoutInProgress = value;
+    console.log(`${value ? '🚪' : '✅'} Logout in progress: ${value}`);
+  }
+
+  /**
+   * Check if logout is in progress
+   */
+  private isLogoutActive(): boolean {
+    return this.isLogoutInProgress;
+  }
+
+  /**
+   * Cleanup on destroy
+   */
+  destroy(): void {
+    // Stop periodic sync (clears interval)
+    this.stopPeriodicSync();
+    
+    // Abort pending operations
+    this.abortPendingSyncOperations();
     
     // Remove event listeners to prevent memory leaks
     window.removeEventListener('online', this.handleOnlineEvent);
