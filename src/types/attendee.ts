@@ -1,6 +1,8 @@
 // TypeScript interfaces for Attendees based on actual database schema
 // Generated from real database data via authenticated Supabase API
 
+import type { StandardizedCompany } from './standardizedCompany';
+
 export interface AttendeeAttributes {
   ceo: boolean
   apaxIP: boolean
@@ -90,6 +92,22 @@ export interface Attendee {
   // External System Integration
   idloom_id: string           // IDloom system ID
   last_synced_at: string      // Last sync timestamp
+  
+  // ✨ Computed Fields (Story 8.7: Company Name Normalization)
+  // These fields are populated by AttendeeTransformer during transformation
+  // They provide enriched company data from the standardized_companies table
+  
+  /** Standardized company object with canonical name and metadata (computed via CompanyNormalizationService) */
+  companyStandardized?: StandardizedCompany | null
+  
+  /** Canonical company name or original if no match found (computed) */
+  companyDisplayName?: string
+  
+  /** Company sector from standardized data (computed) */
+  companySector?: string
+  
+  /** Company geography from standardized data (computed) */
+  companyGeography?: string
 }
 
 // Sanitized attendee type for storage (excludes sensitive access_code)
