@@ -344,6 +344,9 @@ export const LoginPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [autoLoginAttempted, setAutoLoginAttempted] = useState(false)
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+  
+  // Focus preservation: Keep input focused during background re-renders
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const handleSubmit = useCallback(async (e?: React.FormEvent, codeToSubmit?: string) => {
     if (e) e.preventDefault()
@@ -415,6 +418,14 @@ export const LoginPage: React.FC = () => {
       handleSubmit(undefined, codeParam)
     }
   }, [location.search, autoLoginAttempted, isLoading, navigate, handleSubmit])
+
+  // Focus preservation: Restore focus after re-renders (e.g., from background cache operations)
+  useEffect(() => {
+    // If input exists, has value, and isn't disabled, keep it focused
+    if (inputRef.current && accessCode.length > 0 && !isLoading) {
+      inputRef.current.focus()
+    }
+  }) // Run after every render to catch focus loss immediately
 
   return (
     <>
@@ -528,6 +539,7 @@ export const LoginPage: React.FC = () => {
             
             <div style={{ position: 'relative' }}>
               <input
+                ref={inputRef}
                 id="accessCode"
                 name="accessCode"
                 type="text"
@@ -545,6 +557,7 @@ export const LoginPage: React.FC = () => {
                 }}
                 maxLength={6}
                 disabled={isLoading}
+                autoFocus
                 style={{
                   textAlign: 'center',
                   fontSize: '2rem',
