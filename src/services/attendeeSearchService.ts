@@ -141,7 +141,6 @@ export class AttendeeSearchService {
         attendee.first_name?.toLowerCase().includes(query) ||
         attendee.last_name?.toLowerCase().includes(query) ||
         attendee.company?.toLowerCase().includes(query) ||
-        attendee.companyDisplayName?.toLowerCase().includes(query) ||
         attendee.title?.toLowerCase().includes(query) ||
         attendee.bio?.toLowerCase().includes(query)
       );
