@@ -101,16 +101,22 @@ describe('Logout Cache Repopulation - Pragmatic Tests', () => {
   })
 
   it('resets logout flag after clearing to allow future logins (CRITICAL FIX)', async () => {
-    // Given: Cache data exists
+    // Given: Cache data exists and spy on setLogoutInProgress
     localStorage.setItem('kn_cache_attendees', JSON.stringify({ data: [{ id: 1 }] }))
     localStorage.setItem('conference_auth', JSON.stringify({ isAuthenticated: true }))
     
-    // When: Logout occurs
-    await dataClearingService.clearAllData()
+    const setLogoutSpy = vi.spyOn(pwaDataSyncService, 'setLogoutInProgress')
     
-    // Then: Logout flag is reset (allows next login to sync data)
-    // Verify by attempting a cache write - it should succeed
-    await pwaDataSyncService.cacheTableData('dining_options', [{ id: 1, name: 'Test Dining' }])
-    expect(localStorage.getItem('kn_cache_dining_options')).toBeTruthy() // Write succeeded
+    // When: Logout occurs
+    const clearResult = await dataClearingService.clearAllData()
+    
+    // Then: Flag was set to true, then reset to false
+    expect(clearResult.success).toBe(true)
+    expect(setLogoutSpy).toHaveBeenCalledWith(true)  // Set during logout
+    expect(setLogoutSpy).toHaveBeenCalledWith(false) // Reset after logout
+    
+    // Verify the calls happened in the correct order
+    const calls = setLogoutSpy.mock.calls
+    expect(calls[calls.length - 1][0]).toBe(false) // Last call was to reset (false)
   })
 })
