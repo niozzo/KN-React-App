@@ -54,7 +54,6 @@ export class CompanyNormalizationService extends BaseService {
    */
   async initialize(): Promise<void> {
     try {
-      console.log('🏢 Initializing Company Normalization Service...');
       const startTime = performance.now();
       
       // Load standardized companies
@@ -80,13 +79,7 @@ export class CompanyNormalizationService extends BaseService {
       // Build lookup maps
       this.buildLookupMaps(companies || [], aliases || []);
       
-      const duration = performance.now() - startTime;
       this.isInitialized = true;
-      
-      console.log(`✅ Company Normalization Service initialized in ${duration.toFixed(2)}ms`);
-      console.log(`   - ${companies?.length || 0} standardized companies`);
-      console.log(`   - ${aliases?.length || 0} company aliases`);
-      console.log(`   - Memory: ~${this.estimateMemoryUsage()}KB`);
       
     } catch (error) {
       console.error('❌ Company Normalization Service initialization failed:', error);
@@ -204,7 +197,6 @@ export class CompanyNormalizationService extends BaseService {
    * Refresh the cache by reloading data from the database
    */
   async refreshCache(): Promise<void> {
-    console.log('🔄 Refreshing company normalization cache...');
     this.isInitialized = false;
     await this.initialize();
   }
@@ -227,7 +219,6 @@ export class CompanyNormalizationService extends BaseService {
     this.aliasMap.clear();
     this.companiesById.clear();
     this.isInitialized = false;
-    console.log('🧹 Company Normalization Service cleaned up');
   }
   
   /**
