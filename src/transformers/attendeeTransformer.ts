@@ -157,7 +157,6 @@ export class AttendeeTransformer extends BaseTransformer<Attendee> {
     // Story 8.7: Replace company field with normalized canonical name
     // This way, no UI changes are needed - the company field already displays everywhere
     if (result.companyDisplayName && result.companyDisplayName !== result.company) {
-      console.log(`🏢 Company normalized: "${result.company}" → "${result.companyDisplayName}"`)
       result.company = result.companyDisplayName
     }
     

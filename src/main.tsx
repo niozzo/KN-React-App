@@ -22,9 +22,7 @@ async function bootstrapApplication() {
       const companyService = CompanyNormalizationService.getInstance();
       await companyService.initialize();
     } catch (error) {
-      console.warn('⚠️ Bootstrap: Company normalization service failed to initialize:', error);
-      console.warn('   Application will continue with degraded functionality (no company name normalization)');
-      // Continue - graceful degradation
+      // Graceful degradation - continue without company normalization
     }
 
     // Initialize service worker cache manager
