@@ -9,6 +9,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { AuthProvider, LoginPage } from '../../contexts/AuthContext'
 import { getAuthStatus, authenticateWithAccessCode } from '../../services/authService'
 import { serverDataSyncService } from '../../services/serverDataSyncService'
@@ -55,6 +56,15 @@ vi.mock('../../services/dataClearingService', () => ({
     verifyDataCleared: vi.fn().mockResolvedValue(true)
   }
 }))
+
+// Helper to render with Router context
+const renderWithRouter = (component: React.ReactElement) => {
+  return render(
+    <MemoryRouter>
+      {component}
+    </MemoryRouter>
+  );
+};
 
 // Test data constants for better maintainability
 const TEST_DATA = {
@@ -148,7 +158,7 @@ describe('LoginPage - Integration Tests', () => {
       })
 
       // 1. Render the ACTUAL LoginPage component
-      render(
+      renderWithRouter(
         <AuthProvider>
           <LoginPage />
         </AuthProvider>
@@ -192,7 +202,7 @@ describe('LoginPage - Integration Tests', () => {
         error: 'Invalid access code'
       })
 
-      render(
+      renderWithRouter(
         <AuthProvider>
           <LoginPage />
         </AuthProvider>
@@ -222,7 +232,7 @@ describe('LoginPage - Integration Tests', () => {
       // Mock data sync error
       vi.mocked(serverDataSyncService.syncAllData).mockRejectedValue(new Error('Network error'))
 
-      render(
+      renderWithRouter(
         <AuthProvider>
           <LoginPage />
         </AuthProvider>
@@ -252,7 +262,7 @@ describe('LoginPage - Integration Tests', () => {
         attendee: TEST_DATA.MOCK_ATTENDEE
       })
 
-      render(
+      renderWithRouter(
         <AuthProvider>
           <LoginPage />
         </AuthProvider>
@@ -274,7 +284,7 @@ describe('LoginPage - Integration Tests', () => {
     })
 
     it('should not auto-submit when less than 6 characters', async () => {
-      render(
+      renderWithRouter(
         <AuthProvider>
           <LoginPage />
         </AuthProvider>
@@ -307,7 +317,7 @@ describe('LoginPage - Integration Tests', () => {
         attendee: TEST_DATA.MOCK_ATTENDEE
       })
 
-      render(
+      renderWithRouter(
         <AuthProvider>
           <LoginPage />
         </AuthProvider>
@@ -341,7 +351,7 @@ describe('LoginPage - Integration Tests', () => {
         error: 'Invalid access code'
       })
 
-      render(
+      renderWithRouter(
         <AuthProvider>
           <LoginPage />
         </AuthProvider>
@@ -371,7 +381,7 @@ describe('LoginPage - Integration Tests', () => {
         error: 'Invalid access code'
       })
 
-      render(
+      renderWithRouter(
         <AuthProvider>
           <LoginPage />
         </AuthProvider>
@@ -397,7 +407,7 @@ describe('LoginPage - Integration Tests', () => {
 
   describe('Visual Styling', () => {
     it('should apply large, spaced input styling', () => {
-      render(
+      renderWithRouter(
         <AuthProvider>
           <LoginPage />
         </AuthProvider>
@@ -416,7 +426,7 @@ describe('LoginPage - Integration Tests', () => {
     })
 
     it('should convert input to uppercase', () => {
-      render(
+      renderWithRouter(
         <AuthProvider>
           <LoginPage />
         </AuthProvider>
@@ -432,7 +442,7 @@ describe('LoginPage - Integration Tests', () => {
 
   describe('Accessibility', () => {
     it('should have proper form accessibility attributes', () => {
-      render(
+      renderWithRouter(
         <AuthProvider>
           <LoginPage />
         </AuthProvider>
@@ -449,7 +459,7 @@ describe('LoginPage - Integration Tests', () => {
     })
 
     it('should have proper help text for users', () => {
-      render(
+      renderWithRouter(
         <AuthProvider>
           <LoginPage />
         </AuthProvider>

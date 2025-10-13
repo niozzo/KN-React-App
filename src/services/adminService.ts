@@ -332,7 +332,7 @@ export class AdminService {
 
   // Validation methods
   validatePasscode(passcode: string): boolean {
-    return passcode === '616161';
+    return passcode === 'da1sy';
   }
 
   validateTitle(title: string): boolean {

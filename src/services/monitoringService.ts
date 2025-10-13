@@ -63,6 +63,7 @@ export class MonitoringService {
   private cacheMetrics: CacheMetric[] = [];
   private userActionMetrics: UserActionMetric[] = [];
   private reportTimer?: NodeJS.Timeout;
+  private abortController?: AbortController;
 
   private constructor(config: Partial<MonitoringConfig> = {}) {
     this.config = {
@@ -392,6 +393,8 @@ export class MonitoringService {
     }
 
     try {
+      // Create new abort controller for this request
+      this.abortController = new AbortController();
       const healthStatus = this.getHealthStatus();
       
       await fetch(this.config.remoteEndpoint, {
@@ -399,14 +402,18 @@ export class MonitoringService {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(healthStatus)
+        body: JSON.stringify(healthStatus),
+        signal: this.abortController.signal
       });
 
       if (this.config.enableConsoleLogging) {
         console.log('📡 Metrics reported to remote endpoint');
       }
     } catch (error) {
-      console.error('Failed to report metrics:', error);
+      // Don't log AbortError - it's expected during cleanup
+      if ((error as Error).name !== 'AbortError') {
+        console.error('Failed to report metrics:', error);
+      }
     }
   }
 
@@ -501,6 +508,13 @@ export class MonitoringService {
    */
   destroy(): void {
     this.stopReporting();
+    
+    // Abort any pending fetch requests to prevent hanging tests
+    if (this.abortController) {
+      this.abortController.abort();
+      this.abortController = undefined;
+    }
+    
     console.log('✅ MonitoringService: Cleaned up all resources');
   }
 }

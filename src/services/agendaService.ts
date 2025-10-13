@@ -327,13 +327,13 @@ export class AgendaService implements IAgendaService {
       const cachedData = await this.unifiedCache!.get('kn_cache_agenda_items');
       
       if (cachedData) {
+        // Data is already filtered in ServerDataSyncService
         const agendaItems = (cachedData as any)?.data || cachedData;
-        const filteredItems = agendaItems.filter((item: any) => item.isActive);
         
         if (agendaItems.length > 0) {
           
           // Apply time overrides before enrichment
-          const itemsWithOverrides = await this.applyTimeOverrides(filteredItems);
+          const itemsWithOverrides = await this.applyTimeOverrides(agendaItems);
           const enrichedData = await this.enrichWithSpeakerData(itemsWithOverrides);
           this.refreshAgendaItemsInBackground();
           
@@ -395,8 +395,8 @@ export class AgendaService implements IAgendaService {
           // Cache the data for future use
           await this.unifiedCache!.set('kn_cache_agenda_items', agendaItems);
           
-          const filteredItems = agendaItems
-            .filter((item: any) => item.isActive)
+          // Data is already filtered and sorted in ServerDataSyncService
+          const sortedItems = agendaItems
             .sort((a: any, b: any) => {
               const dateComparison = (a.date || '').localeCompare(b.date || '');
               if (dateComparison !== 0) return dateComparison;
@@ -404,7 +404,7 @@ export class AgendaService implements IAgendaService {
             });
           
           // Apply time overrides before enrichment
-          const itemsWithOverrides = await this.applyTimeOverrides(filteredItems);
+          const itemsWithOverrides = await this.applyTimeOverrides(sortedItems);
           const enrichedData = await this.enrichWithSpeakerData(itemsWithOverrides);
           
           return {
@@ -437,9 +437,9 @@ export class AgendaService implements IAgendaService {
         const freshCachedData = await this.unifiedCache!.get('kn_cache_agenda_items');
         
         if (freshCachedData) {
+          // Data is already filtered and sorted in ServerDataSyncService
           const agendaItems = (freshCachedData as any)?.data || freshCachedData;
-          const filteredItems = agendaItems
-            .filter((item: any) => item.isActive)
+          const sortedItems = agendaItems
             .sort((a: any, b: any) => {
               // First sort by date
               const dateComparison = (a.date || '').localeCompare(b.date || '')
@@ -450,7 +450,7 @@ export class AgendaService implements IAgendaService {
             });
           
           // Apply time overrides before enrichment
-          const itemsWithOverrides = await this.applyTimeOverrides(filteredItems);
+          const itemsWithOverrides = await this.applyTimeOverrides(sortedItems);
           const enrichedData = await this.enrichWithSpeakerData(itemsWithOverrides);
           
           console.log('🌐 SYNC: Retrieved', enrichedData.length, 'agenda items from cache');

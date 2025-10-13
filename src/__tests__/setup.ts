@@ -38,6 +38,10 @@ afterEach(async () => {
   // Use standardized cleanup utility with improved isolation
   await cleanupAfterTest()
   
+  // CRITICAL: Clear and restore ALL mocks to prevent state bleeding
+  vi.clearAllMocks()    // Clear call history
+  vi.restoreAllMocks()  // Restore original implementations
+  
   // Clear all timers to prevent hanging
   vi.clearAllTimers()
   vi.useRealTimers()

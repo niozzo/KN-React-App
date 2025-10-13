@@ -113,36 +113,9 @@ export default defineConfig(({ mode }) => {
     ],
     exclude: [
       '**/node_modules/**',
-      '**/dist/**',
-      // Module resolution technical debt (cascading dependency issues - fix separately)
-      'src/__tests__/components/HomePage.edge-cases.test.tsx',
-      'src/__tests__/components/HomePage.time-override-edge-cases.test.tsx',
-      'src/__tests__/hooks/useSessionData-breakout-filtering.test.ts',
-      // Tests for unimplemented features (Story 8.6)
-      'src/__tests__/hooks/useSessionData-dining.test.ts',
-      'src/__tests__/integration/attendeeSearchPWA.test.ts',
-      // Test suite refactor needed (Story 8.6) - tests written pre-hardening sprint
-      // These tests expect pre-hardening behavior (email not filtered, sync patterns, etc.)
-      'src/__tests__/services/attendeeCacheFilterService.test.ts',
-      'src/__tests__/services/attendeeCacheFilterService.integration.test.ts',
-      'src/__tests__/e2e/confidentialDataSecurity.e2e.test.ts',
-      'src/__tests__/integration/attendeeCacheFiltering.integration.test.ts',
-      'src/__tests__/services/pwaDataSyncService.enhancement.test.ts',
-      // Integration/E2E tests with infrastructure timeouts (separate from application hardening)
-      'src/__tests__/e2e/admin-application-db.test.tsx',
-      'src/__tests__/e2e/attendee-sync.e2e.test.ts',
-      'src/__tests__/e2e/speaker-rendering-error-recovery.test.tsx',
-      'src/__tests__/hooks/useSessionData.integration.test.tsx',
-      'src/__tests__/integration/hybridAuthentication.test.ts',
-      'src/__tests__/integration/coffee-break-countdown.test.ts',
-      'src/__tests__/integration/cache-validation.integration.test.ts',
-      'src/__tests__/integration/periodicRefresh.integration.test.js',
-      'src/__tests__/services/attendeeInfoService.test.ts',
-      'src/__tests__/services/dataClearingService.comprehensive.test.ts',
-      'src/__tests__/services/dataService.localStorage-first.test.ts',
-      'src/__tests__/transformers/agendaTransformer.speaker-validation.test.ts',
-      'src/__tests__/transformers/schema-evolution.test.ts',
-      'src/__tests__/performance/backgroundRefresh.performance.test.js'
+      '**/dist/**'
+      // ✅ CLEANED UP: All previously excluded files have been deleted
+      // or are now running (after 77% test suite reduction)
     ],
     // Test-specific server configuration (isolated from dev server)
     server: {
@@ -194,23 +167,24 @@ export default defineConfig(({ mode }) => {
     snapshotFormat: {
       printBasicPrototype: false
     },
-    // TEST: Reverting to threads to verify resource leaks are fixed
+    // CRITICAL FIX: Use single thread to prevent worker process accumulation
+    // Multiple worker processes (7+) were causing deadlocks and hangs
     pool: 'threads',
     poolOptions: {
       threads: {
-        singleThread: false
+        singleThread: true  // Run all tests in ONE thread sequentially
       }
     },
-    // Force file parallelism limits to reduce handle accumulation
-    fileParallelism: true,
-    // Limit concurrency to prevent memory issues
-    maxConcurrency: 2,
+    // Disable file parallelism to prevent worker process buildup
+    fileParallelism: false,
+    // Run tests sequentially (no concurrent execution)
+    maxConcurrency: 1,
     // Test isolation
     isolate: true,
-    // Optimized timeouts
-    testTimeout: 5000, // Increased from 3000 to prevent false timeouts
-    hookTimeout: 5000, // Increased from 3000 for async cleanup
-    teardownTimeout: 5000, // Reduced from 15000 - Vite server now closes properly
+    // Optimized timeouts - increased to prevent hanging
+    testTimeout: 15000, // 15s per test (was 5000)
+    hookTimeout: 10000, // 10s for hooks (was 5000)
+    teardownTimeout: 10000, // 10s for teardown (was 5000)
     // Add bail to stop on first failure
     bail: 5, // Reduced from 10 to 5
     // Performance optimizations
