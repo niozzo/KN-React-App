@@ -31,8 +31,6 @@ export async function getAuthenticatedClient() {
   }
   
   try {
-    console.log('🔐 Authenticating with Supabase admin credentials...')
-    
     // Create new client instance only if needed
     if (!supabaseClient) {
       supabaseClient = createClient(supabaseUrl, supabaseKey)
@@ -51,8 +49,6 @@ export async function getAuthenticatedClient() {
     
     isAuthenticated = true
     lastAuthTime = now
-    
-    console.log('✅ Admin authenticated successfully')
     return supabaseClient
     
   } catch (error) {
