@@ -101,7 +101,8 @@ export class PWADataSyncService extends BaseService {
   constructor() {
     super();
     this.initializeSchemaValidator();
-    this.initializeSync();
+    // ❌ REMOVED: this.initializeSync() - Now started explicitly after login
+    // This prevents periodic sync from starting when user is logged out
     this.setupEventListeners();
     this.clearCorruptedCacheOnStartup();
     this.registerCacheInvalidationCallbacks();
