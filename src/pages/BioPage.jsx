@@ -206,7 +206,7 @@ const BioPage = () => {
               fontWeight: '500'
             }}
           >
-            {attendee.company}
+            {attendee.companyDisplayName || attendee.company}
           </div>
         </div>
       </div>

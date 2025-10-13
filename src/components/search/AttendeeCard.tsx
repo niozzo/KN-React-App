@@ -106,9 +106,9 @@ const AttendeeCard: React.FC<AttendeeCardProps> = ({
           </div>
         )}
         
-        {attendee.company && (
+        {(attendee.companyDisplayName || attendee.company) && (
           <div className="attendee-company">
-            {attendee.company}
+            {attendee.companyDisplayName || attendee.company}
           </div>
         )}
 
