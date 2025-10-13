@@ -3,16 +3,15 @@ import React from 'react';
 /**
  * Footer Component
  * Legal footer with links to Apax privacy policy and terms
+ * Compact single-line on desktop, stacked on mobile
  */
 const Footer = () => {
   return (
     <footer className="app-footer">
       <div className="footer-content">
-        <p className="footer-copyright">
-          © 2025 Apax Partners. All rights reserved.
-        </p>
-        
-        <div className="footer-links">
+        <span className="footer-copyright">© 2025 Apax Partners.</span>
+        <span className="footer-separator" aria-hidden="true"> | </span>
+        <span className="footer-links">
           <a 
             href="https://www.apax.com/privacy-policy/" 
             target="_blank"
@@ -30,13 +29,11 @@ const Footer = () => {
             className="footer-link"
             aria-label="Terms & Conditions (opens in new window)"
           >
-            Terms & Conditions
+            Terms
           </a>
-        </div>
-        
-        <p className="footer-notice">
-          Confidential information for authorized attendees only.
-        </p>
+        </span>
+        <span className="footer-separator" aria-hidden="true"> | </span>
+        <span className="footer-notice">Confidential</span>
       </div>
     </footer>
   );

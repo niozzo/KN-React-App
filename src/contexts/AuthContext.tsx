@@ -16,6 +16,7 @@ import { serverDataSyncService } from '../services/serverDataSyncService'
 import { attendeeInfoService } from '../services/attendeeInfoService'
 import { dataClearingService } from '../services/dataClearingService'
 import type { Attendee } from '../types/attendee'
+import Footer from '../components/common/Footer'
 
 interface AuthContextType {
   // Authentication state
@@ -692,6 +693,7 @@ export const LoginPage: React.FC = () => {
         </div>
       </div>
       
+      <Footer />
     </div>
     </>
   )
