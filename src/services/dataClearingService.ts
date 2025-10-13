@@ -77,6 +77,9 @@ export class DataClearingService {
       result.performanceMetrics.endTime = endTime
       result.performanceMetrics.duration = endTime - startTime
 
+      // ✅ CRITICAL: Reset logout flag to allow future logins
+      pwaDataSyncService.setLogoutInProgress(false)
+
       return result
 
     } catch (error) {
@@ -87,6 +90,9 @@ export class DataClearingService {
       const endTime = performance.now()
       result.performanceMetrics.endTime = endTime
       result.performanceMetrics.duration = endTime - startTime
+
+      // ✅ CRITICAL: Reset logout flag even on error to prevent login blocking
+      pwaDataSyncService.setLogoutInProgress(false)
 
       return result
     }

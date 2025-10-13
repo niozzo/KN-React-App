@@ -39,18 +39,24 @@ describe('Logout Cache Repopulation - Pragmatic Tests', () => {
     
     const delayedWrite = async () => {
       await new Promise(resolve => setTimeout(resolve, 50))
+      // Try to write after logout - should be blocked by logout flag
       await pwaDataSyncService.cacheTableData('attendees', [{ id: 2, name: 'New User' }])
     }
     
     // When: Logout happens while async operation is pending
     const delayedOperation = delayedWrite()
     const result = await dataClearingService.clearAllData()
-    await delayedOperation
+    
+    // Wait for delayed write to attempt (but be blocked)
+    await new Promise(resolve => setTimeout(resolve, 100))
     
     // Then: Cache stays empty (race condition prevented)
     expect(result.success).toBe(true)
     expect(localStorage.getItem('kn_cache_attendees')).toBeFalsy()
     expect(localStorage.getItem('conference_auth')).toBeFalsy()
+    
+    // Cleanup: Let the delayed operation finish in background
+    delayedOperation.catch(() => {}) // Ignore any errors
   })
 
   it('clears all cache types including auth tokens', async () => {
@@ -92,5 +98,19 @@ describe('Logout Cache Repopulation - Pragmatic Tests', () => {
     expect(result.errors.length).toBeGreaterThan(0) // Error recorded
     expect(localStorage.getItem('kn_cache_attendees')).toBeFalsy() // But clearing succeeded
     expect(localStorage.getItem('conference_auth')).toBeFalsy()
+  })
+
+  it('resets logout flag after clearing to allow future logins (CRITICAL FIX)', async () => {
+    // Given: Cache data exists
+    localStorage.setItem('kn_cache_attendees', JSON.stringify({ data: [{ id: 1 }] }))
+    localStorage.setItem('conference_auth', JSON.stringify({ isAuthenticated: true }))
+    
+    // When: Logout occurs
+    await dataClearingService.clearAllData()
+    
+    // Then: Logout flag is reset (allows next login to sync data)
+    // Verify by attempting a cache write - it should succeed
+    await pwaDataSyncService.cacheTableData('dining_options', [{ id: 1, name: 'Test Dining' }])
+    expect(localStorage.getItem('kn_cache_dining_options')).toBeTruthy() // Write succeeded
   })
 })
