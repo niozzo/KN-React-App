@@ -95,10 +95,8 @@ export const getAllAttendees = async (): Promise<Attendee[]> => {
     }
     
     // FALLBACK: Sync from database using same method as login
-    console.log('🌐 SYNC: No cached data found, syncing from database...')
     const { serverDataSyncService } = await import('./serverDataSyncService')
     const data = await serverDataSyncService.syncAttendees()
-    console.log('🌐 SYNC: Synced', data.length, 'attendees from database')
     // Data is already filtered and cached by syncAttendees()
     // Ensure stable ordering for UI
     return [...data].sort((a, b) => (a.last_name || '').localeCompare(b.last_name || ''))
@@ -343,7 +341,6 @@ export const getAllDiningOptions = async (): Promise<DiningOption[]> => {
         const cacheObj = JSON.parse(cachedData)
         const diningOptions = cacheObj.data || cacheObj
         if (Array.isArray(diningOptions) && diningOptions.length > 0) {
-          console.log('✅ LOCALSTORAGE: Using cached dining options')
           return diningOptions
         }
       }
@@ -352,7 +349,6 @@ export const getAllDiningOptions = async (): Promise<DiningOption[]> => {
     }
     
     // FALLBACK: Sync from database using same method as login
-    console.log('🌐 SYNC: No cached dining options, syncing from database...')
     const { serverDataSyncService } = await import('./serverDataSyncService')
     const data = await serverDataSyncService.syncDiningOptions()
     return data
@@ -397,7 +393,6 @@ export const getAllHotels = async (): Promise<Hotel[]> => {
         const cacheObj = JSON.parse(cachedData)
         const hotels = cacheObj.data || cacheObj
         if (Array.isArray(hotels) && hotels.length > 0) {
-          console.log('✅ LOCALSTORAGE: Using cached hotels')
           return hotels
         }
       }
@@ -406,7 +401,6 @@ export const getAllHotels = async (): Promise<Hotel[]> => {
     }
     
     // FALLBACK: Sync from database using same method as login
-    console.log('🌐 SYNC: No cached hotels, syncing from database...')
     const { serverDataSyncService } = await import('./serverDataSyncService')
     const data = await serverDataSyncService.syncTable('hotels')
     return data
@@ -454,7 +448,6 @@ export const getAllSeatingConfigurations = async (): Promise<any[]> => {
         const cacheObj = JSON.parse(cachedData)
         const configs = cacheObj.data || cacheObj
         if (Array.isArray(configs) && configs.length > 0) {
-          console.log('✅ LOCALSTORAGE: Using cached seating configurations')
           return configs
         }
       }
@@ -463,7 +456,6 @@ export const getAllSeatingConfigurations = async (): Promise<any[]> => {
     }
     
     // FALLBACK: Sync from database using same method as login
-    console.log('🌐 SYNC: No cached seating configurations, syncing from database...')
     const { serverDataSyncService } = await import('./serverDataSyncService')
     const data = await serverDataSyncService.syncTable('seating_configurations')
     return data

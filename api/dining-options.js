@@ -12,7 +12,6 @@ const diningTransformer = new DiningTransformer()
 // Fetch table rows helper
 async function fetchTableRows(tableName, limit = 100) {
   try {
-    console.log(`🔍 Fetching ${tableName} with limit ${limit}...`)
     const supabaseClient = await getAuthenticatedClient()
     
     if (!supabaseClient) {
@@ -29,11 +28,9 @@ async function fetchTableRows(tableName, limit = 100) {
       throw error
     }
     
-    console.log(`✅ Successfully fetched ${data?.length || 0} rows from ${tableName}`)
     return { data: data || [], error: null }
   } catch (error) {
     console.error(`❌ Error fetching ${tableName}:`, error.message)
-    console.error(`❌ Error stack:`, error.stack)
     return { data: null, error }
   }
 }
@@ -63,8 +60,6 @@ export default async function handler(req, res) {
   }
 
   try {
-    console.log('🔍 API: Getting dining options with data transformation...')
-    
     const { limit } = req.query
     const { data: rawData, error } = await fetchTableRows('dining_options', limit)
     
@@ -96,7 +91,6 @@ export default async function handler(req, res) {
       // Filter active dining options and sort by date and time
       transformedData = diningTransformer.filterActiveDiningOptions(transformedData)
       transformedData = diningTransformer.sortDiningOptions(transformedData)
-      console.log(`✅ Transformed ${transformedData.length} dining options`)
     } catch (transformError) {
       console.error('❌ Transformation failed:', transformError)
       return res.status(500).json({
@@ -121,7 +115,6 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('❌ API: Unexpected error:', error.message)
-    console.error('❌ API: Error stack:', error.stack)
     return res.status(500).json({
       success: false,
       data: null,
