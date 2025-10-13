@@ -571,6 +571,16 @@ export const LoginPage: React.FC = () => {
         boxShadow: '0 8px 32px rgba(124, 76, 196, 0.1), 0 4px 16px rgba(0, 0, 0, 0.05)'
       }}>
         <div className="mb-lg">
+          <img 
+            src="/Apax logos_RGB_Apax_RGB.png" 
+            alt="Apax Logo" 
+            style={{ 
+              width: '160px',
+              height: 'auto',
+              margin: '0 auto var(--space-xl)',
+              display: 'block'
+            }}
+          />
           <h1 className="logo" style={{ 
             fontSize: 'var(--text-4xl)', 
             marginBottom: 'var(--space-xl)',
