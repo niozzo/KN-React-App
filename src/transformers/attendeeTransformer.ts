@@ -1,12 +1,14 @@
 /**
  * Attendee Data Transformer
  * Story 1.7: Data Transformation Layer for Schema Evolution
+ * Story 8.7: Company Name Normalization via Application-Side Transformation
  */
 
 import { BaseTransformer, SchemaVersion } from './baseTransformer.ts'
 import { FieldMapping, ComputedField, ValidationRule } from '../types/transformation.ts'
 import type { Attendee } from '../types/attendee'
 import type { SafeAttendeeCache } from '../services/attendeeCacheFilterService'
+import { CompanyNormalizationService } from '../services/companyNormalizationService'
 
 export class AttendeeTransformer extends BaseTransformer<Attendee> {
   constructor() {
@@ -71,6 +73,69 @@ export class AttendeeTransformer extends BaseTransformer<Attendee> {
           return company ? `${name} (${company})` : name
         },
         type: 'string'
+      },
+      // Story 8.7: Company Normalization Computed Fields
+      // ✅ VERIFIED: Only uses safe source field (data.company)
+      // ✅ VERIFIED: No confidential fields accessed or exposed
+      // ✅ VERIFIED: Company reference data contains no PII
+      {
+        name: 'companyStandardized',
+        sourceFields: ['company'],
+        computation: (data: any) => {
+          try {
+            const service = CompanyNormalizationService.getInstance()
+            return service.normalizeCompanyName(data.company)
+          } catch (error) {
+            console.warn('Company normalization failed:', error)
+            return null
+          }
+        },
+        type: 'object'
+      },
+      {
+        name: 'companyDisplayName',
+        sourceFields: ['company'],
+        computation: (data: any) => {
+          try {
+            const service = CompanyNormalizationService.getInstance()
+            const standardized = service.normalizeCompanyName(data.company)
+            return standardized?.name || data.company || ''
+          } catch (error) {
+            console.warn('Company display name computation failed:', error)
+            return data.company || ''
+          }
+        },
+        type: 'string'
+      },
+      {
+        name: 'companySector',
+        sourceFields: ['company'],
+        computation: (data: any) => {
+          try {
+            const service = CompanyNormalizationService.getInstance()
+            const standardized = service.normalizeCompanyName(data.company)
+            return standardized?.sector || undefined
+          } catch (error) {
+            console.warn('Company sector computation failed:', error)
+            return undefined
+          }
+        },
+        type: 'string'
+      },
+      {
+        name: 'companyGeography',
+        sourceFields: ['company'],
+        computation: (data: any) => {
+          try {
+            const service = CompanyNormalizationService.getInstance()
+            const standardized = service.normalizeCompanyName(data.company)
+            return standardized?.geography || undefined
+          } catch (error) {
+            console.warn('Company geography computation failed:', error)
+            return undefined
+          }
+        },
+        type: 'string'
       }
     ]
 
@@ -83,10 +148,19 @@ export class AttendeeTransformer extends BaseTransformer<Attendee> {
   /**
    * Transform attendee data with schema evolution support
    * Handles cases where database schema changes but UI model stays stable
+   * Story 8.7: Replace company field with normalized canonical name
    */
   transformFromDatabase(dbData: any): Attendee {
     // Schema evolution is now handled in the base class
-    return super.transformFromDatabase(dbData)
+    const result = super.transformFromDatabase(dbData)
+    
+    // Story 8.7: Replace company field with normalized canonical name
+    // This way, no UI changes are needed - the company field already displays everywhere
+    if (result.companyDisplayName && result.companyDisplayName !== result.company) {
+      result.company = result.companyDisplayName
+    }
+    
+    return result
   }
 
   /**
