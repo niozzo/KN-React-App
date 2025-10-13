@@ -84,13 +84,7 @@ export class AttendeeTransformer extends BaseTransformer<Attendee> {
         computation: (data: any) => {
           try {
             const service = CompanyNormalizationService.getInstance()
-            const result = service.normalizeCompanyName(data.company)
-            
-            if (result && result.name !== data.company) {
-              console.log(`🏢 Company normalized: "${data.company}" → "${result.name}"`)
-            }
-            
-            return result
+            return service.normalizeCompanyName(data.company)
           } catch (error) {
             console.warn('Company normalization failed:', error)
             return null
@@ -154,10 +148,20 @@ export class AttendeeTransformer extends BaseTransformer<Attendee> {
   /**
    * Transform attendee data with schema evolution support
    * Handles cases where database schema changes but UI model stays stable
+   * Story 8.7: Replace company field with normalized canonical name
    */
   transformFromDatabase(dbData: any): Attendee {
     // Schema evolution is now handled in the base class
-    return super.transformFromDatabase(dbData)
+    const result = super.transformFromDatabase(dbData)
+    
+    // Story 8.7: Replace company field with normalized canonical name
+    // This way, no UI changes are needed - the company field already displays everywhere
+    if (result.companyDisplayName && result.companyDisplayName !== result.company) {
+      console.log(`🏢 Company normalized: "${result.company}" → "${result.companyDisplayName}"`)
+      result.company = result.companyDisplayName
+    }
+    
+    return result
   }
 
   /**
