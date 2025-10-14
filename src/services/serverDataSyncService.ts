@@ -94,8 +94,9 @@ export class ServerDataSyncService extends BaseService {
       
       records = attendeeTransformer.transformArrayFromDatabase(records);
       records = attendeeTransformer.filterActiveAttendees(records); // Filter before caching
+      records = attendeeTransformer.filterConfirmedAttendees(records); // Filter confirmed attendees
       
-      console.log(`🔧 Filtered to ${records.length} active attendees`);
+      console.log(`🔧 Filtered to ${records.length} active, confirmed attendees`);
     }
     
     // Dining options transformation
