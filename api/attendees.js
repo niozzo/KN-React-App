@@ -68,8 +68,6 @@ export default async function handler(req, res) {
   }
 
   try {
-    console.log('🔍 API: Getting attendees with data transformation...')
-    
     const { limit } = req.query
     const { data: rawData, error } = await fetchTableRows('attendees', limit)
     
@@ -94,8 +92,6 @@ export default async function handler(req, res) {
       })
     }
 
-    console.log(`✅ Retrieved ${rawData.length} attendees`)
-
     return res.status(200).json({
       success: true,
       data: rawData,
@@ -105,7 +101,6 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('❌ API: Unexpected error:', error.message)
-    console.error('❌ Stack trace:', error.stack)
     return res.status(500).json({
       success: false,
       data: null,

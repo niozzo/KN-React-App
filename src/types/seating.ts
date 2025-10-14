@@ -8,8 +8,8 @@ export interface SeatAssignment {
   id: string
   seating_configuration_id: string  // Reference to seating configuration
   attendee_id: string              // The attendee being assigned
-  table_name: string               // Table name (e.g., "Table 1")
-  seat_number: number              // Seat number within table
+  table_name: string | null       // Table name (e.g., "Table 1") - nullable
+  seat_number: number | null       // Seat number within table - nullable
   seat_position: { x: number, y: number }  // Visual position coordinates
   assignment_type: AssignmentType  // Manual or automatic assignment
   assigned_at: string             // When assignment was made
@@ -20,6 +20,8 @@ export interface SeatAssignment {
   row_number: number | null       // Row number (nullable)
   attendee_first_name: string     // Cached attendee first name
   attendee_last_name: string      // Cached attendee last name
+  is_blocked: boolean             // NEW: Whether assignment is blocked
+  is_pending_review: boolean      // NEW: Whether assignment is pending review
 }
 
 // Seat Entity (Configuration)
@@ -45,22 +47,29 @@ export interface SeatingConfiguration {
   is_active: boolean                 // Active status
   created_at: string
   updated_at: string
-  layout_type: string                // Layout type (e.g., "classroom")
+  layout_type: string                // Layout type (e.g., "table")
   layout_config: LayoutConfig        // Layout configuration object
-  configuration_status: string       // Configuration status (e.g., "active")
+  configuration_status: string       // Configuration status (e.g., "configured")
+  weightings: any                    // NEW: Weightings object
+  algorithm_status: string           // NEW: Algorithm status (e.g., "idle")
+  algorithm_job_id: string | null    // NEW: Algorithm job ID
+  algorithm_results: any            // NEW: Algorithm results object
+  parent_configuration_id: string | null  // NEW: Parent configuration ID
+  copy_type: string | null          // NEW: Copy type
+  is_master: boolean                 // NEW: Whether this is a master configuration
+  last_synced_at: string | null     // NEW: Last synced timestamp
 }
 
 // Layout configuration structure (from actual database)
+// Updated to match current table-based structure
 export interface LayoutConfig {
-  rows: number
-  aisles: any[]
-  columns: number
-  seatSpacing: {
-    vertical: number
-    horizontal: number
-  }
-  sectionDivider: number
-  unavailableSeats: any[]
+  tables: Array<{
+    name: string           // e.g., "Table 1: VIP CEOs"
+    shape: string          // e.g., "rectangle-horizontal", "round", "rectangle-vertical"
+    capacity: number       // e.g., 12
+    position: { x: number; y: number }
+  }>
+  layout_type: string      // "table"
 }
 
 // Layout data structure

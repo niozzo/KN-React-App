@@ -77,8 +77,6 @@ export default async function handler(req, res) {
   }
 
   try {
-    console.log('🔍 API: Getting hotels with data transformation...')
-    
     const { limit } = req.query
     const { data: rawData, error } = await fetchTableRows('hotels', limit)
     
@@ -98,7 +96,6 @@ export default async function handler(req, res) {
       // Filter active hotels and sort by display order
       transformedData = hotelTransformer.filterActiveHotels(transformedData)
       transformedData = hotelTransformer.sortHotels(transformedData)
-      console.log(`✅ Transformed ${transformedData.length} hotels`)
     } catch (transformError) {
       console.error('❌ Transformation failed:', transformError)
       return res.status(500).json({

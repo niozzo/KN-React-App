@@ -87,8 +87,24 @@ const Header = ({
           to="/" 
           className="logo"
           onClick={onLogoClick}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 'var(--space-sm)',
+            maxWidth: 'calc(100vw - 250px)' // Ensure space for user info
+          }}
         >
-          {logoText}
+          <img 
+            src="/Apax logos_RGB_Apax_RGB.png" 
+            alt="Apax" 
+            style={{
+              width: 'auto',
+              display: 'block'
+            }}
+          />
+          <span className="logo-text">
+            {logoText}
+          </span>
         </Link>
         {isAuthenticated && (
           <>
