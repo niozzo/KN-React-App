@@ -447,12 +447,32 @@ export class PWADataSyncService extends BaseService {
   async syncAllData(): Promise<SyncResult> {
     // 🛑 GUARD: Don't start sync if logout is in progress
     if (this.isLogoutInProgress) {
-      return {
-        success: false,
-        syncedTables: [],
-        errors: ['Sync cancelled - logout in progress'],
-        timestamp: new Date().toISOString()
-      };
+      // 🔧 SAFETY FIX: If flag has been stuck for too long, reset it automatically
+      // This prevents the flag from permanently blocking sync operations
+      const lastLogoutTime = localStorage.getItem('kn_last_logout_time');
+      if (lastLogoutTime) {
+        const logoutTime = new Date(lastLogoutTime).getTime();
+        const now = Date.now();
+        const timeSinceLogout = now - logoutTime;
+        
+        // If more than 5 minutes have passed since logout, reset the flag
+        if (timeSinceLogout > 5 * 60 * 1000) {
+          console.warn('🔧 SAFETY: Logout flag stuck for >5 minutes, auto-resetting');
+          this.isLogoutInProgress = false;
+          localStorage.removeItem('kn_last_logout_time');
+        } else {
+          return {
+            success: false,
+            syncedTables: [],
+            errors: ['Sync cancelled - logout in progress'],
+            timestamp: new Date().toISOString()
+          };
+        }
+      } else {
+        // No logout timestamp, flag might be stuck from previous session
+        console.warn('🔧 SAFETY: Logout flag set but no logout timestamp, auto-resetting');
+        this.isLogoutInProgress = false;
+      }
     }
 
     const sessionId = cacheMonitoringService.getSessionId();
@@ -1293,6 +1313,16 @@ export class PWADataSyncService extends BaseService {
    */
   public setLogoutInProgress(value: boolean): void {
     this.isLogoutInProgress = value;
+    console.log(`${value ? '🚪' : '✅'} Logout in progress: ${value}`);
+  }
+
+  /**
+   * 🔧 SAFETY FIX: Reset stuck logout flag
+   * This method can be called to reset the flag if it gets stuck
+   */
+  public resetLogoutFlag(): void {
+    this.isLogoutInProgress = false;
+    console.log('🔧 SAFETY: Logout flag reset to prevent sync blocking');
   }
 
   /**
