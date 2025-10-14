@@ -54,6 +54,9 @@ export class DataClearingService {
     }
 
     try {
+      // 🛑 STEP 0: Stop all async operations BEFORE clearing any data
+      console.log('🛑 Step 0: Stopping all background operations...')
+      await this.stopAllAsyncOperations(result)
 
       // Clear localStorage data
       await this.clearLocalStorageData(result)
@@ -74,6 +77,9 @@ export class DataClearingService {
       result.performanceMetrics.endTime = endTime
       result.performanceMetrics.duration = endTime - startTime
 
+      // ✅ CRITICAL: Reset logout flag to allow future logins
+      pwaDataSyncService.setLogoutInProgress(false)
+
       return result
 
     } catch (error) {
@@ -85,7 +91,32 @@ export class DataClearingService {
       result.performanceMetrics.endTime = endTime
       result.performanceMetrics.duration = endTime - startTime
 
+      // ✅ CRITICAL: Reset logout flag even on error to prevent login blocking
+      pwaDataSyncService.setLogoutInProgress(false)
+
       return result
+    }
+  }
+
+  /**
+   * Stop all async operations (timers, intervals, in-flight requests)
+   */
+  private async stopAllAsyncOperations(result: DataClearingResult): Promise<void> {
+    try {
+      // Set logout flag to prevent new cache writes
+      pwaDataSyncService.setLogoutInProgress(true)
+      
+      // Stop periodic sync timer
+      pwaDataSyncService.stopPeriodicSync()
+      
+      // Abort any in-flight sync operations
+      pwaDataSyncService.abortPendingSyncOperations()
+      
+      console.log('✅ All background operations stopped')
+    } catch (error) {
+      console.warn('⚠️ Failed to stop all async operations:', error)
+      result.errors.push(`Async operations stop failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      // Continue with data clearing even if stop fails
     }
   }
 

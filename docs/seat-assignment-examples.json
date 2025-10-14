@@ -1,0 +1,222 @@
+{
+  "description": "Complete Seat Assignment Examples - Showing All Data Structure Values",
+  "generated": "2025-01-27",
+  "source": "Real data from kn_cache_seat_assignments.json and kn_cache_seating_configurations.json",
+  
+  "seating_configuration_example": {
+    "id": "98a6d14f-55b1-4a66-81d8-c2c30a46d179",
+    "agenda_item_id": null,
+    "dining_option_id": "75d3f99a-3383-49a9-bc77-0328ece9df6c",
+    "layout_template_id": null,
+    "has_seating": true,
+    "seating_type": "assigned",
+    "auto_assignment_rules": {},
+    "is_active": true,
+    "created_at": "2025-10-13T00:59:56.305131+00:00",
+    "updated_at": "2025-10-13T00:59:56.305131+00:00",
+    "layout_type": "table",
+    "layout_config": {
+      "tables": [
+        {
+          "name": "Table 1: VIP CEOs",
+          "shape": "rectangle-horizontal",
+          "capacity": 12,
+          "position": {
+            "x": 520,
+            "y": 300
+          }
+        },
+        {
+          "name": "Table 2: VIP Software CEOs",
+          "shape": "rectangle-horizontal",
+          "capacity": 12,
+          "position": {
+            "x": 520,
+            "y": 120
+          }
+        },
+        {
+          "name": "Table 3 - Tech Execs",
+          "shape": "rectangle-vertical",
+          "capacity": 10,
+          "position": {
+            "x": 600,
+            "y": 740
+          }
+        },
+        {
+          "name": "Table 11 - COOs & GMs",
+          "shape": "round",
+          "capacity": 7,
+          "position": {
+            "x": 1000,
+            "y": 625
+          }
+        },
+        {
+          "name": "Table 14 - ADF Table",
+          "shape": "rectangle-vertical",
+          "capacity": 18,
+          "position": {
+            "x": 1260,
+            "y": 860
+          }
+        }
+      ],
+      "layout_type": "table"
+    },
+    "configuration_status": "configured",
+    "weightings": {},
+    "algorithm_status": "idle",
+    "algorithm_job_id": null,
+    "algorithm_results": {},
+    "parent_configuration_id": null,
+    "copy_type": null,
+    "is_master": false,
+    "last_synced_at": null
+  },
+
+  "seat_assignment_examples": [
+    {
+      "description": "Table-based assignment with specific table and seat number",
+      "assignment": {
+        "id": "2f10f08d-aeed-4041-9d88-bdaa0dca581a",
+        "seating_configuration_id": "6b6b5e7e-7e12-4bff-86df-4656cbd85d16",
+        "attendee_id": "d6850309-cca0-4a94-b074-d9374dd8313a",
+        "table_name": "Table 1: VIP CEOs",
+        "seat_number": 1,
+        "seat_position": {
+          "x": 0,
+          "y": 0
+        },
+        "assignment_type": "manual",
+        "assigned_at": "2025-10-13T01:38:56.324+00:00",
+        "notes": "",
+        "created_at": "2025-10-13T01:38:56.475266+00:00",
+        "updated_at": "2025-10-13T01:38:56.475266+00:00",
+        "column_number": null,
+        "row_number": null,
+        "attendee_first_name": "Colby",
+        "attendee_last_name": "Lane",
+        "is_blocked": false,
+        "is_pending_review": false
+      }
+    },
+    {
+      "description": "Another attendee at the same table, different seat",
+      "assignment": {
+        "id": "fef28a54-97ec-4373-9b78-2b60c6fe29fe",
+        "seating_configuration_id": "6b6b5e7e-7e12-4bff-86df-4656cbd85d16",
+        "attendee_id": "9a10f201-0d76-4adb-801b-10ef40e0b311",
+        "table_name": "Table 1: VIP CEOs",
+        "seat_number": 4,
+        "seat_position": {
+          "x": 0,
+          "y": 0
+        },
+        "assignment_type": "manual",
+        "assigned_at": "2025-10-13T01:38:56.324+00:00",
+        "notes": "",
+        "created_at": "2025-10-13T01:38:56.475266+00:00",
+        "updated_at": "2025-10-13T01:38:56.475266+00:00",
+        "column_number": null,
+        "row_number": null,
+        "attendee_first_name": "Joseph",
+        "attendee_last_name": "Troy",
+        "is_blocked": false,
+        "is_pending_review": false
+      }
+    },
+    {
+      "description": "Grid-based assignment (classroom style) with row/column numbers",
+      "assignment": {
+        "id": "ba73ac4e-f992-4532-b67d-a83a94eeffd3",
+        "seating_configuration_id": "4a6f6cee-7bdf-43dd-97cc-37911ee52260",
+        "attendee_id": "6534c732-89da-46b3-addf-ed6dd7c30a45",
+        "table_name": null,
+        "seat_number": null,
+        "seat_position": {
+          "x": 0,
+          "y": 0
+        },
+        "assignment_type": "manual",
+        "assigned_at": "2025-10-07T16:01:22.857+00:00",
+        "notes": "",
+        "created_at": "2025-10-07T16:01:22.880627+00:00",
+        "updated_at": "2025-10-07T16:01:22.880627+00:00",
+        "column_number": 13,
+        "row_number": 1,
+        "attendee_first_name": "Anders",
+        "attendee_last_name": "Meyerhoff",
+        "is_blocked": false,
+        "is_pending_review": false
+      }
+    },
+    {
+      "description": "Assignment with notes and different timing",
+      "assignment": {
+        "id": "3e068e7f-b75f-43b2-8682-ce38f04a6182",
+        "seating_configuration_id": "f74ff9f7-1527-4d0d-bd40-6f4531eddc3b",
+        "attendee_id": "bf7c10ee-35bc-40f5-a8fb-ef3901f6d8e3",
+        "table_name": null,
+        "seat_number": null,
+        "seat_position": {
+          "x": 0,
+          "y": 0
+        },
+        "assignment_type": "manual",
+        "assigned_at": "2025-10-08T18:55:32.214612+00:00",
+        "notes": "Synced from master",
+        "created_at": "2025-10-08T18:55:32.214612+00:00",
+        "updated_at": "2025-10-08T18:55:32.214612+00:00",
+        "column_number": 34,
+        "row_number": 7,
+        "attendee_first_name": "Shawn",
+        "attendee_last_name": "Khazzam",
+        "is_blocked": false,
+        "is_pending_review": false
+      }
+    }
+  ],
+
+  "data_structure_analysis": {
+    "table_shapes_used": [
+      "rectangle-horizontal",
+      "rectangle-vertical", 
+      "round"
+    ],
+    "assignment_types": [
+      "manual"
+    ],
+    "seating_configuration_types": [
+      "table"
+    ],
+    "new_fields_added": [
+      "is_blocked",
+      "is_pending_review"
+    ],
+    "layout_config_structure": {
+      "tables": "Array of table objects with name, shape, capacity, position",
+      "layout_type": "Always 'table' for table-based configurations"
+    }
+  },
+
+  "key_observations": {
+    "table_assignments": {
+      "description": "When using table-based seating, table_name and seat_number are populated",
+      "example": "Table 1: VIP CEOs, Seat 1"
+    },
+    "grid_assignments": {
+      "description": "When using grid-based seating, column_number and row_number are populated",
+      "example": "Column 13, Row 1"
+    },
+    "position_coordinates": {
+      "description": "seat_position always has x,y coordinates, but often default to 0,0",
+      "note": "Actual positioning may be calculated from table/seat configuration"
+    },
+    "new_management_fields": {
+      "is_blocked": "Boolean flag for blocking seat assignments",
+      "is_pending_review": "Boolean flag for assignments awaiting approval"
+    }
+  }
+}

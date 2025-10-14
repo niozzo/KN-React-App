@@ -45,7 +45,6 @@ body {
 
 .logo {
   font-family: var(--font-heading);
-  font-size: var(--text-3xl);
   font-weight: var(--font-bold);
   color: var(--purple-700);
   text-decoration: none;
@@ -54,6 +53,36 @@ body {
 
 .logo:hover {
   color: var(--purple-500);
+}
+
+/* Logo responsive adjustments */
+.logo img {
+  height: 24px;
+}
+
+.logo-text {
+  font-size: var(--text-lg);
+  white-space: nowrap;
+}
+
+@media (min-width: 480px) {
+  .logo img {
+    height: 28px;
+  }
+  
+  .logo-text {
+    font-size: var(--text-xl);
+  }
+}
+
+@media (min-width: 768px) {
+  .logo img {
+    height: 32px;
+  }
+  
+  .logo-text {
+    font-size: var(--text-2xl);
+  }
 }
 
 
@@ -2019,4 +2048,91 @@ body {
   100% {
     transform: translateX(100%);
   }
+}
+
+/* Footer Component */
+.app-footer {
+  background-color: var(--white);
+  border-top: 1px solid var(--gray-200);
+  padding: var(--space-md);
+  margin-top: auto;
+  font-size: var(--text-xs);
+  color: var(--gray-600);
+  text-align: center;
+}
+
+.footer-content {
+  max-width: 600px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.footer-row {
+  margin: 0;
+}
+
+.footer-links {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+}
+
+.footer-link {
+  color: var(--purple-600);
+  text-decoration: none;
+  transition: color var(--transition-normal);
+}
+
+.footer-link:hover {
+  color: var(--purple-700);
+  text-decoration: underline;
+}
+
+.footer-link:focus {
+  outline: 2px solid var(--purple-500);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.footer-separator {
+  color: var(--gray-400);
+}
+
+.footer-notice {
+  font-style: italic;
+  color: var(--gray-500);
+}
+
+/* Responsive layout for wider screens */
+@media (min-width: 480px) {
+  .footer-notice {
+    white-space: nowrap;
+  }
+}
+
+/* Transparent variant for login page */
+.app-footer-transparent {
+  background-color: transparent;
+  border-top: none;
+  position: absolute;
+  bottom: var(--space-lg);
+  left: 0;
+  right: 0;
+  z-index: 10;
+}
+
+.app-footer-transparent .footer-content {
+  color: var(--gray-700);
+}
+
+.app-footer-transparent .footer-link {
+  color: var(--purple-700);
+}
+
+.app-footer-transparent .footer-link:hover {
+  color: var(--purple-800);
 }
