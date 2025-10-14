@@ -40,6 +40,7 @@ body {
   align-items: center;
   max-width: var(--container-xl);
   margin: 0 auto;
+  position: relative;
 }
 
 
@@ -150,6 +151,8 @@ body {
   z-index: 999;
   overflow: hidden;
   border: 1px solid var(--gray-200);
+  /* Position relative to header-content instead of user-info */
+  transform: translateX(0);
 }
 
 .profile-dropdown-item {
@@ -461,13 +464,6 @@ body {
   align-content: flex-start;
 }
 
-@media (min-width: 768px) {
-  .animated-now-next-cards .cards-container {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-md);
-  }
-}
 
 .animated-now-next-cards .now-card-wrapper,
 .animated-now-next-cards .next-card-wrapper {
