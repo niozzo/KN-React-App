@@ -55,8 +55,6 @@ export default async function handler(req, res) {
   }
 
   try {
-    console.log('🔍 API: Getting agenda items with data transformation...')
-    
     const { limit } = req.query
     const { data: rawData, error } = await fetchTableRows('agenda_items', limit)
     
@@ -85,7 +83,6 @@ export default async function handler(req, res) {
     let transformedData
     try {
       transformedData = agendaTransformer.transformArrayFromDatabase(rawData)
-      console.log(`✅ Transformed ${transformedData.length} agenda items`)
     } catch (transformError) {
       console.error('❌ Transformation failed:', transformError)
       return res.status(500).json({
@@ -110,7 +107,6 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('❌ API: Unexpected error:', error.message)
-    console.error('❌ Stack trace:', error.stack)
     return res.status(500).json({
       success: false,
       data: null,

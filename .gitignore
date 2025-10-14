@@ -78,3 +78,6 @@ dist/
 # Vite cache
 .vite/
 .env*.local
+
+# Confidential data (cached local copies with real data)
+docs/localCacheCopy/

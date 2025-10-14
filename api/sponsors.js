@@ -77,8 +77,6 @@ export default async function handler(req, res) {
   }
 
   try {
-    console.log('🔍 API: Getting sponsors with data transformation...')
-    
     const { limit } = req.query
     const { data: rawData, error } = await fetchTableRows('sponsors', limit)
     
@@ -98,7 +96,6 @@ export default async function handler(req, res) {
       // Filter active sponsors and sort by display order
       transformedData = sponsorTransformer.filterActiveSponsors(transformedData)
       transformedData = sponsorTransformer.sortSponsors(transformedData)
-      console.log(`✅ Transformed ${transformedData.length} sponsors`)
     } catch (transformError) {
       console.error('❌ Transformation failed:', transformError)
       return res.status(500).json({

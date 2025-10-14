@@ -16,6 +16,7 @@ import { serverDataSyncService } from '../services/serverDataSyncService'
 import { attendeeInfoService } from '../services/attendeeInfoService'
 import { dataClearingService } from '../services/dataClearingService'
 import type { Attendee } from '../types/attendee'
+import Footer from '../components/common/Footer'
 
 interface AuthContextType {
   // Authentication state
@@ -47,6 +48,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [attendeeName, setAttendeeName] = useState<{ first_name: string; last_name: string; full_name: string } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSigningOut, setIsSigningOut] = useState(false)
+  
+  // Track active login process to abort if logout is called during login
+  const loginAbortControllerRef = useRef<AbortController | null>(null)
 
   // Function to clear all cached data on authentication failure
   const clearCachedData = useCallback(() => {
@@ -108,12 +112,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, [isAuthenticated, checkAuthStatus])
 
   const login = async (accessCode: string): Promise<{ success: boolean; error?: string }> => {
+    // Create abort controller for this login attempt
+    const abortController = new AbortController()
+    loginAbortControllerRef.current = abortController
+    
     try {
       console.log('🔄 Starting authentication process...')
       
       // Step 1: Authenticate with the auth service FIRST (validate access code)
       console.log('🔐 Step 1: Authenticating with access code...')
       const authResult = await authenticateWithAccessCode(accessCode)
+      
+      // ✅ CHECK: If logout was called during auth, abort here
+      if (abortController.signal.aborted) {
+        console.log('⏸️ Login aborted - logout was called during authentication')
+        return { success: false, error: 'Login cancelled' }
+      }
       
       // Step 2: Only proceed with data sync if authentication is successful
       if (!authResult.success || !authResult.attendee) {
@@ -130,9 +144,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('🔐 Step 2: Authentication successful, syncing data for offline use...')
       let syncResult = null
       try {
-        syncResult = await serverDataSyncService.syncAllData()
-        // Admin data sync completed
+        // ✅ CHECK: If logout was called, skip sync
+        if (abortController.signal.aborted) {
+          console.log('⏸️ Login aborted - skipping data sync')
+          return { success: false, error: 'Login cancelled' }
+        }
         
+        syncResult = await serverDataSyncService.syncAllData()
+        
+        // ✅ CHECK: If logout was called during sync, abort
+        if (abortController.signal.aborted) {
+          console.log('⏸️ Login aborted - logout called during sync')
+          return { success: false, error: 'Login cancelled' }
+        }
+        
+        // Admin data sync completed
         if (!syncResult.success) {
           console.warn('⚠️ Admin data sync failed, but authentication succeeded:', syncResult.errors)
         }
@@ -141,13 +167,34 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Authentication succeeded, but data sync failed - still allow login
       }
       
+      // ✅ CHECK: Final abort check before setting state
+      if (abortController.signal.aborted) {
+        console.log('⏸️ Login aborted - not setting authentication state')
+        return { success: false, error: 'Login cancelled' }
+      }
+      
       // Set authentication state (we already validated authResult.success above)
       console.log('🔄 Setting authentication state to true...')
       setIsAuthenticated(true)
       setAttendee(authResult.attendee)
       
+      // ✅ NEW: Start periodic sync now that user is authenticated
+      try {
+        const { pwaDataSyncService } = await import('../services/pwaDataSyncService')
+        pwaDataSyncService.startPeriodicSync()
+        console.log('🔄 Periodic sync started after successful login')
+      } catch (syncError) {
+        console.warn('⚠️ Failed to start periodic sync:', syncError)
+      }
+      
       // ✅ NEW: Initialize attendee sync service
       try {
+        // ✅ CHECK: One more abort check before final async operation
+        if (abortController.signal.aborted) {
+          console.log('⏸️ Login aborted - skipping attendee sync')
+          return { success: false, error: 'Login cancelled' }
+        }
+        
         const { attendeeSyncService } = await import('../services/attendeeSyncService')
         await attendeeSyncService.refreshAttendeeData()
         // Attendee sync service initialized
@@ -190,6 +237,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         success: false, 
         error: 'Authentication failed. Please try again or contact support.' 
       }
+    } finally {
+      // Clear the abort controller reference
+      if (loginAbortControllerRef.current === abortController) {
+        loginAbortControllerRef.current = null
+      }
     }
   }
 
@@ -200,6 +252,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
 
     setIsSigningOut(true)
+    
+    // ✅ CRITICAL: Abort any in-flight login process
+    if (loginAbortControllerRef.current) {
+      console.log('🛑 Aborting in-flight login process...')
+      loginAbortControllerRef.current.abort()
+      loginAbortControllerRef.current = null
+    }
     
     try {
       console.log('🔄 Starting comprehensive sign-out process...')
@@ -344,6 +403,9 @@ export const LoginPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [autoLoginAttempted, setAutoLoginAttempted] = useState(false)
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+  
+  // Focus preservation: Keep input focused during background re-renders
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const handleSubmit = useCallback(async (e?: React.FormEvent, codeToSubmit?: string) => {
     if (e) e.preventDefault()
@@ -416,6 +478,14 @@ export const LoginPage: React.FC = () => {
     }
   }, [location.search, autoLoginAttempted, isLoading, navigate, handleSubmit])
 
+  // Focus preservation: Restore focus after re-renders (e.g., from background cache operations)
+  useEffect(() => {
+    // If input exists, has value, and isn't disabled, keep it focused
+    if (inputRef.current && accessCode.length > 0 && !isLoading) {
+      inputRef.current.focus()
+    }
+  }) // Run after every render to catch focus loss immediately
+
   return (
     <>
       <style>
@@ -432,7 +502,7 @@ export const LoginPage: React.FC = () => {
         alignItems: 'flex-start', 
         justifyContent: 'center',
         background: 'linear-gradient(135deg, #F5F6F7 0%, #F2ECFB 100%)',
-        padding: 'var(--space-xl) var(--space-lg) var(--space-lg)',
+        padding: 'var(--space-xl) var(--space-lg) 120px',
         position: 'relative',
         overflow: 'hidden'
       }}>
@@ -502,6 +572,16 @@ export const LoginPage: React.FC = () => {
         boxShadow: '0 8px 32px rgba(124, 76, 196, 0.1), 0 4px 16px rgba(0, 0, 0, 0.05)'
       }}>
         <div className="mb-lg">
+          <img 
+            src="/Apax logos_RGB_Apax_RGB.png" 
+            alt="Apax Logo" 
+            style={{ 
+              width: '160px',
+              height: 'auto',
+              margin: '0 auto var(--space-xl)',
+              display: 'block'
+            }}
+          />
           <h1 className="logo" style={{ 
             fontSize: 'var(--text-4xl)', 
             marginBottom: 'var(--space-xl)',
@@ -528,6 +608,7 @@ export const LoginPage: React.FC = () => {
             
             <div style={{ position: 'relative' }}>
               <input
+                ref={inputRef}
                 id="accessCode"
                 name="accessCode"
                 type="text"
@@ -545,6 +626,7 @@ export const LoginPage: React.FC = () => {
                 }}
                 maxLength={6}
                 disabled={isLoading}
+                autoFocus
                 style={{
                   textAlign: 'center',
                   fontSize: '2rem',
@@ -597,20 +679,10 @@ export const LoginPage: React.FC = () => {
           textAlign: 'center'
         }}>
           <p className="mb-sm">Ask registration for help if you can not find your access code</p>
-          
-          {/* Sample access codes for testing */}
-          <p style={{
-            fontSize: 'var(--text-sm)',
-            color: 'var(--ink-600)',
-            textAlign: 'center',
-            marginTop: 'var(--space-md)',
-            fontWeight: '500'
-          }}>
-            Sample codes: 854958, 791705
-          </p>
         </div>
       </div>
       
+      <Footer transparent />
     </div>
     </>
   )
