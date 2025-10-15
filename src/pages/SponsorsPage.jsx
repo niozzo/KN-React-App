@@ -202,15 +202,30 @@ const SponsorsPage = () => {
                 {sponsor.name.charAt(0)}
               </div>
             </div>
-            <div className="sponsor-name">{sponsor.name}</div>
+            
+            {/* Make sponsor name a hyperlink */}
             <a 
               href={sponsor.website}
               target="_blank"
               rel="noopener noreferrer"
-              className="sponsor-website-link"
+              className="sponsor-name-link"
             >
-              Visit Website →
+              {sponsor.name}
             </a>
+            
+            {/* Geography badge/label */}
+            {sponsor.geography && (
+              <div className="sponsor-geography">
+                {sponsor.geography}
+              </div>
+            )}
+            
+            {/* Description */}
+            {sponsor.description && (
+              <p className="sponsor-description">
+                {sponsor.description}
+              </p>
+            )}
           </Card>
         ))}
       </div>
