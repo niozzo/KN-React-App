@@ -197,11 +197,22 @@ export class AgendaService implements IAgendaService {
    */
   private async enrichWithSpeakerData(agendaItems: any[]): Promise<any[]> {
     try {
+      console.log('🔄 [SPEAKER-DEBUG] Starting speaker enrichment for', agendaItems.length, 'agenda items');
+      
       // Get speaker assignments from cache
       const speakerAssignments = await pwaDataSyncService.getCachedTableData('speaker_assignments');
+      console.log('📋 [SPEAKER-DEBUG] Loaded speaker assignments:', {
+        total: speakerAssignments.length,
+        assignments: speakerAssignments.map((a: any) => ({
+          agenda_item_id: a.agenda_item_id,
+          attendee_id: a.attendee_id,
+          role: a.role
+        }))
+      });
       
       // Get attendees from cache for name lookup
       const attendees = await pwaDataSyncService.getCachedTableData('attendees');
+      console.log('👥 [SPEAKER-DEBUG] Loaded attendees:', attendees.length, 'total');
       
       // Get edited titles from application database metadata
       const agendaItemMetadata = await pwaDataSyncService.getCachedTableData('agenda_item_metadata');
@@ -214,6 +225,11 @@ export class AgendaService implements IAgendaService {
       
       // Enrich each agenda item with ordered speakers and title overrides
       const enrichedItems = agendaItems.map(item => {
+        console.log('🔍 [SPEAKER-DEBUG] Processing agenda item:', {
+          id: item.id,
+          title: item.title
+        });
+        
         // Find any edited metadata for this agenda item
         const metadata = agendaItemMetadata.find((meta: any) => meta.id === item.id);
         
@@ -221,11 +237,33 @@ export class AgendaService implements IAgendaService {
         const finalTitle = (metadata as any)?.title || item.title;
         
         const matchingAssignments = speakerAssignments.filter((assignment: any) => assignment.agenda_item_id === item.id);
+        console.log('📋 [SPEAKER-DEBUG] Found speaker assignments:', {
+          agenda_item_id: item.id,
+          assignments_found: matchingAssignments.length,
+          assignments: matchingAssignments.map(a => ({
+            id: a.id,
+            attendee_id: a.attendee_id,
+            role: a.role,
+            display_order: a.display_order
+          }))
+        });
         
         const speakers = matchingAssignments
           .sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0))
           .map((assignment: any) => {
             const attendee = attendeeMap.get(assignment.attendee_id);
+            console.log('👤 [SPEAKER-DEBUG] Processing speaker assignment:', {
+              assignment_id: assignment.id,
+              attendee_id: assignment.attendee_id,
+              attendee_found: !!attendee,
+              attendee_details: attendee ? {
+                first_name: attendee.first_name,
+                last_name: attendee.last_name,
+                title: attendee.title,
+                company: attendee.company
+              } : null
+            });
+            
             let name = '';
             
             if (attendee) {
@@ -243,9 +281,10 @@ export class AgendaService implements IAgendaService {
               } else {
                 name = fullName;
               }
+              console.log('✅ [SPEAKER-DEBUG] Created speaker name:', name);
             } else {
               name = `Speaker ${assignment.attendee_id}`;
-              console.warn('⚠️ [AGENDA] Attendee not found for assignment:', assignment.attendee_id);
+              console.warn('⚠️ [SPEAKER-DEBUG] Attendee not found for assignment:', assignment.attendee_id);
             }
             
             return {
