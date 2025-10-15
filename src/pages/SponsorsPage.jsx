@@ -225,7 +225,7 @@ const SponsorsPage = () => {
                   rel="noopener noreferrer"
                   className="sponsor-name-link"
                 >
-                  {sponsor.name} <span className="external-link-icon">⧉</span>
+                  {sponsor.name}&nbsp;<span className="external-link-icon">⧉</span>
                 </a>
                 
                 {/* Geography badge (right-aligned) */}
