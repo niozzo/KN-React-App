@@ -247,8 +247,8 @@ const BioPage = () => {
           >
             {attendee.company}
           </div>
-          {/* Sector and Subsector under company name */}
-          {standardizedCompany && (standardizedCompany.sector || standardizedCompany.subsector) && (
+          {/* Sector and Subsector under company name - only show if we have meaningful data */}
+          {standardizedCompany && standardizedCompany.sector && standardizedCompany.sector !== 'Not Applicable' && (
             <div 
               className="company-details"
               style={{
@@ -257,10 +257,10 @@ const BioPage = () => {
                 fontWeight: '400'
               }}
             >
-              {standardizedCompany.sector && standardizedCompany.subsector ? (
+              {standardizedCompany.sector && standardizedCompany.subsector && standardizedCompany.subsector !== 'Not Applicable' ? (
                 `${standardizedCompany.sector} • ${standardizedCompany.subsector}`
               ) : (
-                standardizedCompany.sector || standardizedCompany.subsector
+                standardizedCompany.sector
               )}
             </div>
           )}

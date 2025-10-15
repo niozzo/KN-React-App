@@ -173,6 +173,54 @@ describe('BioPage Core Functionality', () => {
         // Should still render attendee info even if company service fails
       });
     });
+
+    it('should not display sector/subsector when values are "Not Applicable"', async () => {
+      const mockAttendee = {
+        id: 'test-attendee-id',
+        first_name: 'John',
+        last_name: 'Doe',
+        title: 'CEO',
+        company: 'Test Company',
+        company_name_standardized: 'Test Company',
+        bio: 'Test bio content',
+        photo: 'test-photo.jpg'
+      };
+
+      const mockStandardizedCompany = {
+        name: 'Test Company',
+        logo: 'test-logo.png',
+        website: 'https://testcompany.com',
+        sector: 'Not Applicable',
+        subsector: 'Not Applicable',
+        geography: 'North America',
+        description: 'A test company description'
+      };
+
+      vi.mocked(attendeeSearchService.searchAttendees).mockResolvedValue({
+        attendees: [mockAttendee]
+      });
+
+      vi.mocked(CompanyNormalizationService.getInstance).mockReturnValue({
+        initialize: vi.fn(),
+        normalizeCompanyName: vi.fn().mockReturnValue(mockStandardizedCompany)
+      });
+
+      render(
+        <BrowserRouter>
+          <AuthProvider>
+            <BioPage />
+          </AuthProvider>
+        </BrowserRouter>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('John Doe')).toBeInTheDocument();
+        expect(screen.getByText('About Test Company')).toBeInTheDocument();
+        // Should NOT display "Not Applicable" values
+        expect(screen.queryByText('Not Applicable')).not.toBeInTheDocument();
+        expect(screen.queryByText('Not Applicable • Not Applicable')).not.toBeInTheDocument();
+      });
+    });
   });
 
   describe('Error Handling', () => {
