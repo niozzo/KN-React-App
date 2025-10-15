@@ -281,10 +281,17 @@ cacheAsideService.registerConfig('agendaItems', {
   cacheTTL: 2 * 60 * 1000 // 2 minutes
 });
 
-cacheAsideService.registerConfig('sponsors', {
-  cacheKey: 'kn_cache_sponsors',
+// DEPRECATED: sponsors table no longer used - migrated to standardized_companies
+// cacheAsideService.registerConfig('sponsors', {
+//   cacheKey: 'kn_cache_sponsors',
+//   dataValidator: (data) => Array.isArray(data),
+//   cacheTTL: 30 * 60 * 1000 // 30 minutes
+// });
+
+cacheAsideService.registerConfig('standardized_companies', {
+  cacheKey: 'kn_cache_standardized_companies',
   dataValidator: (data) => Array.isArray(data),
-  cacheTTL: 30 * 60 * 1000 // 30 minutes
+  cacheTTL: 60 * 60 * 1000 // 1 hour
 });
 
 cacheAsideService.registerConfig('hotels', {
