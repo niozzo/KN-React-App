@@ -455,23 +455,13 @@ const SessionCard = React.memo(({
               opacity: 0.8
             }}
           >
-            <div className="seat-label" style={{ 
-              fontSize: 'var(--text-sm)', 
-              fontWeight: '600',
+            <span style={{ 
+              fontSize: 'var(--text-base)', 
               color: 'var(--text-secondary)',
-              marginBottom: 'var(--space-xs)'
+              fontStyle: 'italic'
             }}>
-              Seat Assignment
-            </div>
-            <div className="seat-details">
-              <span style={{ 
-                fontSize: 'var(--text-base)', 
-                color: 'var(--text-secondary)',
-                fontStyle: 'italic'
-              }}>
-                Assignment pending
-              </span>
-            </div>
+              Seat assignment pending
+            </span>
           </div>
         )}
       </CardContent>
