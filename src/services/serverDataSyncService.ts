@@ -204,40 +204,7 @@ export class ServerDataSyncService extends BaseService {
           
           let records = data || [];
           
-          // 🔍 DEBUG: Log raw data from database before any transformations
-          if (tableName === 'seat_assignments' || tableName === 'seating_configurations') {
-            logger.debug(`RAW DATABASE DATA FOR ${tableName.toUpperCase()}`, null, 'ServerDataSyncService');
-            logger.debug('==========================================', null, 'ServerDataSyncService');
-            logger.debug(`Total records: ${records.length}`, null, 'ServerDataSyncService');
-            if (records.length > 0) {
-              logger.debug('Sample record fields', Object.keys(records[0]), 'ServerDataSyncService');
-              logger.debug('Sample record', JSON.stringify(records[0], null, 2), 'ServerDataSyncService');
-              
-              // Check for new fields we identified
-              if (tableName === 'seat_assignments') {
-                const newFields = ['is_blocked', 'is_pending_review'];
-                newFields.forEach(field => {
-                  if (records[0].hasOwnProperty(field)) {
-                    console.log(`✅ NEW FIELD FOUND: ${field} = ${records[0][field]}`);
-                  } else {
-                    console.log(`❌ NEW FIELD MISSING: ${field}`);
-                  }
-                });
-              }
-              
-              if (tableName === 'seating_configurations') {
-                const newFields = ['configuration_status', 'weightings', 'algorithm_status', 'algorithm_job_id', 'algorithm_results', 'parent_configuration_id', 'copy_type', 'is_master', 'last_synced_at'];
-                newFields.forEach(field => {
-                  if (records[0].hasOwnProperty(field)) {
-                    console.log(`✅ NEW FIELD FOUND: ${field} = ${JSON.stringify(records[0][field])}`);
-                  } else {
-                    console.log(`❌ NEW FIELD MISSING: ${field}`);
-                  }
-                });
-              }
-            }
-            console.log('==========================================\n');
-          }
+          // Debug logging removed - these diagnostic messages are not needed in production
           
           // Apply transformations using shared method
           records = await this.applyTransformations(tableName, records);
@@ -371,7 +338,7 @@ export class ServerDataSyncService extends BaseService {
     error?: string;
   }> {
     try {
-      console.log('🔍 Looking up attendee with admin authentication...');
+      // Using admin authentication for attendee lookup
       
       // Validate access code format (6-character alphanumeric)
       if (!accessCode || !/^[A-Za-z0-9]{6}$/.test(accessCode)) {
@@ -499,40 +466,7 @@ export class ServerDataSyncService extends BaseService {
       
       let records = data || [];
       
-      // 🔍 DEBUG: Log raw data from database before any transformations
-      if (tableName === 'seat_assignments' || tableName === 'seating_configurations') {
-        console.log(`\n🔍 RAW DATABASE DATA FOR ${tableName.toUpperCase()}:`);
-        console.log('==========================================');
-        console.log(`Total records: ${records.length}`);
-        if (records.length > 0) {
-          console.log('Sample record fields:', Object.keys(records[0]));
-          console.log('Sample record:', JSON.stringify(records[0], null, 2));
-          
-          // Check for new fields we identified
-          if (tableName === 'seat_assignments') {
-            const newFields = ['is_blocked', 'is_pending_review'];
-            newFields.forEach(field => {
-              if (records[0].hasOwnProperty(field)) {
-                console.log(`✅ NEW FIELD FOUND: ${field} = ${records[0][field]}`);
-              } else {
-                console.log(`❌ NEW FIELD MISSING: ${field}`);
-              }
-            });
-          }
-          
-          if (tableName === 'seating_configurations') {
-            const newFields = ['configuration_status', 'weightings', 'algorithm_status', 'algorithm_job_id', 'algorithm_results', 'parent_configuration_id', 'copy_type', 'is_master', 'last_synced_at'];
-            newFields.forEach(field => {
-              if (records[0].hasOwnProperty(field)) {
-                console.log(`✅ NEW FIELD FOUND: ${field} = ${JSON.stringify(records[0][field])}`);
-              } else {
-                console.log(`❌ NEW FIELD MISSING: ${field}`);
-              }
-            });
-          }
-        }
-        console.log('==========================================\n');
-      }
+      // Debug logging removed - these diagnostic messages are not needed in production
       
       // Apply transformations using shared method
       records = await this.applyTransformations(tableName, records);
@@ -593,17 +527,14 @@ export class ServerDataSyncService extends BaseService {
    * Debug method to check what data is cached
    */
   async debugCachedData(): Promise<void> {
-    console.log('🔍 Debugging server-synced cached data...');
+    // Debug method - removed console logging
     
     for (const tableName of this.tableToSync) {
       try {
         const data = await this.getCachedTableData(tableName);
-        console.log(`📊 ${tableName}: ${data.length} records cached`);
-        if (data.length > 0) {
-          console.log(`📊 ${tableName} sample record:`, data[0]);
-        }
+        // Debug data available - no console logging needed
       } catch (error) {
-        console.log(`❌ ${tableName}: Error getting cached data`, error);
+        // Debug error - no console logging needed
       }
     }
   }
