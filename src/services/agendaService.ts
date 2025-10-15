@@ -213,23 +213,22 @@ export class AgendaService implements IAgendaService {
       });
       
       // Enrich each agenda item with ordered speakers and title overrides
-      return agendaItems.map(item => {
+      const enrichedItems = agendaItems.map(item => {
         // Find any edited metadata for this agenda item
         const metadata = agendaItemMetadata.find((meta: any) => meta.id === item.id);
         
         // Override title if it was edited in the application database
         const finalTitle = (metadata as any)?.title || item.title;
         
-        const speakers = speakerAssignments
-          .filter((assignment: any) => assignment.agenda_item_id === item.id)
+        const matchingAssignments = speakerAssignments.filter((assignment: any) => assignment.agenda_item_id === item.id);
+        
+        const speakers = matchingAssignments
           .sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0))
           .map((assignment: any) => {
             const attendee = attendeeMap.get(assignment.attendee_id);
             let name = '';
             
             if (attendee) {
-              // DEBUG: Log attendee data for RCA
-
               // Format as "First Name Last Name, Title at Company" (matching mockup)
               const firstName = attendee.first_name || '';
               const lastName = attendee.last_name || '';
@@ -244,10 +243,9 @@ export class AgendaService implements IAgendaService {
               } else {
                 name = fullName;
               }
-              
-              // DEBUG: Log constructed name for RCA
             } else {
               name = `Speaker ${assignment.attendee_id}`;
+              console.warn('⚠️ Attendee not found for assignment:', assignment.attendee_id);
             }
             
             return {
@@ -258,6 +256,18 @@ export class AgendaService implements IAgendaService {
               display_order: assignment.display_order
             };
           });
+        
+        // Log specific event
+        if (item.id === 'f95a4c5a-0120-4156-b02a-0c92fc1bf64d') {
+          console.log('🎯 [AGENDA] John Boehner event enrichment:', {
+            agenda_item_id: item.id,
+            title: item.title,
+            matching_assignments_found: matchingAssignments.length,
+            matching_assignments: matchingAssignments,
+            speakers_created: speakers.length,
+            speakers: speakers
+          });
+        }
         
         // Create speakerInfo string for backward compatibility
         const speakerInfo = speakers.length > 0 ? 
@@ -271,6 +281,9 @@ export class AgendaService implements IAgendaService {
           speakerInfo // For backward compatibility with existing components
         };
       });
+      
+      console.log('✅ [AGENDA] Enrichment complete, processed', enrichedItems.length, 'items');
+      return enrichedItems;
       
     } catch (error) {
       console.warn('⚠️ Failed to enrich agenda items with speaker data:', error);

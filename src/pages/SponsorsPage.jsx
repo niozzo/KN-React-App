@@ -14,6 +14,7 @@ const SponsorsPage = () => {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showBackToTop, setShowBackToTop] = useState(false);
+  const [expandedDescriptions, setExpandedDescriptions] = useState({});
 
   // Load sponsors from standardized companies
   useEffect(() => {
@@ -90,6 +91,14 @@ const SponsorsPage = () => {
     if (fallback) {
       fallback.style.display = 'flex';
     }
+  };
+
+  // Toggle description expand/collapse
+  const toggleDescription = (sponsorId) => {
+    setExpandedDescriptions(prev => ({
+      ...prev,
+      [sponsorId]: !prev[sponsorId]
+    }));
   };
 
   if (loading) {
@@ -187,32 +196,64 @@ const SponsorsPage = () => {
 
       {/* Sponsor Grid */}
       <div className="sponsor-grid">
-        {filteredSponsors.map((sponsor) => (
-          <Card key={sponsor.id} className="sponsor-card">
-            <div className="sponsor-logo-container">
-              <img
-                src={sponsor.logo}
-                alt={`${sponsor.name} logo`}
-                onError={handleLogoError}
-              />
-              <div 
-                className="logo-fallback"
-                style={{ display: 'none' }}
-              >
-                {sponsor.name.charAt(0)}
+        {filteredSponsors.map((sponsor) => {
+          const isExpanded = expandedDescriptions[sponsor.id];
+          
+          return (
+            <Card key={sponsor.id} className="sponsor-card sponsor-card-vertical">
+              {/* Logo centered on top */}
+              <div className="sponsor-logo-container">
+                <img
+                  src={sponsor.logo}
+                  alt={`${sponsor.name} logo`}
+                  onError={handleLogoError}
+                />
+                <div 
+                  className="logo-fallback"
+                  style={{ display: 'none' }}
+                >
+                  {sponsor.name.charAt(0)}
+                </div>
               </div>
-            </div>
-            <div className="sponsor-name">{sponsor.name}</div>
-            <a 
-              href={sponsor.website}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="sponsor-website-link"
-            >
-              Visit Website →
-            </a>
-          </Card>
-        ))}
+              
+              {/* Name and Geography on same line */}
+              <div className="sponsor-info-row">
+                {/* Name with external link icon (left-aligned) */}
+                <a 
+                  href={sponsor.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="sponsor-name-link"
+                >
+                  {sponsor.name}&nbsp;<span className="external-link-icon">⧉</span>
+                </a>
+                
+                {/* Geography badge (right-aligned) */}
+                {sponsor.geography && (
+                  <div className="sponsor-geography">
+                    {sponsor.geography}
+                  </div>
+                )}
+              </div>
+              
+              {/* Description section below name */}
+              {sponsor.description && (
+                <div className="sponsor-description-wrapper">
+                  <p className={`sponsor-description ${isExpanded ? 'expanded' : 'collapsed'}`}>
+                    {sponsor.description}
+                  </p>
+                  <button
+                    onClick={() => toggleDescription(sponsor.id)}
+                    className="description-toggle-btn"
+                    aria-label={isExpanded ? 'Show less' : 'Show more'}
+                  >
+                    {isExpanded ? 'Show less' : 'Show more'}
+                  </button>
+                </div>
+              )}
+            </Card>
+          );
+        })}
       </div>
 
       {filteredSponsors.length === 0 && sponsors.length > 0 && (
