@@ -417,13 +417,14 @@ export class UnifiedCacheService {
   }
 
   /**
-   * Clear all corrupted cache entries
+   * Clear all corrupted cache entries - improved logic
    */
   async clearCorruptedCache(): Promise<void> {
     try {
       const corruptedKeys: string[] = [];
+      const expiredKeys: string[] = [];
       
-      // Find all corrupted cache entries
+      // Find all cache entries and categorize them
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
         if (key && key.startsWith('kn_cache_')) {
@@ -431,22 +432,47 @@ export class UnifiedCacheService {
             const entry = this.getCacheEntry(key);
             if (entry) {
               const validation = this.cacheVersioning.validateCacheEntry(entry);
+              
               if (!validation.isValid) {
-                corruptedKeys.push(key);
+                // Categorize the type of issue
+                if (validation.corruptionLevel === 'expired' || validation.corruptionLevel === 'version') {
+                  // Silent cleanup for expired/version issues
+                  expiredKeys.push(key);
+                } else if (validation.corruptionLevel === 'corrupted') {
+                  // Log only for actual corruption
+                  corruptedKeys.push(key);
+                }
               }
             }
           } catch (error) {
+            // Malformed data = corruption
             corruptedKeys.push(key);
           }
         }
       }
       
-      // Remove all corrupted entries
+      // Silent cleanup for expired entries
+      for (const key of expiredKeys) {
+        await this.remove(key);
+      }
+      
+      // Logged cleanup for corrupted entries
       for (const key of corruptedKeys) {
         await this.cleanupCorruptedCache(key);
       }
       
-      console.log(`🧹 Cleared ${corruptedKeys.length} corrupted cache entries`);
+      // Only log if there were actual corruption issues
+      if (corruptedKeys.length > 0) {
+        console.log(`🧹 Cleared ${corruptedKeys.length} corrupted cache entries`);
+      }
+      
+      // Silent cleanup for expired entries (no logging)
+      if (expiredKeys.length > 0) {
+        // Optional: Debug logging in development only
+        if (import.meta.env.DEV) {
+          console.debug(`Cleared ${expiredKeys.length} expired cache entries`);
+        }
+      }
     } catch (error) {
       console.error('❌ Failed to clear corrupted cache:', error);
     }

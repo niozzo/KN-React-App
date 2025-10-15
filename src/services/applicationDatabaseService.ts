@@ -2,6 +2,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { BaseService } from './baseService.ts';
 import { serviceRegistry } from './ServiceRegistry.ts';
+import { logger } from '../utils/logger';
 import type { AttendeePreferences } from '../types/preferences';
 
 const APPLICATION_DB_URL = import.meta.env.VITE_APPLICATION_DB_URL;
@@ -10,9 +11,10 @@ const APPLICATION_DB_SERVICE_KEY = import.meta.env.VITE_APPLICATION_DB_SERVICE_K
 
 
 if (!APPLICATION_DB_URL || !APPLICATION_DB_ANON_KEY) {
-  console.error('❌ Missing application database environment variables');
-  console.error('❌ APPLICATION_DB_URL:', APPLICATION_DB_URL);
-  console.error('❌ APPLICATION_DB_ANON_KEY:', APPLICATION_DB_ANON_KEY);
+  logger.critical('Missing application database environment variables', {
+    APPLICATION_DB_URL: !!APPLICATION_DB_URL,
+    APPLICATION_DB_ANON_KEY: !!APPLICATION_DB_ANON_KEY
+  }, 'ApplicationDatabaseService');
   throw new Error('Missing application database environment variables');
 }
 
@@ -28,7 +30,7 @@ class ApplicationDatabaseService extends BaseService {
 
   private initializeClients(): void {
     if (!APPLICATION_DB_URL || !APPLICATION_DB_ANON_KEY) {
-      console.warn('⚠️ Application database environment variables not configured');
+      logger.warn('Application database environment variables not configured', null, 'ApplicationDatabaseService');
       return;
     }
 
@@ -70,12 +72,12 @@ class ApplicationDatabaseService extends BaseService {
                               error.message?.includes('ERR_CONNECTION_CLOSED');
         
         if (isLastAttempt || !isNetworkError) {
-          console.error(`❌ ${operationName} failed after ${attempt} attempts:`, error);
+          logger.error(`${operationName} failed after ${attempt} attempts`, error, 'ApplicationDatabaseService');
           throw error;
         }
         
         const delay = baseDelay * Math.pow(2, attempt - 1); // Exponential backoff
-        console.warn(`⚠️ ${operationName} failed (attempt ${attempt}/${maxRetries}), retrying in ${delay}ms...`);
+        logger.warn(`${operationName} failed (attempt ${attempt}/${maxRetries}), retrying in ${delay}ms`, null, 'ApplicationDatabaseService');
         await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
@@ -140,7 +142,7 @@ class ApplicationDatabaseService extends BaseService {
    * Update speaker display order
    */
   async updateSpeakerOrder(speakerId: string, displayOrder: number): Promise<void> {
-    console.log(`🔄 Updating speaker ${speakerId} to order ${displayOrder}`);
+    logger.debug(`Updating speaker ${speakerId} to order ${displayOrder}`, null, 'ApplicationDatabaseService');
     
     const adminClient = this.getAdminClient();
     const { error } = await adminClient
@@ -152,11 +154,11 @@ class ApplicationDatabaseService extends BaseService {
       .eq('id', speakerId);
     
     if (error) {
-      console.error(`❌ Failed to update speaker ${speakerId} order:`, error);
+      logger.error(`Failed to update speaker ${speakerId} order`, error, 'ApplicationDatabaseService');
       throw error;
     }
     
-    console.log(`✅ Updated speaker ${speakerId} to order ${displayOrder}`);
+    logger.debug(`Updated speaker ${speakerId} to order ${displayOrder}`, null, 'ApplicationDatabaseService');
   }
 
   /**
@@ -215,10 +217,10 @@ class ApplicationDatabaseService extends BaseService {
     const startTimestamp = convertTimeToTimestamp(startTime);
     const endTimestamp = convertTimeToTimestamp(endTime);
     
-    console.log('🕐 Storing time overrides (time-only approach):', {
+    logger.debug('Storing time overrides (time-only approach)', {
       original: { startTime, endTime },
       normalized: { startTimestamp, endTimestamp }
-    });
+    }, 'ApplicationDatabaseService');
     
     const { error } = await adminClient
       .from('agenda_item_metadata')
@@ -264,9 +266,9 @@ class ApplicationDatabaseService extends BaseService {
       serviceRegistry.invalidateCache('agenda_items');
       serviceRegistry.invalidateCache('agenda_item_metadata');
       
-      console.log(`🔄 Time override event emitted for agenda item: ${agendaItemId}`);
+      logger.debug(`Time override event emitted for agenda item: ${agendaItemId}`, null, 'ApplicationDatabaseService');
     } catch (error) {
-      console.error('❌ Failed to emit time override event:', error);
+      logger.error('Failed to emit time override event', error, 'ApplicationDatabaseService');
     }
   }
 
@@ -298,7 +300,7 @@ class ApplicationDatabaseService extends BaseService {
       end_time: convertTimeForUI(item.end_time || '')
     }));
     
-        console.log('🕐 Retrieved time overrides from database:', processedData);
+        logger.debug('Retrieved time overrides from database', processedData, 'ApplicationDatabaseService');
         return processedData;
       },
       'getAgendaItemTimeOverrides'
@@ -372,7 +374,7 @@ class ApplicationDatabaseService extends BaseService {
   }
 
   async getAttendeePreferences(attendeeId: string): Promise<AttendeePreferences | null> {
-    const client = this.getClient();
+    const client = this.getAdminClient();
     const { data, error } = await client
       .from('attendee_preferences')
       .select('*')
@@ -419,9 +421,9 @@ export const applicationDb = applicationDatabaseService.getClient();
 export const adminDb = applicationDatabaseService.getAdminClient();
 
 // Debug logging
-console.log('Service role key available:', !!APPLICATION_DB_SERVICE_KEY);
-console.log('Using admin client for writes:', adminDb !== applicationDb);
-console.log('Environment variables:', {
+logger.debug('Service role key available', !!APPLICATION_DB_SERVICE_KEY, 'ApplicationDatabaseService');
+logger.debug('Using admin client for writes', adminDb !== applicationDb, 'ApplicationDatabaseService');
+logger.debug('Environment variables', {
   hasUrl: !!APPLICATION_DB_URL,
   hasAnonKey: !!APPLICATION_DB_ANON_KEY,
   hasServiceKey: !!APPLICATION_DB_SERVICE_KEY,

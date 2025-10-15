@@ -77,7 +77,7 @@ export class ServiceTestFactory {
       }),
       syncAllData: vi.fn().mockResolvedValue({
         success: true,
-        syncedTables: ['attendees', 'sponsors', 'seat_assignments', 'agenda_items', 'dining_options', 'hotels'],
+        syncedTables: ['attendees', 'standardized_companies', 'seat_assignments', 'agenda_items', 'dining_options', 'hotels'],
         errors: [],
         conflicts: []
       }),
@@ -85,14 +85,14 @@ export class ServiceTestFactory {
       getCachedTableData: vi.fn().mockResolvedValue([]),
       forceSync: vi.fn().mockResolvedValue({
         success: true,
-        syncedTables: ['attendees', 'sponsors', 'seat_assignments'],
+        syncedTables: ['attendees', 'standardized_companies', 'seat_assignments'],
         errors: [],
         conflicts: []
       }),
       clearCache: vi.fn().mockResolvedValue(undefined),
       getOfflineDataStatus: vi.fn().mockResolvedValue({
         attendees: true,
-        sponsors: false,
+        standardized_companies: false,
         seat_assignments: true,
         agenda_items: false,
         dining_options: false,

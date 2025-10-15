@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import PageLayout from '../components/layout/PageLayout';
 import Card from '../components/common/Card';
-import { getAllSponsors } from '../services/dataService';
+import { getSponsorsFromStandardizedCompanies } from '../services/dataService';
 
 /**
  * Sponsors Page Component
- * Displays sponsor directory with data from kn_cache_sponsors
- * Refactored from sponsors.html to React component
+ * Displays sponsor directory from standardized_companies table
+ * Filters by fund_analytics_category === "Sponsors & Vendors"
  */
 const SponsorsPage = () => {
   const [sponsors, setSponsors] = useState([]);
@@ -15,14 +15,19 @@ const SponsorsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showBackToTop, setShowBackToTop] = useState(false);
 
-  // Load sponsors from cache
+  // Load sponsors from standardized companies
   useEffect(() => {
     const loadSponsors = async () => {
       try {
         setLoading(true);
-        const sponsorsData = await getAllSponsors();
+        
+        // Fetch sponsors from standardized_companies table
+        const sponsorsData = await getSponsorsFromStandardizedCompanies();
         setSponsors(sponsorsData);
         setError(null);
+        
+        console.log(`✅ Loaded ${sponsorsData.length} sponsors from standardized companies`);
+        
       } catch (err) {
         console.error('Error loading sponsors:', err);
         setError('Failed to load sponsors. Please try again.');

@@ -43,9 +43,7 @@ export class AdminService {
     const speakerAssignments = await pwaDataSyncService.getCachedTableData('speaker_assignments');
     console.log('👥 AdminService: Loaded speaker assignments from cache:', speakerAssignments.length, 'assignments');
     
-    // Debug: Show all agenda item IDs and speaker assignment agenda_item_ids
-    console.log('🔍 AdminService: Agenda item IDs:', agendaItems.map((item: any) => item.id));
-    console.log('🔍 AdminService: Speaker assignment agenda_item_ids:', speakerAssignments.map((assignment: any) => assignment.agenda_item_id));
+    // Process agenda items and speaker assignments
     
     // Map assignments to agenda items and override titles with edited versions
     const itemsWithAssignments = agendaItems.map((item: any) => {
@@ -59,12 +57,7 @@ export class AdminService {
         .filter((assignment: any) => assignment.agenda_item_id === item.id)
         .sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0));
       
-      // Debug logging for this specific agenda item
-      console.log(`🔍 AdminService: Processing agenda item "${item.title}" (ID: ${item.id})`);
-      console.log(`🔍 AdminService: Found ${assignments.length} speaker assignments for this item`);
-      if (assignments.length > 0) {
-        console.log(`🔍 AdminService: Speaker assignments:`, assignments);
-      }
+      // Process speaker assignments for this agenda item
       
       return {
         ...item,

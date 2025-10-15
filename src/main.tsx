@@ -12,6 +12,16 @@ async function bootstrapApplication() {
   try {
     console.log('🚀 Bootstrap: Starting application initialization...');
     
+    // 🔧 SAFETY FIX: Reset any stuck logout flags on app startup
+    // This prevents the isLogoutInProgress flag from blocking sync operations
+    try {
+      const { pwaDataSyncService } = await import('./services/pwaDataSyncService');
+      pwaDataSyncService.setLogoutInProgress(false);
+      console.log('🔧 Bootstrap: Reset logout flag to prevent sync blocking');
+    } catch (error) {
+      console.warn('⚠️ Bootstrap: Could not reset logout flag:', error);
+    }
+    
     // Initialize service registry first
     const serviceRegistry = ServiceRegistry.getInstance();
     serviceRegistry.initialize();

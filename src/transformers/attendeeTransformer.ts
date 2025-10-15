@@ -306,4 +306,14 @@ export class AttendeeTransformer extends BaseTransformer<Attendee> {
   filterActiveAttendees(attendees: Attendee[]): Attendee[] {
     return attendees.filter(attendee => attendee.isActive !== false)
   }
+
+  /**
+   * Filter confirmed attendees (registration_status === 'confirmed')
+   * Only show attendees who have confirmed registration status
+   */
+  filterConfirmedAttendees(attendees: Attendee[]): Attendee[] {
+    return attendees.filter(attendee => 
+      attendee.registration_status === 'confirmed'
+    )
+  }
 }

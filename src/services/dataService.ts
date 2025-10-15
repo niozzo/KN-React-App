@@ -18,6 +18,8 @@ import type { Sponsor } from '../types/sponsor'
 import type { SeatAssignment } from '../types/seating'
 import type { DiningOption } from '../types/dining'
 import type { Hotel } from '../types/hotel'
+import type { EnhancedSponsor } from './enhancedSponsorService'
+import type { StandardizedCompany } from '../types/standardizedCompany'
 
 /**
  * Base error class for data service errors
@@ -123,21 +125,8 @@ export const getCurrentAttendeeData = async (): Promise<Attendee | null> => {
       if (cachedData) {
         const cacheObj = JSON.parse(cachedData)
         
-        // 🔍 DIAGNOSTIC: Log cache structure
-        console.log('🔍 DIAGNOSTIC: Cache data type:', typeof cacheObj)
-        console.log('🔍 DIAGNOSTIC: Cache data keys:', Object.keys(cacheObj))
-        console.log('🔍 DIAGNOSTIC: Cache data sample:', JSON.stringify(cacheObj).substring(0, 200))
-        
         // Handle both direct array format and wrapped format (Architecture Pattern)
         const attendees = cacheObj.data || cacheObj
-        
-        // 🔍 DIAGNOSTIC: Log attendees structure
-        console.log('🔍 DIAGNOSTIC: Attendees type:', typeof attendees)
-        console.log('🔍 DIAGNOSTIC: Is array:', Array.isArray(attendees))
-        if (Array.isArray(attendees)) {
-          console.log('🔍 DIAGNOSTIC: First attendee type:', typeof attendees[0])
-          console.log('🔍 DIAGNOSTIC: First attendee keys:', attendees[0] ? Object.keys(attendees[0]) : 'empty')
-        }
         
         const cachedAttendee = attendees.find((a: Attendee) => a.id === current.id)
         if (cachedAttendee) {
@@ -249,7 +238,26 @@ export const getAttendeeSelectedAgendaItems = async (attendeeId: string): Promis
 }
 
 /**
- * Get all sponsors (shared data - same for all authenticated users)
+ * Get all sponsors from standardized_companies table
+ * Filters by fund_analytics_category === "Sponsors & Vendors"
+ * @returns Array of StandardizedCompany objects sorted alphabetically
+ */
+export const getSponsorsFromStandardizedCompanies = async (): Promise<StandardizedCompany[]> => {
+  requireAuthentication()
+  
+  try {
+    const { standardizedCompanySponsorService } = await import('./standardizedCompanySponsorService')
+    const sponsors = await standardizedCompanySponsorService.getSponsors()
+    return sponsors
+  } catch (error) {
+    console.error('❌ Error fetching sponsors from standardized companies:', error)
+    throw new DataServiceError('Failed to fetch sponsors', 'FETCH_ERROR')
+  }
+}
+
+/**
+ * DEPRECATED: Get all sponsors (shared data - same for all authenticated users)
+ * @deprecated Use getSponsorsFromStandardizedCompanies() instead
  * @returns Array of all sponsors
  */
 export const getAllSponsors = async (): Promise<Sponsor[]> => {
@@ -282,6 +290,52 @@ export const getAllSponsors = async (): Promise<Sponsor[]> => {
   } catch (error) {
     console.error('❌ Error fetching sponsors:', error)
     throw new DataServiceError('Failed to fetch sponsors', 'FETCH_ERROR')
+  }
+}
+
+/**
+ * DEPRECATED: Get all sponsors with standardized company data as source of truth
+ * @deprecated Use getSponsorsFromStandardizedCompanies() instead
+ * @returns Array of sponsors with enhanced logo/website data from standardized companies
+ */
+export const getAllSponsorsWithStandardizedData = async (): Promise<EnhancedSponsor[]> => {
+  requireAuthentication()
+  
+  try {
+    // Check cache first
+    const cacheKey = 'kn_cache_sponsors_enhanced'
+    try {
+      const cachedData = localStorage.getItem(cacheKey)
+      if (cachedData) {
+        const cacheObj = JSON.parse(cachedData)
+        const sponsors = cacheObj.data || cacheObj
+        if (Array.isArray(sponsors) && sponsors.length > 0) {
+          console.log('✅ Using cached enhanced sponsors from localStorage')
+          return [...sponsors]
+            .filter(s => (s as any).is_active !== false)
+            .sort((a, b) => ((a as any).display_order ?? 0) - ((b as any).display_order ?? 0))
+        }
+      }
+    } catch (cacheError) {
+      console.warn('⚠️ Failed to load cached enhanced sponsors:', cacheError)
+    }
+    
+    // Fallback: Fetch and enhance data
+    console.log('🌐 SYNC: Fetching enhanced sponsors with standardized company data...')
+    const { enhancedSponsorService } = await import('./enhancedSponsorService')
+    const data = await enhancedSponsorService.getSponsorsWithStandardizedData()
+    
+    // Cache the enhanced data
+    try {
+      localStorage.setItem(cacheKey, JSON.stringify({ data, timestamp: Date.now() }))
+    } catch (cacheError) {
+      console.warn('⚠️ Failed to cache enhanced sponsors:', cacheError)
+    }
+    
+    return data
+  } catch (error) {
+    console.error('❌ Error fetching enhanced sponsors:', error)
+    throw new DataServiceError('Failed to fetch enhanced sponsors', 'FETCH_ERROR')
   }
 }
 

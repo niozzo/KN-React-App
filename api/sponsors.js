@@ -1,6 +1,9 @@
 /**
  * Sponsors API Endpoint with Data Transformation
  * Story 1.7: Data Transformation Layer for Schema Evolution
+ * 
+ * ⚠️ DEPRECATED: API endpoint no longer used
+ * Use standardized_companies table instead of sponsors
  */
 
 import { createClient } from '@supabase/supabase-js'

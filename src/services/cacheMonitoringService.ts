@@ -320,20 +320,23 @@ export class CacheMonitoringService {
 
     const logMessage = this.formatLogEntry(entry);
     
-    switch (entry.level) {
-      case 'error':
-        console.error(logMessage, entry.data);
-        break;
-      case 'warn':
-        console.warn(logMessage, entry.data);
-        break;
-      case 'info':
-        console.log(logMessage, entry.data);
-        break;
-      case 'debug':
-        console.debug(logMessage, entry.data);
-        break;
-    }
+    // Import logger dynamically to avoid circular dependencies
+    import('../utils/logger').then(({ logger }) => {
+      switch (entry.level) {
+        case 'error':
+          logger.error(logMessage, entry.data, 'CacheMonitoringService');
+          break;
+        case 'warn':
+          logger.warn(logMessage, entry.data, 'CacheMonitoringService');
+          break;
+        case 'info':
+          logger.info(logMessage, entry.data, 'CacheMonitoringService');
+          break;
+        case 'debug':
+          logger.debug(logMessage, entry.data, 'CacheMonitoringService');
+          break;
+      }
+    });
   }
 
   /**
