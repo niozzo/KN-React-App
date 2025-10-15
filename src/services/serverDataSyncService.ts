@@ -101,13 +101,22 @@ export class ServerDataSyncService extends BaseService {
       console.log(`🔧 Filtered to ${records.length} active, confirmed attendees`);
     }
     
-    // Standardized companies transformation - remove confidential fields
+    // Standardized companies transformation - remove confidential fields and fix URLs
     if (tableName === 'standardized_companies') {
       records = records.map(company => {
         const { seating_notes, priority_companies, priority_networking_attendees, ...filteredCompany } = company;
+        
+        // Fix website URLs - add www. if missing and it's a .com domain
+        if (filteredCompany.website && 
+            filteredCompany.website.startsWith('https://') && 
+            !filteredCompany.website.includes('www.') &&
+            filteredCompany.website.endsWith('.com')) {
+          filteredCompany.website = filteredCompany.website.replace('https://', 'https://www.');
+        }
+        
         return filteredCompany;
       });
-      console.log(`🔧 Filtered confidential fields from ${records.length} standardized companies`);
+      console.log(`🔧 Filtered confidential fields and fixed URLs for ${records.length} standardized companies`);
     }
     
     // Dining options transformation
