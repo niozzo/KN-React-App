@@ -200,46 +200,43 @@ const SponsorsPage = () => {
           const isExpanded = expandedDescriptions[sponsor.id];
           
           return (
-            <Card key={sponsor.id} className="sponsor-card sponsor-card-horizontal">
-              {/* Top section: Logo and header info */}
-              <div className="sponsor-header">
-                {/* Logo on left */}
-                <div className="sponsor-logo-container">
-                  <img
-                    src={sponsor.logo}
-                    alt={`${sponsor.name} logo`}
-                    onError={handleLogoError}
-                  />
-                  <div 
-                    className="logo-fallback"
-                    style={{ display: 'none' }}
-                  >
-                    {sponsor.name.charAt(0)}
-                  </div>
-                </div>
-                
-                {/* Name and geography on right */}
-                <div className="sponsor-header-content">
-                  {/* Name with external link icon */}
-                  <a 
-                    href={sponsor.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="sponsor-name-link"
-                  >
-                    {sponsor.name} <span className="external-link-icon">⧉</span>
-                  </a>
-                  
-                  {/* Geography badge under name */}
-                  {sponsor.geography && (
-                    <div className="sponsor-geography">
-                      {sponsor.geography}
-                    </div>
-                  )}
+            <Card key={sponsor.id} className="sponsor-card sponsor-card-vertical">
+              {/* Logo centered on top */}
+              <div className="sponsor-logo-container">
+                <img
+                  src={sponsor.logo}
+                  alt={`${sponsor.name} logo`}
+                  onError={handleLogoError}
+                />
+                <div 
+                  className="logo-fallback"
+                  style={{ display: 'none' }}
+                >
+                  {sponsor.name.charAt(0)}
                 </div>
               </div>
               
-              {/* Description section spanning full width below */}
+              {/* Name and Geography on same line */}
+              <div className="sponsor-info-row">
+                {/* Name with external link icon (left-aligned) */}
+                <a 
+                  href={sponsor.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="sponsor-name-link"
+                >
+                  {sponsor.name} <span className="external-link-icon">⧉</span>
+                </a>
+                
+                {/* Geography badge (right-aligned) */}
+                {sponsor.geography && (
+                  <div className="sponsor-geography">
+                    {sponsor.geography}
+                  </div>
+                )}
+              </div>
+              
+              {/* Description section below name */}
               {sponsor.description && (
                 <div className="sponsor-description-wrapper">
                   <p className={`sponsor-description ${isExpanded ? 'expanded' : 'collapsed'}`}>
