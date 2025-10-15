@@ -444,7 +444,7 @@ export class PWADataSyncService extends BaseService {
   /**
    * Sync all data tables
    */
-  async syncAllData(): Promise<SyncResult> {
+  async syncAllData(forceRefresh: boolean = false): Promise<SyncResult> {
     // 🛑 GUARD: Don't start sync if logout is in progress
     if (this.isLogoutInProgress) {
       // 🔧 SAFETY FIX: If flag has been stuck for too long, reset it automatically
@@ -515,6 +515,12 @@ export class PWADataSyncService extends BaseService {
     };
 
     try {
+      // Force refresh: Clear cache before syncing if requested
+      if (forceRefresh) {
+        console.log('🔄 Force refresh mode: Clearing cache before sync');
+        await this.clearCache();
+        console.log('✅ Cache cleared, proceeding with fresh data fetch');
+      }
 
       // Validate schema before syncing (lazy-loaded only in production)
       try {
@@ -539,7 +545,7 @@ export class PWADataSyncService extends BaseService {
       
       for (const table of tables) {
         try {
-          await this.syncTable(table);
+          await this.syncTable(table, forceRefresh);
           result.syncedTables.push(table);
         } catch (error) {
           const errorMsg = `Failed to sync ${table}: ${error instanceof Error ? error.message : 'Unknown error'}`;
@@ -560,10 +566,10 @@ export class PWADataSyncService extends BaseService {
         }
       }
 
-      // ✅ NEW: Add attendee data sync
+      // ✅ NEW: Add attendee data sync with force refresh support
       try {
         const { attendeeSyncService } = await import('./attendeeSyncService');
-        const attendeeResult = await attendeeSyncService.refreshAttendeeData();
+        const attendeeResult = await attendeeSyncService.refreshAttendeeData(forceRefresh);
         if (attendeeResult.success) {
           result.syncedTables.push('attendee_data');
         } else {
@@ -611,7 +617,7 @@ export class PWADataSyncService extends BaseService {
   /**
    * Sync individual table
    */
-  private async syncTable(tableName: MainTableName): Promise<void> {
+  private async syncTable(tableName: MainTableName, forceRefresh: boolean = false): Promise<void> {
 
     try {
       // Validate table name and get Supabase table name
@@ -621,6 +627,7 @@ export class PWADataSyncService extends BaseService {
       const supabaseTable = this.tableMappings.main[tableName];
 
       // Query data from Supabase
+      console.log(`🔄 Syncing ${tableName}${forceRefresh ? ' (force refresh)' : ''}...`);
       const { data, error } = await supabase
         .from(supabaseTable)
         .select('*');
