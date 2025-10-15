@@ -11,6 +11,7 @@
 import { BaseService } from './baseService';
 import { getCurrentAttendeeData } from './dataService';
 import { sanitizeAttendeeForStorage } from '../types/attendee';
+import { logger } from '../utils/logger';
 import type { Attendee, SanitizedAttendee } from '../types/attendee';
 
 export interface AttendeeSyncResult {
@@ -40,14 +41,14 @@ export class AttendeeSyncService extends BaseService {
    */
   async refreshAttendeeData(forceRefresh: boolean = false): Promise<AttendeeSyncResult> {
     try {
-      console.log(`🔄 Starting attendee data refresh${forceRefresh ? ' (force refresh)' : ''}...`);
+      logger.progress(`Starting attendee data refresh${forceRefresh ? ' (force refresh)' : ''}`, null, 'AttendeeSyncService');
       
       // Force refresh: Clear attendee cache before fetching fresh data
       if (forceRefresh) {
-        console.log('🧹 Force refresh: Clearing attendee cache...');
+        logger.debug('Force refresh: Clearing attendee cache', null, 'AttendeeSyncService');
         localStorage.removeItem('kn_cache_attendees');
         // Don't clear conference_auth - it contains authentication data
-        console.log('✅ Attendee cache cleared, fetching fresh data from database');
+        logger.debug('Attendee cache cleared, fetching fresh data from database', null, 'AttendeeSyncService');
       }
       
       const freshAttendeeData = await getCurrentAttendeeData();
@@ -61,7 +62,7 @@ export class AttendeeSyncService extends BaseService {
       // Apply confidential data filtering before updating conference_auth
       const { AttendeeCacheFilterService } = await import('./attendeeCacheFilterService');
       const filteredAttendeeData = AttendeeCacheFilterService.filterConfidentialFields(freshAttendeeData);
-      console.log('🔒 Applied confidential data filtering to attendee refresh');
+      logger.debug('Applied confidential data filtering to attendee refresh', null, 'AttendeeSyncService');
 
       // Update conference_auth with filtered data
       await this.updateConferenceAuth(filteredAttendeeData);
@@ -69,7 +70,7 @@ export class AttendeeSyncService extends BaseService {
       // Emit change event for reactive updates
       this.emitAttendeeDataUpdated(freshAttendeeData);
       
-      console.log('✅ Attendee data refreshed successfully');
+      logger.success('Attendee data refreshed successfully', null, 'AttendeeSyncService');
       
       return {
         success: true,
@@ -79,7 +80,7 @@ export class AttendeeSyncService extends BaseService {
       };
       
     } catch (error) {
-      console.error('❌ Failed to refresh attendee data:', error);
+      logger.error('Failed to refresh attendee data', error, 'AttendeeSyncService');
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -122,7 +123,7 @@ export class AttendeeSyncService extends BaseService {
       const auth = JSON.parse(authData);
       return auth.attendee || null;
     } catch (error) {
-      console.warn('⚠️ Failed to parse conference_auth:', error);
+      logger.warn('Failed to parse conference_auth', error, 'AttendeeSyncService');
       return null;
     }
   }
@@ -141,7 +142,7 @@ export class AttendeeSyncService extends BaseService {
       
       return (Date.now() - lastUpdated) > ttlMs;
     } catch (error) {
-      console.warn('⚠️ Failed to check attendee data TTL:', error);
+      logger.warn('Failed to check attendee data TTL', error, 'AttendeeSyncService');
       return true;
     }
   }
@@ -154,7 +155,7 @@ export class AttendeeSyncService extends BaseService {
       const authData = localStorage.getItem(this.AUTH_KEY);
       return authData ? JSON.parse(authData) : {};
     } catch (error) {
-      console.warn('⚠️ Failed to parse current auth data:', error);
+      logger.warn('Failed to parse current auth data', error, 'AttendeeSyncService');
       return {};
     }
   }
@@ -196,9 +197,9 @@ export class AttendeeSyncService extends BaseService {
   clearSyncState(): void {
     try {
       localStorage.removeItem(this.SYNC_VERSION_KEY);
-      console.log('🧹 Attendee sync state cleared');
+      logger.debug('Attendee sync state cleared', null, 'AttendeeSyncService');
     } catch (error) {
-      console.warn('⚠️ Failed to clear sync state:', error);
+      logger.warn('Failed to clear sync state', error, 'AttendeeSyncService');
     }
   }
 }
