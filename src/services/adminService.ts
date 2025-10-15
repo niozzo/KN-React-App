@@ -41,7 +41,8 @@ export class AdminService {
     
     // Get speaker assignments from local storage first
     const speakerAssignments = await pwaDataSyncService.getCachedTableData('speaker_assignments');
-    console.log('👥 AdminService: Loaded speaker assignments from cache:', speakerAssignments.length, 'assignments');
+    console.log('👥 [ADMIN] Loaded speaker assignments from cache:', speakerAssignments.length, 'assignments');
+    console.log('👥 [ADMIN] All speaker assignment IDs:', speakerAssignments.map((a: any) => ({ id: a.id, agenda_item_id: a.agenda_item_id, attendee_id: a.attendee_id })));
     
     // Process agenda items and speaker assignments
     
@@ -58,6 +59,14 @@ export class AdminService {
         .sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0));
       
       // Process speaker assignments for this agenda item
+      if (item.id === 'f95a4c5a-0120-4156-b02a-0c92fc1bf64d') {
+        console.log('🎯 [ADMIN] John Boehner event processing:', {
+          agenda_item_id: item.id,
+          title: item.title,
+          assignments_found: assignments.length,
+          assignments: assignments
+        });
+      }
       
       return {
         ...item,
