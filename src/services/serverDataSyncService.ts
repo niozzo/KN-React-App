@@ -12,6 +12,7 @@ import { sanitizeAttendeeForStorage } from '../types/attendee.ts';
 import { attendeeInfoService } from './attendeeInfoService.ts';
 import { BaseService } from './baseService.ts';
 import { supabaseClientService } from './supabaseClientService.ts';
+import { logger } from '../utils/logger';
 
 export interface ServerSyncResult {
   success: boolean;
@@ -98,7 +99,7 @@ export class ServerDataSyncService extends BaseService {
       records = attendeeTransformer.filterActiveAttendees(records); // Filter before caching
       records = attendeeTransformer.filterConfirmedAttendees(records); // Filter confirmed attendees
       
-      console.log(`🔧 Filtered to ${records.length} active, confirmed attendees`);
+      logger.debug(`Filtered to ${records.length} active, confirmed attendees`, null, 'ServerDataSyncService');
     }
     
     // Standardized companies transformation - remove confidential fields and fix URLs
@@ -116,7 +117,7 @@ export class ServerDataSyncService extends BaseService {
         
         return filteredCompany;
       });
-      console.log(`🔧 Filtered confidential fields and fixed URLs for ${records.length} standardized companies`);
+      logger.debug(`Filtered confidential fields and fixed URLs for ${records.length} standardized companies`, null, 'ServerDataSyncService');
     }
     
     // Dining options transformation
@@ -162,7 +163,7 @@ export class ServerDataSyncService extends BaseService {
     });
     
     if (error) {
-      console.error('❌ Admin authentication failed:', error.message);
+      logger.error('Admin authentication failed', error.message, 'ServerDataSyncService');
       throw new Error(`Admin authentication failed: ${error.message}`);
     }
     
@@ -196,7 +197,7 @@ export class ServerDataSyncService extends BaseService {
             .select('*');
           
           if (error) {
-            console.error(`❌ Failed to sync ${tableName}:`, error.message);
+            logger.error(`Failed to sync ${tableName}`, error.message, 'ServerDataSyncService');
             result.errors.push(`Failed to sync ${tableName}: ${error.message}`);
             continue;
           }
@@ -205,12 +206,12 @@ export class ServerDataSyncService extends BaseService {
           
           // 🔍 DEBUG: Log raw data from database before any transformations
           if (tableName === 'seat_assignments' || tableName === 'seating_configurations') {
-            console.log(`\n🔍 RAW DATABASE DATA FOR ${tableName.toUpperCase()}:`);
-            console.log('==========================================');
-            console.log(`Total records: ${records.length}`);
+            logger.debug(`RAW DATABASE DATA FOR ${tableName.toUpperCase()}`, null, 'ServerDataSyncService');
+            logger.debug('==========================================', null, 'ServerDataSyncService');
+            logger.debug(`Total records: ${records.length}`, null, 'ServerDataSyncService');
             if (records.length > 0) {
-              console.log('Sample record fields:', Object.keys(records[0]));
-              console.log('Sample record:', JSON.stringify(records[0], null, 2));
+              logger.debug('Sample record fields', Object.keys(records[0]), 'ServerDataSyncService');
+              logger.debug('Sample record', JSON.stringify(records[0], null, 2), 'ServerDataSyncService');
               
               // Check for new fields we identified
               if (tableName === 'seat_assignments') {
