@@ -660,6 +660,19 @@ export class PWADataSyncService extends BaseService {
         }
       }
 
+      // Standardized companies transformation - use centralized transformer
+      if (tableName === 'standardized_companies') {
+        try {
+          const { StandardizedCompanyTransformer } = await import('../transformers/standardizedCompanyTransformer.js');
+          const companyTransformer = new StandardizedCompanyTransformer();
+          records = companyTransformer.filterForCache(records);
+          logger.debug(`Filtered confidential fields and fixed URLs for ${records.length} standardized companies`, null, 'PWADataSyncService');
+        } catch (transformError) {
+          logger.warn(`Failed to transform standardized_companies`, transformError, 'PWADataSyncService');
+          // Continue with raw data if transformation fails
+        }
+      }
+
       // ✅ FIX: Validate records before caching
       if (!records || !Array.isArray(records)) {
         throw new Error(`Records became invalid after processing for ${tableName}: ${typeof records}`);
@@ -703,6 +716,8 @@ export class PWADataSyncService extends BaseService {
       }
       
 
+      console.log(`🔍 [DB-SYNC] Querying ${supabaseTable} for ${tableName}...`);
+      
       const { data, error } = await applicationDbClient
         .from(supabaseTable)
         .select('*');
@@ -720,10 +735,27 @@ export class PWADataSyncService extends BaseService {
         throw new Error(`Application database query failed: ${error.message}`);
       }
 
+      console.log(`📊 [DB-SYNC] Query result for ${tableName}:`, {
+        table: supabaseTable,
+        recordCount: data?.length || 0,
+        rawData: data,
+        allFields: data && data.length > 0 ? Object.keys(data[0]) : [],
+        sampleRecord: data && data.length > 0 ? data[0] : null
+      });
       
       // Enhanced debugging for empty results
       if (!data || data.length === 0) {
         console.warn(`⚠️ PWA Data Sync: No records found in ${supabaseTable} for ${tableName}`);
+      }
+      
+      // Special logging for speaker_assignments
+      if (tableName === 'speaker_assignments' && data && data.length > 0) {
+        console.log(`👥 [DB-SYNC] speaker_assignments details:`, {
+          total: data.length,
+          allRecords: data,
+          agenda_item_ids: data.map((r: any) => r.agenda_item_id),
+          boehnerEventAssignments: data.filter((r: any) => r.agenda_item_id === 'f95a4c5a-0120-4156-b02a-0c92fc1bf64d')
+        });
       }
 
       // ✅ FIX: Add defensive check for data before processing
@@ -799,6 +831,15 @@ export class PWADataSyncService extends BaseService {
         throw new Error(`Invalid data provided for caching ${tableName}: ${typeof data}`);
       }
       
+      if (tableName === 'speaker_assignments') {
+        console.log(`💾 [PWA-CACHE] Caching ${tableName}:`, {
+          records: data.length,
+          cacheKey,
+          sampleRecords: data.slice(0, 3),
+          allAgendaItemIds: data.map((a: any) => a.agenda_item_id)
+        });
+      }
+      
       // Apply comprehensive confidential data filtering for attendees
       let sanitizedData = data;
       // QA FIX: Handle both 'attendees' (plural) and 'attendee' (singular) table names
@@ -818,6 +859,10 @@ export class PWADataSyncService extends BaseService {
       const cacheEntry = cacheVersioningService.createCacheEntry(sanitizedData, ttl);
       
       localStorage.setItem(cacheKey, JSON.stringify(cacheEntry));
+      
+      if (tableName === 'speaker_assignments') {
+        console.log(`✅ [PWA-CACHE] Successfully cached ${tableName} with ${sanitizedData.length} records`);
+      }
       
       // Update cache size tracking
       this.updateCacheSize();
@@ -934,11 +979,22 @@ export class PWADataSyncService extends BaseService {
       const cached = localStorage.getItem(cacheKey);
       
       if (!cached) {
+        console.log(`📭 [PWA-CACHE] No cached data found for ${tableName}`);
         return [];
       }
 
       const cacheData = JSON.parse(cached);
       const data = cacheData.data || [];
+      
+      if (tableName === 'speaker_assignments') {
+        console.log(`📦 [PWA-CACHE] Retrieved ${tableName}:`, {
+          records: data.length,
+          cacheKey,
+          timestamp: cacheData.timestamp,
+          sampleRecords: data.slice(0, 3),
+          allAgendaItemIds: data.map((a: any) => a.agenda_item_id)
+        });
+      }
       
       // Return stale data even if expired (offline-first)
       if (!this.isCacheValid(cacheData)) {

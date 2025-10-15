@@ -102,21 +102,11 @@ export class ServerDataSyncService extends BaseService {
       logger.debug(`Filtered to ${records.length} active, confirmed attendees`, null, 'ServerDataSyncService');
     }
     
-    // Standardized companies transformation - remove confidential fields and fix URLs
+    // Standardized companies transformation - use centralized transformer
     if (tableName === 'standardized_companies') {
-      records = records.map(company => {
-        const { seating_notes, priority_companies, priority_networking_attendees, ...filteredCompany } = company;
-        
-        // Fix website URLs - add www. if missing and it's a .com domain
-        if (filteredCompany.website && 
-            filteredCompany.website.startsWith('https://') && 
-            !filteredCompany.website.includes('www.') &&
-            filteredCompany.website.endsWith('.com')) {
-          filteredCompany.website = filteredCompany.website.replace('https://', 'https://www.');
-        }
-        
-        return filteredCompany;
-      });
+      const { StandardizedCompanyTransformer } = await import('../transformers/standardizedCompanyTransformer.js');
+      const companyTransformer = new StandardizedCompanyTransformer();
+      records = companyTransformer.filterForCache(records);
       logger.debug(`Filtered confidential fields and fixed URLs for ${records.length} standardized companies`, null, 'ServerDataSyncService');
     }
     
@@ -456,6 +446,8 @@ export class ServerDataSyncService extends BaseService {
     try {
       const supabaseClient = await this.getAuthenticatedClient();
       
+      console.log(`🔍 [MAIN-DB-SINGLE-SYNC] Query to MAIN database table: ${tableName}`);
+      
       const { data, error } = await supabaseClient
         .from(tableName)
         .select('*');
@@ -465,6 +457,13 @@ export class ServerDataSyncService extends BaseService {
       }
       
       let records = data || [];
+      
+      console.log(`📊 [MAIN-DB-SINGLE-SYNC] Results from MAIN DB table "${tableName}":`, {
+        table: tableName,
+        recordCount: records.length,
+        allFieldsInFirstRecord: records.length > 0 ? Object.keys(records[0]) : [],
+        sampleRecord: records.length > 0 ? records[0] : null
+      });
       
       // Debug logging removed - these diagnostic messages are not needed in production
       
