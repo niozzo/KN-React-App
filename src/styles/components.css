@@ -1549,10 +1549,27 @@ body {
 
 /* Horizontal layout variation */
 .sponsor-card-horizontal {
+  flex-direction: column;
+  align-items: stretch;
+  text-align: left;
+  gap: var(--space-md);
+}
+
+/* Header section: logo + name/geography side by side */
+.sponsor-header {
+  display: flex;
   flex-direction: row;
   align-items: flex-start;
-  text-align: left;
   gap: var(--space-lg);
+}
+
+/* Header content: name and geography stacked */
+.sponsor-header-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  flex: 1;
+  min-width: 0;
 }
 
 .sponsor-logo-container {
@@ -1576,6 +1593,7 @@ body {
   width: 120px;
   height: 120px;
   margin: 0;
+  padding: var(--space-sm);
 }
 
 .sponsor-logo-container img {
@@ -1603,15 +1621,6 @@ body {
   border-radius: var(--radius-lg);
 }
 
-/* Sponsor content area (right side in horizontal layout) */
-.sponsor-content {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-sm);
-  flex: 1;
-  min-width: 0;
-}
-
 .sponsor-name-link {
   font-family: var(--font-heading);
   font-size: var(--text-xl);
@@ -1637,8 +1646,8 @@ body {
 .sponsor-geography {
   display: inline-block;
   padding: var(--space-xs) var(--space-sm);
-  background: var(--purple-100);
-  color: var(--purple-700);
+  background: rgba(217, 119, 111, 0.1);
+  color: var(--coral);
   border-radius: var(--radius-md);
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
@@ -1649,6 +1658,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: var(--space-xs);
+  width: 100%;
 }
 
 .sponsor-description {
