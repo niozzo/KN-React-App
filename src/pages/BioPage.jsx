@@ -185,7 +185,7 @@ const BioPage = () => {
             fontSize: '64px',
             color: 'var(--purple-700)',
             overflow: 'hidden',
-            marginBottom: 'var(--space-lg)'
+            marginBottom: 'var(--space-md)'
           }}
         >
           {attendee.photo ? (
@@ -269,19 +269,18 @@ const BioPage = () => {
       
       {/* Bio Content */}
       <Card className="content">
-        <div className="section" style={{ marginBottom: 'var(--space-xl)' }}>
+        <div className="section" style={{ marginBottom: 'var(--space-md)' }}>
           <h2 
             style={{
               fontSize: '18px',
               fontWeight: '600',
               color: 'var(--ink-900)',
-              marginBottom: 'var(--space-sm)',
-              margin: '0 0 var(--space-sm) 0'
+              margin: '0 0 var(--space-xs) 0'
             }}
           >
             About {fullName}
           </h2>
-          <div className="bio-description-wrapper">
+          <div className="bio-description-wrapper" style={{ paddingBottom: 'var(--space-xs)' }}>
             <div 
               className={`bio-text ${bioExpanded ? 'expanded' : 'collapsed'}`}
               style={{
