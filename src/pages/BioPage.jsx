@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import PageLayout from '../components/layout/PageLayout';
 import Card from '../components/common/Card';
 import { attendeeSearchService } from '../services/attendeeSearchService';
+import { CompanyNormalizationService } from '../services/companyNormalizationService';
 
 /**
  * Bio Page Component
@@ -16,6 +17,7 @@ const BioPage = () => {
   const [error, setError] = useState(null);
   const [bioExpanded, setBioExpanded] = useState(false);
   const [companyExpanded, setCompanyExpanded] = useState(false);
+  const [standardizedCompany, setStandardizedCompany] = useState(null);
 
   const attendeeId = searchParams.get('id');
 
@@ -57,6 +59,30 @@ const BioPage = () => {
 
     loadAttendee();
   }, [attendeeId]);
+
+  // Load standardized company data when attendee is available
+  useEffect(() => {
+    const loadStandardizedCompany = async () => {
+      if (!attendee || !attendee.company_name_standardized) {
+        setStandardizedCompany(null);
+        return;
+      }
+
+      try {
+        const companyService = CompanyNormalizationService.getInstance();
+        await companyService.initialize();
+        
+        // Get standardized company data using the company name
+        const companyData = companyService.normalizeCompanyName(attendee.company_name_standardized);
+        setStandardizedCompany(companyData);
+      } catch (err) {
+        console.error('Failed to load standardized company data:', err);
+        setStandardizedCompany(null);
+      }
+    };
+
+    loadStandardizedCompany();
+  }, [attendee]);
 
 
   const handleBackClick = () => {
@@ -263,13 +289,13 @@ const BioPage = () => {
       </Card>
       
       {/* Company Card - Only show if standardized company data exists */}
-      {attendee.companyStandardized && (
+      {standardizedCompany && (
         <Card className="sponsor-card sponsor-card-vertical">
           {/* Logo centered on top */}
           <div className="sponsor-logo-container">
             <img
-              src={attendee.companyStandardized.logo}
-              alt={`${attendee.companyStandardized.name} logo`}
+              src={standardizedCompany.logo}
+              alt={`${standardizedCompany.name} logo`}
               onError={(e) => {
                 // Fallback to icon if image fails to load
                 e.target.style.display = 'none';
@@ -280,7 +306,7 @@ const BioPage = () => {
               className="logo-fallback"
               style={{ display: 'none' }}
             >
-              {attendee.companyStandardized.name.charAt(0)}
+              {standardizedCompany.name.charAt(0)}
             </div>
           </div>
           
@@ -288,17 +314,17 @@ const BioPage = () => {
           <div className="sponsor-info-row">
             {/* Name with external link icon (left-aligned) */}
             <a 
-              href={attendee.companyStandardized.website}
+              href={standardizedCompany.website}
               target="_blank"
               rel="noopener noreferrer"
               className="sponsor-name-link"
             >
-              {attendee.companyStandardized.name}&nbsp;<span className="external-link-icon">⧉</span>
+              {standardizedCompany.name}&nbsp;<span className="external-link-icon">⧉</span>
             </a>
             
             {/* Sector and Subsector badges (right-aligned) */}
             <div style={{ display: 'flex', gap: 'var(--space-xs)', flexWrap: 'wrap' }}>
-              {attendee.companyStandardized.sector && (
+              {standardizedCompany.sector && (
                 <div 
                   className="sponsor-geography"
                   style={{
@@ -312,10 +338,10 @@ const BioPage = () => {
                     width: 'fit-content'
                   }}
                 >
-                  {attendee.companyStandardized.sector}
+                  {standardizedCompany.sector}
                 </div>
               )}
-              {attendee.companyStandardized.subsector && (
+              {standardizedCompany.subsector && (
                 <div 
                   className="sponsor-geography"
                   style={{
@@ -329,14 +355,14 @@ const BioPage = () => {
                     width: 'fit-content'
                   }}
                 >
-                  {attendee.companyStandardized.subsector}
+                  {standardizedCompany.subsector}
                 </div>
               )}
             </div>
           </div>
           
           {/* Geography badge (if available) */}
-          {attendee.companyStandardized.geography && (
+          {standardizedCompany.geography && (
             <div 
               className="sponsor-geography"
               style={{
@@ -351,15 +377,15 @@ const BioPage = () => {
                 marginTop: 'var(--space-sm)'
               }}
             >
-              {attendee.companyStandardized.geography}
+              {standardizedCompany.geography}
             </div>
           )}
           
           {/* Description section below name */}
-          {attendee.companyStandardized.description && (
+          {standardizedCompany.description && (
             <div className="sponsor-description-wrapper">
               <p className={`sponsor-description ${companyExpanded ? 'expanded' : 'collapsed'}`}>
-                {attendee.companyStandardized.description}
+                {standardizedCompany.description}
               </p>
               <button
                 onClick={toggleCompany}
