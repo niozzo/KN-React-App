@@ -757,7 +757,7 @@ body {
 .bio-description-wrapper {
   display: flex;
   flex-direction: column;
-  gap: var(--space-xs);
+  gap: 0px;
   width: 100%;
 }
 

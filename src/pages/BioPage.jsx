@@ -294,7 +294,7 @@ const BioPage = () => {
           >
             About {fullName}
           </h2>
-          <div className="bio-description-wrapper" style={{ paddingBottom: '0px' }}>
+          <div style={{ paddingBottom: '0px', display: 'flex', flexDirection: 'column', gap: '0px', width: '100%' }}>
             <div 
               className={`bio-text ${bioExpanded ? 'expanded' : 'collapsed'}`}
               style={{
