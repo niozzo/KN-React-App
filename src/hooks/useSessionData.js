@@ -554,53 +554,47 @@ export const useSessionData = (options = {}) => {
           return event || null;
         }
         
-        // ARCHITECTURAL DECISION: Agenda item seating_type is source of truth
-        if (event.seating_type === 'assigned') {
-          // Only look for seat assignments if the event has assigned seating
-          if (!localSeatAssignments.length || !localSeatingConfigurations.length) {
-            return event;
-          }
-          
-          // Step 1: Find the seating configuration for this event (bridge table lookup)
-          let seatingConfig = null;
-          
-          if (event.type === 'dining') {
-            // For dining events, match by dining_option_id
-            seatingConfig = localSeatingConfigurations.find(
-              config => config.dining_option_id === event.id
-            );
-          } else {
-            // For agenda items, match by agenda_item_id
-            seatingConfig = localSeatingConfigurations.find(
-              config => config.agenda_item_id === event.id
-            );
-          }
-          
-          // If no seating configuration found, return event without seat info
-          if (!seatingConfig) {
-            return event;
-          }
-          
-          // Step 2: Find seat assignment using the configuration ID from bridge table
-          const seatAssignment = localSeatAssignments.find(seat => 
-            seat.seating_configuration_id === seatingConfig.id
-          );
-          
-          // Step 3: Return enhanced event with seat info
-          return {
-            ...event,
-            seatInfo: seatAssignment ? {
-              table: seatAssignment.table_name,
-              seat: seatAssignment.seat_number,
-              row: seatAssignment.row_number,
-              column: seatAssignment.column_number,
-              position: seatAssignment.seat_position
-            } : null
-          };
-        } else {
-          // For open seating, don't look for assignments
+        // Look for seat assignments if we have the necessary data
+        if (!localSeatAssignments.length || !localSeatingConfigurations.length) {
           return event;
         }
+        
+        // Step 1: Find the seating configuration for this event (bridge table lookup)
+        let seatingConfig = null;
+        
+        if (event.type === 'dining') {
+          // For dining events, match by dining_option_id
+          seatingConfig = localSeatingConfigurations.find(
+            config => config.dining_option_id === event.id
+          );
+        } else {
+          // For agenda items, match by agenda_item_id
+          seatingConfig = localSeatingConfigurations.find(
+            config => config.agenda_item_id === event.id
+          );
+        }
+        
+        // If no seating configuration found, return event without seat info
+        if (!seatingConfig) {
+          return event;
+        }
+        
+        // Step 2: Find seat assignment using the configuration ID from bridge table
+        const seatAssignment = localSeatAssignments.find(seat => 
+          seat.seating_configuration_id === seatingConfig.id
+        );
+        
+        // Step 3: Return enhanced event with seat info
+        return {
+          ...event,
+          seatInfo: seatAssignment ? {
+            table: seatAssignment.table_name,
+            seat: seatAssignment.seat_number,
+            row: seatAssignment.row_number,
+            column: seatAssignment.column_number,
+            position: seatAssignment.seat_position
+          } : null
+        };
       };
 
       // CRITICAL FIX: Enhance ALL sessions, not just current/next
