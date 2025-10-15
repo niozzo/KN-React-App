@@ -196,6 +196,8 @@ export class ServerDataSyncService extends BaseService {
             .from(tableName)
             .select('*');
           
+          console.log(`🔍 [MAIN-DB-SYNC] Query to MAIN database table: ${tableName}`);
+          
           if (error) {
             logger.error(`Failed to sync ${tableName}`, error.message, 'ServerDataSyncService');
             result.errors.push(`Failed to sync ${tableName}: ${error.message}`);
@@ -203,6 +205,27 @@ export class ServerDataSyncService extends BaseService {
           }
           
           let records = data || [];
+          
+          console.log(`📊 [MAIN-DB-SYNC] Results from MAIN DB table "${tableName}":`, {
+            table: tableName,
+            recordCount: records.length,
+            allFieldsInFirstRecord: records.length > 0 ? Object.keys(records[0]) : [],
+            sampleRecord: records.length > 0 ? records[0] : null,
+            first5Records: records.slice(0, 5)
+          });
+          
+          // Special logging for agenda_items
+          if (tableName === 'agenda_items' && records.length > 0) {
+            console.log(`📋 [MAIN-DB-SYNC] agenda_items field inspection:`, {
+              totalRecords: records.length,
+              allFieldNames: Object.keys(records[0]),
+              hasSpeakerField: 'speaker' in records[0],
+              hasSpeakersField: 'speakers' in records[0],
+              hasSpeakerNameField: 'speaker_name' in records[0],
+              hasSpeakerAssignmentsField: 'speaker_assignments' in records[0],
+              boehnerEventRaw: records.find(r => r.id === 'f95a4c5a-0120-4156-b02a-0c92fc1bf64d')
+            });
+          }
           
           // Debug logging removed - these diagnostic messages are not needed in production
           
@@ -456,6 +479,8 @@ export class ServerDataSyncService extends BaseService {
     try {
       const supabaseClient = await this.getAuthenticatedClient();
       
+      console.log(`🔍 [MAIN-DB-SINGLE-SYNC] Query to MAIN database table: ${tableName}`);
+      
       const { data, error } = await supabaseClient
         .from(tableName)
         .select('*');
@@ -465,6 +490,13 @@ export class ServerDataSyncService extends BaseService {
       }
       
       let records = data || [];
+      
+      console.log(`📊 [MAIN-DB-SINGLE-SYNC] Results from MAIN DB table "${tableName}":`, {
+        table: tableName,
+        recordCount: records.length,
+        allFieldsInFirstRecord: records.length > 0 ? Object.keys(records[0]) : [],
+        sampleRecord: records.length > 0 ? records[0] : null
+      });
       
       // Debug logging removed - these diagnostic messages are not needed in production
       
