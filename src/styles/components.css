@@ -753,6 +753,27 @@ body {
   /* Removed flex properties - now using block layout */
 }
 
+/* Bio Description Wrapper */
+.bio-description-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  width: 100%;
+}
+
+/* Bio Text Collapsed/Expanded States */
+.bio-text.collapsed {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bio-text.expanded {
+  display: block;
+}
+
 .contact-actions {
   margin-left: calc(80px + var(--space-lg)); /* Align with text: avatar width + gap */
 }
