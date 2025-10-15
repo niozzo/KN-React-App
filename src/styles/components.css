@@ -1624,9 +1624,8 @@ body {
 .external-link-icon {
   font-size: var(--text-base);
   opacity: 0.7;
-  margin-left: 4px;
   white-space: nowrap;
-  display: inline-block;
+  display: inline;
 }
 
 .sponsor-geography {
