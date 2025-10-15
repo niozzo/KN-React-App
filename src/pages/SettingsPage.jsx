@@ -102,11 +102,31 @@ const SettingsPage = () => {
     try {
       console.log('🔄 User-initiated data refresh started');
       
-      // Use existing PWA sync service to refresh all data
-      const result = await pwaDataSyncService.syncAllData();
+      // Step 1: Clear all relevant cache entries to force fresh fetch
+      console.log('🧹 Clearing cache entries to force fresh data fetch...');
+      const cacheKeys = [
+        'kn_cache_attendees',
+        'kn_cache_agenda_items', 
+        'kn_cache_dining_options',
+        'kn_cache_hotels',
+        'kn_cache_sponsors',
+        'kn_cache_seat_assignments',
+        'kn_cache_seating_configurations',
+        'kn_cached_sessions'
+      ];
+      
+      cacheKeys.forEach(key => {
+        localStorage.removeItem(key);
+        console.log(`🗑️ Cleared cache: ${key}`);
+      });
+      
+      // Step 2: Use PWA sync service with force refresh flag
+      console.log('🔄 Force syncing all data from database...');
+      const result = await pwaDataSyncService.syncAllData(true); // Force refresh flag
       
       if (result.success) {
         console.log('✅ Data refresh successful');
+        console.log(`📊 Synced tables: ${result.syncedTables.join(', ')}`);
         setRefreshSuccess(true);
         setLastSyncTime(new Date());
         
@@ -114,11 +134,17 @@ const SettingsPage = () => {
         setTimeout(() => setRefreshSuccess(false), 3000);
       } else {
         console.error('❌ Data refresh failed:', result.errors);
-        setRefreshError('Failed to refresh data. Please try again.');
+        const errorMessage = result.errors.length > 0 
+          ? `Failed to refresh data: ${result.errors.join(', ')}`
+          : 'Failed to refresh data. Please try again.';
+        setRefreshError(errorMessage);
       }
     } catch (error) {
       console.error('❌ Data refresh error:', error);
-      setRefreshError('Failed to refresh data. Please try again.');
+      const errorMessage = error instanceof Error 
+        ? `Failed to refresh data: ${error.message}`
+        : 'Failed to refresh data. Please try again.';
+      setRefreshError(errorMessage);
     } finally {
       setIsRefreshing(false);
     }
