@@ -33,7 +33,7 @@ export const ValidationPatterns = {
   NAME: /^[a-zA-Z\s\-']+$/,
   
   // Title (letters, numbers, spaces, basic punctuation)
-  TITLE: /^[a-zA-Z0-9\s\-'.,!?()]+$/,
+  TITLE: /^[a-zA-Z0-9\s\-'.,!?()&]+$/,
   
   // URL validation
   URL: /^https?:\/\/.+/,
