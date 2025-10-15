@@ -18,6 +18,7 @@ import type { Sponsor } from '../types/sponsor'
 import type { SeatAssignment } from '../types/seating'
 import type { DiningOption } from '../types/dining'
 import type { Hotel } from '../types/hotel'
+import type { EnhancedSponsor } from './enhancedSponsorService'
 
 /**
  * Base error class for data service errors
@@ -282,6 +283,51 @@ export const getAllSponsors = async (): Promise<Sponsor[]> => {
   } catch (error) {
     console.error('❌ Error fetching sponsors:', error)
     throw new DataServiceError('Failed to fetch sponsors', 'FETCH_ERROR')
+  }
+}
+
+/**
+ * Get all sponsors with standardized company data as source of truth
+ * @returns Array of sponsors with enhanced logo/website data from standardized companies
+ */
+export const getAllSponsorsWithStandardizedData = async (): Promise<EnhancedSponsor[]> => {
+  requireAuthentication()
+  
+  try {
+    // Check cache first
+    const cacheKey = 'kn_cache_sponsors_enhanced'
+    try {
+      const cachedData = localStorage.getItem(cacheKey)
+      if (cachedData) {
+        const cacheObj = JSON.parse(cachedData)
+        const sponsors = cacheObj.data || cacheObj
+        if (Array.isArray(sponsors) && sponsors.length > 0) {
+          console.log('✅ Using cached enhanced sponsors from localStorage')
+          return [...sponsors]
+            .filter(s => (s as any).is_active !== false)
+            .sort((a, b) => ((a as any).display_order ?? 0) - ((b as any).display_order ?? 0))
+        }
+      }
+    } catch (cacheError) {
+      console.warn('⚠️ Failed to load cached enhanced sponsors:', cacheError)
+    }
+    
+    // Fallback: Fetch and enhance data
+    console.log('🌐 SYNC: Fetching enhanced sponsors with standardized company data...')
+    const { enhancedSponsorService } = await import('./enhancedSponsorService')
+    const data = await enhancedSponsorService.getSponsorsWithStandardizedData()
+    
+    // Cache the enhanced data
+    try {
+      localStorage.setItem(cacheKey, JSON.stringify({ data, timestamp: Date.now() }))
+    } catch (cacheError) {
+      console.warn('⚠️ Failed to cache enhanced sponsors:', cacheError)
+    }
+    
+    return data
+  } catch (error) {
+    console.error('❌ Error fetching enhanced sponsors:', error)
+    throw new DataServiceError('Failed to fetch enhanced sponsors', 'FETCH_ERROR')
   }
 }
 
