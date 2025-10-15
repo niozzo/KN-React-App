@@ -46,7 +46,7 @@ export class AttendeeSyncService extends BaseService {
       if (forceRefresh) {
         console.log('🧹 Force refresh: Clearing attendee cache...');
         localStorage.removeItem('kn_cache_attendees');
-        localStorage.removeItem('conference_auth');
+        // Don't clear conference_auth - it contains authentication data
         console.log('✅ Attendee cache cleared, fetching fresh data from database');
       }
       
