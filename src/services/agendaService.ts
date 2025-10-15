@@ -197,16 +197,11 @@ export class AgendaService implements IAgendaService {
    */
   private async enrichWithSpeakerData(agendaItems: any[]): Promise<any[]> {
     try {
-      console.log('🔄 [AGENDA] enrichWithSpeakerData starting with', agendaItems.length, 'agenda items');
-      
       // Get speaker assignments from cache
       const speakerAssignments = await pwaDataSyncService.getCachedTableData('speaker_assignments');
-      console.log('📋 [AGENDA] Loaded speaker assignments:', speakerAssignments.length, 'total');
-      console.log('📋 [AGENDA] Speaker assignment agenda_item_ids:', speakerAssignments.map((a: any) => a.agenda_item_id));
       
       // Get attendees from cache for name lookup
       const attendees = await pwaDataSyncService.getCachedTableData('attendees');
-      console.log('👥 [AGENDA] Loaded attendees:', attendees.length, 'total');
       
       // Get edited titles from application database metadata
       const agendaItemMetadata = await pwaDataSyncService.getCachedTableData('agenda_item_metadata');
