@@ -119,12 +119,21 @@ AGENDA ITEM → SEATING CONFIGURATION → SEAT ASSIGNMENT → ATTENDEE
 
 Since `agenda_items` doesn't have a direct `seating_configuration_id` field, we need to:
 
+### ARCHITECTURAL DECISION: Agenda Items as Source of Truth
+**Decision Date:** 2025-10-15  
+**Status:** Implemented  
+**Rationale:** Agenda items represent the actual events and their requirements, making them the logical source of truth for seating requirements.
+
 ### For Agenda Items:
 ```javascript
-// 1. Get agenda item
-const agendaItem = { id: "4c057931-0223-491f-8a7f-ba232bc2a95c", ... }
+// 1. Get agenda item (SOURCE OF TRUTH for seating type)
+const agendaItem = { 
+  id: "4c057931-0223-491f-8a7f-ba232bc2a95c", 
+  seating_type: "assigned",  // ← This determines behavior
+  ... 
+}
 
-// 2. Find its seating configuration
+// 2. Find its seating configuration (for layout/assignments only)
 const seatingConfig = seatingConfigurations.find(
   config => config.agenda_item_id === agendaItem.id
 )
@@ -136,6 +145,17 @@ const seatAssignment = seatAssignments.find(
        && seat.attendee_id === currentAttendeeId
 )
 // Result: { row_number: X, column_number: Y, ... }
+
+// 4. Display logic based on agenda item seating type
+if (agendaItem.seating_type === 'assigned') {
+  if (seatAssignment) {
+    // Show seat assignment
+  } else {
+    // Show "Assignment pending"
+  }
+} else {
+  // Show "Open seating"
+}
 ```
 
 ### For Dining Events:
@@ -202,27 +222,33 @@ const seatingConfigs = JSON.parse(
 
 // For agenda items:
 const enhanceEventWithSeatInfo = (event) => {
-  // Find the seating configuration for this event
-  const seatingConfig = seatingConfigs.find(
-    config => config.agenda_item_id === event.id
-  )
-  
-  if (!seatingConfig) return event
-  
-  // Find seat assignment
-  const seatAssignment = seatAssignments.find(seat => 
-    seat.seating_configuration_id === seatingConfig.id
-  )
-  
-  return {
-    ...event,
-    seatInfo: seatAssignment ? {
-      table: seatAssignment.table_name,
-      seat: seatAssignment.seat_number,
-      row: seatAssignment.row_number,
-      column: seatAssignment.column_number,
-      position: seatAssignment.seat_position
-    } : null
+  // ARCHITECTURAL DECISION: Agenda item seating_type is source of truth
+  if (event.seating_type === 'assigned') {
+    // Find the seating configuration for this event
+    const seatingConfig = seatingConfigs.find(
+      config => config.agenda_item_id === event.id
+    )
+    
+    if (!seatingConfig) return event
+    
+    // Find seat assignment
+    const seatAssignment = seatAssignments.find(seat => 
+      seat.seating_configuration_id === seatingConfig.id
+    )
+    
+    return {
+      ...event,
+      seatInfo: seatAssignment ? {
+        table: seatAssignment.table_name,
+        seat: seatAssignment.seat_number,
+        row: seatAssignment.row_number,
+        column: seatAssignment.column_number,
+        position: seatAssignment.seat_position
+      } : null
+    }
+  } else {
+    // For open seating, don't look for assignments
+    return event
   }
 }
 ```
