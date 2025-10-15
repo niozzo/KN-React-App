@@ -106,6 +106,9 @@ export class DataClearingService {
       // Set logout flag to prevent new cache writes
       pwaDataSyncService.setLogoutInProgress(true)
       
+      // 🔧 SAFETY FIX: Set logout timestamp for auto-reset logic
+      localStorage.setItem('kn_last_logout_time', new Date().toISOString())
+      
       // Stop periodic sync timer
       pwaDataSyncService.stopPeriodicSync()
       

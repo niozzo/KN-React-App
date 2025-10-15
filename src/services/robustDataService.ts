@@ -240,11 +240,20 @@ robustDataService.registerService('agendaItems', {
   enableFallback: true
 });
 
-robustDataService.registerService('sponsors', {
-  cacheKey: 'kn_cache_sponsors',
-  apiEndpoint: '/api/sponsors',
-  circuitBreakerKey: 'api_sponsors',
-  cacheTTL: 30 * 60 * 1000, // 30 minutes
+// DEPRECATED: sponsors table no longer used - migrated to standardized_companies
+// robustDataService.registerService('sponsors', {
+//   cacheKey: 'kn_cache_sponsors',
+//   apiEndpoint: '/api/sponsors',
+//   circuitBreakerKey: 'api_sponsors',
+//   cacheTTL: 30 * 60 * 1000, // 30 minutes
+//   enableFallback: true
+// });
+
+robustDataService.registerService('standardized_companies', {
+  cacheKey: 'kn_cache_standardized_companies',
+  apiEndpoint: '/api/standardized-companies',
+  circuitBreakerKey: 'api_standardized_companies',
+  cacheTTL: 60 * 60 * 1000, // 1 hour
   enableFallback: true
 });
 

@@ -6,6 +6,7 @@ import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import { applicationDatabaseService } from '../services/applicationDatabaseService';
 import { pwaDataSyncService } from '../services/pwaDataSyncService';
+import { logger } from '../utils/logger';
 
 /**
  * Settings Page Component
@@ -100,25 +101,61 @@ const SettingsPage = () => {
     setRefreshError('');
 
     try {
-      console.log('🔄 User-initiated data refresh started');
+      logger.progress('User-initiated data refresh started', null, 'SettingsPage');
       
-      // Use existing PWA sync service to refresh all data
-      const result = await pwaDataSyncService.syncAllData();
+      // Step 1: Clear all relevant cache entries to force fresh fetch
+      logger.debug('Clearing cache entries to force fresh data fetch', null, 'SettingsPage');
+      const cacheKeys = [
+        'kn_cache_attendees',
+        'kn_cache_agenda_items', 
+        'kn_cache_dining_options',
+        'kn_cache_hotels',
+        'kn_cache_sponsors',
+        'kn_cache_seat_assignments',
+        'kn_cache_seating_configurations',
+        'kn_cached_sessions'
+      ];
+      
+      cacheKeys.forEach(key => {
+        localStorage.removeItem(key);
+        logger.debug(`Cleared cache: ${key}`, null, 'SettingsPage');
+      });
+      
+      // Step 1.5: Clear AttendeeCacheFilterService cache to ensure fresh profile visibility data
+      logger.debug('Clearing AttendeeCacheFilterService cache', null, 'SettingsPage');
+      try {
+        const { AttendeeCacheFilterService } = await import('../services/attendeeCacheFilterService');
+        AttendeeCacheFilterService.clearHiddenProfilesCache();
+        logger.debug('AttendeeCacheFilterService cache cleared', null, 'SettingsPage');
+      } catch (error) {
+        logger.warn('Failed to clear AttendeeCacheFilterService cache', error, 'SettingsPage');
+      }
+      
+      // Step 2: Use PWA sync service with force refresh flag
+      logger.progress('Force syncing all data from database', null, 'SettingsPage');
+      const result = await pwaDataSyncService.syncAllData(true); // Force refresh flag
       
       if (result.success) {
-        console.log('✅ Data refresh successful');
+        logger.success('Data refresh successful', null, 'SettingsPage');
+        logger.debug(`Synced tables: ${result.syncedTables.join(', ')}`, null, 'SettingsPage');
         setRefreshSuccess(true);
         setLastSyncTime(new Date());
         
         // Clear success message after 3 seconds
         setTimeout(() => setRefreshSuccess(false), 3000);
       } else {
-        console.error('❌ Data refresh failed:', result.errors);
-        setRefreshError('Failed to refresh data. Please try again.');
+        logger.error('Data refresh failed', result.errors, 'SettingsPage');
+        const errorMessage = result.errors.length > 0 
+          ? `Failed to refresh data: ${result.errors.join(', ')}`
+          : 'Failed to refresh data. Please try again.';
+        setRefreshError(errorMessage);
       }
     } catch (error) {
-      console.error('❌ Data refresh error:', error);
-      setRefreshError('Failed to refresh data. Please try again.');
+      logger.error('Data refresh error', error, 'SettingsPage');
+      const errorMessage = error instanceof Error 
+        ? `Failed to refresh data: ${error.message}`
+        : 'Failed to refresh data. Please try again.';
+      setRefreshError(errorMessage);
     } finally {
       setIsRefreshing(false);
     }
@@ -126,7 +163,7 @@ const SettingsPage = () => {
 
 
   const handleSignOut = async () => {
-    console.log('🔄 Log out clicked');
+    logger.debug('Log out clicked', null, 'SettingsPage');
     setSignOutError('');
     setShowSignOutError(false);
     
@@ -134,16 +171,16 @@ const SettingsPage = () => {
       const result = await logout();
       
       if (result.success) {
-        console.log('✅ Logout successful, navigating to login page');
+        logger.success('Logout successful, navigating to login page', null, 'SettingsPage');
         // Navigate to login page after successful logout
         navigate('/login');
       } else {
-        console.error('❌ Logout failed:', result.error);
+        logger.error('Logout failed', result.error, 'SettingsPage');
         setSignOutError(result.error || 'Logout failed. Please try again.');
         setShowSignOutError(true);
       }
     } catch (error) {
-      console.error('❌ Logout error:', error);
+      logger.error('Logout error', error, 'SettingsPage');
       setSignOutError('Logout failed. Please try again.');
       setShowSignOutError(true);
     }

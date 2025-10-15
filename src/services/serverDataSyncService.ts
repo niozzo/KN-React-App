@@ -12,6 +12,7 @@ import { sanitizeAttendeeForStorage } from '../types/attendee.ts';
 import { attendeeInfoService } from './attendeeInfoService.ts';
 import { BaseService } from './baseService.ts';
 import { supabaseClientService } from './supabaseClientService.ts';
+import { logger } from '../utils/logger';
 
 export interface ServerSyncResult {
   success: boolean;
@@ -29,7 +30,9 @@ export class ServerDataSyncService extends BaseService {
   
   private readonly tableToSync = [
     'attendees',
-    'sponsors', 
+    // 'sponsors' removed - DEPRECATED, using standardized_companies instead
+    'standardized_companies', // NEW: Source of truth for sponsors
+    'company_aliases', // NEW: Company name aliases for normalization
     'seat_assignments',
     'agenda_items',
     'dining_options',
@@ -94,8 +97,27 @@ export class ServerDataSyncService extends BaseService {
       
       records = attendeeTransformer.transformArrayFromDatabase(records);
       records = attendeeTransformer.filterActiveAttendees(records); // Filter before caching
+      records = attendeeTransformer.filterConfirmedAttendees(records); // Filter confirmed attendees
       
-      console.log(`🔧 Filtered to ${records.length} active attendees`);
+      logger.debug(`Filtered to ${records.length} active, confirmed attendees`, null, 'ServerDataSyncService');
+    }
+    
+    // Standardized companies transformation - remove confidential fields and fix URLs
+    if (tableName === 'standardized_companies') {
+      records = records.map(company => {
+        const { seating_notes, priority_companies, priority_networking_attendees, ...filteredCompany } = company;
+        
+        // Fix website URLs - add www. if missing and it's a .com domain
+        if (filteredCompany.website && 
+            filteredCompany.website.startsWith('https://') && 
+            !filteredCompany.website.includes('www.') &&
+            filteredCompany.website.endsWith('.com')) {
+          filteredCompany.website = filteredCompany.website.replace('https://', 'https://www.');
+        }
+        
+        return filteredCompany;
+      });
+      logger.debug(`Filtered confidential fields and fixed URLs for ${records.length} standardized companies`, null, 'ServerDataSyncService');
     }
     
     // Dining options transformation
@@ -141,7 +163,7 @@ export class ServerDataSyncService extends BaseService {
     });
     
     if (error) {
-      console.error('❌ Admin authentication failed:', error.message);
+      logger.error('Admin authentication failed', error.message, 'ServerDataSyncService');
       throw new Error(`Admin authentication failed: ${error.message}`);
     }
     
@@ -175,47 +197,14 @@ export class ServerDataSyncService extends BaseService {
             .select('*');
           
           if (error) {
-            console.error(`❌ Failed to sync ${tableName}:`, error.message);
+            logger.error(`Failed to sync ${tableName}`, error.message, 'ServerDataSyncService');
             result.errors.push(`Failed to sync ${tableName}: ${error.message}`);
             continue;
           }
           
           let records = data || [];
           
-          // 🔍 DEBUG: Log raw data from database before any transformations
-          if (tableName === 'seat_assignments' || tableName === 'seating_configurations') {
-            console.log(`\n🔍 RAW DATABASE DATA FOR ${tableName.toUpperCase()}:`);
-            console.log('==========================================');
-            console.log(`Total records: ${records.length}`);
-            if (records.length > 0) {
-              console.log('Sample record fields:', Object.keys(records[0]));
-              console.log('Sample record:', JSON.stringify(records[0], null, 2));
-              
-              // Check for new fields we identified
-              if (tableName === 'seat_assignments') {
-                const newFields = ['is_blocked', 'is_pending_review'];
-                newFields.forEach(field => {
-                  if (records[0].hasOwnProperty(field)) {
-                    console.log(`✅ NEW FIELD FOUND: ${field} = ${records[0][field]}`);
-                  } else {
-                    console.log(`❌ NEW FIELD MISSING: ${field}`);
-                  }
-                });
-              }
-              
-              if (tableName === 'seating_configurations') {
-                const newFields = ['configuration_status', 'weightings', 'algorithm_status', 'algorithm_job_id', 'algorithm_results', 'parent_configuration_id', 'copy_type', 'is_master', 'last_synced_at'];
-                newFields.forEach(field => {
-                  if (records[0].hasOwnProperty(field)) {
-                    console.log(`✅ NEW FIELD FOUND: ${field} = ${JSON.stringify(records[0][field])}`);
-                  } else {
-                    console.log(`❌ NEW FIELD MISSING: ${field}`);
-                  }
-                });
-              }
-            }
-            console.log('==========================================\n');
-          }
+          // Debug logging removed - these diagnostic messages are not needed in production
           
           // Apply transformations using shared method
           records = await this.applyTransformations(tableName, records);
@@ -349,7 +338,7 @@ export class ServerDataSyncService extends BaseService {
     error?: string;
   }> {
     try {
-      console.log('🔍 Looking up attendee with admin authentication...');
+      // Using admin authentication for attendee lookup
       
       // Validate access code format (6-character alphanumeric)
       if (!accessCode || !/^[A-Za-z0-9]{6}$/.test(accessCode)) {
@@ -477,40 +466,7 @@ export class ServerDataSyncService extends BaseService {
       
       let records = data || [];
       
-      // 🔍 DEBUG: Log raw data from database before any transformations
-      if (tableName === 'seat_assignments' || tableName === 'seating_configurations') {
-        console.log(`\n🔍 RAW DATABASE DATA FOR ${tableName.toUpperCase()}:`);
-        console.log('==========================================');
-        console.log(`Total records: ${records.length}`);
-        if (records.length > 0) {
-          console.log('Sample record fields:', Object.keys(records[0]));
-          console.log('Sample record:', JSON.stringify(records[0], null, 2));
-          
-          // Check for new fields we identified
-          if (tableName === 'seat_assignments') {
-            const newFields = ['is_blocked', 'is_pending_review'];
-            newFields.forEach(field => {
-              if (records[0].hasOwnProperty(field)) {
-                console.log(`✅ NEW FIELD FOUND: ${field} = ${records[0][field]}`);
-              } else {
-                console.log(`❌ NEW FIELD MISSING: ${field}`);
-              }
-            });
-          }
-          
-          if (tableName === 'seating_configurations') {
-            const newFields = ['configuration_status', 'weightings', 'algorithm_status', 'algorithm_job_id', 'algorithm_results', 'parent_configuration_id', 'copy_type', 'is_master', 'last_synced_at'];
-            newFields.forEach(field => {
-              if (records[0].hasOwnProperty(field)) {
-                console.log(`✅ NEW FIELD FOUND: ${field} = ${JSON.stringify(records[0][field])}`);
-              } else {
-                console.log(`❌ NEW FIELD MISSING: ${field}`);
-              }
-            });
-          }
-        }
-        console.log('==========================================\n');
-      }
+      // Debug logging removed - these diagnostic messages are not needed in production
       
       // Apply transformations using shared method
       records = await this.applyTransformations(tableName, records);
@@ -571,17 +527,14 @@ export class ServerDataSyncService extends BaseService {
    * Debug method to check what data is cached
    */
   async debugCachedData(): Promise<void> {
-    console.log('🔍 Debugging server-synced cached data...');
+    // Debug method - removed console logging
     
     for (const tableName of this.tableToSync) {
       try {
         const data = await this.getCachedTableData(tableName);
-        console.log(`📊 ${tableName}: ${data.length} records cached`);
-        if (data.length > 0) {
-          console.log(`📊 ${tableName} sample record:`, data[0]);
-        }
+        // Debug data available - no console logging needed
       } catch (error) {
-        console.log(`❌ ${tableName}: Error getting cached data`, error);
+        // Debug error - no console logging needed
       }
     }
   }

@@ -115,10 +115,7 @@ export abstract class BaseTransformer<T> implements DataTransformer<T> {
       const schemaVersion = this.detectSchemaVersion(dbData)
       const evolvedData = this.handleSchemaEvolution(dbData, schemaVersion)
       
-      // Log schema version for monitoring (only in development, only for critical issues)
-      if (import.meta.env.DEV && schemaVersion.confidence < 0.5) {
-        console.warn(`⚠️ Low confidence schema detection for ${this.tableName}:`, schemaVersion)
-      }
+      // Schema version detection - no logging needed for normal operation
 
       const result: any = {}
       const missingFields: string[] = []
@@ -133,18 +130,14 @@ export abstract class BaseTransformer<T> implements DataTransformer<T> {
         
       }
 
-      // Log missing required fields
-      if (missingFields.length > 0) {
-        console.warn(`⚠️ Missing required fields in ${this.tableName}:`, missingFields)
-        console.warn(`Available fields:`, Object.keys(dbData))
-      }
+      // Handle missing required fields silently - these are handled by the transformation logic
 
       // Apply computed fields
       for (const computedField of this.computedFields) {
         try {
           result[computedField.name] = computedField.computation(result)
         } catch (computedError) {
-          console.warn(`⚠️ Failed to compute field ${computedField.name}:`, computedError)
+          // Silently handle computed field errors - set to null as fallback
           result[computedField.name] = null
         }
       }
