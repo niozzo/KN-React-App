@@ -1547,6 +1547,14 @@ body {
   box-shadow: var(--shadow-md);
 }
 
+/* Horizontal layout variation */
+.sponsor-card-horizontal {
+  flex-direction: row;
+  align-items: flex-start;
+  text-align: left;
+  gap: var(--space-lg);
+}
+
 .sponsor-logo-container {
   display: flex;
   align-items: center;
@@ -1560,6 +1568,14 @@ body {
   border-radius: var(--radius-lg);
   position: relative;
   margin-bottom: var(--space-md);
+  flex-shrink: 0;
+}
+
+/* Logo container for horizontal layout */
+.sponsor-card-horizontal .sponsor-logo-container {
+  width: 120px;
+  height: 120px;
+  margin: 0;
 }
 
 .sponsor-logo-container img {
@@ -1587,21 +1603,35 @@ body {
   border-radius: var(--radius-lg);
 }
 
+/* Sponsor content area (right side in horizontal layout) */
+.sponsor-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  flex: 1;
+  min-width: 0;
+}
+
 .sponsor-name-link {
   font-family: var(--font-heading);
   font-size: var(--text-xl);
   font-weight: var(--font-semibold);
   color: var(--purple-700);
-  margin-bottom: var(--space-sm);
-  text-align: center;
   text-decoration: none;
   transition: color var(--transition-normal);
   display: inline-block;
+  line-height: 1.3;
 }
 
 .sponsor-name-link:hover {
   color: var(--purple-900);
   text-decoration: underline;
+}
+
+.external-link-icon {
+  font-size: var(--text-base);
+  opacity: 0.7;
+  margin-left: 4px;
 }
 
 .sponsor-geography {
@@ -1612,15 +1642,51 @@ body {
   border-radius: var(--radius-md);
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
-  margin-bottom: var(--space-md);
+  width: fit-content;
+}
+
+.sponsor-description-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
 }
 
 .sponsor-description {
   font-size: var(--text-base);
   color: var(--ink-600);
   line-height: 1.5;
-  text-align: center;
   margin: 0;
+  text-align: left;
+}
+
+/* 3-line clamp for collapsed state */
+.sponsor-description.collapsed {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sponsor-description.expanded {
+  display: block;
+}
+
+.description-toggle-btn {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  color: var(--purple-700);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  padding: var(--space-xs) 0;
+  transition: color var(--transition-normal);
+  text-decoration: underline;
+}
+
+.description-toggle-btn:hover {
+  color: var(--purple-900);
 }
 
 /* DEPRECATED: Keep for backward compatibility but no longer used */
