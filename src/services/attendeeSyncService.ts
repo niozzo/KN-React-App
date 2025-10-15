@@ -38,9 +38,17 @@ export class AttendeeSyncService extends BaseService {
   /**
    * Refresh attendee data from source and update conference_auth
    */
-  async refreshAttendeeData(): Promise<AttendeeSyncResult> {
+  async refreshAttendeeData(forceRefresh: boolean = false): Promise<AttendeeSyncResult> {
     try {
-      console.log('🔄 Starting attendee data refresh...');
+      console.log(`🔄 Starting attendee data refresh${forceRefresh ? ' (force refresh)' : ''}...`);
+      
+      // Force refresh: Clear attendee cache before fetching fresh data
+      if (forceRefresh) {
+        console.log('🧹 Force refresh: Clearing attendee cache...');
+        localStorage.removeItem('kn_cache_attendees');
+        localStorage.removeItem('conference_auth');
+        console.log('✅ Attendee cache cleared, fetching fresh data from database');
+      }
       
       const freshAttendeeData = await getCurrentAttendeeData();
       if (!freshAttendeeData) {
