@@ -18,6 +18,7 @@ import { isTimestampExpired } from '../utils/timestampUtils.ts';
 import { TABLE_MAPPINGS, getAllApplicationTables, getAllMainTables, isValidApplicationTable, isValidMainTable, type ApplicationTableName, type MainTableName } from '../config/tableMappings.ts';
 import { serviceRegistry } from './ServiceRegistry.ts';
 import { SupabaseClientFactory } from './SupabaseClientFactory.ts';
+import { logger } from '../utils/logger';
 
 export interface SyncStatus {
   isOnline: boolean;
@@ -444,15 +445,35 @@ export class PWADataSyncService extends BaseService {
   /**
    * Sync all data tables
    */
-  async syncAllData(): Promise<SyncResult> {
+  async syncAllData(forceRefresh: boolean = false): Promise<SyncResult> {
     // 🛑 GUARD: Don't start sync if logout is in progress
     if (this.isLogoutInProgress) {
-      return {
-        success: false,
-        syncedTables: [],
-        errors: ['Sync cancelled - logout in progress'],
-        timestamp: new Date().toISOString()
-      };
+      // 🔧 SAFETY FIX: If flag has been stuck for too long, reset it automatically
+      // This prevents the flag from permanently blocking sync operations
+      const lastLogoutTime = localStorage.getItem('kn_last_logout_time');
+      if (lastLogoutTime) {
+        const logoutTime = new Date(lastLogoutTime).getTime();
+        const now = Date.now();
+        const timeSinceLogout = now - logoutTime;
+        
+        // If more than 5 minutes have passed since logout, reset the flag
+        if (timeSinceLogout > 5 * 60 * 1000) {
+          console.warn('🔧 SAFETY: Logout flag stuck for >5 minutes, auto-resetting');
+          this.isLogoutInProgress = false;
+          localStorage.removeItem('kn_last_logout_time');
+        } else {
+          return {
+            success: false,
+            syncedTables: [],
+            errors: ['Sync cancelled - logout in progress'],
+            timestamp: new Date().toISOString()
+          };
+        }
+      } else {
+        // No logout timestamp, flag might be stuck from previous session
+        console.warn('🔧 SAFETY: Logout flag set but no logout timestamp, auto-resetting');
+        this.isLogoutInProgress = false;
+      }
     }
 
     const sessionId = cacheMonitoringService.getSessionId();
@@ -495,6 +516,12 @@ export class PWADataSyncService extends BaseService {
     };
 
     try {
+      // Force refresh: Clear cache before syncing if requested
+      if (forceRefresh) {
+        logger.debug('Force refresh mode: Clearing cache before sync', null, 'PWADataSyncService');
+        await this.clearCache();
+        logger.debug('Cache cleared, proceeding with fresh data fetch', null, 'PWADataSyncService');
+      }
 
       // Validate schema before syncing (lazy-loaded only in production)
       try {
@@ -502,12 +529,12 @@ export class PWADataSyncService extends BaseService {
         if (schemaValidator) {
           const schemaResult = await schemaValidator.validateSchema();
           if (!schemaResult.isValid) {
-            console.warn('⚠️ Schema validation failed:', schemaResult.errors);
+            logger.warn('Schema validation failed', schemaResult.errors, 'PWADataSyncService');
             result.errors.push(`Schema validation failed: ${schemaResult.errors.length} errors found`);
           }
         }
       } catch (schemaError) {
-        console.warn('⚠️ Schema validation error:', schemaError);
+        logger.warn('Schema validation error', schemaError, 'PWADataSyncService');
         result.errors.push(`Schema validation error: ${schemaError.message}`);
       }
 
@@ -519,12 +546,12 @@ export class PWADataSyncService extends BaseService {
       
       for (const table of tables) {
         try {
-          await this.syncTable(table);
+          await this.syncTable(table, forceRefresh);
           result.syncedTables.push(table);
         } catch (error) {
           const errorMsg = `Failed to sync ${table}: ${error instanceof Error ? error.message : 'Unknown error'}`;
           result.errors.push(errorMsg);
-          console.error(`❌ ${errorMsg}`);
+          logger.error(errorMsg, null, 'PWADataSyncService');
         }
       }
 
@@ -536,22 +563,22 @@ export class PWADataSyncService extends BaseService {
         } catch (error) {
           const errorMsg = `Failed to sync application table ${table}: ${error instanceof Error ? error.message : 'Unknown error'}`;
           result.errors.push(errorMsg);
-          console.error(`❌ ${errorMsg}`);
+          logger.error(errorMsg, null, 'PWADataSyncService');
         }
       }
 
-      // ✅ NEW: Add attendee data sync
+      // ✅ NEW: Add attendee data sync with force refresh support
       try {
         const { attendeeSyncService } = await import('./attendeeSyncService');
-        const attendeeResult = await attendeeSyncService.refreshAttendeeData();
+        const attendeeResult = await attendeeSyncService.refreshAttendeeData(forceRefresh);
         if (attendeeResult.success) {
           result.syncedTables.push('attendee_data');
         } else {
-          console.warn('⚠️ Attendee data sync failed:', attendeeResult.error);
+          logger.warn('Attendee data sync failed', attendeeResult.error, 'PWADataSyncService');
           result.errors.push(`Attendee sync failed: ${attendeeResult.error}`);
         }
       } catch (attendeeError) {
-        console.warn('⚠️ Attendee data sync error:', attendeeError);
+        logger.warn('Attendee data sync error', attendeeError, 'PWADataSyncService');
         result.errors.push(`Attendee sync error: ${attendeeError instanceof Error ? attendeeError.message : 'Unknown error'}`);
       }
 
@@ -563,14 +590,14 @@ export class PWADataSyncService extends BaseService {
       
       
       if (result.errors.length > 0) {
-        console.warn(`⚠️ Sync completed with errors: ${result.errors.join(', ')}`);
+        logger.warn(`Sync completed with errors: ${result.errors.join(', ')}`, null, 'PWADataSyncService');
         result.errors.forEach(error => {
           cacheMonitoringService.logSyncFailure('syncAllData', error, { sessionId, syncedTables: result.syncedTables });
         });
       }
 
     } catch (error) {
-      console.error('❌ Sync failed:', error);
+      logger.error('Sync failed', error, 'PWADataSyncService');
       result.success = false;
       result.errors.push(error instanceof Error ? error.message : 'Unknown error');
       cacheMonitoringService.logSyncFailure('syncAllData', error.message, { sessionId, error });
@@ -591,7 +618,7 @@ export class PWADataSyncService extends BaseService {
   /**
    * Sync individual table
    */
-  private async syncTable(tableName: MainTableName): Promise<void> {
+  private async syncTable(tableName: MainTableName, forceRefresh: boolean = false): Promise<void> {
 
     try {
       // Validate table name and get Supabase table name
@@ -601,6 +628,7 @@ export class PWADataSyncService extends BaseService {
       const supabaseTable = this.tableMappings.main[tableName];
 
       // Query data from Supabase
+      logger.debug(`Syncing ${tableName}${forceRefresh ? ' (force refresh)' : ''}`, null, 'PWADataSyncService');
       const { data, error } = await supabase
         .from(supabaseTable)
         .select('*');
@@ -627,7 +655,7 @@ export class PWADataSyncService extends BaseService {
           records = agendaTransformer.transformArrayFromDatabase(records);
           records = agendaTransformer.sortAgendaItems(records);
         } catch (transformError) {
-          console.warn(`⚠️ Failed to transform agenda_items:`, transformError);
+          logger.warn(`Failed to transform agenda_items`, transformError, 'PWADataSyncService');
           // Continue with raw data if transformation fails
         }
       }
@@ -641,7 +669,7 @@ export class PWADataSyncService extends BaseService {
       await this.cacheTableData(tableName, records);
 
     } catch (error) {
-      console.error(`❌ Failed to sync ${tableName}:`, error);
+      logger.error(`Failed to sync ${tableName}`, error, 'PWADataSyncService');
       throw error;
     }
   }
@@ -669,7 +697,7 @@ export class PWADataSyncService extends BaseService {
       
       // Enhanced debugging for application database connection
       if (!applicationDbClient) {
-        console.error(`❌ PWA Data Sync: Application database client is null for ${tableName}`);
+        logger.error(`Application database client is null for ${tableName}`, null, 'PWADataSyncService');
         this.recordApplicationDbFailure();
         throw new Error(`Application database client not available for ${tableName}`);
       }
@@ -680,7 +708,7 @@ export class PWADataSyncService extends BaseService {
         .select('*');
       
       if (error) {
-        console.error(`❌ PWA Data Sync: Application database query failed for ${tableName}:`, {
+        logger.error(`Application database query failed for ${tableName}`, {
           error: error.message,
           code: error.code,
           details: error.details,
@@ -1244,12 +1272,12 @@ export class PWADataSyncService extends BaseService {
     for (const table of allTables) {
       try {
         const data = await this.getCachedTableData(table);
-        console.log(`📊 ${table}: ${data.length} records cached`);
+        logger.debug(`${table}: ${data.length} records cached`, null, 'PWADataSyncService');
         if (data.length > 0) {
-          console.log(`📊 ${table} sample record:`, data[0]);
+          logger.debug(`${table} sample record`, data[0], 'PWADataSyncService');
         }
       } catch (error) {
-        console.log(`❌ ${table}: Error getting cached data`, error);
+        logger.debug(`${table}: Error getting cached data`, error, 'PWADataSyncService');
       }
     }
   }
@@ -1293,6 +1321,16 @@ export class PWADataSyncService extends BaseService {
    */
   public setLogoutInProgress(value: boolean): void {
     this.isLogoutInProgress = value;
+    logger.debug(`Logout in progress: ${value}`, null, 'PWADataSyncService');
+  }
+
+  /**
+   * 🔧 SAFETY FIX: Reset stuck logout flag
+   * This method can be called to reset the flag if it gets stuck
+   */
+  public resetLogoutFlag(): void {
+    this.isLogoutInProgress = false;
+    logger.debug('SAFETY: Logout flag reset to prevent sync blocking', null, 'PWADataSyncService');
   }
 
   /**

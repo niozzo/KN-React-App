@@ -148,7 +148,7 @@ describe('LoginPage - Integration Tests', () => {
       // Mock successful data sync and authentication
       vi.mocked(serverDataSyncService.syncAllData).mockResolvedValue({
         success: true,
-        syncedTables: ['attendees', 'sponsors'],
+        syncedTables: ['attendees', 'standardized_companies'],
         totalRecords: 100,
         errors: []
       })
@@ -253,7 +253,7 @@ describe('LoginPage - Integration Tests', () => {
     it('should auto-submit when exactly 6 characters are entered', async () => {
       vi.mocked(serverDataSyncService.syncAllData).mockResolvedValue({
         success: true,
-        syncedTables: ['attendees', 'sponsors'],
+        syncedTables: ['attendees', 'standardized_companies'],
         totalRecords: 100,
         errors: []
       })
@@ -307,7 +307,7 @@ describe('LoginPage - Integration Tests', () => {
       vi.mocked(serverDataSyncService.syncAllData).mockImplementation(() => 
         new Promise(resolve => setTimeout(() => resolve({
           success: true,
-          syncedTables: ['attendees', 'sponsors'],
+          syncedTables: ['attendees', 'standardized_companies'],
           totalRecords: 100,
           errors: []
         }), 100))
@@ -342,7 +342,7 @@ describe('LoginPage - Integration Tests', () => {
     it('should display error message for invalid access code', async () => {
       vi.mocked(serverDataSyncService.syncAllData).mockResolvedValue({
         success: true,
-        syncedTables: ['attendees', 'sponsors'],
+        syncedTables: ['attendees', 'standardized_companies'],
         totalRecords: 100,
         errors: []
       })
@@ -372,7 +372,7 @@ describe('LoginPage - Integration Tests', () => {
       // First trigger an error
       vi.mocked(serverDataSyncService.syncAllData).mockResolvedValue({
         success: true,
-        syncedTables: ['attendees', 'sponsors'],
+        syncedTables: ['attendees', 'standardized_companies'],
         totalRecords: 100,
         errors: []
       })

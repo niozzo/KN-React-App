@@ -84,7 +84,7 @@ describe('Force Global Sync Integration Tests', () => {
       mockPWADataSyncService.clearCache.mockResolvedValue();
       mockPWADataSyncService.forceSync.mockResolvedValue({
         success: true,
-        syncedTables: ['attendees', 'agenda_items', 'sponsors', 'dining_options'],
+        syncedTables: ['attendees', 'agenda_items', 'standardized_companies', 'dining_options'],
         totalRecords: 200,
         errors: []
       });
@@ -158,7 +158,7 @@ describe('Force Global Sync Integration Tests', () => {
         success: true,
         syncedTables: ['attendees', 'agenda_items'], // Only 2 out of 4 tables synced
         totalRecords: 100,
-        errors: ['Failed to sync sponsors', 'Failed to sync dining_options']
+        errors: ['Failed to sync standardized_companies', 'Failed to sync dining_options']
       });
       
       mockDataInitializationService.forceRefreshData.mockResolvedValue({

@@ -1,6 +1,9 @@
 /**
  * SponsorService - Data access layer for sponsors table
  * Story 1.2: Database Integration & Data Access Layer Setup
+ * 
+ * ⚠️ DEPRECATED: Use standardizedCompanySponsorService.ts instead
+ * The sponsors table is deprecated. Use standardized_companies table.
  */
 
 import { supabase } from '../lib/supabase';

@@ -12,7 +12,9 @@ export const TABLE_MAPPINGS = {
   },
   main: {
     attendees: 'attendees',
-    sponsors: 'sponsors',
+    sponsors: 'sponsors', // DEPRECATED: Will be removed after migration
+    standardized_companies: 'standardized_companies',
+    company_aliases: 'company_aliases',
     seat_assignments: 'seat_assignments',
     agenda_items: 'agenda_items',
     dining_options: 'dining_options',

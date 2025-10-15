@@ -51,35 +51,75 @@ export class CompanyNormalizationService extends BaseService {
   
   /**
    * Initialize the service - load and cache company data
+   * Uses localStorage cache populated during login sync
    */
   async initialize(): Promise<void> {
     try {
       const startTime = performance.now();
       
-      // Load standardized companies
-      const { data: companies, error: companiesError } = await supabase
-        .from('standardized_companies')
-        .select('*');
-      
-      if (companiesError) {
-        console.error('❌ Failed to load standardized companies:', companiesError);
-        throw new Error(`Failed to load standardized companies: ${companiesError.message}`);
+      // Load standardized companies from localStorage cache first
+      let companies: StandardizedCompany[] = [];
+      try {
+        const cachedData = localStorage.getItem('kn_cache_standardized_companies');
+        if (cachedData) {
+          const cacheObj = JSON.parse(cachedData);
+          companies = cacheObj.data || cacheObj;
+          console.log('✅ Loaded standardized companies from localStorage cache');
+        }
+      } catch (cacheError) {
+        console.warn('⚠️ Failed to load cached standardized companies:', cacheError);
       }
       
-      // Load company aliases
-      const { data: aliases, error: aliasesError } = await supabase
-        .from('company_aliases')
-        .select('*');
+      // Fallback to database if cache is empty
+      if (!companies || companies.length === 0) {
+        console.log('🌐 No cached companies, fetching from database...');
+        const { data: dbCompanies, error: companiesError } = await supabase
+          .from('standardized_companies')
+          .select('*');
+        
+        if (companiesError) {
+          console.error('❌ Failed to load standardized companies:', companiesError);
+          throw new Error(`Failed to load standardized companies: ${companiesError.message}`);
+        }
+        
+        companies = dbCompanies || [];
+      }
       
-      if (aliasesError) {
-        console.error('❌ Failed to load company aliases:', aliasesError);
-        throw new Error(`Failed to load company aliases: ${aliasesError.message}`);
+      // Load company aliases from localStorage cache first
+      let aliases: CompanyAlias[] = [];
+      try {
+        const cachedData = localStorage.getItem('kn_cache_company_aliases');
+        if (cachedData) {
+          const cacheObj = JSON.parse(cachedData);
+          aliases = cacheObj.data || cacheObj;
+          console.log('✅ Loaded company aliases from localStorage cache');
+        }
+      } catch (cacheError) {
+        console.warn('⚠️ Failed to load cached company aliases:', cacheError);
+      }
+      
+      // Fallback to database if cache is empty
+      if (!aliases || aliases.length === 0) {
+        console.log('🌐 No cached aliases, fetching from database...');
+        const { data: dbAliases, error: aliasesError } = await supabase
+          .from('company_aliases')
+          .select('*');
+        
+        if (aliasesError) {
+          console.error('❌ Failed to load company aliases:', aliasesError);
+          throw new Error(`Failed to load company aliases: ${aliasesError.message}`);
+        }
+        
+        aliases = dbAliases || [];
       }
       
       // Build lookup maps
-      this.buildLookupMaps(companies || [], aliases || []);
+      this.buildLookupMaps(companies, aliases);
       
       this.isInitialized = true;
+      
+      const duration = performance.now() - startTime;
+      console.log(`✅ Company Normalization Service initialized in ${duration.toFixed(2)}ms`);
       
     } catch (error) {
       console.error('❌ Company Normalization Service initialization failed:', error);

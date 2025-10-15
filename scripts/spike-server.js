@@ -385,18 +385,19 @@ app.get('/api/attendees', async (req, res) => {
   }
 });
 
-app.get('/api/sponsors', async (req, res) => {
-  try {
-    const { limit } = req.query;
-    const { data, error } = await fetchTableRows('sponsors', limit);
-    if (error) {
-      return handleApiError(res, error);
-    }
-    return res.status(200).json({ success: true, data });
-  } catch (err) {
-    return handleApiError(res, err);
-  }
-});
+// DEPRECATED: sponsors endpoint no longer used - migrated to standardized_companies
+// app.get('/api/sponsors', async (req, res) => {
+//   try {
+//     const { limit } = req.query;
+//     const { data, error } = await fetchTableRows('sponsors', limit);
+//     if (error) {
+//       return handleApiError(res, error);
+//     }
+//     return res.status(200).json({ success: true, data });
+//   } catch (err) {
+//     return handleApiError(res, err);
+//   }
+// });
 
 app.get('/api/seat-assignments', async (req, res) => {
   try {
