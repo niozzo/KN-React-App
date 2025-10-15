@@ -647,7 +647,23 @@ export const useSessionData = (options = {}) => {
         nextSession,
         lastUpdated: lastUpdated?.toISOString()
       };
+      
+      // Find John Boehner event for debugging
+      const boehnerEvent = sessions.find(s => s.id === 'f95a4c5a-0120-4156-b02a-0c92fc1bf64d');
+      console.log('💾 [SESSION-HOOK] Caching kn_cached_sessions:', {
+        total_sessions: sessions.length,
+        total_dining: diningOptions.length,
+        total_events: allEvents.length,
+        boehner_event: boehnerEvent ? {
+          id: boehnerEvent.id,
+          title: boehnerEvent.title,
+          speakers: boehnerEvent.speakers,
+          speakerInfo: boehnerEvent.speakerInfo
+        } : 'NOT FOUND'
+      });
+      
       localStorage.setItem('kn_cached_sessions', JSON.stringify(cacheData));
+      console.log('✅ [SESSION-HOOK] Successfully saved kn_cached_sessions to localStorage');
     }
   }, [sessions, diningOptions, allEvents, currentSession, nextSession, lastUpdated, enableOfflineMode]);
 

@@ -87,6 +87,7 @@ class ApplicationDatabaseService extends BaseService {
 
   // Speaker Assignment Methods
   async getSpeakerAssignments(agendaItemId: string): Promise<SpeakerAssignment[]> {
+    console.log('🔍 [DB] getSpeakerAssignments called for agenda_item_id:', agendaItemId);
     const client = this.getClient();
     const { data, error } = await client
       .from('speaker_assignments')
@@ -94,7 +95,11 @@ class ApplicationDatabaseService extends BaseService {
       .eq('agenda_item_id', agendaItemId)
       .order('display_order', { ascending: true });
     
-    if (error) throw error;
+    if (error) {
+      console.error('❌ [DB] Error fetching speaker assignments:', error);
+      throw error;
+    }
+    console.log('✅ [DB] Fetched speaker assignments:', data?.length || 0, 'records', data);
     return data || [];
   }
 
