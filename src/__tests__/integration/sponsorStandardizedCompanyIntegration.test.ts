@@ -1,159 +1,300 @@
 /**
  * Integration Test: Sponsor Standardized Company Integration
- * Tests the integration between sponsors and standardized companies
+ * Tests the new standardizedCompanySponsorService that uses standardized_companies table
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { enhancedSponsorService } from '../../services/enhancedSponsorService';
-import { companyNormalizationService } from '../../services/companyNormalizationService';
+import { standardizedCompanySponsorService } from '../../services/standardizedCompanySponsorService';
 
-// Mock the dependencies
-vi.mock('../../services/sponsorService', () => ({
-  sponsorService: {
-    getAllSponsors: vi.fn()
-  }
-}));
+// Mock localStorage
+const localStorageMock = (() => {
+  let store: Record<string, string> = {};
+  
+  return {
+    getItem: (key: string) => store[key] || null,
+    setItem: (key: string, value: string) => {
+      store[key] = value;
+    },
+    clear: () => {
+      store = {};
+    }
+  };
+})();
 
-vi.mock('../../services/companyNormalizationService', () => ({
-  companyNormalizationService: {
-    isInitialized: true,
-    normalizeCompanyName: vi.fn()
-  }
-}));
+Object.defineProperty(window, 'localStorage', {
+  value: localStorageMock
+});
 
 describe('Sponsor Standardized Company Integration', () => {
   beforeEach(() => {
+    localStorageMock.clear();
     vi.clearAllMocks();
   });
 
-  it('should enhance sponsors with standardized company data', async () => {
-    // Mock sponsor data
-    const mockSponsors = [
+  it('should fetch sponsors from standardized_companies table filtered by fund_analytics_category', async () => {
+    // Mock cached standardized companies
+    const mockStandardizedCompanies = [
       {
         id: '1',
         name: 'Apax Partners',
-        logo: 'old-logo-url',
-        website: 'old-website-url',
-        is_active: true,
-        display_order: 1,
+        logo: 'https://example.com/apax-logo.png',
+        website: 'https://apaxpartners.com',
+        fund_analytics_category: 'Sponsors & Vendors',
+        sector: 'Technology',
+        geography: 'US',
         created_at: '2024-01-01',
         updated_at: '2024-01-01'
       },
       {
         id: '2',
-        name: 'Unknown Company',
-        logo: '',
-        website: '',
-        is_active: true,
-        display_order: 2,
+        name: 'Non-Sponsor Company',
+        logo: 'https://example.com/other-logo.png',
+        website: 'https://other.com',
+        fund_analytics_category: 'Portfolio',
+        sector: 'Healthcare',
+        geography: 'EU',
+        created_at: '2024-01-01',
+        updated_at: '2024-01-01'
+      },
+      {
+        id: '3',
+        name: 'Zoom Communications',
+        logo: 'https://example.com/zoom-logo.png',
+        website: 'https://zoom.us',
+        fund_analytics_category: 'Sponsors & Vendors',
+        sector: 'Technology',
+        geography: 'US',
         created_at: '2024-01-01',
         updated_at: '2024-01-01'
       }
     ];
 
-    // Mock standardized company data
-    const mockStandardizedCompany = {
-      id: 'std-1',
-      name: 'Apax Partners',
-      logo: 'https://logo.clearbit.com/apax.com',
-      website: 'https://apax.com',
-      sector: 'Private Equity',
-      geography: 'Global',
-      created_at: '2024-01-01',
-      updated_at: '2024-01-01'
-    };
+    // Cache the standardized companies data
+    localStorageMock.setItem('kn_cache_standardized_companies', JSON.stringify({
+      data: mockStandardizedCompanies,
+      timestamp: Date.now()
+    }));
 
-    // Mock service responses
-    const { sponsorService } = await import('../../services/sponsorService');
-    vi.mocked(sponsorService.getAllSponsors).mockResolvedValue({
-      success: true,
-      data: mockSponsors,
-      count: 2,
-      error: null
-    });
+    // Fetch sponsors
+    const sponsors = await standardizedCompanySponsorService.getSponsors();
 
-    vi.mocked(companyNormalizationService.normalizeCompanyName)
-      .mockReturnValueOnce(mockStandardizedCompany) // For Apax Partners
-      .mockReturnValueOnce(null); // For Unknown Company
-
-    // Test the integration
-    const result = await enhancedSponsorService.getSponsorsWithStandardizedData();
-
-    // Verify results
-    expect(result).toHaveLength(2);
-    
-    // Check Apax Partners (should use standardized data)
-    const apaxSponsor = result.find(s => s.name === 'Apax Partners');
-    expect(apaxSponsor).toBeDefined();
-    expect(apaxSponsor?.logo).toBe('https://logo.clearbit.com/apax.com');
-    expect(apaxSponsor?.website).toBe('https://apax.com');
-    expect(apaxSponsor?.logoSource).toBe('standardized');
-    expect(apaxSponsor?.websiteSource).toBe('standardized');
-    expect(apaxSponsor?.standardizedCompany).toEqual(mockStandardizedCompany);
-
-    // Check Unknown Company (should fallback to sponsor table data)
-    const unknownSponsor = result.find(s => s.name === 'Unknown Company');
-    expect(unknownSponsor).toBeDefined();
-    expect(unknownSponsor?.logo).toBe('');
-    expect(unknownSponsor?.website).toBe('');
-    expect(unknownSponsor?.logoSource).toBe('fallback');
-    expect(unknownSponsor?.websiteSource).toBe('fallback');
-    expect(unknownSponsor?.standardizedCompany).toBeUndefined();
+    // Should only return companies with "Sponsors & Vendors" category
+    expect(sponsors).toHaveLength(2);
+    expect(sponsors[0].name).toBe('Apax Partners');
+    expect(sponsors[1].name).toBe('Zoom Communications');
+    expect(sponsors.every(s => s.fund_analytics_category === 'Sponsors & Vendors')).toBe(true);
   });
 
-  it('should handle company normalization service not initialized', async () => {
-    // Mock sponsor data
-    const mockSponsors = [
+  it('should sort sponsors alphabetically by name', async () => {
+    // Mock cached standardized companies (not in alphabetical order)
+    const mockStandardizedCompanies = [
       {
         id: '1',
-        name: 'Test Company',
-        logo: 'test-logo',
-        website: 'test-website',
-        is_active: true,
-        display_order: 1,
+        name: 'Zoom Communications',
+        logo: 'https://example.com/zoom-logo.png',
+        website: 'https://zoom.us',
+        fund_analytics_category: 'Sponsors & Vendors',
+        sector: 'Technology',
+        geography: 'US',
+        created_at: '2024-01-01',
+        updated_at: '2024-01-01'
+      },
+      {
+        id: '2',
+        name: 'Apax Partners',
+        logo: 'https://example.com/apax-logo.png',
+        website: 'https://apaxpartners.com',
+        fund_analytics_category: 'Sponsors & Vendors',
+        sector: 'Technology',
+        geography: 'US',
+        created_at: '2024-01-01',
+        updated_at: '2024-01-01'
+      },
+      {
+        id: '3',
+        name: 'Microsoft',
+        logo: 'https://example.com/ms-logo.png',
+        website: 'https://microsoft.com',
+        fund_analytics_category: 'Sponsors & Vendors',
+        sector: 'Technology',
+        geography: 'US',
         created_at: '2024-01-01',
         updated_at: '2024-01-01'
       }
     ];
 
-    // Mock service responses
-    const { sponsorService } = await import('../../services/sponsorService');
-    vi.mocked(sponsorService.getAllSponsors).mockResolvedValue({
-      success: true,
-      data: mockSponsors,
-      count: 1,
-      error: null
-    });
+    // Cache the standardized companies data
+    localStorageMock.setItem('kn_cache_standardized_companies', JSON.stringify({
+      data: mockStandardizedCompanies,
+      timestamp: Date.now()
+    }));
 
-    // Mock company normalization service as not initialized
-    vi.mocked(companyNormalizationService).isInitialized = false;
-    vi.mocked(companyNormalizationService.normalizeCompanyName).mockReturnValue(null);
+    // Fetch sponsors
+    const sponsors = await standardizedCompanySponsorService.getSponsors();
 
-    // Test the integration
-    const result = await enhancedSponsorService.getSponsorsWithStandardizedData();
-
-    // Verify fallback behavior
-    expect(result).toHaveLength(1);
-    const sponsor = result[0];
-    expect(sponsor.logo).toBe('test-logo');
-    expect(sponsor.website).toBe('test-website');
-    expect(sponsor.logoSource).toBe('sponsor_table');
-    expect(sponsor.websiteSource).toBe('sponsor_table');
+    // Should be sorted alphabetically
+    expect(sponsors).toHaveLength(3);
+    expect(sponsors[0].name).toBe('Apax Partners');
+    expect(sponsors[1].name).toBe('Microsoft');
+    expect(sponsors[2].name).toBe('Zoom Communications');
   });
 
-  it('should provide accurate statistics', async () => {
-    const mockSponsors = [
-      { logoSource: 'standardized', websiteSource: 'standardized' },
-      { logoSource: 'sponsor_table', websiteSource: 'standardized' },
-      { logoSource: 'fallback', websiteSource: 'fallback' }
-    ] as any[];
+  it('should return empty array when no sponsors found', async () => {
+    // Mock cached standardized companies with no sponsors
+    const mockStandardizedCompanies = [
+      {
+        id: '1',
+        name: 'Portfolio Company',
+        logo: 'https://example.com/logo.png',
+        website: 'https://example.com',
+        fund_analytics_category: 'Portfolio',
+        sector: 'Technology',
+        geography: 'US',
+        created_at: '2024-01-01',
+        updated_at: '2024-01-01'
+      }
+    ];
 
-    const stats = enhancedSponsorService.getSponsorStats(mockSponsors);
+    // Cache the standardized companies data
+    localStorageMock.setItem('kn_cache_standardized_companies', JSON.stringify({
+      data: mockStandardizedCompanies,
+      timestamp: Date.now()
+    }));
 
-    expect(stats.total).toBe(3);
-    expect(stats.withStandardizedLogos).toBe(1);
-    expect(stats.withStandardizedWebsites).toBe(2);
-    expect(stats.fallbackLogos).toBe(1);
-    expect(stats.fallbackWebsites).toBe(1);
+    // Fetch sponsors
+    const sponsors = await standardizedCompanySponsorService.getSponsors();
+
+    // Should return empty array
+    expect(sponsors).toHaveLength(0);
+  });
+
+  it('should handle empty cache gracefully', async () => {
+    // No cached data - empty localStorage
+
+    // Fetch sponsors
+    const sponsors = await standardizedCompanySponsorService.getSponsors();
+
+    // Should return empty array without error
+    expect(sponsors).toHaveLength(0);
+  });
+
+  it('should get sponsor by name', async () => {
+    // Mock cached standardized companies
+    const mockStandardizedCompanies = [
+      {
+        id: '1',
+        name: 'Apax Partners',
+        logo: 'https://example.com/apax-logo.png',
+        website: 'https://apaxpartners.com',
+        fund_analytics_category: 'Sponsors & Vendors',
+        sector: 'Technology',
+        geography: 'US',
+        created_at: '2024-01-01',
+        updated_at: '2024-01-01'
+      },
+      {
+        id: '2',
+        name: 'Microsoft',
+        logo: 'https://example.com/ms-logo.png',
+        website: 'https://microsoft.com',
+        fund_analytics_category: 'Sponsors & Vendors',
+        sector: 'Technology',
+        geography: 'US',
+        created_at: '2024-01-01',
+        updated_at: '2024-01-01'
+      }
+    ];
+
+    // Cache the standardized companies data
+    localStorageMock.setItem('kn_cache_standardized_companies', JSON.stringify({
+      data: mockStandardizedCompanies,
+      timestamp: Date.now()
+    }));
+
+    // Get sponsor by name
+    const sponsor = await standardizedCompanySponsorService.getSponsorByName('Microsoft');
+
+    expect(sponsor).not.toBeNull();
+    expect(sponsor?.name).toBe('Microsoft');
+    expect(sponsor?.website).toBe('https://microsoft.com');
+  });
+
+  it('should return null when sponsor not found by name', async () => {
+    // Mock cached standardized companies
+    const mockStandardizedCompanies = [
+      {
+        id: '1',
+        name: 'Apax Partners',
+        logo: 'https://example.com/apax-logo.png',
+        website: 'https://apaxpartners.com',
+        fund_analytics_category: 'Sponsors & Vendors',
+        sector: 'Technology',
+        geography: 'US',
+        created_at: '2024-01-01',
+        updated_at: '2024-01-01'
+      }
+    ];
+
+    // Cache the standardized companies data
+    localStorageMock.setItem('kn_cache_standardized_companies', JSON.stringify({
+      data: mockStandardizedCompanies,
+      timestamp: Date.now()
+    }));
+
+    // Get sponsor by name
+    const sponsor = await standardizedCompanySponsorService.getSponsorByName('NonExistent Company');
+
+    expect(sponsor).toBeNull();
+  });
+
+  it('should get sponsors count', async () => {
+    // Mock cached standardized companies
+    const mockStandardizedCompanies = [
+      {
+        id: '1',
+        name: 'Apax Partners',
+        logo: 'https://example.com/apax-logo.png',
+        website: 'https://apaxpartners.com',
+        fund_analytics_category: 'Sponsors & Vendors',
+        sector: 'Technology',
+        geography: 'US',
+        created_at: '2024-01-01',
+        updated_at: '2024-01-01'
+      },
+      {
+        id: '2',
+        name: 'Microsoft',
+        logo: 'https://example.com/ms-logo.png',
+        website: 'https://microsoft.com',
+        fund_analytics_category: 'Sponsors & Vendors',
+        sector: 'Technology',
+        geography: 'US',
+        created_at: '2024-01-01',
+        updated_at: '2024-01-01'
+      },
+      {
+        id: '3',
+        name: 'Portfolio Company',
+        logo: 'https://example.com/logo.png',
+        website: 'https://example.com',
+        fund_analytics_category: 'Portfolio',
+        sector: 'Healthcare',
+        geography: 'EU',
+        created_at: '2024-01-01',
+        updated_at: '2024-01-01'
+      }
+    ];
+
+    // Cache the standardized companies data
+    localStorageMock.setItem('kn_cache_standardized_companies', JSON.stringify({
+      data: mockStandardizedCompanies,
+      timestamp: Date.now()
+    }));
+
+    // Get sponsors count
+    const count = await standardizedCompanySponsorService.getSponsorsCount();
+
+    // Should count only sponsors, not other companies
+    expect(count).toBe(2);
   });
 });

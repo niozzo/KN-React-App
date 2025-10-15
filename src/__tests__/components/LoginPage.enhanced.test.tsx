@@ -23,7 +23,7 @@ vi.mock('../../services/serverDataSyncService', () => ({
     lookupAttendeeByAccessCode: vi.fn(),
     syncAllData: vi.fn().mockResolvedValue({
       success: true,
-      syncedTables: ['attendees', 'sponsors', 'agenda_items'],
+      syncedTables: ['attendees', 'standardized_companies', 'agenda_items'],
       errors: [],
       totalRecords: 10
     })
@@ -312,7 +312,7 @@ describe('LoginPage - Enhanced Functionality', () => {
       const { serverDataSyncService } = await import('../../services/serverDataSyncService')
       vi.mocked(serverDataSyncService.syncAllData).mockResolvedValue({
         success: true,
-        syncedTables: ['attendees', 'sponsors', 'agenda_items'],
+        syncedTables: ['attendees', 'standardized_companies', 'agenda_items'],
         errors: [],
         totalRecords: 10
       })
