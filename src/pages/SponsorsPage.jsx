@@ -14,6 +14,7 @@ const SponsorsPage = () => {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showBackToTop, setShowBackToTop] = useState(false);
+  const [expandedDescriptions, setExpandedDescriptions] = useState({});
 
   // Load sponsors from standardized companies
   useEffect(() => {
@@ -90,6 +91,14 @@ const SponsorsPage = () => {
     if (fallback) {
       fallback.style.display = 'flex';
     }
+  };
+
+  // Toggle description expand/collapse
+  const toggleDescription = (sponsorId) => {
+    setExpandedDescriptions(prev => ({
+      ...prev,
+      [sponsorId]: !prev[sponsorId]
+    }));
   };
 
   if (loading) {
@@ -187,47 +196,64 @@ const SponsorsPage = () => {
 
       {/* Sponsor Grid */}
       <div className="sponsor-grid">
-        {filteredSponsors.map((sponsor) => (
-          <Card key={sponsor.id} className="sponsor-card">
-            <div className="sponsor-logo-container">
-              <img
-                src={sponsor.logo}
-                alt={`${sponsor.name} logo`}
-                onError={handleLogoError}
-              />
-              <div 
-                className="logo-fallback"
-                style={{ display: 'none' }}
-              >
-                {sponsor.name.charAt(0)}
+        {filteredSponsors.map((sponsor) => {
+          const isExpanded = expandedDescriptions[sponsor.id];
+          
+          return (
+            <Card key={sponsor.id} className="sponsor-card sponsor-card-horizontal">
+              {/* Logo on left */}
+              <div className="sponsor-logo-container">
+                <img
+                  src={sponsor.logo}
+                  alt={`${sponsor.name} logo`}
+                  onError={handleLogoError}
+                />
+                <div 
+                  className="logo-fallback"
+                  style={{ display: 'none' }}
+                >
+                  {sponsor.name.charAt(0)}
+                </div>
               </div>
-            </div>
-            
-            {/* Make sponsor name a hyperlink */}
-            <a 
-              href={sponsor.website}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="sponsor-name-link"
-            >
-              {sponsor.name}
-            </a>
-            
-            {/* Geography badge/label */}
-            {sponsor.geography && (
-              <div className="sponsor-geography">
-                {sponsor.geography}
+              
+              {/* Content on right */}
+              <div className="sponsor-content">
+                {/* Name with external link icon */}
+                <a 
+                  href={sponsor.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="sponsor-name-link"
+                >
+                  {sponsor.name} <span className="external-link-icon">↗</span>
+                </a>
+                
+                {/* Geography badge under name */}
+                {sponsor.geography && (
+                  <div className="sponsor-geography">
+                    {sponsor.geography}
+                  </div>
+                )}
+                
+                {/* Description with 3-line limit and expand button */}
+                {sponsor.description && (
+                  <div className="sponsor-description-wrapper">
+                    <p className={`sponsor-description ${isExpanded ? 'expanded' : 'collapsed'}`}>
+                      {sponsor.description}
+                    </p>
+                    <button
+                      onClick={() => toggleDescription(sponsor.id)}
+                      className="description-toggle-btn"
+                      aria-label={isExpanded ? 'Show less' : 'Show more'}
+                    >
+                      {isExpanded ? 'Show less' : 'Show more'}
+                    </button>
+                  </div>
+                )}
               </div>
-            )}
-            
-            {/* Description */}
-            {sponsor.description && (
-              <p className="sponsor-description">
-                {sponsor.description}
-              </p>
-            )}
-          </Card>
-        ))}
+            </Card>
+          );
+        })}
       </div>
 
       {filteredSponsors.length === 0 && sponsors.length > 0 && (
