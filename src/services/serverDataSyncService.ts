@@ -29,7 +29,9 @@ export class ServerDataSyncService extends BaseService {
   
   private readonly tableToSync = [
     'attendees',
-    'sponsors', 
+    // 'sponsors' removed - DEPRECATED, using standardized_companies instead
+    'standardized_companies', // NEW: Source of truth for sponsors
+    'company_aliases', // NEW: Company name aliases for normalization
     'seat_assignments',
     'agenda_items',
     'dining_options',
