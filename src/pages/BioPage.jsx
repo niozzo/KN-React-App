@@ -221,7 +221,7 @@ const BioPage = () => {
               fontSize: '28px',
               fontWeight: '700',
               color: 'var(--ink-900)',
-              marginBottom: '4px'
+              marginBottom: '2px'
             }}
           >
             {fullName}
@@ -242,7 +242,7 @@ const BioPage = () => {
               fontSize: '18px',
               color: 'var(--coral)',
               fontWeight: '500',
-              marginBottom: 'var(--space-xs)'
+              marginBottom: '2px'
             }}
           >
             {attendee.company}
@@ -270,6 +270,17 @@ const BioPage = () => {
       {/* Bio Content */}
       <Card className="content">
         <div className="section" style={{ marginBottom: 'var(--space-xl)' }}>
+          <h2 
+            style={{
+              fontSize: '18px',
+              fontWeight: '600',
+              color: 'var(--ink-900)',
+              marginBottom: 'var(--space-sm)',
+              margin: '0 0 var(--space-sm) 0'
+            }}
+          >
+            About {fullName}
+          </h2>
           <div className="bio-description-wrapper">
             <div 
               className={`bio-text ${bioExpanded ? 'expanded' : 'collapsed'}`}
@@ -371,8 +382,9 @@ const BioPage = () => {
                 </div>
               </div>
               
-              {/* Name with external link */}
+              {/* Name and Geography on same line - matching sponsors page layout */}
               <div className="sponsor-info-row">
+                {/* Name with external link icon (left-aligned) */}
                 <a 
                   href={standardizedCompany.website}
                   target="_blank"
@@ -381,63 +393,30 @@ const BioPage = () => {
                 >
                   {standardizedCompany.name}&nbsp;<span className="external-link-icon">⧉</span>
                 </a>
+                
+                {/* Geography badge (right-aligned) */}
+                {standardizedCompany.geography && (
+                  <div className="sponsor-geography">
+                    {standardizedCompany.geography}
+                  </div>
+                )}
               </div>
               
-              {/* Geography badge (if available) */}
-              {standardizedCompany.geography && (
-                <div 
-                  className="sponsor-geography"
-                  style={{
-                    display: 'inline-block',
-                    padding: 'var(--space-xs) var(--space-sm)',
-                    background: 'rgba(217, 119, 111, 0.1)',
-                    color: 'var(--coral)',
-                    borderRadius: 'var(--radius-md)',
-                    fontSize: 'var(--text-sm)',
-                    fontWeight: 'var(--font-medium)',
-                    width: 'fit-content',
-                    marginTop: 'var(--space-sm)'
-                  }}
-                >
-                  {standardizedCompany.geography}
-                </div>
-              )}
-              
-              {/* Description section */}
+              {/* Description section below name - matching sponsors page */}
               {standardizedCompany.description && (
                 <div className="sponsor-description-wrapper">
                   <p className="sponsor-description expanded">
                     {standardizedCompany.description}
                   </p>
+                  <button
+                    onClick={toggleCompany}
+                    className="description-toggle-btn"
+                    aria-label="Show less"
+                  >
+                    Show less
+                  </button>
                 </div>
               )}
-              
-              {/* Collapse button */}
-              <button
-                onClick={toggleCompany}
-                style={{
-                  background: 'none',
-                  border: '1px solid var(--purple-700)',
-                  color: 'var(--purple-700)',
-                  borderRadius: 'var(--radius-sm)',
-                  padding: 'var(--space-xs) var(--space-md)',
-                  fontSize: 'var(--text-sm)',
-                  fontWeight: 'var(--font-medium)',
-                  cursor: 'pointer',
-                  marginTop: 'var(--space-md)',
-                  transition: 'all 0.2s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.background = 'var(--purple-700)';
-                  e.target.style.color = 'white';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.background = 'none';
-                  e.target.style.color = 'var(--purple-700)';
-                }}
-              >
-                Show less
-              </button>
             </div>
           )}
         </Card>
