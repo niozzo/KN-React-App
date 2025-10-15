@@ -221,6 +221,54 @@ describe('BioPage Core Functionality', () => {
         expect(screen.queryByText('Not Applicable • Not Applicable')).not.toBeInTheDocument();
       });
     });
+
+    it('should not display sector/subsector when values are "Vendors/Sponsors"', async () => {
+      const mockAttendee = {
+        id: 'test-attendee-id',
+        first_name: 'John',
+        last_name: 'Doe',
+        title: 'CEO',
+        company: 'Test Company',
+        company_name_standardized: 'Test Company',
+        bio: 'Test bio content',
+        photo: 'test-photo.jpg'
+      };
+
+      const mockStandardizedCompany = {
+        name: 'Test Company',
+        logo: 'test-logo.png',
+        website: 'https://testcompany.com',
+        sector: 'Vendors/Sponsors',
+        subsector: 'Vendors/Sponsors',
+        geography: 'North America',
+        description: 'A test company description'
+      };
+
+      vi.mocked(attendeeSearchService.searchAttendees).mockResolvedValue({
+        attendees: [mockAttendee]
+      });
+
+      vi.mocked(CompanyNormalizationService.getInstance).mockReturnValue({
+        initialize: vi.fn(),
+        normalizeCompanyName: vi.fn().mockReturnValue(mockStandardizedCompany)
+      });
+
+      render(
+        <BrowserRouter>
+          <AuthProvider>
+            <BioPage />
+          </AuthProvider>
+        </BrowserRouter>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('John Doe')).toBeInTheDocument();
+        expect(screen.getByText('About Test Company')).toBeInTheDocument();
+        // Should NOT display "Vendors/Sponsors" values
+        expect(screen.queryByText('Vendors/Sponsors')).not.toBeInTheDocument();
+        expect(screen.queryByText('Vendors/Sponsors • Vendors/Sponsors')).not.toBeInTheDocument();
+      });
+    });
   });
 
   describe('Error Handling', () => {
