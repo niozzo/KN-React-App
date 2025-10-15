@@ -14,6 +14,8 @@ const BioPage = () => {
   const [attendee, setAttendee] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [bioExpanded, setBioExpanded] = useState(false);
+  const [companyExpanded, setCompanyExpanded] = useState(false);
 
   const attendeeId = searchParams.get('id');
 
@@ -59,6 +61,16 @@ const BioPage = () => {
 
   const handleBackClick = () => {
     window.history.back();
+  };
+
+  // Toggle bio expand/collapse
+  const toggleBio = () => {
+    setBioExpanded(!bioExpanded);
+  };
+
+  // Toggle company expand/collapse
+  const toggleCompany = () => {
+    setCompanyExpanded(!companyExpanded);
   };
 
   // Construct full name from first_name and last_name
@@ -135,8 +147,8 @@ const BioPage = () => {
         <div 
           className="avatar"
           style={{
-            maxWidth: '300px',
-            maxHeight: '300px',
+            maxWidth: '200px',
+            maxHeight: '200px',
             width: 'auto',
             height: 'auto',
             background: 'var(--purple-100)',
@@ -144,7 +156,7 @@ const BioPage = () => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: '96px',
+            fontSize: '64px',
             color: 'var(--purple-700)',
             overflow: 'hidden',
             marginBottom: 'var(--space-lg)'
@@ -214,30 +226,152 @@ const BioPage = () => {
       {/* Bio Content */}
       <Card className="content">
         <div className="section" style={{ marginBottom: 'var(--space-xl)' }}>
-          <h2 
-            style={{
-              fontSize: '20px',
-              fontWeight: '600',
-              color: 'var(--ink-900)',
-              marginBottom: 'var(--space-md)',
-              paddingBottom: 'var(--space-sm)',
-              borderBottom: '2px solid var(--purple-100)'
-            }}
-          >
-            About
-          </h2>
-          <div 
-            className="bio-text"
-            style={{
-              color: 'var(--ink-700)',
-              lineHeight: '1.7',
-              whiteSpace: 'pre-line'
-            }}
-          >
-            {attendee.bio || 'No bio available for this attendee.'}
+          <div className="bio-description-wrapper">
+            <div 
+              className={`bio-text ${bioExpanded ? 'expanded' : 'collapsed'}`}
+              style={{
+                color: 'var(--ink-700)',
+                lineHeight: '1.7',
+                whiteSpace: 'pre-line'
+              }}
+            >
+              {attendee.bio || 'No bio available for this attendee.'}
+            </div>
+            {attendee.bio && (
+              <button
+                onClick={toggleBio}
+                className="description-toggle-btn"
+                aria-label={bioExpanded ? 'Show less' : 'Show more'}
+                style={{
+                  alignSelf: 'flex-start',
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--purple-700)',
+                  fontSize: 'var(--text-sm)',
+                  fontWeight: 'var(--font-medium)',
+                  cursor: 'pointer',
+                  padding: 'var(--space-xs) 0',
+                  transition: 'color var(--transition-normal)',
+                  textDecoration: 'underline'
+                }}
+              >
+                {bioExpanded ? 'Show less' : 'Show more'}
+              </button>
+            )}
           </div>
         </div>
       </Card>
+      
+      {/* Company Card - Only show if standardized company data exists */}
+      {attendee.companyStandardized && (
+        <Card className="sponsor-card sponsor-card-vertical">
+          {/* Logo centered on top */}
+          <div className="sponsor-logo-container">
+            <img
+              src={attendee.companyStandardized.logo}
+              alt={`${attendee.companyStandardized.name} logo`}
+              onError={(e) => {
+                // Fallback to icon if image fails to load
+                e.target.style.display = 'none';
+                e.target.nextSibling.style.display = 'flex';
+              }}
+            />
+            <div 
+              className="logo-fallback"
+              style={{ display: 'none' }}
+            >
+              {attendee.companyStandardized.name.charAt(0)}
+            </div>
+          </div>
+          
+          {/* Name and Sector/Subsector on same line */}
+          <div className="sponsor-info-row">
+            {/* Name with external link icon (left-aligned) */}
+            <a 
+              href={attendee.companyStandardized.website}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="sponsor-name-link"
+            >
+              {attendee.companyStandardized.name}&nbsp;<span className="external-link-icon">⧉</span>
+            </a>
+            
+            {/* Sector and Subsector badges (right-aligned) */}
+            <div style={{ display: 'flex', gap: 'var(--space-xs)', flexWrap: 'wrap' }}>
+              {attendee.companyStandardized.sector && (
+                <div 
+                  className="sponsor-geography"
+                  style={{
+                    display: 'inline-block',
+                    padding: 'var(--space-xs) var(--space-sm)',
+                    background: 'rgba(217, 119, 111, 0.1)',
+                    color: 'var(--coral)',
+                    borderRadius: 'var(--radius-md)',
+                    fontSize: 'var(--text-sm)',
+                    fontWeight: 'var(--font-medium)',
+                    width: 'fit-content'
+                  }}
+                >
+                  {attendee.companyStandardized.sector}
+                </div>
+              )}
+              {attendee.companyStandardized.subsector && (
+                <div 
+                  className="sponsor-geography"
+                  style={{
+                    display: 'inline-block',
+                    padding: 'var(--space-xs) var(--space-sm)',
+                    background: 'rgba(124, 76, 196, 0.1)',
+                    color: 'var(--purple-700)',
+                    borderRadius: 'var(--radius-md)',
+                    fontSize: 'var(--text-sm)',
+                    fontWeight: 'var(--font-medium)',
+                    width: 'fit-content'
+                  }}
+                >
+                  {attendee.companyStandardized.subsector}
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* Geography badge (if available) */}
+          {attendee.companyStandardized.geography && (
+            <div 
+              className="sponsor-geography"
+              style={{
+                display: 'inline-block',
+                padding: 'var(--space-xs) var(--space-sm)',
+                background: 'rgba(217, 119, 111, 0.1)',
+                color: 'var(--coral)',
+                borderRadius: 'var(--radius-md)',
+                fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--font-medium)',
+                width: 'fit-content',
+                marginTop: 'var(--space-sm)'
+              }}
+            >
+              {attendee.companyStandardized.geography}
+            </div>
+          )}
+          
+          {/* Description section below name */}
+          {attendee.companyStandardized.description && (
+            <div className="sponsor-description-wrapper">
+              <p className={`sponsor-description ${companyExpanded ? 'expanded' : 'collapsed'}`}>
+                {attendee.companyStandardized.description}
+              </p>
+              <button
+                onClick={toggleCompany}
+                className="description-toggle-btn"
+                aria-label={companyExpanded ? 'Show less' : 'Show more'}
+              >
+                {companyExpanded ? 'Show less' : 'Show more'}
+              </button>
+            </div>
+          )}
+        </Card>
+      )}
       
     </PageLayout>
   );
