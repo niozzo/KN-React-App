@@ -1,6 +1,8 @@
 /**
  * Sponsor Data Transformer
  * Story 1.7: Data Transformation Layer for Schema Evolution
+ * 
+ * ⚠️ DEPRECATED: No longer needed with standardized_companies migration
  */
 
 import { BaseTransformer } from './baseTransformer.ts'
