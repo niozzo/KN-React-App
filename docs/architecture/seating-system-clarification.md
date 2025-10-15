@@ -1,12 +1,31 @@
 # Seating System Architecture Clarification
 
 **Generated:** 2025-09-08  
+**Updated:** 2025-10-15  
 **Based on:** UI Analysis and Business Logic Understanding  
 **Purpose:** Clarify seating system as configuration tool vs data entry system
 
 ## Core Understanding
 
 The seating system is primarily a **configuration and management tool** rather than a data entry form. The essential business data is the **attendee-seat assignment relationship**.
+
+## ARCHITECTURAL DECISION: Agenda Items as Source of Truth
+
+**Decision Date:** 2025-10-15  
+**Status:** Implemented  
+**Rationale:** Agenda items represent the actual events and their requirements, making them the logical source of truth for seating requirements.
+
+### Key Principles:
+1. **Agenda items determine seating behavior** - `seating_type` field drives display logic
+2. **Seating configurations provide layout only** - Used for seat generation and assignment storage
+3. **No conflicting sources of truth** - Prevents data inconsistencies
+
+### Implementation Impact:
+- Session display logic prioritizes `agenda_item.seating_type` over `seating_configuration.seating_type`
+- Seating configurations are used only for:
+  - Layout definition
+  - Seat assignment storage
+  - NOT for determining if seating is assigned or open
 
 ## Seating System Components
 
