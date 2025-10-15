@@ -69,49 +69,35 @@ export class AgendaTransformer extends BaseTransformer<AgendaItem> {
         computation: (data: any) => {
           // Check the speaker field
           const speaker = data.speaker
-          console.log('🔍 [SPEAKER-DEBUG] Processing agenda item:', {
-            id: data.id,
-            title: data.title,
-            raw_speaker: speaker,
-            speaker_type: typeof speaker
-          });
 
           // Handle different data types
           if (speaker === null || speaker === undefined) {
-            console.log('📝 [SPEAKER-DEBUG] Null/undefined speaker, returning empty string');
             return ''
           }
 
           // Handle empty object {} - this is the main cause of React Error #31
           if (typeof speaker === 'object' && speaker !== null && Object.keys(speaker).length === 0) {
-            console.log('📝 [SPEAKER-DEBUG] Empty object speaker, returning empty string');
             return ''
           }
 
           // Handle string values
           if (typeof speaker === 'string' && speaker.trim()) {
-            console.log('📝 [SPEAKER-DEBUG] String speaker found:', speaker.trim());
             return speaker.trim()
           }
 
           // Handle object with name property (in case it's structured data)
           if (typeof speaker === 'object' && speaker.name) {
-            console.log('📝 [SPEAKER-DEBUG] Object with name property:', speaker.name);
             return speaker.name
           }
 
           // Handle object with value property (new structure)
           if (typeof speaker === 'object' && speaker.value) {
-            console.log('📝 [SPEAKER-DEBUG] Object with value property:', speaker.value);
             return speaker.value
           }
 
-          // Handle unexpected speaker data types
+          // Handle unexpected speaker data types silently
           if (speaker !== null && speaker !== undefined) {
-            console.log('⚠️ [SPEAKER-DEBUG] Unexpected speaker data type:', {
-              type: typeof speaker,
-              value: speaker
-            });
+            // Silent handling of unexpected data types
           }
 
           return ''
