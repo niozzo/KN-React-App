@@ -660,6 +660,19 @@ export class PWADataSyncService extends BaseService {
         }
       }
 
+      // Standardized companies transformation - use centralized transformer
+      if (tableName === 'standardized_companies') {
+        try {
+          const { StandardizedCompanyTransformer } = await import('../transformers/standardizedCompanyTransformer.js');
+          const companyTransformer = new StandardizedCompanyTransformer();
+          records = companyTransformer.filterForCache(records);
+          logger.debug(`Filtered confidential fields and fixed URLs for ${records.length} standardized companies`, null, 'PWADataSyncService');
+        } catch (transformError) {
+          logger.warn(`Failed to transform standardized_companies`, transformError, 'PWADataSyncService');
+          // Continue with raw data if transformation fails
+        }
+      }
+
       // ✅ FIX: Validate records before caching
       if (!records || !Array.isArray(records)) {
         throw new Error(`Records became invalid after processing for ${tableName}: ${typeof records}`);

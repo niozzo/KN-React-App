@@ -201,56 +201,59 @@ const SponsorsPage = () => {
           
           return (
             <Card key={sponsor.id} className="sponsor-card sponsor-card-horizontal">
-              {/* Logo on left */}
-              <div className="sponsor-logo-container">
-                <img
-                  src={sponsor.logo}
-                  alt={`${sponsor.name} logo`}
-                  onError={handleLogoError}
-                />
-                <div 
-                  className="logo-fallback"
-                  style={{ display: 'none' }}
-                >
-                  {sponsor.name.charAt(0)}
+              {/* Top section: Logo and header info */}
+              <div className="sponsor-header">
+                {/* Logo on left */}
+                <div className="sponsor-logo-container">
+                  <img
+                    src={sponsor.logo}
+                    alt={`${sponsor.name} logo`}
+                    onError={handleLogoError}
+                  />
+                  <div 
+                    className="logo-fallback"
+                    style={{ display: 'none' }}
+                  >
+                    {sponsor.name.charAt(0)}
+                  </div>
+                </div>
+                
+                {/* Name and geography on right */}
+                <div className="sponsor-header-content">
+                  {/* Name with external link icon */}
+                  <a 
+                    href={sponsor.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="sponsor-name-link"
+                  >
+                    {sponsor.name} <span className="external-link-icon">⧉</span>
+                  </a>
+                  
+                  {/* Geography badge under name */}
+                  {sponsor.geography && (
+                    <div className="sponsor-geography">
+                      {sponsor.geography}
+                    </div>
+                  )}
                 </div>
               </div>
               
-              {/* Content on right */}
-              <div className="sponsor-content">
-                {/* Name with external link icon */}
-                <a 
-                  href={sponsor.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="sponsor-name-link"
-                >
-                  {sponsor.name} <span className="external-link-icon">↗</span>
-                </a>
-                
-                {/* Geography badge under name */}
-                {sponsor.geography && (
-                  <div className="sponsor-geography">
-                    {sponsor.geography}
-                  </div>
-                )}
-                
-                {/* Description with 3-line limit and expand button */}
-                {sponsor.description && (
-                  <div className="sponsor-description-wrapper">
-                    <p className={`sponsor-description ${isExpanded ? 'expanded' : 'collapsed'}`}>
-                      {sponsor.description}
-                    </p>
-                    <button
-                      onClick={() => toggleDescription(sponsor.id)}
-                      className="description-toggle-btn"
-                      aria-label={isExpanded ? 'Show less' : 'Show more'}
-                    >
-                      {isExpanded ? 'Show less' : 'Show more'}
-                    </button>
-                  </div>
-                )}
-              </div>
+              {/* Description section spanning full width below */}
+              {sponsor.description && (
+                <div className="sponsor-description-wrapper">
+                  <p className={`sponsor-description ${isExpanded ? 'expanded' : 'collapsed'}`}>
+                    {sponsor.description}
+                  </p>
+                  <button
+                    onClick={() => toggleDescription(sponsor.id)}
+                    className="description-toggle-btn"
+                    aria-label={isExpanded ? 'Show less' : 'Show more'}
+                  >
+                    {isExpanded ? 'Show less' : 'Show more'}
+                  </button>
+                </div>
+              )}
             </Card>
           );
         })}
