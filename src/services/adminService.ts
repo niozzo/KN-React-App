@@ -7,8 +7,6 @@ import { SupabaseClientFactory } from './SupabaseClientFactory';
 
 export class AdminService {
   async getAgendaItemsWithAssignments(): Promise<any[]> {
-    console.log('🔄 AdminService: Starting getAgendaItemsWithAssignments...');
-    
     // Ensure application database tables are synced first
     await this.ensureApplicationDatabaseSynced();
     
@@ -33,17 +31,11 @@ export class AdminService {
       console.error('Error loading agenda items from unified cache:', error);
     }
     
-    console.log('📋 AdminService: Loaded agenda items:', agendaItems.length, 'items');
-    
     // Get edited titles from application database metadata
     const agendaItemMetadata = await pwaDataSyncService.getCachedTableData('agenda_item_metadata');
-    console.log('📊 AdminService: Loaded agenda item metadata from cache:', agendaItemMetadata.length, 'records');
     
     // Get speaker assignments from local storage first
     const speakerAssignments = await pwaDataSyncService.getCachedTableData('speaker_assignments');
-    console.log('👥 AdminService: Loaded speaker assignments from cache:', speakerAssignments.length, 'assignments');
-    
-    // Process agenda items and speaker assignments
     
     // Map assignments to agenda items and override titles with edited versions
     const itemsWithAssignments = agendaItems.map((item: any) => {
@@ -57,8 +49,6 @@ export class AdminService {
         .filter((assignment: any) => assignment.agenda_item_id === item.id)
         .sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0));
       
-      // Process speaker assignments for this agenda item
-      
       return {
         ...item,
         title: finalTitle, // Use edited title if available
@@ -70,8 +60,6 @@ export class AdminService {
   }
 
   async getDiningOptionsWithMetadata(): Promise<any[]> {
-    console.log('🔄 AdminService: Starting getDiningOptionsWithMetadata...');
-    
     // Ensure application database tables are synced first
     await this.ensureApplicationDatabaseSynced();
     
@@ -96,11 +84,8 @@ export class AdminService {
       console.error('Error loading dining options from unified cache:', error);
     }
     
-    console.log('🍽️ AdminService: Loaded dining options:', diningOptions.length, 'items');
-    
     // Get edited titles from application database metadata
     const diningItemMetadata = await pwaDataSyncService.getCachedTableData('dining_item_metadata');
-    console.log('📊 AdminService: Loaded dining item metadata from cache:', diningItemMetadata.length, 'records');
     
     // Map metadata to dining options and override titles with edited versions
     const optionsWithMetadata = diningOptions.map((option: any) => {
@@ -161,7 +146,6 @@ export class AdminService {
     }
 
     // Emit custom event to notify components of agenda metadata update
-    console.log('📋 Emitting agendaMetadataUpdated event');
     window.dispatchEvent(new CustomEvent('agendaMetadataUpdated', {
       detail: { agendaItemId, newTitle }
     }));
@@ -176,7 +160,6 @@ export class AdminService {
       });
       
       // Trigger cache invalidation for dining metadata
-      // Triggering cache invalidation
       serviceRegistry.invalidateCache('dining_item_metadata');
       
     } catch (error) {
@@ -213,7 +196,6 @@ export class AdminService {
     }
 
     // Emit custom event to notify components of dining metadata update
-    console.log('🍽️ Emitting diningMetadataUpdated event');
     window.dispatchEvent(new CustomEvent('diningMetadataUpdated', {
       detail: { diningOptionId, newTitle }
     }));
@@ -281,7 +263,6 @@ export class AdminService {
       attendees = JSON.parse(localStorage.getItem('attendees') || '[]');
     }
     
-    console.log('Loaded attendees:', attendees);
     return attendees;
   }
 
@@ -296,7 +277,6 @@ export class AdminService {
       // ADMIN-ONLY: Fetch directly from Supabase to get access codes
       // Note: access_code is filtered from cached data for security,
       // so we must fetch from database for admin functions
-      console.log('🔐 Admin: Fetching attendees with access codes from database...');
       
       // Use the existing Supabase client (following architecture pattern)
       const { supabase } = await import('../lib/supabase');
@@ -308,16 +288,13 @@ export class AdminService {
         .order('last_name', { ascending: true });
       
       if (error) {
-        console.error('❌ Error fetching attendees:', error);
         throw error;
       }
-      
-      console.log(`✅ Fetched ${data?.length || 0} attendees with access codes`);
       
       return data || [];
       
     } catch (error) {
-      console.error('❌ getAllAttendeesWithAccessCodes error:', error);
+      console.error('Error in getAllAttendeesWithAccessCodes:', error);
       // Return empty array on error rather than throwing
       return [];
     }
@@ -386,28 +363,19 @@ export class AdminService {
    */
   private async ensureApplicationDatabaseSynced(): Promise<void> {
     try {
-      console.log('🔄 Ensuring application database tables are synced for admin panel...');
-      
       // Use centralized configuration for application tables
       const applicationTables = getAllApplicationTables();
       
       for (const tableName of applicationTables) {
         try {
           await pwaDataSyncService.syncApplicationTable(tableName);
-          
-          // Verify the data was cached
-          const cachedData = await pwaDataSyncService.getCachedTableData(tableName);
-          console.log(`📊 Verified: ${tableName} has ${cachedData.length} records in cache`);
-          
         } catch (error) {
-          console.error(`❌ Failed to sync application table ${tableName}:`, error);
+          console.error(`Failed to sync application table ${tableName}:`, error);
           // Continue with other tables even if one fails
         }
       }
-      
-      // Application database sync completed
     } catch (error) {
-      console.error('❌ Application database sync failed for admin panel:', error);
+      console.error('Application database sync failed:', error);
       // Don't throw error as this is not critical for basic functionality
     }
   }
@@ -420,16 +388,11 @@ export class AdminService {
     reorderedSpeakers: SpeakerAssignment[]
   ): Promise<void> {
     try {
-      console.log('🔄 Reordering speakers for agenda item:', agendaItemId);
-      console.log('🔄 Speakers to reorder:', reorderedSpeakers.map(s => ({ id: s.id, name: (s as any).attendee_name || s.attendee_id, currentOrder: s.display_order })));
-      
       // Update database with new order
       const speakerOrders = reorderedSpeakers.map((speaker, index) => ({
         id: speaker.id,
         display_order: index + 1
       }));
-      
-      console.log('🔄 New speaker orders:', speakerOrders);
       
       await applicationDatabaseService.reorderSpeakersForAgendaItem(agendaItemId, speakerOrders);
       
@@ -442,16 +405,8 @@ export class AdminService {
       
       await this.updateLocalSpeakerAssignments(updatedSpeakers);
       
-      // Speaker reordering completed
-      
     } catch (error) {
-      console.error('❌ Failed to reorder speakers:', error);
-      console.error('❌ Error details:', {
-        message: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined,
-        agendaItemId,
-        speakerCount: reorderedSpeakers.length
-      });
+      console.error('Failed to reorder speakers:', error);
       throw error;
     }
   }

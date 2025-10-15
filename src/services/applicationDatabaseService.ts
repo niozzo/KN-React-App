@@ -94,7 +94,9 @@ class ApplicationDatabaseService extends BaseService {
       .eq('agenda_item_id', agendaItemId)
       .order('display_order', { ascending: true });
     
-    if (error) throw error;
+    if (error) {
+      throw error;
+    }
     return data || [];
   }
 
