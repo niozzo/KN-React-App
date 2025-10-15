@@ -7,10 +7,13 @@ import { SupabaseClientFactory } from './SupabaseClientFactory';
 
 export class AdminService {
   async getAgendaItemsWithAssignments(): Promise<any[]> {
-    console.log('🔄 AdminService: Starting getAgendaItemsWithAssignments...');
+    console.log('🔄 [ADMIN-SERVICE] Starting getAgendaItemsWithAssignments...');
+    console.log('🔄 [ADMIN-SERVICE] This is what the admin interface calls to load data');
     
     // Ensure application database tables are synced first
+    console.log('🔄 [ADMIN-SERVICE] Step 1: Ensuring application database is synced...');
     await this.ensureApplicationDatabaseSynced();
+    console.log('✅ [ADMIN-SERVICE] Application database sync complete');
     
     // Get agenda items from unified cache service
     let agendaItems = [];
@@ -395,28 +398,39 @@ export class AdminService {
    */
   private async ensureApplicationDatabaseSynced(): Promise<void> {
     try {
-      console.log('🔄 Ensuring application database tables are synced for admin panel...');
+      console.log('🔄 [ADMIN-SERVICE] Ensuring application database tables are synced for admin panel...');
+      console.log('🔄 [ADMIN-SERVICE] This will query the database directly and cache the results');
       
       // Use centralized configuration for application tables
       const applicationTables = getAllApplicationTables();
+      console.log('📋 [ADMIN-SERVICE] Tables to sync:', applicationTables);
       
       for (const tableName of applicationTables) {
         try {
+          console.log(`🔄 [ADMIN-SERVICE] Syncing ${tableName}...`);
           await pwaDataSyncService.syncApplicationTable(tableName);
           
           // Verify the data was cached
           const cachedData = await pwaDataSyncService.getCachedTableData(tableName);
-          console.log(`📊 Verified: ${tableName} has ${cachedData.length} records in cache`);
+          console.log(`📊 [ADMIN-SERVICE] Verified: ${tableName} has ${cachedData.length} records in cache`);
+          
+          if (tableName === 'speaker_assignments') {
+            console.log(`👥 [ADMIN-SERVICE] speaker_assignments after sync:`, {
+              count: cachedData.length,
+              data: cachedData,
+              boehnerAssignments: cachedData.filter((a: any) => a.agenda_item_id === 'f95a4c5a-0120-4156-b02a-0c92fc1bf64d')
+            });
+          }
           
         } catch (error) {
-          console.error(`❌ Failed to sync application table ${tableName}:`, error);
+          console.error(`❌ [ADMIN-SERVICE] Failed to sync application table ${tableName}:`, error);
           // Continue with other tables even if one fails
         }
       }
       
-      // Application database sync completed
+      console.log('✅ [ADMIN-SERVICE] Application database sync completed for admin panel');
     } catch (error) {
-      console.error('❌ Application database sync failed for admin panel:', error);
+      console.error('❌ [ADMIN-SERVICE] Application database sync failed for admin panel:', error);
       // Don't throw error as this is not critical for basic functionality
     }
   }
