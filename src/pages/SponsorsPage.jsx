@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import PageLayout from '../components/layout/PageLayout';
 import Card from '../components/common/Card';
-import { getAllSponsors, getAllSponsorsWithStandardizedData } from '../services/dataService';
+import { getSponsorsFromStandardizedCompanies } from '../services/dataService';
 
 /**
  * Sponsors Page Component
- * Displays sponsor directory with data from kn_cache_sponsors
- * Refactored from sponsors.html to React component
+ * Displays sponsor directory from standardized_companies table
+ * Filters by fund_analytics_category === "Sponsors & Vendors"
  */
 const SponsorsPage = () => {
   const [sponsors, setSponsors] = useState([]);
@@ -15,34 +15,21 @@ const SponsorsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showBackToTop, setShowBackToTop] = useState(false);
 
-  // Load sponsors with standardized company data
+  // Load sponsors from standardized companies
   useEffect(() => {
     const loadSponsors = async () => {
       try {
         setLoading(true);
         
-        // Use enhanced sponsor service with standardized company data
-        const sponsorsData = await getAllSponsorsWithStandardizedData();
+        // Fetch sponsors from standardized_companies table
+        const sponsorsData = await getSponsorsFromStandardizedCompanies();
         setSponsors(sponsorsData);
         setError(null);
         
-        // Log data source information for debugging
-        const logoStats = {
-          standardized: sponsorsData.filter(s => s.logoSource === 'standardized').length,
-          sponsorTable: sponsorsData.filter(s => s.logoSource === 'sponsor_table').length,
-          fallback: sponsorsData.filter(s => s.logoSource === 'fallback').length
-        };
-        console.log('📊 Sponsor logo sources:', logoStats);
-        
-        const websiteStats = {
-          standardized: sponsorsData.filter(s => s.websiteSource === 'standardized').length,
-          sponsorTable: sponsorsData.filter(s => s.websiteSource === 'sponsor_table').length,
-          fallback: sponsorsData.filter(s => s.websiteSource === 'fallback').length
-        };
-        console.log('📊 Sponsor website sources:', websiteStats);
+        console.log(`✅ Loaded ${sponsorsData.length} sponsors from standardized companies`);
         
       } catch (err) {
-        console.error('Error loading enhanced sponsors:', err);
+        console.error('Error loading sponsors:', err);
         setError('Failed to load sponsors. Please try again.');
         setSponsors([]);
       } finally {
