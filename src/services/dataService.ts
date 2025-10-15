@@ -125,21 +125,8 @@ export const getCurrentAttendeeData = async (): Promise<Attendee | null> => {
       if (cachedData) {
         const cacheObj = JSON.parse(cachedData)
         
-        // 🔍 DIAGNOSTIC: Log cache structure
-        console.log('🔍 DIAGNOSTIC: Cache data type:', typeof cacheObj)
-        console.log('🔍 DIAGNOSTIC: Cache data keys:', Object.keys(cacheObj))
-        console.log('🔍 DIAGNOSTIC: Cache data sample:', JSON.stringify(cacheObj).substring(0, 200))
-        
         // Handle both direct array format and wrapped format (Architecture Pattern)
         const attendees = cacheObj.data || cacheObj
-        
-        // 🔍 DIAGNOSTIC: Log attendees structure
-        console.log('🔍 DIAGNOSTIC: Attendees type:', typeof attendees)
-        console.log('🔍 DIAGNOSTIC: Is array:', Array.isArray(attendees))
-        if (Array.isArray(attendees)) {
-          console.log('🔍 DIAGNOSTIC: First attendee type:', typeof attendees[0])
-          console.log('🔍 DIAGNOSTIC: First attendee keys:', attendees[0] ? Object.keys(attendees[0]) : 'empty')
-        }
         
         const cachedAttendee = attendees.find((a: Attendee) => a.id === current.id)
         if (cachedAttendee) {
