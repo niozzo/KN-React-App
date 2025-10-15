@@ -442,7 +442,7 @@ const SessionCard = React.memo(({
         )}
         
         {/* Show pending message for sessions with assigned seating but no seat assignment yet */}
-        {session.seating_type === 'assigned' && !seatInfo && (
+        {!seatInfo && (
           <div 
             className="seat-assignment pending"
             style={{ 
