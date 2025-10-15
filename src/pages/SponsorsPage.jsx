@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import PageLayout from '../components/layout/PageLayout';
 import Card from '../components/common/Card';
-import { getAllSponsors } from '../services/dataService';
+import { getAllSponsors, getAllSponsorsWithStandardizedData } from '../services/dataService';
 
 /**
  * Sponsors Page Component
@@ -15,16 +15,34 @@ const SponsorsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showBackToTop, setShowBackToTop] = useState(false);
 
-  // Load sponsors from cache
+  // Load sponsors with standardized company data
   useEffect(() => {
     const loadSponsors = async () => {
       try {
         setLoading(true);
-        const sponsorsData = await getAllSponsors();
+        
+        // Use enhanced sponsor service with standardized company data
+        const sponsorsData = await getAllSponsorsWithStandardizedData();
         setSponsors(sponsorsData);
         setError(null);
+        
+        // Log data source information for debugging
+        const logoStats = {
+          standardized: sponsorsData.filter(s => s.logoSource === 'standardized').length,
+          sponsorTable: sponsorsData.filter(s => s.logoSource === 'sponsor_table').length,
+          fallback: sponsorsData.filter(s => s.logoSource === 'fallback').length
+        };
+        console.log('📊 Sponsor logo sources:', logoStats);
+        
+        const websiteStats = {
+          standardized: sponsorsData.filter(s => s.websiteSource === 'standardized').length,
+          sponsorTable: sponsorsData.filter(s => s.websiteSource === 'sponsor_table').length,
+          fallback: sponsorsData.filter(s => s.websiteSource === 'fallback').length
+        };
+        console.log('📊 Sponsor website sources:', websiteStats);
+        
       } catch (err) {
-        console.error('Error loading sponsors:', err);
+        console.error('Error loading enhanced sponsors:', err);
         setError('Failed to load sponsors. Please try again.');
         setSponsors([]);
       } finally {
