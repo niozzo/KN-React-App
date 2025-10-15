@@ -1,5 +1,8 @@
 // TypeScript interfaces for Sponsors based on actual database schema
 // Generated from real database data via authenticated Supabase API
+//
+// ⚠️ DEPRECATED: Use StandardizedCompany from standardizedCompany.ts instead
+// The sponsors table is deprecated. Use standardized_companies table.
 
 export interface Sponsor {
   // Primary fields (auto-generated)
