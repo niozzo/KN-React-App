@@ -703,6 +703,8 @@ export class PWADataSyncService extends BaseService {
       }
       
 
+      console.log(`🔍 [DB-SYNC] Querying ${supabaseTable} for ${tableName}...`);
+      
       const { data, error } = await applicationDbClient
         .from(supabaseTable)
         .select('*');
@@ -720,10 +722,27 @@ export class PWADataSyncService extends BaseService {
         throw new Error(`Application database query failed: ${error.message}`);
       }
 
+      console.log(`📊 [DB-SYNC] Query result for ${tableName}:`, {
+        table: supabaseTable,
+        recordCount: data?.length || 0,
+        rawData: data,
+        allFields: data && data.length > 0 ? Object.keys(data[0]) : [],
+        sampleRecord: data && data.length > 0 ? data[0] : null
+      });
       
       // Enhanced debugging for empty results
       if (!data || data.length === 0) {
         console.warn(`⚠️ PWA Data Sync: No records found in ${supabaseTable} for ${tableName}`);
+      }
+      
+      // Special logging for speaker_assignments
+      if (tableName === 'speaker_assignments' && data && data.length > 0) {
+        console.log(`👥 [DB-SYNC] speaker_assignments details:`, {
+          total: data.length,
+          allRecords: data,
+          agenda_item_ids: data.map((r: any) => r.agenda_item_id),
+          boehnerEventAssignments: data.filter((r: any) => r.agenda_item_id === 'f95a4c5a-0120-4156-b02a-0c92fc1bf64d')
+        });
       }
 
       // ✅ FIX: Add defensive check for data before processing
