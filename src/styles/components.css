@@ -1587,16 +1587,43 @@ body {
   border-radius: var(--radius-lg);
 }
 
-.sponsor-name {
+.sponsor-name-link {
   font-family: var(--font-heading);
   font-size: var(--text-xl);
   font-weight: var(--font-semibold);
-  color: var(--ink-900);
-  margin-bottom: var(--space-md);
+  color: var(--purple-700);
+  margin-bottom: var(--space-sm);
   text-align: center;
+  text-decoration: none;
+  transition: color var(--transition-normal);
+  display: inline-block;
 }
 
+.sponsor-name-link:hover {
+  color: var(--purple-900);
+  text-decoration: underline;
+}
 
+.sponsor-geography {
+  display: inline-block;
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--purple-100);
+  color: var(--purple-700);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  margin-bottom: var(--space-md);
+}
+
+.sponsor-description {
+  font-size: var(--text-base);
+  color: var(--ink-600);
+  line-height: 1.5;
+  text-align: center;
+  margin: 0;
+}
+
+/* DEPRECATED: Keep for backward compatibility but no longer used */
 .sponsor-website-link {
   display: inline-block;
   margin-top: var(--space-sm);
