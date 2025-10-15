@@ -2,6 +2,9 @@
  * Enhanced Sponsor Service with Standardized Company Integration
  * Uses standardized_companies table as source of truth for logos and URLs
  * Story: Standardized Company Integration for Sponsors Page
+ * 
+ * ⚠️ DEPRECATED: Use standardizedCompanySponsorService.ts instead
+ * This was a bridge solution. Now use standardized_companies exclusively.
  */
 
 import { Sponsor } from '../types/sponsor';
