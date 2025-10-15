@@ -799,6 +799,15 @@ export class PWADataSyncService extends BaseService {
         throw new Error(`Invalid data provided for caching ${tableName}: ${typeof data}`);
       }
       
+      if (tableName === 'speaker_assignments') {
+        console.log(`💾 [PWA-CACHE] Caching ${tableName}:`, {
+          records: data.length,
+          cacheKey,
+          sampleRecords: data.slice(0, 3),
+          allAgendaItemIds: data.map((a: any) => a.agenda_item_id)
+        });
+      }
+      
       // Apply comprehensive confidential data filtering for attendees
       let sanitizedData = data;
       // QA FIX: Handle both 'attendees' (plural) and 'attendee' (singular) table names
@@ -818,6 +827,10 @@ export class PWADataSyncService extends BaseService {
       const cacheEntry = cacheVersioningService.createCacheEntry(sanitizedData, ttl);
       
       localStorage.setItem(cacheKey, JSON.stringify(cacheEntry));
+      
+      if (tableName === 'speaker_assignments') {
+        console.log(`✅ [PWA-CACHE] Successfully cached ${tableName} with ${sanitizedData.length} records`);
+      }
       
       // Update cache size tracking
       this.updateCacheSize();
@@ -934,11 +947,22 @@ export class PWADataSyncService extends BaseService {
       const cached = localStorage.getItem(cacheKey);
       
       if (!cached) {
+        console.log(`📭 [PWA-CACHE] No cached data found for ${tableName}`);
         return [];
       }
 
       const cacheData = JSON.parse(cached);
       const data = cacheData.data || [];
+      
+      if (tableName === 'speaker_assignments') {
+        console.log(`📦 [PWA-CACHE] Retrieved ${tableName}:`, {
+          records: data.length,
+          cacheKey,
+          timestamp: cacheData.timestamp,
+          sampleRecords: data.slice(0, 3),
+          allAgendaItemIds: data.map((a: any) => a.agenda_item_id)
+        });
+      }
       
       // Return stale data even if expired (offline-first)
       if (!this.isCacheValid(cacheData)) {
