@@ -264,6 +264,20 @@ const BioPage = () => {
               )}
             </div>
           )}
+          
+          {/* Show "Sponsor" label for sponsors */}
+          {standardizedCompany && standardizedCompany.sector === 'Vendors/Sponsors' && (
+            <div 
+              className="sponsor-label"
+              style={{
+                fontSize: '16px',
+                color: 'var(--ink-600)',
+                fontWeight: '400'
+              }}
+            >
+              Sponsor
+            </div>
+          )}
         </div>
       </div>
       
