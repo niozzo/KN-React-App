@@ -326,22 +326,25 @@ export class ErrorMonitoringService {
 
   private logToConsole(errorEntry: any): void {
     const { error, context, severity } = errorEntry;
-    const logMessage = `[${severity.toUpperCase()}] ${context.component}: ${error.message}`;
+    const logMessage = `${context.component}: ${error.message}`;
     
-    switch (severity) {
-      case 'critical':
-        console.error('🚨', logMessage, { context, stack: error.stack });
-        break;
-      case 'high':
-        console.error('❌', logMessage, { context });
-        break;
-      case 'medium':
-        console.warn('⚠️', logMessage, { context });
-        break;
-      case 'low':
-        console.info('ℹ️', logMessage, { context });
-        break;
-    }
+    // Import logger dynamically to avoid circular dependencies
+    import('../utils/logger').then(({ logger }) => {
+      switch (severity) {
+        case 'critical':
+          logger.critical(logMessage, { context, stack: error.stack }, 'ErrorMonitoringService');
+          break;
+        case 'high':
+          logger.error(logMessage, { context }, 'ErrorMonitoringService');
+          break;
+        case 'medium':
+          logger.warn(logMessage, { context }, 'ErrorMonitoringService');
+          break;
+        case 'low':
+          logger.info(logMessage, { context }, 'ErrorMonitoringService');
+          break;
+      }
+    });
   }
 
   // Store handler references for cleanup
