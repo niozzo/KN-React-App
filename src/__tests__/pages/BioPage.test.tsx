@@ -134,8 +134,8 @@ describe('BioPage Core Functionality', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByText('Technology')).toBeInTheDocument();
-        expect(screen.getByText('Software')).toBeInTheDocument();
+        expect(screen.getByText('Technology • Software')).toBeInTheDocument();
+        expect(screen.getByText('About Test Company')).toBeInTheDocument();
       });
     });
 
