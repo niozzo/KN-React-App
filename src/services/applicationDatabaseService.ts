@@ -372,7 +372,7 @@ class ApplicationDatabaseService extends BaseService {
   }
 
   async getAttendeePreferences(attendeeId: string): Promise<AttendeePreferences | null> {
-    const client = this.getClient();
+    const client = this.getAdminClient();
     const { data, error } = await client
       .from('attendee_preferences')
       .select('*')
