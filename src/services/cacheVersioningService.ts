@@ -23,6 +23,7 @@ export interface ValidationResult {
   isChecksumValid: boolean;
   age: number;
   issues?: string[];
+  corruptionLevel?: 'none' | 'expired' | 'version' | 'corrupted';
 }
 
 export class CacheVersioningService {
@@ -59,23 +60,29 @@ export class CacheVersioningService {
     const timestampValidation = isTimestampExpired(entry.timestamp, entry.ttl);
     
     const issues: string[] = [];
+    let corruptionLevel: 'none' | 'expired' | 'version' | 'corrupted' = 'none';
     
     if (!timestampValidation.isValid) {
       issues.push(`Invalid timestamp: ${timestampValidation.error}`);
+      corruptionLevel = 'expired';
     } else if (timestampValidation.isExpired) {
       issues.push(`Cache entry expired (age: ${Math.round(timestampValidation.age / 1000)}s, TTL: ${Math.round(entry.ttl / 1000)}s)`);
+      corruptionLevel = 'expired';
     }
     
     if (timestampValidation.isFuture) {
       issues.push('Cache entry has future timestamp');
+      corruptionLevel = 'expired';
     }
     
     if (!isVersionValid) {
       issues.push(`Cache version mismatch (expected: ${this.CACHE_VERSION}, got: ${entry.version})`);
+      corruptionLevel = 'version';
     }
     
     if (!isChecksumValid) {
       issues.push('Cache data integrity check failed (checksum mismatch)');
+      corruptionLevel = 'corrupted';
     }
 
     return {
@@ -84,7 +91,8 @@ export class CacheVersioningService {
       isVersionValid,
       isChecksumValid,
       age: timestampValidation.age,
-      issues: issues.length > 0 ? issues : undefined
+      issues: issues.length > 0 ? issues : undefined,
+      corruptionLevel
     };
   }
 
