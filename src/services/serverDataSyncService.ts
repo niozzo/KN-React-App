@@ -101,6 +101,15 @@ export class ServerDataSyncService extends BaseService {
       console.log(`🔧 Filtered to ${records.length} active, confirmed attendees`);
     }
     
+    // Standardized companies transformation - remove confidential fields
+    if (tableName === 'standardized_companies') {
+      records = records.map(company => {
+        const { seating_notes, priority_companies, priority_networking_attendees, ...filteredCompany } = company;
+        return filteredCompany;
+      });
+      console.log(`🔧 Filtered confidential fields from ${records.length} standardized companies`);
+    }
+    
     // Dining options transformation
     if (tableName === 'dining_options') {
       const { DiningTransformer } = await import('../transformers/diningTransformer.js');
