@@ -241,11 +241,29 @@ const BioPage = () => {
             style={{
               fontSize: '18px',
               color: 'var(--coral)',
-              fontWeight: '500'
+              fontWeight: '500',
+              marginBottom: 'var(--space-xs)'
             }}
           >
             {attendee.company}
           </div>
+          {/* Sector and Subsector under company name */}
+          {standardizedCompany && (standardizedCompany.sector || standardizedCompany.subsector) && (
+            <div 
+              className="company-details"
+              style={{
+                fontSize: '16px',
+                color: 'var(--ink-600)',
+                fontWeight: '400'
+              }}
+            >
+              {standardizedCompany.sector && standardizedCompany.subsector ? (
+                `${standardizedCompany.sector} • ${standardizedCompany.subsector}`
+              ) : (
+                standardizedCompany.sector || standardizedCompany.subsector
+              )}
+            </div>
+          )}
         </div>
       </div>
       
@@ -288,43 +306,85 @@ const BioPage = () => {
         </div>
       </Card>
       
-      {/* Company Card - Only show if standardized company data exists */}
+      {/* Company Card - Collapsed by default */}
       {standardizedCompany && (
-        <Card className="sponsor-card sponsor-card-vertical">
-          {/* Logo centered on top */}
-          <div className="sponsor-logo-container">
-            <img
-              src={standardizedCompany.logo}
-              alt={`${standardizedCompany.name} logo`}
-              onError={(e) => {
-                // Fallback to icon if image fails to load
-                e.target.style.display = 'none';
-                e.target.nextSibling.style.display = 'flex';
-              }}
-            />
+        <Card className="content">
+          {!companyExpanded ? (
+            // Collapsed view - simple title and CTA
             <div 
-              className="logo-fallback"
-              style={{ display: 'none' }}
+              className="company-card-collapsed"
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: 'var(--space-md) 0'
+              }}
             >
-              {standardizedCompany.name.charAt(0)}
+              <h3 
+                style={{
+                  fontSize: '18px',
+                  fontWeight: '600',
+                  color: 'var(--ink-900)',
+                  margin: 0
+                }}
+              >
+                About {standardizedCompany.name}
+              </h3>
+              <button
+                onClick={toggleCompany}
+                style={{
+                  background: 'var(--purple-700)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: 'var(--radius-sm)',
+                  padding: 'var(--space-xs) var(--space-md)',
+                  fontSize: 'var(--text-sm)',
+                  fontWeight: 'var(--font-medium)',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.2s ease'
+                }}
+                onMouseEnter={(e) => e.target.style.background = 'var(--purple-800)'}
+                onMouseLeave={(e) => e.target.style.background = 'var(--purple-700)'}
+              >
+                See more
+              </button>
             </div>
-          </div>
-          
-          {/* Name and Sector/Subsector on same line */}
-          <div className="sponsor-info-row">
-            {/* Name with external link icon (left-aligned) */}
-            <a 
-              href={standardizedCompany.website}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="sponsor-name-link"
-            >
-              {standardizedCompany.name}&nbsp;<span className="external-link-icon">⧉</span>
-            </a>
-            
-            {/* Sector and Subsector badges (right-aligned) */}
-            <div style={{ display: 'flex', gap: 'var(--space-xs)', flexWrap: 'wrap' }}>
-              {standardizedCompany.sector && (
+          ) : (
+            // Expanded view - full company card like sponsors page
+            <div className="company-card-expanded">
+              {/* Logo centered on top */}
+              <div className="sponsor-logo-container">
+                <img
+                  src={standardizedCompany.logo}
+                  alt={`${standardizedCompany.name} logo`}
+                  onError={(e) => {
+                    // Fallback to icon if image fails to load
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'flex';
+                  }}
+                />
+                <div 
+                  className="logo-fallback"
+                  style={{ display: 'none' }}
+                >
+                  {standardizedCompany.name.charAt(0)}
+                </div>
+              </div>
+              
+              {/* Name with external link */}
+              <div className="sponsor-info-row">
+                <a 
+                  href={standardizedCompany.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="sponsor-name-link"
+                >
+                  {standardizedCompany.name}&nbsp;<span className="external-link-icon">⧉</span>
+                </a>
+              </div>
+              
+              {/* Geography badge (if available) */}
+              {standardizedCompany.geography && (
                 <div 
                   className="sponsor-geography"
                   style={{
@@ -335,64 +395,48 @@ const BioPage = () => {
                     borderRadius: 'var(--radius-md)',
                     fontSize: 'var(--text-sm)',
                     fontWeight: 'var(--font-medium)',
-                    width: 'fit-content'
+                    width: 'fit-content',
+                    marginTop: 'var(--space-sm)'
                   }}
                 >
-                  {standardizedCompany.sector}
+                  {standardizedCompany.geography}
                 </div>
               )}
-              {standardizedCompany.subsector && (
-                <div 
-                  className="sponsor-geography"
-                  style={{
-                    display: 'inline-block',
-                    padding: 'var(--space-xs) var(--space-sm)',
-                    background: 'rgba(124, 76, 196, 0.1)',
-                    color: 'var(--purple-700)',
-                    borderRadius: 'var(--radius-md)',
-                    fontSize: 'var(--text-sm)',
-                    fontWeight: 'var(--font-medium)',
-                    width: 'fit-content'
-                  }}
-                >
-                  {standardizedCompany.subsector}
+              
+              {/* Description section */}
+              {standardizedCompany.description && (
+                <div className="sponsor-description-wrapper">
+                  <p className="sponsor-description expanded">
+                    {standardizedCompany.description}
+                  </p>
                 </div>
               )}
-            </div>
-          </div>
-          
-          {/* Geography badge (if available) */}
-          {standardizedCompany.geography && (
-            <div 
-              className="sponsor-geography"
-              style={{
-                display: 'inline-block',
-                padding: 'var(--space-xs) var(--space-sm)',
-                background: 'rgba(217, 119, 111, 0.1)',
-                color: 'var(--coral)',
-                borderRadius: 'var(--radius-md)',
-                fontSize: 'var(--text-sm)',
-                fontWeight: 'var(--font-medium)',
-                width: 'fit-content',
-                marginTop: 'var(--space-sm)'
-              }}
-            >
-              {standardizedCompany.geography}
-            </div>
-          )}
-          
-          {/* Description section below name */}
-          {standardizedCompany.description && (
-            <div className="sponsor-description-wrapper">
-              <p className={`sponsor-description ${companyExpanded ? 'expanded' : 'collapsed'}`}>
-                {standardizedCompany.description}
-              </p>
+              
+              {/* Collapse button */}
               <button
                 onClick={toggleCompany}
-                className="description-toggle-btn"
-                aria-label={companyExpanded ? 'Show less' : 'Show more'}
+                style={{
+                  background: 'none',
+                  border: '1px solid var(--purple-700)',
+                  color: 'var(--purple-700)',
+                  borderRadius: 'var(--radius-sm)',
+                  padding: 'var(--space-xs) var(--space-md)',
+                  fontSize: 'var(--text-sm)',
+                  fontWeight: 'var(--font-medium)',
+                  cursor: 'pointer',
+                  marginTop: 'var(--space-md)',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = 'var(--purple-700)';
+                  e.target.style.color = 'white';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = 'none';
+                  e.target.style.color = 'var(--purple-700)';
+                }}
               >
-                {companyExpanded ? 'Show less' : 'Show more'}
+                Show less
               </button>
             </div>
           )}
