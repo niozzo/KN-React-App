@@ -120,6 +120,16 @@ const SettingsPage = () => {
         console.log(`🗑️ Cleared cache: ${key}`);
       });
       
+      // Step 1.5: Clear AttendeeCacheFilterService cache to ensure fresh profile visibility data
+      console.log('🧹 Clearing AttendeeCacheFilterService cache...');
+      try {
+        const { AttendeeCacheFilterService } = await import('../services/attendeeCacheFilterService');
+        AttendeeCacheFilterService.clearHiddenProfilesCache();
+        console.log('✅ AttendeeCacheFilterService cache cleared');
+      } catch (error) {
+        console.warn('⚠️ Failed to clear AttendeeCacheFilterService cache:', error);
+      }
+      
       // Step 2: Use PWA sync service with force refresh flag
       console.log('🔄 Force syncing all data from database...');
       const result = await pwaDataSyncService.syncAllData(true); // Force refresh flag
