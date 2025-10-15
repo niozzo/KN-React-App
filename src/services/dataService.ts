@@ -19,6 +19,7 @@ import type { SeatAssignment } from '../types/seating'
 import type { DiningOption } from '../types/dining'
 import type { Hotel } from '../types/hotel'
 import type { EnhancedSponsor } from './enhancedSponsorService'
+import type { StandardizedCompany } from '../types/standardizedCompany'
 
 /**
  * Base error class for data service errors
@@ -250,7 +251,26 @@ export const getAttendeeSelectedAgendaItems = async (attendeeId: string): Promis
 }
 
 /**
- * Get all sponsors (shared data - same for all authenticated users)
+ * Get all sponsors from standardized_companies table
+ * Filters by fund_analytics_category === "Sponsors & Vendors"
+ * @returns Array of StandardizedCompany objects sorted alphabetically
+ */
+export const getSponsorsFromStandardizedCompanies = async (): Promise<StandardizedCompany[]> => {
+  requireAuthentication()
+  
+  try {
+    const { standardizedCompanySponsorService } = await import('./standardizedCompanySponsorService')
+    const sponsors = await standardizedCompanySponsorService.getSponsors()
+    return sponsors
+  } catch (error) {
+    console.error('❌ Error fetching sponsors from standardized companies:', error)
+    throw new DataServiceError('Failed to fetch sponsors', 'FETCH_ERROR')
+  }
+}
+
+/**
+ * DEPRECATED: Get all sponsors (shared data - same for all authenticated users)
+ * @deprecated Use getSponsorsFromStandardizedCompanies() instead
  * @returns Array of all sponsors
  */
 export const getAllSponsors = async (): Promise<Sponsor[]> => {
@@ -287,7 +307,8 @@ export const getAllSponsors = async (): Promise<Sponsor[]> => {
 }
 
 /**
- * Get all sponsors with standardized company data as source of truth
+ * DEPRECATED: Get all sponsors with standardized company data as source of truth
+ * @deprecated Use getSponsorsFromStandardizedCompanies() instead
  * @returns Array of sponsors with enhanced logo/website data from standardized companies
  */
 export const getAllSponsorsWithStandardizedData = async (): Promise<EnhancedSponsor[]> => {
