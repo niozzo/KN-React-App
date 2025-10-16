@@ -85,95 +85,47 @@ class ApplicationDatabaseService extends BaseService {
     throw new Error(`${operationName} failed after ${maxRetries} attempts`);
   }
 
-  // Speaker Assignment Methods
+  // DEPRECATED: Speaker Assignment Methods - Migrated to main DB agenda_item_speakers
+  // These methods are deprecated and will be removed in a future version.
+  // Use speakerDataService.getSpeakersForAgendaItem() instead.
+  
+  /**
+   * @deprecated Use speakerDataService.getSpeakersForAgendaItem() instead
+   */
   async getSpeakerAssignments(agendaItemId: string): Promise<SpeakerAssignment[]> {
-    const client = this.getClient();
-    const { data, error } = await client
-      .from('speaker_assignments')
-      .select('*')
-      .eq('agenda_item_id', agendaItemId)
-      .order('display_order', { ascending: true });
-    
-    if (error) {
-      throw error;
-    }
-    return data || [];
-  }
-
-  async assignSpeaker(agendaItemId: string, attendeeId: string, role: string = 'presenter'): Promise<SpeakerAssignment> {
-    const adminClient = this.getAdminClient();
-    
-    // Get the next display_order value for this agenda item
-    const { data: existingAssignments } = await adminClient
-      .from('speaker_assignments')
-      .select('display_order')
-      .eq('agenda_item_id', agendaItemId)
-      .order('display_order', { ascending: false })
-      .limit(1);
-    
-    const nextOrder = existingAssignments && existingAssignments.length > 0 
-      ? (existingAssignments[0].display_order || 0) + 1 
-      : 1;
-
-    const { data, error } = await adminClient
-      .from('speaker_assignments')
-      .insert({
-        agenda_item_id: agendaItemId,
-        attendee_id: attendeeId,
-        role,
-        display_order: nextOrder
-      })
-      .select()
-      .single();
-    
-    if (error) throw error;
-    return data;
-  }
-
-  async removeSpeakerAssignment(assignmentId: string): Promise<void> {
-    const adminClient = this.getAdminClient();
-    const { error } = await adminClient
-      .from('speaker_assignments')
-      .delete()
-      .eq('id', assignmentId);
-    
-    if (error) throw error;
+    console.warn('⚠️ DEPRECATED: getSpeakerAssignments() is deprecated. Use speakerDataService.getSpeakersForAgendaItem() instead.');
+    return [];
   }
 
   /**
-   * Update speaker display order
+   * @deprecated Speaker assignments are now managed in the main database
+   */
+  async assignSpeaker(agendaItemId: string, attendeeId: string, role: string = 'presenter'): Promise<SpeakerAssignment> {
+    throw new Error('Speaker assignments are now managed in the main database. This method is deprecated.');
+  }
+
+  /**
+   * @deprecated Speaker assignments are now managed in the main database
+   */
+  async removeSpeakerAssignment(assignmentId: string): Promise<void> {
+    throw new Error('Speaker assignments are now managed in the main database. This method is deprecated.');
+  }
+
+  /**
+   * @deprecated Speaker assignments are now managed in the main database
    */
   async updateSpeakerOrder(speakerId: string, displayOrder: number): Promise<void> {
-    logger.debug(`Updating speaker ${speakerId} to order ${displayOrder}`, null, 'ApplicationDatabaseService');
-    
-    const adminClient = this.getAdminClient();
-    const { error } = await adminClient
-      .from('speaker_assignments')
-      .update({ 
-        display_order: displayOrder,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', speakerId);
-    
-    if (error) {
-      logger.error(`Failed to update speaker ${speakerId} order`, error, 'ApplicationDatabaseService');
-      throw error;
-    }
-    
-    logger.debug(`Updated speaker ${speakerId} to order ${displayOrder}`, null, 'ApplicationDatabaseService');
+    throw new Error('Speaker assignments are now managed in the main database. This method is deprecated.');
   }
 
   /**
-   * Reorder all speakers for an agenda item
+   * @deprecated Speaker assignments are now managed in the main database
    */
   async reorderSpeakersForAgendaItem(
     agendaItemId: string,
     speakerOrders: { id: string; display_order: number }[]
   ): Promise<void> {
-    // Update each speaker's display_order
-    for (const speakerOrder of speakerOrders) {
-      await this.updateSpeakerOrder(speakerOrder.id, speakerOrder.display_order);
-    }
+    throw new Error('Speaker assignments are now managed in the main database. This method is deprecated.');
   }
 
   // Metadata Management Methods

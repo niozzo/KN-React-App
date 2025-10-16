@@ -197,8 +197,8 @@ export class AgendaService implements IAgendaService {
    */
   private async enrichWithSpeakerData(agendaItems: any[]): Promise<any[]> {
     try {
-      // Get speaker assignments from cache
-      const speakerAssignments = await pwaDataSyncService.getCachedTableData('speaker_assignments');
+      // Get speaker data from new table
+      const agendaItemSpeakers = await pwaDataSyncService.getCachedTableData('agenda_item_speakers');
       
       // Get attendees from cache for name lookup
       const attendees = await pwaDataSyncService.getCachedTableData('attendees');
@@ -220,12 +220,12 @@ export class AgendaService implements IAgendaService {
         // Override title if it was edited in the application database
         const finalTitle = (metadata as any)?.title || item.title;
         
-        const matchingAssignments = speakerAssignments.filter((assignment: any) => assignment.agenda_item_id === item.id);
+        const matchingSpeakers = agendaItemSpeakers.filter((speaker: any) => speaker.agenda_item_id === item.id);
         
-        const speakers = matchingAssignments
-          .sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0))
-          .map((assignment: any) => {
-            const attendee = attendeeMap.get(assignment.attendee_id);
+        const speakers = matchingSpeakers
+          .sort((a: any, b: any) => (a.speaker_order || 0) - (b.speaker_order || 0))
+          .map((speaker: any) => {
+            const attendee = attendeeMap.get(speaker.attendee_id);
             let name = '';
             
             if (attendee) {
@@ -233,7 +233,8 @@ export class AgendaService implements IAgendaService {
               const firstName = attendee.first_name || '';
               const lastName = attendee.last_name || '';
               const title = attendee.title || '';
-              const company = attendee.company || '';
+              // Use standardized company name if available, fallback to raw company name
+              const company = attendee.company_name_standardized || attendee.company || '';
               
               const fullName = `${firstName} ${lastName}`.trim();
               if (title && company) {
@@ -244,16 +245,15 @@ export class AgendaService implements IAgendaService {
                 name = fullName;
               }
             } else {
-              name = `Speaker ${assignment.attendee_id}`;
-              console.warn('⚠️ Attendee not found for assignment:', assignment.attendee_id);
+              name = `Speaker ${speaker.attendee_id}`;
+              console.warn('⚠️ Attendee not found for speaker:', speaker.attendee_id);
             }
             
             return {
-              id: assignment.id,
-              attendee_id: assignment.attendee_id,
+              id: speaker.id,
+              attendee_id: speaker.attendee_id,
               name,
-              role: assignment.role,
-              display_order: assignment.display_order
+              speaker_order: speaker.speaker_order
             };
           });
         
@@ -262,8 +262,8 @@ export class AgendaService implements IAgendaService {
           console.log('🎯 [AGENDA] John Boehner event enrichment:', {
             agenda_item_id: item.id,
             title: item.title,
-            matching_assignments_found: matchingAssignments.length,
-            matching_assignments: matchingAssignments,
+            matching_speakers_found: matchingSpeakers.length,
+            matching_speakers: matchingSpeakers,
             speakers_created: speakers.length,
             speakers: speakers
           });
