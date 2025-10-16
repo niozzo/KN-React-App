@@ -231,7 +231,7 @@ const BioPage = () => {
             style={{
               fontSize: '16px',
               color: 'var(--ink-600)',
-              marginBottom: 'var(--space-sm)'
+              marginBottom: '1px'
             }}
           >
             {attendee.title}
