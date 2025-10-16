@@ -100,9 +100,11 @@ const BioPage = () => {
     try {
       const result = await offlineAttendeeService.getAttendeesByCompany(companyName);
       if (result.success) {
-        // Filter out the current attendee from the list
-        const otherAttendees = result.data.filter(att => att.id !== attendee?.id);
-        setCompanyAttendees(otherAttendees);
+        // Include all attendees and sort by last name alphabetically
+        const allAttendees = result.data.sort((a, b) => 
+          (a.last_name || '').localeCompare(b.last_name || '')
+        );
+        setCompanyAttendees(allAttendees);
       }
     } catch (err) {
       console.error('Failed to fetch company attendees:', err);
