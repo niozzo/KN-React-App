@@ -173,8 +173,8 @@ const BioPage = () => {
         <div 
           className="avatar"
           style={{
-            maxWidth: '200px',
-            maxHeight: '200px',
+            maxWidth: '250px',
+            maxHeight: '250px',
             width: 'auto',
             height: 'auto',
             background: 'var(--purple-100)',
