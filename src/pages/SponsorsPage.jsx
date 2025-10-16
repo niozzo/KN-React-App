@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import PageLayout from '../components/layout/PageLayout';
 import Card from '../components/common/Card';
 import { getSponsorsFromStandardizedCompanies } from '../services/dataService';
+import { offlineAttendeeService } from '../services/offlineAttendeeService';
 
 /**
  * Sponsors Page Component
@@ -15,6 +16,7 @@ const SponsorsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [expandedDescriptions, setExpandedDescriptions] = useState({});
+  const [companyAttendees, setCompanyAttendees] = useState({});
 
   // Load sponsors from standardized companies
   useEffect(() => {
@@ -93,12 +95,43 @@ const SponsorsPage = () => {
     }
   };
 
+  // Fetch company attendees
+  const fetchCompanyAttendees = async (companyName, sponsorId) => {
+    try {
+      const result = await offlineAttendeeService.getAttendeesByCompany(companyName);
+      if (result.success) {
+        // Sort attendees by last name alphabetically
+        const sortedAttendees = result.data.sort((a, b) => 
+          (a.last_name || '').localeCompare(b.last_name || '')
+        );
+        setCompanyAttendees(prev => ({
+          ...prev,
+          [sponsorId]: sortedAttendees
+        }));
+      }
+    } catch (err) {
+      console.error('Failed to fetch company attendees:', err);
+      setCompanyAttendees(prev => ({
+        ...prev,
+        [sponsorId]: []
+      }));
+    }
+  };
+
   // Toggle description expand/collapse
-  const toggleDescription = (sponsorId) => {
+  const toggleDescription = (sponsorId, companyName) => {
+    const isCurrentlyExpanded = expandedDescriptions[sponsorId];
+    const willBeExpanded = !isCurrentlyExpanded;
+    
     setExpandedDescriptions(prev => ({
       ...prev,
-      [sponsorId]: !prev[sponsorId]
+      [sponsorId]: willBeExpanded
     }));
+
+    // Fetch attendees when expanding
+    if (willBeExpanded && !companyAttendees[sponsorId]) {
+      fetchCompanyAttendees(companyName, sponsorId);
+    }
   };
 
   if (loading) {
@@ -243,12 +276,66 @@ const SponsorsPage = () => {
                     {sponsor.description}
                   </p>
                   <button
-                    onClick={() => toggleDescription(sponsor.id)}
+                    onClick={() => toggleDescription(sponsor.id, sponsor.name)}
                     className="description-toggle-btn"
                     aria-label={isExpanded ? 'Show less' : 'Show more'}
                   >
                     {isExpanded ? 'Show less' : 'Show more'}
                   </button>
+                </div>
+              )}
+
+              {/* Attendees section - only show when expanded */}
+              {isExpanded && companyAttendees[sponsor.id] && companyAttendees[sponsor.id].length > 0 && (
+                <div style={{ marginTop: 'var(--space-md)' }}>
+                  <h4 
+                    style={{
+                      fontSize: '16px',
+                      fontWeight: '600',
+                      color: 'var(--ink-900)',
+                      margin: '0 0 var(--space-sm) 0',
+                      textAlign: 'left'
+                    }}
+                  >
+                    Attendees
+                  </h4>
+                  <ul 
+                    style={{
+                      listStyle: 'none',
+                      padding: 0,
+                      margin: 0,
+                      textAlign: 'left'
+                    }}
+                  >
+                    {companyAttendees[sponsor.id].map((person) => (
+                      <li 
+                        key={person.id}
+                        style={{
+                          marginBottom: 'var(--space-xs)',
+                          fontSize: '14px',
+                          color: 'var(--ink-700)'
+                        }}
+                      >
+                        <a
+                          href={`/bio?id=${person.id}`}
+                          style={{
+                            color: 'var(--purple-700)',
+                            textDecoration: 'none',
+                            fontWeight: '500'
+                          }}
+                          onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
+                          onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
+                        >
+                          {person.first_name} {person.last_name}
+                        </a>
+                        {person.title && (
+                          <span style={{ color: 'var(--ink-600)' }}>
+                            {' '}• {person.title}
+                          </span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               )}
             </Card>
