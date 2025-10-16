@@ -245,7 +245,7 @@ const BioPage = () => {
               marginBottom: '2px'
             }}
           >
-            {attendee.company}
+            {standardizedCompany ? standardizedCompany.name : attendee.company}
           </div>
           
         </div>
