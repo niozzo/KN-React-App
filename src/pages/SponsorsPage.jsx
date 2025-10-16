@@ -275,13 +275,6 @@ const SponsorsPage = () => {
                   <p className={`sponsor-description ${isExpanded ? 'expanded' : 'collapsed'}`}>
                     {sponsor.description}
                   </p>
-                  <button
-                    onClick={() => toggleDescription(sponsor.id, sponsor.name)}
-                    className="description-toggle-btn"
-                    aria-label={isExpanded ? 'Show less' : 'Show more'}
-                  >
-                    {isExpanded ? 'Show less' : 'Show more'}
-                  </button>
                 </div>
               )}
 
@@ -337,6 +330,18 @@ const SponsorsPage = () => {
                     ))}
                   </ul>
                 </div>
+              )}
+
+              {/* Show less button - only show when expanded and after attendees */}
+              {sponsor.description && isExpanded && (
+                <button
+                  onClick={() => toggleDescription(sponsor.id, sponsor.name)}
+                  className="description-toggle-btn"
+                  aria-label="Show less"
+                  style={{ marginTop: 'var(--space-md)' }}
+                >
+                  Show less
+                </button>
               )}
             </Card>
           );
