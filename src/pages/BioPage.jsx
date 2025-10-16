@@ -247,37 +247,7 @@ const BioPage = () => {
           >
             {attendee.company}
           </div>
-          {/* Sector and Subsector under company name - only show if we have meaningful data */}
-          {standardizedCompany && standardizedCompany.sector && standardizedCompany.sector !== 'Not Applicable' && standardizedCompany.sector !== 'Vendors/Sponsors' && (
-            <div 
-              className="company-details"
-              style={{
-                fontSize: '16px',
-                color: 'var(--ink-600)',
-                fontWeight: '400'
-              }}
-            >
-              {standardizedCompany.sector && standardizedCompany.subsector && standardizedCompany.subsector !== 'Not Applicable' && standardizedCompany.subsector !== 'Vendors/Sponsors' ? (
-                `${standardizedCompany.sector} • ${standardizedCompany.subsector}`
-              ) : (
-                standardizedCompany.sector
-              )}
-            </div>
-          )}
           
-          {/* Show "Sponsor" label for sponsors */}
-          {standardizedCompany && standardizedCompany.sector === 'Vendors/Sponsors' && (
-            <div 
-              className="sponsor-label"
-              style={{
-                fontSize: '16px',
-                color: 'var(--ink-600)',
-                fontWeight: '400'
-              }}
-            >
-              Sponsor
-            </div>
-          )}
         </div>
       </div>
       
@@ -344,31 +314,59 @@ const BioPage = () => {
                 padding: 'var(--space-md) 0'
               }}
             >
-              <h3 
-                style={{
-                  fontSize: '18px',
-                  fontWeight: '600',
-                  color: 'var(--ink-900)',
-                  margin: 0
-                }}
-              >
-                About {standardizedCompany.name}
-              </h3>
+              <div>
+                <h3 
+                  style={{
+                    fontSize: '18px',
+                    fontWeight: '600',
+                    color: 'var(--ink-900)',
+                    margin: '0 0 var(--space-xs) 0'
+                  }}
+                >
+                  About {standardizedCompany.name}
+                </h3>
+                {/* Show Sponsor or Sector/Subsector info */}
+                {standardizedCompany.sector === 'Vendors/Sponsors' ? (
+                  <div 
+                    style={{
+                      fontSize: '16px',
+                      color: 'var(--ink-600)',
+                      fontWeight: '400'
+                    }}
+                  >
+                    Sponsor
+                  </div>
+                ) : standardizedCompany.sector && standardizedCompany.sector !== 'Not Applicable' && standardizedCompany.sector !== 'Vendors/Sponsors' ? (
+                  <div 
+                    style={{
+                      fontSize: '16px',
+                      color: 'var(--ink-600)',
+                      fontWeight: '400'
+                    }}
+                  >
+                    {standardizedCompany.sector && standardizedCompany.subsector && standardizedCompany.subsector !== 'Not Applicable' && standardizedCompany.subsector !== 'Vendors/Sponsors' ? (
+                      `${standardizedCompany.sector} • ${standardizedCompany.subsector}`
+                    ) : (
+                      standardizedCompany.sector
+                    )}
+                  </div>
+                ) : null}
+              </div>
               <button
                 onClick={toggleCompany}
                 style={{
-                  background: 'var(--purple-700)',
-                  color: 'white',
+                  background: 'none',
                   border: 'none',
-                  borderRadius: 'var(--radius-sm)',
-                  padding: 'var(--space-xs) var(--space-md)',
+                  color: 'var(--purple-700)',
                   fontSize: 'var(--text-sm)',
                   fontWeight: 'var(--font-medium)',
                   cursor: 'pointer',
-                  transition: 'background-color 0.2s ease'
+                  padding: 'var(--space-xs) 0',
+                  textDecoration: 'underline',
+                  transition: 'color 0.2s ease'
                 }}
-                onMouseEnter={(e) => e.target.style.background = 'var(--purple-800)'}
-                onMouseLeave={(e) => e.target.style.background = 'var(--purple-700)'}
+                onMouseEnter={(e) => e.target.style.color = 'var(--purple-900)'}
+                onMouseLeave={(e) => e.target.style.color = 'var(--purple-700)'}
               >
                 See more
               </button>
