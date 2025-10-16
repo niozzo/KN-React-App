@@ -365,6 +365,7 @@ const BioPage = () => {
           {/* Bottom: Show Sponsor or Sector/Subsector info */}
           {standardizedCompany.sector === 'Vendors/Sponsors' ? (
             <div 
+              className="sponsor-label-centered"
               style={{
                 fontSize: '16px',
                 color: 'var(--ink-600)',
@@ -376,6 +377,7 @@ const BioPage = () => {
             </div>
           ) : standardizedCompany.sector && standardizedCompany.sector !== 'Not Applicable' && standardizedCompany.sector !== 'Vendors/Sponsors' ? (
             <div 
+              className="sponsor-label-centered"
               style={{
                 fontSize: '16px',
                 color: 'var(--ink-600)',

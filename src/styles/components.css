@@ -1587,6 +1587,13 @@ body {
   border-radius: var(--radius-lg);
   position: relative;
   flex-shrink: 0;
+  align-self: center; /* Override parent's flex-start alignment */
+}
+
+/* Centered labels (sponsor/sector info) */
+.sponsor-label-centered {
+  align-self: center; /* Override parent's flex-start alignment */
+  text-align: center;
 }
 
 /* Info row: name and geography on same line */
