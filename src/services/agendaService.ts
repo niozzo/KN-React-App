@@ -233,7 +233,8 @@ export class AgendaService implements IAgendaService {
               const firstName = attendee.first_name || '';
               const lastName = attendee.last_name || '';
               const title = attendee.title || '';
-              const company = attendee.company || '';
+              // Use standardized company name if available, fallback to raw company name
+              const company = attendee.company_name_standardized || attendee.company || '';
               
               const fullName = `${firstName} ${lastName}`.trim();
               if (title && company) {
