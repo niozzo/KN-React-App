@@ -1587,7 +1587,7 @@ body {
   border-radius: var(--radius-lg);
   position: relative;
   flex-shrink: 0;
-  align-self: center; /* Override parent's flex-start alignment */
+  align-self: center !important; /* Override parent's flex-start alignment */
 }
 
 /* Centered labels (sponsor/sector info) */
