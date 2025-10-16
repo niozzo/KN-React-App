@@ -251,31 +251,31 @@ const BioPage = () => {
         </div>
       </div>
       
-      {/* Bio Content */}
-      <Card className="content">
-        <div className="section" style={{ marginBottom: '6px' }}>
-          <h2 
-            style={{
-              fontSize: '18px',
-              fontWeight: '600',
-              color: 'var(--ink-900)',
-              margin: '0 0 4px 0'
-            }}
-          >
-            About {fullName}
-          </h2>
-          <div className="bio-description-wrapper" style={{ paddingBottom: '0px' }}>
-            <div 
-              className={`bio-text ${bioExpanded ? 'expanded' : 'collapsed'}`}
+      {/* Bio Content - Only show if bio exists */}
+      {attendee.bio && (
+        <Card className="content">
+          <div className="section" style={{ marginBottom: '6px' }}>
+            <h2 
               style={{
-                color: 'var(--ink-700)',
-                lineHeight: '1.7',
-                whiteSpace: 'pre-line'
+                fontSize: '18px',
+                fontWeight: '600',
+                color: 'var(--ink-900)',
+                margin: '0 0 4px 0'
               }}
             >
-              {attendee.bio || 'No bio available for this attendee.'}
-            </div>
-            {attendee.bio && (
+              About {fullName}
+            </h2>
+            <div className="bio-description-wrapper" style={{ paddingBottom: '0px' }}>
+              <div 
+                className={`bio-text ${bioExpanded ? 'expanded' : 'collapsed'}`}
+                style={{
+                  color: 'var(--ink-700)',
+                  lineHeight: '1.7',
+                  whiteSpace: 'pre-line'
+                }}
+              >
+                {attendee.bio}
+              </div>
               <button
                 onClick={toggleBio}
                 className="description-toggle-btn"
@@ -295,10 +295,10 @@ const BioPage = () => {
               >
                 {bioExpanded ? 'Show less' : 'Show more'}
               </button>
-            )}
+            </div>
           </div>
-        </div>
-      </Card>
+        </Card>
+      )}
       
       {/* Company Card - Exactly like sponsor card */}
       {standardizedCompany && (
