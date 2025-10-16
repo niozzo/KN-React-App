@@ -14,13 +14,12 @@ import {
   List,
   ListItem,
   ListItemText,
-  Divider
+  Divider,
+  Chip
 } from '@mui/material';
 import { ArrowBack as ArrowBackIcon, Save as SaveIcon, Home as HomeIcon, Dashboard as DashboardIcon, AccessTime as AccessTimeIcon, Sync as SyncIcon } from '@mui/icons-material';
 import { useNavigate, useOutletContext } from 'react-router-dom';
-import { SpeakerAssignmentComponent } from './SpeakerAssignment';
 import { adminService } from '../services/adminService';
-import { SpeakerAssignment } from '../services/applicationDatabaseService';
 import { dataInitializationService } from '../services/dataInitializationService';
 import { pwaDataSyncService } from '../services/pwaDataSyncService';
 import CacheHealthDashboard from './CacheHealthDashboard';
@@ -221,13 +220,7 @@ export const AdminPage: React.FC = () => {
     setDiningTitleValidationError('');
   };
 
-  const handleAssignmentsChange = (itemId: string, assignments: SpeakerAssignment[]) => {
-    setAgendaItems(items =>
-      items.map(item =>
-        item.id === itemId ? { ...item, speaker_assignments: assignments } : item
-      )
-    );
-  };
+  // Speaker assignment management removed - now handled by main DB agenda_item_speakers
 
   const handleRefreshData = async () => {
     console.log('🔄 Refreshing data...');
@@ -566,12 +559,22 @@ export const AdminPage: React.FC = () => {
                         )}
                       </Box>
 
-                      <SpeakerAssignmentComponent
-                        agendaItemId={item.id}
-                        assignments={item.speaker_assignments || []}
-                        availableAttendees={attendees}
-                        onAssignmentsChange={(assignments) => handleAssignmentsChange(item.id, assignments)}
-                      />
+                      {/* Display speakers (read-only) */}
+                      {item.speakers && item.speakers.length > 0 && (
+                        <Box sx={{ mt: 1 }}>
+                          <Typography variant="caption" color="text.secondary">
+                            Speakers:
+                          </Typography>
+                          {item.speakers.map((speaker: any, idx: number) => (
+                            <Chip
+                              key={speaker.id}
+                              label={`${idx + 1}. ${speaker.first_name} ${speaker.last_name}`}
+                              size="small"
+                              sx={{ mr: 0.5, mt: 0.5 }}
+                            />
+                          ))}
+                        </Box>
+                      )}
                     </CardContent>
                   </Card>
                 </ListItem>
