@@ -300,29 +300,10 @@ const BioPage = () => {
         </Card>
       )}
       
-      {/* Company Card - Exactly like sponsor card */}
+      {/* Company Card - Reordered layout */}
       {standardizedCompany && (
         <Card className="sponsor-card sponsor-card-vertical">
-          {/* Logo centered on top */}
-          <div className="sponsor-logo-container">
-            <img
-              src={standardizedCompany.logo}
-              alt={`${standardizedCompany.name} logo`}
-              onError={(e) => {
-                // Fallback to icon if image fails to load
-                e.target.style.display = 'none';
-                e.target.nextSibling.style.display = 'flex';
-              }}
-            />
-            <div 
-              className="logo-fallback"
-              style={{ display: 'none' }}
-            >
-              {standardizedCompany.name.charAt(0)}
-            </div>
-          </div>
-          
-          {/* Name and Geography on same line */}
+          {/* First row: Name and Geography */}
           <div className="sponsor-info-row">
             {/* Name with external link icon (left-aligned) */}
             <a 
@@ -342,7 +323,26 @@ const BioPage = () => {
             )}
           </div>
           
-          {/* Show Sponsor or Sector/Subsector info */}
+          {/* Middle: Logo centered */}
+          <div className="sponsor-logo-container">
+            <img
+              src={standardizedCompany.logo}
+              alt={`${standardizedCompany.name} logo`}
+              onError={(e) => {
+                // Fallback to icon if image fails to load
+                e.target.style.display = 'none';
+                e.target.nextSibling.style.display = 'flex';
+              }}
+            />
+            <div 
+              className="logo-fallback"
+              style={{ display: 'none' }}
+            >
+              {standardizedCompany.name.charAt(0)}
+            </div>
+          </div>
+          
+          {/* Bottom: Show Sponsor or Sector/Subsector info */}
           {standardizedCompany.sector === 'Vendors/Sponsors' ? (
             <div 
               style={{

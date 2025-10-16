@@ -201,22 +201,7 @@ const SponsorsPage = () => {
           
           return (
             <Card key={sponsor.id} className="sponsor-card sponsor-card-vertical">
-              {/* Logo centered on top */}
-              <div className="sponsor-logo-container">
-                <img
-                  src={sponsor.logo}
-                  alt={`${sponsor.name} logo`}
-                  onError={handleLogoError}
-                />
-                <div 
-                  className="logo-fallback"
-                  style={{ display: 'none' }}
-                >
-                  {sponsor.name.charAt(0)}
-                </div>
-              </div>
-              
-              {/* Name and Geography on same line */}
+              {/* First row: Name and Geography */}
               <div className="sponsor-info-row">
                 {/* Name with external link icon (left-aligned) */}
                 <a 
@@ -234,6 +219,21 @@ const SponsorsPage = () => {
                     {sponsor.geography}
                   </div>
                 )}
+              </div>
+              
+              {/* Middle: Logo centered */}
+              <div className="sponsor-logo-container">
+                <img
+                  src={sponsor.logo}
+                  alt={`${sponsor.name} logo`}
+                  onError={handleLogoError}
+                />
+                <div 
+                  className="logo-fallback"
+                  style={{ display: 'none' }}
+                >
+                  {sponsor.name.charAt(0)}
+                </div>
               </div>
               
               {/* Description section below name */}
