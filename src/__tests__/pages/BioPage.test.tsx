@@ -135,7 +135,7 @@ describe('BioPage Core Functionality', () => {
 
       await waitFor(() => {
         expect(screen.getByText('Technology • Software')).toBeInTheDocument();
-        expect(screen.getByText('About Test Company')).toBeInTheDocument();
+        expect(screen.getByRole('link', { name: /Test Company/ })).toBeInTheDocument();
       });
     });
 
@@ -215,7 +215,7 @@ describe('BioPage Core Functionality', () => {
 
       await waitFor(() => {
         expect(screen.getByText('John Doe')).toBeInTheDocument();
-        expect(screen.getByText('About Test Company')).toBeInTheDocument();
+        expect(screen.getByText('Test Company')).toBeInTheDocument();
         // Should NOT display "Not Applicable" values
         expect(screen.queryByText('Not Applicable')).not.toBeInTheDocument();
         expect(screen.queryByText('Not Applicable • Not Applicable')).not.toBeInTheDocument();

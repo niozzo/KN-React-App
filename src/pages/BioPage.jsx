@@ -300,134 +300,90 @@ const BioPage = () => {
         </div>
       </Card>
       
-      {/* Company Card - Collapsed by default */}
+      {/* Company Card - Exactly like sponsor card */}
       {standardizedCompany && (
-        <Card className="content">
-          {!companyExpanded ? (
-            // Collapsed view - simple title and CTA
+        <Card className="sponsor-card sponsor-card-vertical">
+          {/* Logo centered on top */}
+          <div className="sponsor-logo-container">
+            <img
+              src={standardizedCompany.logo}
+              alt={`${standardizedCompany.name} logo`}
+              onError={(e) => {
+                // Fallback to icon if image fails to load
+                e.target.style.display = 'none';
+                e.target.nextSibling.style.display = 'flex';
+              }}
+            />
             <div 
-              className="company-card-collapsed"
+              className="logo-fallback"
+              style={{ display: 'none' }}
+            >
+              {standardizedCompany.name.charAt(0)}
+            </div>
+          </div>
+          
+          {/* Name and Geography on same line */}
+          <div className="sponsor-info-row">
+            {/* Name with external link icon (left-aligned) */}
+            <a 
+              href={standardizedCompany.website}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="sponsor-name-link"
+            >
+              {standardizedCompany.name}&nbsp;<span className="external-link-icon">⧉</span>
+            </a>
+            
+            {/* Geography badge (right-aligned) */}
+            {standardizedCompany.geography && (
+              <div className="sponsor-geography">
+                {standardizedCompany.geography}
+              </div>
+            )}
+          </div>
+          
+          {/* Show Sponsor or Sector/Subsector info */}
+          {standardizedCompany.sector === 'Vendors/Sponsors' ? (
+            <div 
               style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: 'var(--space-md) 0'
+                fontSize: '16px',
+                color: 'var(--ink-600)',
+                fontWeight: '400',
+                marginBottom: 'var(--space-sm)'
               }}
             >
-              <div>
-                <h3 
-                  style={{
-                    fontSize: '18px',
-                    fontWeight: '600',
-                    color: 'var(--ink-900)',
-                    margin: '0 0 var(--space-xs) 0'
-                  }}
-                >
-                  About {standardizedCompany.name}
-                </h3>
-                {/* Show Sponsor or Sector/Subsector info */}
-                {standardizedCompany.sector === 'Vendors/Sponsors' ? (
-                  <div 
-                    style={{
-                      fontSize: '16px',
-                      color: 'var(--ink-600)',
-                      fontWeight: '400'
-                    }}
-                  >
-                    Sponsor
-                  </div>
-                ) : standardizedCompany.sector && standardizedCompany.sector !== 'Not Applicable' && standardizedCompany.sector !== 'Vendors/Sponsors' ? (
-                  <div 
-                    style={{
-                      fontSize: '16px',
-                      color: 'var(--ink-600)',
-                      fontWeight: '400'
-                    }}
-                  >
-                    {standardizedCompany.sector && standardizedCompany.subsector && standardizedCompany.subsector !== 'Not Applicable' && standardizedCompany.subsector !== 'Vendors/Sponsors' ? (
-                      `${standardizedCompany.sector} • ${standardizedCompany.subsector}`
-                    ) : (
-                      standardizedCompany.sector
-                    )}
-                  </div>
-                ) : null}
-              </div>
+              Sponsor
+            </div>
+          ) : standardizedCompany.sector && standardizedCompany.sector !== 'Not Applicable' && standardizedCompany.sector !== 'Vendors/Sponsors' ? (
+            <div 
+              style={{
+                fontSize: '16px',
+                color: 'var(--ink-600)',
+                fontWeight: '400',
+                marginBottom: 'var(--space-sm)'
+              }}
+            >
+              {standardizedCompany.sector && standardizedCompany.subsector && standardizedCompany.subsector !== 'Not Applicable' && standardizedCompany.subsector !== 'Vendors/Sponsors' ? (
+                `${standardizedCompany.sector} • ${standardizedCompany.subsector}`
+              ) : (
+                standardizedCompany.sector
+              )}
+            </div>
+          ) : null}
+          
+          {/* Description section below name */}
+          {standardizedCompany.description && (
+            <div className="sponsor-description-wrapper">
+              <p className={`sponsor-description ${companyExpanded ? 'expanded' : 'collapsed'}`}>
+                {standardizedCompany.description}
+              </p>
               <button
                 onClick={toggleCompany}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: 'var(--purple-700)',
-                  fontSize: 'var(--text-sm)',
-                  fontWeight: 'var(--font-medium)',
-                  cursor: 'pointer',
-                  padding: 'var(--space-xs) 0',
-                  textDecoration: 'underline',
-                  transition: 'color 0.2s ease'
-                }}
-                onMouseEnter={(e) => e.target.style.color = 'var(--purple-900)'}
-                onMouseLeave={(e) => e.target.style.color = 'var(--purple-700)'}
+                className="description-toggle-btn"
+                aria-label={companyExpanded ? 'Show less' : 'Show more'}
               >
-                See more
+                {companyExpanded ? 'Show less' : 'Show more'}
               </button>
-            </div>
-          ) : (
-            // Expanded view - full company card like sponsors page
-            <div className="company-card-expanded">
-              {/* Logo centered on top */}
-              <div className="sponsor-logo-container">
-                <img
-                  src={standardizedCompany.logo}
-                  alt={`${standardizedCompany.name} logo`}
-                  onError={(e) => {
-                    // Fallback to icon if image fails to load
-                    e.target.style.display = 'none';
-                    e.target.nextSibling.style.display = 'flex';
-                  }}
-                />
-                <div 
-                  className="logo-fallback"
-                  style={{ display: 'none' }}
-                >
-                  {standardizedCompany.name.charAt(0)}
-                </div>
-              </div>
-              
-              {/* Name and Geography on same line - matching sponsors page layout */}
-              <div className="sponsor-info-row">
-                {/* Name with external link icon (left-aligned) */}
-                <a 
-                  href={standardizedCompany.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="sponsor-name-link"
-                >
-                  {standardizedCompany.name}&nbsp;<span className="external-link-icon">⧉</span>
-                </a>
-                
-                {/* Geography badge (right-aligned) */}
-                {standardizedCompany.geography && (
-                  <div className="sponsor-geography">
-                    {standardizedCompany.geography}
-                  </div>
-                )}
-              </div>
-              
-              {/* Description section below name - matching sponsors page */}
-              {standardizedCompany.description && (
-                <div className="sponsor-description-wrapper">
-                  <p className="sponsor-description expanded">
-                    {standardizedCompany.description}
-                  </p>
-                  <button
-                    onClick={toggleCompany}
-                    className="description-toggle-btn"
-                    aria-label="Show less"
-                  >
-                    Show less
-                  </button>
-                </div>
-              )}
             </div>
           )}
         </Card>
