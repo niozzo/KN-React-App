@@ -275,6 +275,15 @@ const SponsorsPage = () => {
                   <p className={`sponsor-description ${isExpanded ? 'expanded' : 'collapsed'}`}>
                     {sponsor.description}
                   </p>
+                  {!isExpanded && (
+                    <button
+                      onClick={() => toggleDescription(sponsor.id, sponsor.name)}
+                      className="description-toggle-btn"
+                      aria-label="Show more"
+                    >
+                      Show more
+                    </button>
+                  )}
                 </div>
               )}
 
