@@ -4,6 +4,7 @@ import PageLayout from '../components/layout/PageLayout';
 import Card from '../components/common/Card';
 import { attendeeSearchService } from '../services/attendeeSearchService';
 import { CompanyNormalizationService } from '../services/companyNormalizationService';
+import { offlineAttendeeService } from '../services/offlineAttendeeService';
 
 /**
  * Bio Page Component
@@ -18,6 +19,7 @@ const BioPage = () => {
   const [bioExpanded, setBioExpanded] = useState(false);
   const [companyExpanded, setCompanyExpanded] = useState(false);
   const [standardizedCompany, setStandardizedCompany] = useState(null);
+  const [companyAttendees, setCompanyAttendees] = useState([]);
 
   const attendeeId = searchParams.get('id');
 
@@ -94,9 +96,30 @@ const BioPage = () => {
     setBioExpanded(!bioExpanded);
   };
 
+  // Fetch company attendees when company card is expanded
+  const fetchCompanyAttendees = async (companyName) => {
+    try {
+      const result = await offlineAttendeeService.getAttendeesByCompany(companyName);
+      if (result.success) {
+        // Filter out the current attendee from the list
+        const otherAttendees = result.data.filter(att => att.id !== attendee?.id);
+        setCompanyAttendees(otherAttendees);
+      }
+    } catch (err) {
+      console.error('Failed to fetch company attendees:', err);
+      setCompanyAttendees([]);
+    }
+  };
+
   // Toggle company expand/collapse
   const toggleCompany = () => {
-    setCompanyExpanded(!companyExpanded);
+    const newExpanded = !companyExpanded;
+    setCompanyExpanded(newExpanded);
+    
+    // Fetch company attendees when expanding
+    if (newExpanded && standardizedCompany) {
+      fetchCompanyAttendees(standardizedCompany.name);
+    }
   };
 
   // Construct full name from first_name and last_name
@@ -384,6 +407,58 @@ const BioPage = () => {
               >
                 {companyExpanded ? 'Show less' : 'Show more'}
               </button>
+            </div>
+          )}
+          
+          {/* People in attendance section - only show when expanded */}
+          {companyExpanded && companyAttendees.length > 0 && (
+            <div style={{ marginTop: 'var(--space-md)' }}>
+              <h4 
+                style={{
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  color: 'var(--ink-900)',
+                  margin: '0 0 var(--space-sm) 0'
+                }}
+              >
+                People in attendance
+              </h4>
+              <ul 
+                style={{
+                  listStyle: 'none',
+                  padding: 0,
+                  margin: 0
+                }}
+              >
+                {companyAttendees.map((person) => (
+                  <li 
+                    key={person.id}
+                    style={{
+                      marginBottom: 'var(--space-xs)',
+                      fontSize: '14px',
+                      color: 'var(--ink-700)'
+                    }}
+                  >
+                    <a
+                      href={`/bio?id=${person.id}`}
+                      style={{
+                        color: 'var(--purple-700)',
+                        textDecoration: 'none',
+                        fontWeight: '500'
+                      }}
+                      onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
+                      onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
+                    >
+                      {person.first_name} {person.last_name}
+                    </a>
+                    {person.title && (
+                      <span style={{ color: 'var(--ink-600)' }}>
+                        {' '}• {person.title}
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
         </Card>
