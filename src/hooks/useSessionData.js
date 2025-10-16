@@ -548,9 +548,15 @@ export const useSessionData = (options = {}) => {
 
       // Enhance events with seat assignment data (for both sessions AND dining events)
       // ARCHITECTURE: Use local variables for synchronous data transformation
+      // ARCHITECTURAL DECISION: Agenda items are source of truth for seating requirements
       const enhanceEventWithSeatInfo = (event) => {
-        if (!event || !localSeatAssignments.length || !localSeatingConfigurations.length) {
+        if (!event) {
           return event || null;
+        }
+        
+        // Look for seat assignments if we have the necessary data
+        if (!localSeatAssignments.length || !localSeatingConfigurations.length) {
+          return event;
         }
         
         // Step 1: Find the seating configuration for this event (bridge table lookup)

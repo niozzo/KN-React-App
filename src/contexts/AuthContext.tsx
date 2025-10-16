@@ -202,6 +202,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.warn('⚠️ Attendee sync initialization failed:', attendeeError)
       }
       
+      // ✅ CRITICAL FIX: Re-populate attendee cache after attendee sync service
+      // The attendee sync service may have cleared the cache, so we need to ensure it's populated
+      try {
+        if (abortController.signal.aborted) {
+          console.log('⏸️ Login aborted - skipping attendee cache repopulation')
+          return { success: false, error: 'Login cancelled' }
+        }
+        
+        const { serverDataSyncService } = await import('../services/serverDataSyncService')
+        await serverDataSyncService.syncAttendees()
+        console.log('✅ Attendee cache repopulated after sync service')
+      } catch (cacheError) {
+        console.warn('⚠️ Failed to repopulate attendee cache:', cacheError)
+      }
+      
       // Load attendee name from the newly cached info
       const cachedName = await attendeeInfoService.getAttendeeName()
       setAttendeeName(cachedName)

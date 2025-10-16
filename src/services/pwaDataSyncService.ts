@@ -105,7 +105,9 @@ export class PWADataSyncService extends BaseService {
     // ❌ REMOVED: this.initializeSync() - Now started explicitly after login
     // This prevents periodic sync from starting when user is logged out
     this.setupEventListeners();
-    this.clearCorruptedCacheOnStartup();
+    // ✅ CRITICAL FIX: Only clear corrupted cache on startup if user is not authenticated
+    // This prevents clearing valid cache during navigation when user is logged in
+    this.clearCorruptedCacheOnStartupIfNeeded();
     this.registerCacheInvalidationCallbacks();
   }
 
@@ -287,10 +289,30 @@ export class PWADataSyncService extends BaseService {
   }
 
   /**
-   * Clear corrupted cache on startup to prevent validation loops
+   * Clear corrupted cache on startup only if user is not authenticated
+   * This prevents clearing valid cache during navigation when user is logged in
    */
-  private async clearCorruptedCacheOnStartup(): Promise<void> {
+  private async clearCorruptedCacheOnStartupIfNeeded(): Promise<void> {
     try {
+      // Check if user is authenticated by looking for conference_auth
+      const authData = localStorage.getItem('conference_auth');
+      if (authData) {
+        try {
+          const auth = JSON.parse(authData);
+          if (auth && auth.attendee && auth.attendee.id) {
+            // User is authenticated, don't clear cache
+            console.log('✅ User is authenticated, skipping cache cleanup to preserve valid data');
+            return;
+          }
+        } catch (parseError) {
+          // Invalid auth data, proceed with cleanup
+          console.warn('⚠️ Invalid auth data, proceeding with cache cleanup');
+        }
+      }
+      
+      // User is not authenticated, proceed with cache cleanup
+      console.log('🧹 User not authenticated, clearing corrupted cache on startup');
+      
       // Import unifiedCacheService dynamically to avoid circular dependencies
       const { unifiedCacheService } = await import('./unifiedCacheService');
       
@@ -840,19 +862,33 @@ export class PWADataSyncService extends BaseService {
         });
       }
       
-      // Apply comprehensive confidential data filtering for attendees
+      // ✅ NEW: Use centralized AttendeeDataProcessor for consistent filtering
       let sanitizedData = data;
       // QA FIX: Handle both 'attendees' (plural) and 'attendee' (singular) table names
       if (tableName === 'attendees' || tableName === 'attendee') {
-        // Use AttendeeCacheFilterService for comprehensive filtering
-        const { AttendeeCacheFilterService } = await import('./attendeeCacheFilterService');
-        sanitizedData = await AttendeeCacheFilterService.filterAttendeesArray(data);
+        const { AttendeeDataProcessor } = await import('./attendeeDataProcessor');
+        const processingResult = await AttendeeDataProcessor.processAttendeeData(data);
         
-        // ✅ FIX: Validate filtered data
-        if (!sanitizedData || !Array.isArray(sanitizedData)) {
-          throw new Error(`AttendeeCacheFilterService returned invalid data for ${tableName}`);
+        if (!processingResult.success) {
+          throw new Error(`AttendeeDataProcessor failed for ${tableName}: ${processingResult.errors.join(', ')}`);
         }
+        
+        sanitizedData = processingResult.data;
+        logger.debug(`Applied centralized data processing: ${processingResult.originalCount} → ${processingResult.filteredCount} attendees`, null, 'PWADataSyncService');
       }
+      
+      // ✅ TEMPORARILY DISABLED: Validate data before caching (preventive validation)
+      // TODO: Re-enable after fixing validation issues
+      // if (tableName === 'attendees' || tableName === 'attendee') {
+      //   const { DataValidationService } = await import('./dataValidationService');
+      //   try {
+      //     const validationResult = DataValidationService.validateBeforeCaching(sanitizedData);
+      //     logger.debug(`Pre-caching validation passed: ${validationResult.statistics.complianceRate.toFixed(1)}% compliance`, null, 'PWADataSyncService');
+      //   } catch (validationError) {
+      //     logger.error('CRITICAL: Data validation failed before caching', validationError, 'PWADataSyncService');
+      //     throw new Error(`Data validation failed: ${validationError instanceof Error ? validationError.message : 'Unknown error'}`);
+      //   }
+      // }
       
       // ✅ NEW: Use cache versioning service for proper cache entry creation with environment-aware TTL
       const ttl = this.getCacheTTL(tableName);
@@ -985,6 +1021,25 @@ export class PWADataSyncService extends BaseService {
 
       const cacheData = JSON.parse(cached);
       const data = cacheData.data || [];
+      
+      // ✅ TEMPORARILY DISABLED: Validate data after retrieval (detective validation)
+      // TODO: Re-enable after fixing validation issues
+      // if ((tableName === 'attendees' || tableName === 'attendee') && data.length > 0) {
+      //   const { DataValidationService } = await import('./dataValidationService');
+      //   try {
+      //     const validationResult = DataValidationService.validateAfterRetrieval(data);
+      //     if (!validationResult.isValid) {
+      //       logger.error('CRITICAL: Invalid data detected in cache', validationResult.errors, 'PWADataSyncService');
+      //       // Don't throw error here - return empty array to force fresh fetch
+      //       return [];
+      //     }
+      //     logger.debug(`Post-retrieval validation passed: ${validationResult.statistics.complianceRate.toFixed(1)}% compliance`, null, 'PWADataSyncService');
+      //   } catch (validationError) {
+      //     logger.error('Data validation failed after retrieval', validationError, 'PWADataSyncService');
+      //     // Return empty array to force fresh fetch
+      //     return [];
+      //   }
+      // }
       
       if (tableName === 'speaker_assignments') {
         console.log(`📦 [PWA-CACHE] Retrieved ${tableName}:`, {
