@@ -59,10 +59,28 @@ export class AttendeeSyncService extends BaseService {
         };
       }
 
-      // Apply confidential data filtering before updating conference_auth
-      const { AttendeeCacheFilterService } = await import('./attendeeCacheFilterService');
-      const filteredAttendeeData = AttendeeCacheFilterService.filterConfidentialFields(freshAttendeeData);
-      logger.debug('Applied confidential data filtering to attendee refresh', null, 'AttendeeSyncService');
+      // ✅ NEW: Use centralized AttendeeDataProcessor for consistent filtering
+      const { AttendeeDataProcessor } = await import('./attendeeDataProcessor');
+      const processingResult = await AttendeeDataProcessor.processAttendeeData([freshAttendeeData]);
+      
+      if (!processingResult.success) {
+        logger.error('Failed to process attendee data', processingResult.errors, 'AttendeeSyncService');
+        return {
+          success: false,
+          error: `Data processing failed: ${processingResult.errors.join(', ')}`
+        };
+      }
+      
+      if (processingResult.data.length === 0) {
+        logger.warn('No valid attendee data after processing', null, 'AttendeeSyncService');
+        return {
+          success: false,
+          error: 'No valid attendee data after processing'
+        };
+      }
+      
+      const filteredAttendeeData = processingResult.data[0];
+      logger.debug(`Applied centralized data processing: ${processingResult.originalCount} → ${processingResult.filteredCount} attendees`, null, 'AttendeeSyncService');
 
       // Update conference_auth with filtered data
       await this.updateConferenceAuth(filteredAttendeeData);
