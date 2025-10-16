@@ -14,7 +14,8 @@ export interface EnrichedSpeaker {
   first_name?: string;
   last_name?: string;
   title?: string;
-  company?: string;
+  company?: string; // Raw company name (for backward compatibility)
+  company_standardized?: string; // Standardized company name (preferred)
   bio?: string;
   photo?: string;
 }
@@ -38,17 +39,18 @@ export class SpeakerDataService {
       return itemSpeakers
         .map((speaker: AgendaItemSpeaker) => {
           const attendee = attendees.find((a: any) => a.id === speaker.attendee_id);
-          return {
-            id: speaker.id,
-            speaker_order: speaker.speaker_order,
-            attendee_id: speaker.attendee_id,
-            first_name: attendee?.first_name,
-            last_name: attendee?.last_name,
-            title: attendee?.title,
-            company: attendee?.company,
-            bio: attendee?.bio,
-            photo: attendee?.photo
-          };
+        return {
+          id: speaker.id,
+          speaker_order: speaker.speaker_order,
+          attendee_id: speaker.attendee_id,
+          first_name: attendee?.first_name,
+          last_name: attendee?.last_name,
+          title: attendee?.title,
+          company: attendee?.company, // Raw company name (for backward compatibility)
+          company_standardized: attendee?.company_name_standardized, // Standardized company name (preferred)
+          bio: attendee?.bio,
+          photo: attendee?.photo
+        };
         })
         .sort((a, b) => a.speaker_order - b.speaker_order);
     } catch (error) {

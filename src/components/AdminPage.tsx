@@ -565,14 +565,19 @@ export const AdminPage: React.FC = () => {
                           <Typography variant="caption" color="text.secondary">
                             Speakers:
                           </Typography>
-                          {item.speakers.map((speaker: any, idx: number) => (
-                            <Chip
-                              key={speaker.id}
-                              label={`${idx + 1}. ${speaker.first_name} ${speaker.last_name}`}
-                              size="small"
-                              sx={{ mr: 0.5, mt: 0.5 }}
-                            />
-                          ))}
+                          {item.speakers.map((speaker: any, idx: number) => {
+                            // Use standardized company name if available, fallback to raw company name
+                            const company = speaker.company_standardized || speaker.company || '';
+                            const companyDisplay = company ? ` (${company})` : '';
+                            return (
+                              <Chip
+                                key={speaker.id}
+                                label={`${idx + 1}. ${speaker.first_name} ${speaker.last_name}${companyDisplay}`}
+                                size="small"
+                                sx={{ mr: 0.5, mt: 0.5 }}
+                              />
+                            );
+                          })}
                         </Box>
                       )}
                     </CardContent>
