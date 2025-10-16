@@ -100,10 +100,19 @@ const BioPage = () => {
     try {
       const result = await offlineAttendeeService.getAttendeesByCompany(companyName);
       if (result.success) {
-        // Include all attendees and sort by last name alphabetically
-        const allAttendees = result.data.sort((a, b) => 
+        // Ensure current attendee is included in the list
+        let allAttendees = result.data;
+        
+        // Check if current attendee is in the list, if not add them
+        if (attendee && !allAttendees.find(att => att.id === attendee.id)) {
+          allAttendees = [...allAttendees, attendee];
+        }
+        
+        // Sort by last name alphabetically
+        allAttendees = allAttendees.sort((a, b) => 
           (a.last_name || '').localeCompare(b.last_name || '')
         );
+        
         setCompanyAttendees(allAttendees);
       }
     } catch (err) {
