@@ -95,20 +95,50 @@ const SponsorsPage = () => {
     }
   };
 
-  // Fetch company attendees
+  // Fetch company attendees - localStorage-first architecture
   const fetchCompanyAttendees = async (companyName, sponsorId) => {
     try {
-      const result = await offlineAttendeeService.getAttendeesByCompany(companyName);
-      if (result.success) {
-        // Sort attendees by last name alphabetically
-        const sortedAttendees = result.data.sort((a, b) => 
-          (a.last_name || '').localeCompare(b.last_name || '')
-        );
-        setCompanyAttendees(prev => ({
-          ...prev,
-          [sponsorId]: sortedAttendees
-        }));
+      // 🚨 CRITICAL FIX: Check localStorage cache first to prevent cache wiping
+      const cachedData = localStorage.getItem('kn_cache_attendees');
+      
+      if (cachedData) {
+        try {
+          const cacheObj = JSON.parse(cachedData);
+          const attendees = cacheObj.data || cacheObj;
+          
+          if (Array.isArray(attendees) && attendees.length > 0) {
+            // Filter attendees by company and confirmed status directly from cache
+            const companyAttendees = attendees.filter(attendee => 
+              attendee.company && 
+              attendee.company.toLowerCase() === companyName.toLowerCase() &&
+              attendee.registration_status === 'confirmed'
+            );
+            
+            // Sort attendees by last name alphabetically
+            const sortedAttendees = companyAttendees.sort((a, b) => 
+              (a.last_name || '').localeCompare(b.last_name || '')
+            );
+            
+            setCompanyAttendees(prev => ({
+              ...prev,
+              [sponsorId]: sortedAttendees
+            }));
+            
+            console.log(`✅ Company attendees loaded from cache: ${sortedAttendees.length} attendees`);
+            return; // Success - no API call needed
+          }
+        } catch (cacheError) {
+          console.warn('⚠️ Failed to parse cached attendee data:', cacheError);
+        }
       }
+      
+      // 🚨 FALLBACK: Only if no cached data - but don't call service layer to prevent cache wiping
+      console.warn('⚠️ No cached attendee data available for company attendees');
+      setCompanyAttendees(prev => ({
+        ...prev,
+        [sponsorId]: []
+      }));
+      
     } catch (err) {
       console.error('Failed to fetch company attendees:', err);
       setCompanyAttendees(prev => ({

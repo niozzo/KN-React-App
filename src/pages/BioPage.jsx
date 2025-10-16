@@ -72,17 +72,11 @@ const BioPage = () => {
         
         // FALLBACK: Only if no cached data or attendee not found
         console.warn('⚠️ No cached attendee data, falling back to service layer');
-        const result = await attendeeSearchService.searchAttendees({
-          query: '',
-        });
         
-        const foundAttendee = result.attendees.find(a => a.id === attendeeId);
-        
-        if (foundAttendee) {
-          setAttendee(foundAttendee);
-        } else {
-          setError('Attendee not found');
-        }
+        // 🚨 CRITICAL FIX: Don't call service layer - it triggers API calls that wipe cache
+        // Instead, show error message since we can't find attendee in cache
+        console.error('❌ CRITICAL: Attendee not found in cache and API fallback disabled to prevent cache wiping');
+        setError('Attendee not found in cache. Please refresh the page to reload data.');
         
       } catch (err) {
         console.error('❌ Failed to load attendee:', err);
@@ -129,13 +123,30 @@ const BioPage = () => {
     setBioExpanded(!bioExpanded);
   };
 
-  // Fetch company attendees when company card is expanded
+  // Fetch company attendees when company card is expanded - CACHE-FIRST ONLY
   const fetchCompanyAttendees = async (companyName) => {
     try {
-      const result = await offlineAttendeeService.getAttendeesByCompany(companyName);
-      if (result.success) {
+      // 🚨 CRITICAL FIX: Use localStorage-first approach to prevent cache wiping
+      const cachedData = localStorage.getItem('kn_cache_attendees');
+      
+      if (!cachedData) {
+        console.warn('⚠️ No cached attendee data for company filtering');
+        setCompanyAttendees([]);
+        return;
+      }
+      
+      const cacheObj = JSON.parse(cachedData);
+      const attendees = cacheObj.data || cacheObj;
+      
+      if (Array.isArray(attendees) && attendees.length > 0) {
+        // Apply company and confirmed status filters directly from cache
+        const companyAttendees = attendees.filter(attendee => 
+          attendee.company?.toLowerCase() === companyName.toLowerCase() &&
+          attendee.registration_status === 'confirmed'
+        );
+        
         // Ensure current attendee is included in the list
-        let allAttendees = result.data;
+        let allAttendees = companyAttendees;
         
         // Check if current attendee is in the list, if not add them
         if (attendee && !allAttendees.find(att => att.id === attendee.id)) {
@@ -148,9 +159,13 @@ const BioPage = () => {
         );
         
         setCompanyAttendees(allAttendees);
+        console.log(`✅ Company attendees loaded from cache: ${allAttendees.length} attendees`);
+      } else {
+        console.warn('⚠️ No valid attendee data in cache');
+        setCompanyAttendees([]);
       }
     } catch (err) {
-      console.error('Failed to fetch company attendees:', err);
+      console.error('Failed to fetch company attendees from cache:', err);
       setCompanyAttendees([]);
     }
   };
