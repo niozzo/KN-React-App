@@ -5,18 +5,19 @@
 
 export const TABLE_MAPPINGS = {
   application: {
-    speaker_assignments: 'speaker_assignments',
+    // speaker_assignments: 'speaker_assignments', // REMOVED - migrated to main DB agenda_item_speakers
     agenda_item_metadata: 'agenda_item_metadata',
     attendee_metadata: 'attendee_metadata',
     dining_item_metadata: 'dining_item_metadata'
   },
   main: {
     attendees: 'attendees',
+    agenda_items: 'agenda_items',
+    agenda_item_speakers: 'agenda_item_speakers', // NEW: Speaker assignments from main DB
     sponsors: 'sponsors', // DEPRECATED: Will be removed after migration
     standardized_companies: 'standardized_companies',
     company_aliases: 'company_aliases',
     seat_assignments: 'seat_assignments',
-    agenda_items: 'agenda_items',
     dining_options: 'dining_options',
     hotels: 'hotels',
     seating_configurations: 'seating_configurations',
