@@ -76,7 +76,8 @@ interface EnrichedSpeaker {
   first_name?: string;
   last_name?: string;
   title?: string;
-  company?: string;
+  company?: string; // Raw company name (for backward compatibility)
+  company_standardized?: string; // Standardized company name (preferred)
   bio?: string;
   photo?: string;
 }
@@ -86,9 +87,10 @@ interface EnrichedSpeaker {
 
 1. **Centralized Data**: Speaker assignments now managed in main database
 2. **Rich Speaker Info**: Full attendee details available via join
-3. **Simplified Architecture**: No more dual database management
-4. **Better Performance**: Single source of truth reduces complexity
-5. **Maintainability**: Easier to manage and debug
+3. **Standardized Company Names**: Uses `company_name_standardized` for consistent company display
+4. **Simplified Architecture**: No more dual database management
+5. **Better Performance**: Single source of truth reduces complexity
+6. **Maintainability**: Easier to manage and debug
 
 ## Migration Notes
 

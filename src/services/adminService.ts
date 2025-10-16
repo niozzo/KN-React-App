@@ -64,7 +64,8 @@ export class AdminService {
             first_name: attendee?.first_name,
             last_name: attendee?.last_name,
             title: attendee?.title,
-            company: attendee?.company
+            company: attendee?.company, // Raw company name (for backward compatibility)
+            company_standardized: attendee?.company_name_standardized // Standardized company name (preferred)
           };
         });
       
