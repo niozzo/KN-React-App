@@ -95,11 +95,17 @@ export class ServerDataSyncService extends BaseService {
         return attendee;
       });
       
-      records = attendeeTransformer.transformArrayFromDatabase(records);
-      records = attendeeTransformer.filterActiveAttendees(records); // Filter before caching
-      records = attendeeTransformer.filterConfirmedAttendees(records); // Filter confirmed attendees
+      // ✅ NEW: Use centralized AttendeeDataProcessor for consistent filtering
+      const { AttendeeDataProcessor } = await import('./attendeeDataProcessor');
+      const processingResult = await AttendeeDataProcessor.processAttendeeData(records);
       
-      logger.debug(`Filtered to ${records.length} active, confirmed attendees`, null, 'ServerDataSyncService');
+      if (!processingResult.success) {
+        logger.error('Failed to process attendee data in server sync', processingResult.errors, 'ServerDataSyncService');
+        throw new Error(`Attendee data processing failed: ${processingResult.errors.join(', ')}`);
+      }
+      
+      records = processingResult.data;
+      logger.debug(`Applied centralized data processing: ${processingResult.originalCount} → ${processingResult.filteredCount} attendees`, null, 'ServerDataSyncService');
     }
     
     // Standardized companies transformation - use centralized transformer
