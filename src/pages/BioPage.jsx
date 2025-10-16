@@ -333,8 +333,8 @@ const BioPage = () => {
               {standardizedCompany.name}&nbsp;<span className="external-link-icon">⧉</span>
             </a>
             
-            {/* Geography badge (right-aligned) */}
-            {standardizedCompany.geography && (
+            {/* Geography badge (right-aligned) - only show for sponsors */}
+            {standardizedCompany.geography && standardizedCompany.sector === 'Vendors/Sponsors' && (
               <div className="sponsor-geography">
                 {standardizedCompany.geography}
               </div>
