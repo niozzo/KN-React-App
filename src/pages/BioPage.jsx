@@ -17,7 +17,6 @@ const BioPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [bioExpanded, setBioExpanded] = useState(false);
-  const [companyExpanded, setCompanyExpanded] = useState(false);
   const [standardizedCompany, setStandardizedCompany] = useState(null);
   const [companyAttendees, setCompanyAttendees] = useState([]);
 
@@ -111,16 +110,12 @@ const BioPage = () => {
     }
   };
 
-  // Toggle company expand/collapse
-  const toggleCompany = () => {
-    const newExpanded = !companyExpanded;
-    setCompanyExpanded(newExpanded);
-    
-    // Fetch company attendees when expanding
-    if (newExpanded && standardizedCompany) {
+  // Fetch company attendees when standardized company is available
+  useEffect(() => {
+    if (standardizedCompany && attendee) {
       fetchCompanyAttendees(standardizedCompany.name);
     }
-  };
+  }, [standardizedCompany, attendee]);
 
   // Construct full name from first_name and last_name
   const fullName = attendee ? `${attendee.first_name} ${attendee.last_name}`.trim() : '';
@@ -397,37 +392,32 @@ const BioPage = () => {
           {/* Description section below name */}
           {standardizedCompany.description && (
             <div className="sponsor-description-wrapper">
-              <p className={`sponsor-description ${companyExpanded ? 'expanded' : 'collapsed'}`}>
+              <p className="sponsor-description expanded">
                 {standardizedCompany.description}
               </p>
-              <button
-                onClick={toggleCompany}
-                className="description-toggle-btn"
-                aria-label={companyExpanded ? 'Show less' : 'Show more'}
-              >
-                {companyExpanded ? 'Show less' : 'Show more'}
-              </button>
             </div>
           )}
           
-          {/* People in attendance section - only show when expanded */}
-          {companyExpanded && companyAttendees.length > 0 && (
+          {/* Attendees section - always show when attendees exist */}
+          {companyAttendees.length > 0 && (
             <div style={{ marginTop: 'var(--space-md)' }}>
               <h4 
                 style={{
                   fontSize: '16px',
                   fontWeight: '600',
                   color: 'var(--ink-900)',
-                  margin: '0 0 var(--space-sm) 0'
+                  margin: '0 0 var(--space-sm) 0',
+                  textAlign: 'left'
                 }}
               >
-                People in attendance
+                Attendees
               </h4>
               <ul 
                 style={{
                   listStyle: 'none',
                   padding: 0,
-                  margin: 0
+                  margin: 0,
+                  textAlign: 'left'
                 }}
               >
                 {companyAttendees.map((person) => (
@@ -439,22 +429,37 @@ const BioPage = () => {
                       color: 'var(--ink-700)'
                     }}
                   >
-                    <a
-                      href={`/bio?id=${person.id}`}
-                      style={{
-                        color: 'var(--purple-700)',
-                        textDecoration: 'none',
-                        fontWeight: '500'
-                      }}
-                      onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
-                      onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
-                    >
-                      {person.first_name} {person.last_name}
-                    </a>
-                    {person.title && (
-                      <span style={{ color: 'var(--ink-600)' }}>
-                        {' '}• {person.title}
+                    {person.id === attendee?.id ? (
+                      // Current person - no link, just name and title
+                      <span style={{ color: 'var(--ink-700)', fontWeight: '500' }}>
+                        {person.first_name} {person.last_name}
+                        {person.title && (
+                          <span style={{ color: 'var(--ink-600)' }}>
+                            {' '}• {person.title}
+                          </span>
+                        )}
                       </span>
+                    ) : (
+                      // Other attendees - with link
+                      <>
+                        <a
+                          href={`/bio?id=${person.id}`}
+                          style={{
+                            color: 'var(--purple-700)',
+                            textDecoration: 'none',
+                            fontWeight: '500'
+                          }}
+                          onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
+                          onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
+                        >
+                          {person.first_name} {person.last_name}
+                        </a>
+                        {person.title && (
+                          <span style={{ color: 'var(--ink-600)' }}>
+                            {' '}• {person.title}
+                          </span>
+                        )}
+                      </>
                     )}
                   </li>
                 ))}
