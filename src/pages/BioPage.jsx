@@ -444,7 +444,7 @@ const BioPage = () => {
                   >
                     {person.id === attendee?.id ? (
                       // Current person - no link, just name and title
-                      <span style={{ color: 'var(--ink-700)', fontWeight: '500' }}>
+                      <span style={{ color: 'var(--ink-700)', fontWeight: 'bold' }}>
                         {person.first_name} {person.last_name}
                         {person.title && (
                           <span style={{ color: 'var(--ink-600)' }}>
