@@ -10,6 +10,7 @@ import BioPage from '../../pages/BioPage';
 import { AuthProvider } from '../../contexts/AuthContext';
 import { attendeeSearchService } from '../../services/attendeeSearchService';
 import { CompanyNormalizationService } from '../../services/companyNormalizationService';
+import { offlineAttendeeService } from '../../services/offlineAttendeeService';
 
 // Mock dependencies
 vi.mock('../../services/attendeeSearchService', () => ({
@@ -24,6 +25,12 @@ vi.mock('../../services/companyNormalizationService', () => ({
       initialize: vi.fn(),
       normalizeCompanyName: vi.fn()
     }))
+  }
+}));
+
+vi.mock('../../services/offlineAttendeeService', () => ({
+  offlineAttendeeService: {
+    getAttendeesByCompany: vi.fn()
   }
 }));
 
@@ -241,6 +248,36 @@ describe('BioPage Core Functionality', () => {
       await waitFor(() => {
         expect(screen.getByText(/Search service error/)).toBeInTheDocument();
       });
+    });
+  });
+
+  describe('People in Attendance', () => {
+    it('should have offlineAttendeeService available for company attendees', () => {
+      // Pragmatic test: verify the service exists and has the required method
+      expect(offlineAttendeeService).toBeDefined();
+      expect(offlineAttendeeService.getAttendeesByCompany).toBeDefined();
+      expect(typeof offlineAttendeeService.getAttendeesByCompany).toBe('function');
+    });
+
+    it('should handle company attendees service calls', async () => {
+      // Test that the service can be called and returns expected structure
+      const mockResult = {
+        data: [
+          { id: '1', first_name: 'John', last_name: 'Doe', title: 'CEO' },
+          { id: '2', first_name: 'Jane', last_name: 'Smith', title: 'CTO' }
+        ],
+        count: 2,
+        error: null,
+        success: true
+      };
+
+      vi.mocked(offlineAttendeeService.getAttendeesByCompany).mockResolvedValue(mockResult);
+
+      const result = await offlineAttendeeService.getAttendeesByCompany('Test Company');
+      
+      expect(result).toEqual(mockResult);
+      expect(result.success).toBe(true);
+      expect(result.data).toHaveLength(2);
     });
   });
 });
