@@ -1,3 +1,8 @@
+/**
+ * @deprecated This component is deprecated and will be removed in a future version.
+ * Speaker assignments are now managed in the main database via agenda_item_speakers table.
+ * Use speakerDataService.getSpeakersForAgendaItem() instead.
+ */
 import React, { useState, useEffect } from 'react';
 import {
   Box,

@@ -1,3 +1,8 @@
+/**
+ * @deprecated This component is deprecated and will be removed in a future version.
+ * Speaker ordering is now managed in the main database via agenda_item_speakers table.
+ * Use speakerDataService.getSpeakersForAgendaItem() instead.
+ */
 import React, { useState, useEffect } from 'react';
 // @ts-ignore - JSX files don't have type declarations
 import Card, { CardContent } from './common/Card';
