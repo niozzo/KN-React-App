@@ -194,6 +194,7 @@ export class OfflineAttendeeService {
 
   /**
    * Get attendees by company (offline-first)
+   * Filters by company name AND confirmed registration status
    */
   async getAttendeesByCompany(company: string): Promise<PaginatedResponse<Attendee>> {
     try {
@@ -203,8 +204,10 @@ export class OfflineAttendeeService {
       if (cachedData.length > 0) {
         console.log(`📱 Filtering cached attendees by company: ${company}`);
         
+        // Apply both company and confirmed registration status filters
         const filteredData = cachedData.filter(attendee => 
-          attendee.company.toLowerCase() === company.toLowerCase()
+          attendee.company.toLowerCase() === company.toLowerCase() &&
+          attendee.registration_status === 'confirmed'
         );
 
         return {
@@ -220,8 +223,20 @@ export class OfflineAttendeeService {
       const result = await attendeeService.getAttendeesByCompany(company);
       
       if (result.success && result.data.length > 0) {
-        // Cache the data for offline use
-        await pwaDataSyncService.cacheTableData(this.tableName, result.data);
+        // Apply confirmed attendee filter to server data as well
+        const filteredServerData = result.data.filter(attendee => 
+          attendee.registration_status === 'confirmed'
+        );
+        
+        // Cache the filtered data
+        await pwaDataSyncService.cacheTableData(this.tableName, filteredServerData);
+        
+        return {
+          data: filteredServerData,
+          count: filteredServerData.length,
+          error: null,
+          success: true
+        };
       }
       
       return result;

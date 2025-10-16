@@ -753,6 +753,27 @@ body {
   /* Removed flex properties - now using block layout */
 }
 
+/* Bio Description Wrapper */
+.bio-description-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0px;
+  width: 100%;
+}
+
+/* Bio Text Collapsed/Expanded States */
+.bio-text.collapsed {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bio-text.expanded {
+  display: block;
+}
+
 .contact-actions {
   margin-left: calc(80px + var(--space-lg)); /* Align with text: avatar width + gap */
 }
@@ -1550,7 +1571,7 @@ body {
 /* Vertical layout variation */
 .sponsor-card-vertical {
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   text-align: left;
   gap: var(--space-md);
 }
@@ -1566,6 +1587,13 @@ body {
   border-radius: var(--radius-lg);
   position: relative;
   flex-shrink: 0;
+  align-self: center !important; /* Override parent's flex-start alignment */
+}
+
+/* Centered labels (sponsor/sector info) */
+.sponsor-label-centered {
+  align-self: center; /* Override parent's flex-start alignment */
+  text-align: center;
 }
 
 /* Info row: name and geography on same line */

@@ -45,6 +45,14 @@ afterEach(async () => {
   // Clear all timers to prevent hanging
   vi.clearAllTimers()
   vi.useRealTimers()
+  
+  // 🚨 CRITICAL: Force localStorage cleanup to prevent test interference
+  if (typeof localStorage !== 'undefined') {
+    localStorage.clear()
+  }
+  if (typeof sessionStorage !== 'undefined') {
+    sessionStorage.clear()
+  }
 })
 
 afterAll(async () => {
