@@ -35,6 +35,7 @@ export class ServerDataSyncService extends BaseService {
     'company_aliases', // NEW: Company name aliases for normalization
     'seat_assignments',
     'agenda_items',
+    'agenda_item_speakers', // NEW: Speaker assignments from main DB
     'dining_options',
     'hotels',
     'seating_configurations'
@@ -43,7 +44,7 @@ export class ServerDataSyncService extends BaseService {
 
   // Application database tables (from separate Supabase project)
   private readonly applicationTablesToSync = [
-    'speaker_assignments',
+    // 'speaker_assignments' removed - DEPRECATED, migrated to main DB agenda_item_speakers
     'agenda_item_metadata', 
     // 'attendee_metadata' removed - no read operations found (see login-cache-optimization-findings.md)
     'dining_item_metadata'

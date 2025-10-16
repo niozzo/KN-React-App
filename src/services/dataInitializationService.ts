@@ -96,7 +96,6 @@ export class DataInitializationService {
       }
 
       // Check for application database tables (required for admin panel)
-      const speakerAssignments = await pwaDataSyncService.getCachedTableData('speaker_assignments');
       const agendaItemMetadata = await pwaDataSyncService.getCachedTableData('agenda_item_metadata');
       const attendeeMetadata = await pwaDataSyncService.getCachedTableData('attendee_metadata');
 
@@ -109,7 +108,6 @@ export class DataInitializationService {
       
       // Log application database table status for debugging
       console.log('📊 Application database tables status:', {
-        speaker_assignments: speakerAssignments.length,
         agenda_item_metadata: agendaItemMetadata.length,
         attendee_metadata: attendeeMetadata.length
       });
@@ -130,7 +128,7 @@ export class DataInitializationService {
       console.log('🔄 Ensuring application database tables are synced...');
       
       // Sync application database tables using PWA data sync service
-      const applicationTables = ['speaker_assignments', 'agenda_item_metadata', 'attendee_metadata', 'dining_item_metadata'];
+      const applicationTables = ['agenda_item_metadata', 'attendee_metadata', 'dining_item_metadata'];
       
       for (const tableName of applicationTables) {
         try {

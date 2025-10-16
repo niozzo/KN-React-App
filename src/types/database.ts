@@ -149,6 +149,19 @@ export interface AgendaItem {
 }
 
 // ============================================================================
+// AGENDA ITEM SPEAKERS TABLE (38 records - speaker assignments from main DB)
+// ============================================================================
+
+export interface AgendaItemSpeaker {
+  id: string;
+  agenda_item_id: string;
+  attendee_id: string;
+  speaker_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+// ============================================================================
 // DINING OPTIONS TABLE (0 records - empty, ready for data)
 // ============================================================================
 

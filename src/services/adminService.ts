@@ -34,8 +34,9 @@ export class AdminService {
     // Get edited titles from application database metadata
     const agendaItemMetadata = await pwaDataSyncService.getCachedTableData('agenda_item_metadata');
     
-    // Get speaker assignments from local storage first
-    const speakerAssignments = await pwaDataSyncService.getCachedTableData('speaker_assignments');
+    // Get speaker data from new main DB table
+    const agendaItemSpeakers = await pwaDataSyncService.getCachedTableData('agenda_item_speakers');
+    const attendees = await pwaDataSyncService.getCachedTableData('attendees');
     
     // Map assignments to agenda items and override titles with edited versions
     const itemsWithAssignments = agendaItems.map((item: any) => {
@@ -45,14 +46,33 @@ export class AdminService {
       // Override title if it was edited in the application database
       const finalTitle = (metadata as any)?.title || item.title;
       
-      const assignments = speakerAssignments
-        .filter((assignment: any) => assignment.agenda_item_id === item.id)
-        .sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0));
+      // Create attendee lookup map
+      const attendeeMap = new Map();
+      attendees.forEach((attendee: any) => {
+        attendeeMap.set(attendee.id, attendee);
+      });
+      
+      const speakers = agendaItemSpeakers
+        .filter((speaker: any) => speaker.agenda_item_id === item.id)
+        .sort((a: any, b: any) => (a.speaker_order || 0) - (b.speaker_order || 0))
+        .map((speaker: any) => {
+          const attendee = attendeeMap.get(speaker.attendee_id);
+          return {
+            id: speaker.id,
+            attendee_id: speaker.attendee_id,
+            speaker_order: speaker.speaker_order,
+            first_name: attendee?.first_name,
+            last_name: attendee?.last_name,
+            title: attendee?.title,
+            company: attendee?.company, // Raw company name (for backward compatibility)
+            company_standardized: attendee?.company_name_standardized // Standardized company name (preferred)
+          };
+        });
       
       return {
         ...item,
         title: finalTitle, // Use edited title if available
-        speaker_assignments: assignments
+        speakers: speakers // Use new speakers data structure
       };
     });
     

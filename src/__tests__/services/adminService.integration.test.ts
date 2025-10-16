@@ -70,27 +70,60 @@ describe('Admin Service + PWA Sync Integration', () => {
 
       vi.mocked(unifiedCacheService.get).mockResolvedValue(mockAgendaItems);
 
-      // Mock speaker assignments from PWA sync service
-      const mockSpeakerAssignments = [
-        { id: 'assign-1', agenda_item_id: 'item-1', attendee_id: 'attendee-1', role: 'presenter' },
-        { id: 'assign-2', agenda_item_id: 'item-2', attendee_id: 'attendee-2', role: 'co-presenter' }
+      // Mock new speaker data structure from PWA sync service
+      const mockAgendaItemSpeakers = [
+        { id: 'speaker-1', agenda_item_id: 'item-1', attendee_id: 'attendee-1', speaker_order: 1 },
+        { id: 'speaker-2', agenda_item_id: 'item-2', attendee_id: 'attendee-2', speaker_order: 1 }
       ];
 
-      vi.mocked(pwaDataSyncService.getCachedTableData).mockResolvedValue(mockSpeakerAssignments);
+      const mockAttendees = [
+        { id: 'attendee-1', first_name: 'John', last_name: 'Doe', title: 'CEO', company: 'Acme Corp', company_name_standardized: 'Acme Corporation' },
+        { id: 'attendee-2', first_name: 'Jane', last_name: 'Smith', title: 'CTO', company: 'Tech Inc', company_name_standardized: 'Tech Incorporated' }
+      ];
+
+      const mockAgendaItemMetadata = [];
+
+      // Mock the new table calls
+      vi.mocked(pwaDataSyncService.getCachedTableData)
+        .mockResolvedValueOnce(mockAgendaItemMetadata) // agenda_item_metadata
+        .mockResolvedValueOnce(mockAgendaItemSpeakers) // agenda_item_speakers
+        .mockResolvedValueOnce(mockAttendees); // attendees
 
       const result = await adminService.getAgendaItemsWithAssignments();
 
-      expect(pwaDataSyncService.getCachedTableData).toHaveBeenCalledWith('speaker_assignments');
+      // Verify the new table calls
+      expect(pwaDataSyncService.getCachedTableData).toHaveBeenCalledWith('agenda_item_metadata');
+      expect(pwaDataSyncService.getCachedTableData).toHaveBeenCalledWith('agenda_item_speakers');
+      expect(pwaDataSyncService.getCachedTableData).toHaveBeenCalledWith('attendees');
+      
       expect(result).toHaveLength(2);
       expect(result[0]).toEqual({
         id: 'item-1',
         title: 'Opening Keynote',
-        speaker_assignments: [{ id: 'assign-1', agenda_item_id: 'item-1', attendee_id: 'attendee-1', role: 'presenter' }]
+        speakers: [{ 
+          id: 'speaker-1', 
+          attendee_id: 'attendee-1', 
+          speaker_order: 1,
+          first_name: 'John',
+          last_name: 'Doe',
+          title: 'CEO',
+          company: 'Acme Corp',
+          company_standardized: 'Acme Corporation'
+        }]
       });
       expect(result[1]).toEqual({
         id: 'item-2',
         title: 'Coffee Break',
-        speaker_assignments: [{ id: 'assign-2', agenda_item_id: 'item-2', attendee_id: 'attendee-2', role: 'co-presenter' }]
+        speakers: [{ 
+          id: 'speaker-2', 
+          attendee_id: 'attendee-2', 
+          speaker_order: 1,
+          first_name: 'Jane',
+          last_name: 'Smith',
+          title: 'CTO',
+          company: 'Tech Inc',
+          company_standardized: 'Tech Incorporated'
+        }]
       });
     });
 
