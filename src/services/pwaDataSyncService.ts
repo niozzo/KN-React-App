@@ -105,7 +105,9 @@ export class PWADataSyncService extends BaseService {
     // ❌ REMOVED: this.initializeSync() - Now started explicitly after login
     // This prevents periodic sync from starting when user is logged out
     this.setupEventListeners();
-    this.clearCorruptedCacheOnStartup();
+    // ✅ CRITICAL FIX: Only clear corrupted cache on startup if user is not authenticated
+    // This prevents clearing valid cache during navigation when user is logged in
+    this.clearCorruptedCacheOnStartupIfNeeded();
     this.registerCacheInvalidationCallbacks();
   }
 
@@ -287,10 +289,30 @@ export class PWADataSyncService extends BaseService {
   }
 
   /**
-   * Clear corrupted cache on startup to prevent validation loops
+   * Clear corrupted cache on startup only if user is not authenticated
+   * This prevents clearing valid cache during navigation when user is logged in
    */
-  private async clearCorruptedCacheOnStartup(): Promise<void> {
+  private async clearCorruptedCacheOnStartupIfNeeded(): Promise<void> {
     try {
+      // Check if user is authenticated by looking for conference_auth
+      const authData = localStorage.getItem('conference_auth');
+      if (authData) {
+        try {
+          const auth = JSON.parse(authData);
+          if (auth && auth.attendee && auth.attendee.id) {
+            // User is authenticated, don't clear cache
+            console.log('✅ User is authenticated, skipping cache cleanup to preserve valid data');
+            return;
+          }
+        } catch (parseError) {
+          // Invalid auth data, proceed with cleanup
+          console.warn('⚠️ Invalid auth data, proceeding with cache cleanup');
+        }
+      }
+      
+      // User is not authenticated, proceed with cache cleanup
+      console.log('🧹 User not authenticated, clearing corrupted cache on startup');
+      
       // Import unifiedCacheService dynamically to avoid circular dependencies
       const { unifiedCacheService } = await import('./unifiedCacheService');
       
