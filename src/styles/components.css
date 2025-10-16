@@ -1571,7 +1571,7 @@ body {
 /* Vertical layout variation */
 .sponsor-card-vertical {
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   text-align: left;
   gap: var(--space-md);
 }
