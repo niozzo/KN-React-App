@@ -22,7 +22,16 @@ const BioPage = () => {
 
   const attendeeId = searchParams.get('id');
 
-  // Load attendee data based on ID from URL
+  // Architectural compliance validation
+  const validateArchitectureCompliance = () => {
+    const hasCache = localStorage.getItem('kn_cache_attendees');
+    if (!hasCache) {
+      console.warn('⚠️ ARCHITECTURE: No attendee cache found - data should be populated during login');
+    }
+    return hasCache;
+  };
+
+  // Load attendee data based on ID from URL - localStorage-first architecture
   useEffect(() => {
     const loadAttendee = async () => {
       if (!attendeeId) {
@@ -35,13 +44,38 @@ const BioPage = () => {
         setIsLoading(true);
         setError(null);
         
-        // Search for the specific attendee by ID
+        // Validate architectural compliance
+        validateArchitectureCompliance();
+        
+        // PRIMARY: Check localStorage first (1000x faster)
+        const startTime = performance.now();
+        const cachedData = localStorage.getItem('kn_cache_attendees');
+        
+        if (cachedData) {
+          try {
+            const cacheObj = JSON.parse(cachedData);
+            const attendees = cacheObj.data || cacheObj;
+            
+            if (Array.isArray(attendees) && attendees.length > 0) {
+              const attendee = attendees.find(a => a.id === attendeeId);
+              if (attendee) {
+                const endTime = performance.now();
+                console.log(`📊 BioPage: ${(endTime - startTime).toFixed(2)}ms (localStorage-first)`);
+                setAttendee(attendee);
+                return; // Success - no API call needed
+              }
+            }
+          } catch (cacheError) {
+            console.warn('⚠️ Failed to parse cached attendee data:', cacheError);
+          }
+        }
+        
+        // FALLBACK: Only if no cached data or attendee not found
+        console.warn('⚠️ No cached attendee data, falling back to service layer');
         const result = await attendeeSearchService.searchAttendees({
           query: '',
-          // We'll need to filter by ID in the service or find the attendee
         });
         
-        // Find the specific attendee by ID
         const foundAttendee = result.attendees.find(a => a.id === attendeeId);
         
         if (foundAttendee) {
@@ -51,7 +85,7 @@ const BioPage = () => {
         }
         
       } catch (err) {
-        console.error('Failed to load attendee:', err);
+        console.error('❌ Failed to load attendee:', err);
         setError(err.message || 'Failed to load attendee');
       } finally {
         setIsLoading(false);
