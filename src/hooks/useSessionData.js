@@ -250,9 +250,9 @@ export default function useSessionData(enableOfflineMode = true, autoRefresh = t
       setAllEvents(allEventsCombined);
       setLastUpdated(new Date());
 
-      // Find current and next sessions
-      const activeSession = enhancedSessions.find(s => s.isActive);
-      const upcomingSession = enhancedSessions.find(s => s.isUpcoming);
+      // Find current and next sessions from ALL events (including dining options)
+      const activeSession = allEventsCombined.find(s => s.isActive);
+      const upcomingSession = allEventsCombined.find(s => s.isUpcoming);
       
       setCurrentSession(activeSession || null);
       setNextSession(upcomingSession || null);
@@ -305,9 +305,15 @@ export default function useSessionData(enableOfflineMode = true, autoRefresh = t
         // Merge sessions and dining options for unified display
         const allEventsCombined = mergeAndSortEvents(enhancedSessions, diningResponse || []);
         
+        // Find current and next sessions from ALL events (including dining options)
+        const activeSession = allEventsCombined.find(s => s.isActive);
+        const upcomingSession = allEventsCombined.find(s => s.isUpcoming);
+        
         setSessions(enhancedSessions);
         setAllSessions(enhancedSessions);
         setAllEvents(allEventsCombined);
+        setCurrentSession(activeSession || null);
+        setNextSession(upcomingSession || null);
         setLastUpdated(new Date());
       }
       
