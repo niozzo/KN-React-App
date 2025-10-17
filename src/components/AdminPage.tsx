@@ -17,14 +17,11 @@ import {
   Divider,
   Chip
 } from '@mui/material';
-import { ArrowBack as ArrowBackIcon, Save as SaveIcon, Home as HomeIcon, Dashboard as DashboardIcon, AccessTime as AccessTimeIcon, Sync as SyncIcon } from '@mui/icons-material';
+import { ArrowBack as ArrowBackIcon, Save as SaveIcon, Home as HomeIcon, Dashboard as DashboardIcon } from '@mui/icons-material';
 import { useNavigate, useOutletContext } from 'react-router-dom';
-import { adminService } from '../services/adminService';
-import { dataInitializationService } from '../services/dataInitializationService';
 import { simplifiedDataService } from '../services/simplifiedDataService';
 import CacheHealthDashboard from './CacheHealthDashboard';
 import { ValidationRules } from '../utils/validationUtils';
-import { TimeOverridePanel } from './admin/TimeOverridePanel';
 
 interface OutletContext {
   onLogout: () => void;
@@ -35,7 +32,6 @@ export const AdminPage: React.FC = () => {
   const navigate = useNavigate();
   const [agendaItems, setAgendaItems] = useState<any[]>([]);
   const [diningOptions, setDiningOptions] = useState<any[]>([]);
-  const [attendees, setAttendees] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [editingTitle, setEditingTitle] = useState<string | null>(null);
@@ -45,8 +41,6 @@ export const AdminPage: React.FC = () => {
   const [titleValidationError, setTitleValidationError] = useState('');
   const [diningTitleValidationError, setDiningTitleValidationError] = useState('');
   const [showDashboard, setShowDashboard] = useState(false);
-  const [timeOverrideItem, setTimeOverrideItem] = useState<any>(null);
-  const [forceSyncLoading, setForceSyncLoading] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -57,34 +51,18 @@ export const AdminPage: React.FC = () => {
       setLoading(true);
       setError('');
 
-      // Step 1: Ensure data is loaded (admin-specific, no user auth required)
-      console.log('🔄 Initializing admin data...');
-      const initResult = await dataInitializationService.ensureDataLoadedForAdmin();
-      
-      if (!initResult.success) {
-        setError(initResult.error || 'Failed to load conference data.');
-        return;
-      }
-
-      if (!initResult.hasData) {
-        setError('No conference data found. Please load your conference data first.');
-        return;
-      }
-
-      // Step 2: Load agenda items with assignments
+      // Simplified: Load only basic agenda items and dining options for title editing
       console.log('📋 Loading agenda items...');
-      const itemsWithAssignments = await adminService.getAgendaItemsWithAssignments();
-      setAgendaItems(itemsWithAssignments);
+      const agendaResponse = await simplifiedDataService.getAgendaItems();
+      if (agendaResponse.success && agendaResponse.data) {
+        setAgendaItems(agendaResponse.data);
+      }
 
-      // Step 3: Load dining options with metadata
       console.log('🍽️ Loading dining options...');
-      const optionsWithMetadata = await adminService.getDiningOptionsWithMetadata();
-      setDiningOptions(optionsWithMetadata);
-
-      // Step 4: Load available attendees
-      console.log('👥 Loading attendees...');
-      const availableAttendees = await adminService.getAvailableAttendees();
-      setAttendees(availableAttendees);
+      const diningResponse = await simplifiedDataService.getDiningOptions();
+      if (diningResponse.success && diningResponse.data) {
+        setDiningOptions(diningResponse.data);
+      }
 
       console.log('✅ Admin data loaded successfully');
 
@@ -347,50 +325,6 @@ export const AdminPage: React.FC = () => {
     }
   };
 
-  const handleTimeOverride = (item: any) => {
-    console.log('🕐 Opening time override for item:', item);
-    console.log('🕐 Item properties:', {
-      id: item.id,
-      title: item.title,
-      start_time: item.start_time,
-      end_time: item.end_time,
-      type: typeof item.start_time,
-      allKeys: Object.keys(item)
-    });
-    
-    // Convert timestamps to time format for the panel
-    const processedItem = {
-      ...item,
-      start_time: extractTimeFromTimestamp(item.start_time),
-      end_time: extractTimeFromTimestamp(item.end_time)
-    };
-    
-    console.log('🕐 Processed item for TimeOverridePanel:', {
-      id: processedItem.id,
-      title: processedItem.title,
-      start_time: processedItem.start_time,
-      end_time: processedItem.end_time
-    });
-    
-    setTimeOverrideItem(processedItem);
-  };
-
-  const handleTimeUpdate = async (startTime: string, endTime: string, enabled: boolean) => {
-    try {
-      // Refresh agenda items to show updated times
-      await loadData();
-      setTimeOverrideItem(null);
-      console.log('✅ Time override updated successfully');
-    } catch (error) {
-      console.error('❌ Failed to refresh data after time update:', error);
-      // Still close the panel even if refresh fails
-      setTimeOverrideItem(null);
-    }
-  };
-
-  const handleTimeOverrideClose = () => {
-    setTimeOverrideItem(null);
-  };
 
   if (loading) {
     return (
@@ -534,22 +468,12 @@ export const AdminPage: React.FC = () => {
                             <Typography variant="h6" sx={{ flexGrow: 1 }}>
                               {item.title}
                             </Typography>
-                            <Box sx={{ display: 'flex', gap: 1 }}>
-                              <Button
-                                size="small"
-                                onClick={() => handleTitleEdit(item.id, item.title)}
-                              >
-                                Edit Title
-                              </Button>
-                              <Button
-                                size="small"
-                                startIcon={<AccessTimeIcon />}
-                                onClick={() => handleTimeOverride(item)}
-                                variant="outlined"
-                              >
-                                Override Times
-                              </Button>
-                            </Box>
+                            <Button
+                              size="small"
+                              onClick={() => handleTitleEdit(item.id, item.title)}
+                            >
+                              Edit Title
+                            </Button>
                           </Box>
                         )}
                       </Box>
@@ -696,17 +620,6 @@ export const AdminPage: React.FC = () => {
           </Box>
         )}
 
-        {/* Time Override Panel */}
-        {timeOverrideItem && (
-          <TimeOverridePanel
-            agendaItemId={timeOverrideItem.id}
-            currentStartTime={timeOverrideItem.start_time}
-            currentEndTime={timeOverrideItem.end_time}
-            currentTitle={timeOverrideItem.title}
-            onTimeUpdate={handleTimeUpdate}
-            onClose={handleTimeOverrideClose}
-          />
-        )}
       </Box>
     </Box>
   );
