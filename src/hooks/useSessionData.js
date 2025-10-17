@@ -115,6 +115,16 @@ const convertDiningToSessions = (diningOptions) => {
     const isActive = isSessionActive(dining, currentTime);
     const isUpcoming = isSessionUpcoming(dining, currentTime);
     
+    // ✅ DEBUG: Log dining event timing calculations
+    console.log('🍽️ Dining event timing:', {
+      title: dining.name,
+      date: dining.date,
+      time: dining.time,
+      currentTime: currentTime.toISOString(),
+      isActive,
+      isUpcoming
+    });
+    
     return {
       id: `dining-${dining.id}`,
       title: dining.name,
@@ -294,6 +304,18 @@ export default function useSessionData(enableOfflineMode = true, autoRefresh = t
       
       const activeSession = allEventsCombined.find(s => s.isActive);
       const upcomingSession = allEventsCombined.find(s => s.isUpcoming);
+      
+      // ✅ DEBUG: Log all upcoming sessions to see what's available
+      const allUpcomingSessions = allEventsCombined.filter(s => s.isUpcoming);
+      console.log('🔍 All upcoming sessions:', allUpcomingSessions.map(s => ({
+        id: s.id,
+        title: s.title,
+        date: s.date,
+        start_time: s.start_time,
+        type: s.session_type || s.type,
+        diningOption: s.diningOption,
+        isUpcoming: s.isUpcoming
+      })));
       
       console.log('🔍 Current/Next session detection:', {
         activeSession: activeSession ? { 
