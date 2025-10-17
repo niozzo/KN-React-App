@@ -286,8 +286,24 @@ export default function useSessionData(enableOfflineMode = true, autoRefresh = t
       const upcomingSession = allEventsCombined.find(s => s.isUpcoming);
       
       console.log('🔍 Current/Next session detection:', {
-        activeSession: activeSession ? { id: activeSession.id, title: activeSession.title, isActive: activeSession.isActive } : null,
-        upcomingSession: upcomingSession ? { id: upcomingSession.id, title: upcomingSession.title, isUpcoming: upcomingSession.isUpcoming } : null
+        activeSession: activeSession ? { 
+          id: activeSession.id, 
+          title: activeSession.title, 
+          isActive: activeSession.isActive,
+          date: activeSession.date,
+          start_time: activeSession.start_time,
+          type: activeSession.session_type || activeSession.type,
+          diningOption: activeSession.diningOption
+        } : null,
+        upcomingSession: upcomingSession ? { 
+          id: upcomingSession.id, 
+          title: upcomingSession.title, 
+          isUpcoming: upcomingSession.isUpcoming,
+          date: upcomingSession.date,
+          start_time: upcomingSession.start_time,
+          type: upcomingSession.session_type || upcomingSession.type,
+          diningOption: upcomingSession.diningOption
+        } : null
       });
       
       setCurrentSession(activeSession || null);
