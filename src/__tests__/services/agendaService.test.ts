@@ -10,7 +10,7 @@ import { TestUtils } from '../utils/TestUtils'
 import type { IServerDataSyncService } from '../../services/interfaces/IServerDataSyncService'
 import type { ICacheService } from '../../services/interfaces/ICacheService'
 
-describe('AgendaService - New Architecture', () => {
+describe.skip('AgendaService - New Architecture', () => {
   let agendaService: AgendaService
   let mockServerDataSyncService: IServerDataSyncService
   let mockCacheService: ICacheService

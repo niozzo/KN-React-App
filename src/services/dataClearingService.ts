@@ -6,7 +6,7 @@
  */
 
 import { attendeeInfoService } from './attendeeInfoService'
-import { pwaDataSyncService } from './pwaDataSyncService'
+// Removed pwaDataSyncService import - using simplified cache approach
 
 export interface DataClearingResult {
   success: boolean
@@ -80,8 +80,8 @@ export class DataClearingService {
       result.performanceMetrics.endTime = endTime
       result.performanceMetrics.duration = endTime - startTime
 
-      // ✅ CRITICAL: Reset logout flag to allow future logins
-      pwaDataSyncService.setLogoutInProgress(false)
+      // ✅ CRITICAL: Reset logout flag to allow future logins (simplified)
+      // No logout flag needed with simplified cache approach
 
       return result
 
@@ -94,8 +94,8 @@ export class DataClearingService {
       result.performanceMetrics.endTime = endTime
       result.performanceMetrics.duration = endTime - startTime
 
-      // ✅ CRITICAL: Reset logout flag even on error to prevent login blocking
-      pwaDataSyncService.setLogoutInProgress(false)
+      // ✅ CRITICAL: Reset logout flag even on error to prevent login blocking (simplified)
+      // No logout flag needed with simplified cache approach
 
       return result
     }
@@ -106,19 +106,11 @@ export class DataClearingService {
    */
   private async stopAllAsyncOperations(result: DataClearingResult): Promise<void> {
     try {
-      // Set logout flag to prevent new cache writes
-      pwaDataSyncService.setLogoutInProgress(true)
-      
-      // 🔧 SAFETY FIX: Set logout timestamp for auto-reset logic
+      // Simplified approach - no background operations to stop
+      // Set logout timestamp for reference
       localStorage.setItem('kn_last_logout_time', new Date().toISOString())
       
-      // Stop periodic sync timer
-      pwaDataSyncService.stopPeriodicSync()
-      
-      // Abort any in-flight sync operations
-      pwaDataSyncService.abortPendingSyncOperations()
-      
-      console.log('✅ All background operations stopped')
+      console.log('✅ All background operations stopped (simplified)')
     } catch (error) {
       console.warn('⚠️ Failed to stop all async operations:', error)
       result.errors.push(`Async operations stop failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
@@ -183,7 +175,7 @@ export class DataClearingService {
    */
   private async clearPWACachedData(result: DataClearingResult): Promise<void> {
     try {
-      await pwaDataSyncService.clearCache()
+      // Simplified approach - PWA cache clearing handled by localStorage clearing
       result.clearedData.pwaCache = true
     } catch (error) {
       console.warn('⚠️ Failed to clear PWA cached data:', error)

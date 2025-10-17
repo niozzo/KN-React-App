@@ -22,19 +22,15 @@ vi.mock('../../../../services/simplifiedDataService');
 vi.mock('../../../../services/serverDataSyncService');
 vi.mock('../../../../services/adminService');
 
-// Mock attendeeSyncService to handle BOTH static and dynamic imports
-vi.mock('../../../../services/attendeeSyncService', () => {
-  const mockRefreshAttendeeData = vi.fn(() => Promise.resolve({
+// Mock attendeeSyncService
+vi.mock('../../../../services/attendeeSyncService', () => ({
+  attendeeSyncService: {
+    refreshAttendeeData: vi.fn(() => Promise.resolve({
     success: true,
     message: 'Attendee data refreshed'
-  }));
-  
-  return {
-    attendeeSyncService: {
-      refreshAttendeeData: mockRefreshAttendeeData
-    }
-  };
-});
+    }))
+  }
+}));
 
 const mockSimplifiedDataService = vi.mocked(simplifiedDataService);
 const mockServerDataSyncService = vi.mocked(serverDataSyncService);
@@ -47,7 +43,7 @@ async function waitForAdminPageLoad() {
   }, { timeout: 5000 });
 }
 
-describe('AdminPage - Force Sync (Simplified)', () => {
+describe('AdminPage - Force Sync (Simplified Integration)', () => {
   const mockOnLogout = vi.fn();
 
   beforeEach(() => {
@@ -65,7 +61,7 @@ describe('AdminPage - Force Sync (Simplified)', () => {
       fromCache: true
     });
     
-    // Mock adminService methods
+    // Mock adminService methods (only the ones that actually exist)
     mockAdminService.getAgendaItemsWithAssignments.mockResolvedValue([]);
     mockAdminService.getDiningOptionsWithMetadata.mockResolvedValue([]);
     mockAdminService.getAvailableAttendees.mockResolvedValue([]);
