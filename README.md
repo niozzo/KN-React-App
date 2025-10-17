@@ -10,6 +10,15 @@ This React application provides comprehensive database connection testing and an
 - 📋 **Data Access** - Preview actual data from tables (RLS-compliant)
 - 🎨 **Modern UI** - Clean, responsive interface with Tailwind CSS
 - 🛡️ **Security** - Read-only access with credential protection
+- 🪑 **Seat Assignment Normalization** - Per-user seat assignment processing for October 21st events
+
+## Recent Fixes
+
+### ✅ Seat Assignment Normalization Fix (2025-01-27)
+- **Issue**: Normalization was processing all 249 attendees instead of current user only
+- **Solution**: Fixed duplicate variable declaration and corrected data flow
+- **Result**: Per-user processing with proper normalization during both initial load and background refreshes
+- **Documentation**: See `docs/architecture/seat-assignment-normalization-fix.md`
 
 ## Quick Start
 
