@@ -125,16 +125,24 @@ const convertDiningToSessions = (diningOptions) => {
   const currentTime = TimeService.getCurrentTime();
   
   const sessions = diningOptions.map(dining => {
+    // ✅ FIX: Map dining option fields to session format for timing functions
+    const sessionForTiming = {
+      ...dining,
+      start_time: dining.time,  // Map 'time' to 'start_time'
+      end_time: dining.time     // Use same time for end_time (dining events don't have duration)
+    };
+    
     // ✅ DEBUG: Log before calling isSessionUpcoming
     console.log('🍽️ About to call isSessionUpcoming for:', {
       title: dining.name,
       date: dining.date,
-      time: dining.time
+      time: dining.time,
+      mappedStartTime: sessionForTiming.start_time
     });
     
-    // Calculate isActive and isUpcoming for dining options
-    const isActive = isSessionActive(dining, currentTime);
-    const isUpcoming = isSessionUpcoming(dining, currentTime);
+    // Calculate isActive and isUpcoming for dining options using mapped fields
+    const isActive = isSessionActive(sessionForTiming, currentTime);
+    const isUpcoming = isSessionUpcoming(sessionForTiming, currentTime);
     
     // ✅ DEBUG: Log dining event timing calculations
     console.log('🍽️ Dining event timing:', {
