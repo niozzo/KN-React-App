@@ -55,7 +55,21 @@ const isSessionUpcoming = (session, currentTime) => {
   const [startHour, startMin, startSec] = session.start_time.split(':').map(Number);
   const start = new Date(year, month - 1, day, startHour, startMin, startSec || 0);
   
-  return currentTime < start;
+  const isUpcoming = currentTime < start;
+  
+  // ✅ DEBUG: Log timing comparison for debugging
+  console.log('🕐 isSessionUpcoming calculation:', {
+    title: session.title,
+    date: session.date,
+    start_time: session.start_time,
+    currentTime: currentTime.toISOString(),
+    startTime: start.toISOString(),
+    isUpcoming,
+    timeDiff: start.getTime() - currentTime.getTime(),
+    daysDiff: Math.round((start.getTime() - currentTime.getTime()) / (1000 * 60 * 60 * 24))
+  });
+  
+  return isUpcoming;
 };
 
 /**
