@@ -358,7 +358,7 @@ export default function useSessionData(enableOfflineMode = true, autoRefresh = t
       const seatingData = await getAllSeatingConfigurations();
       setSeatingConfigurations(seatingData);
       
-      // Load agenda items for normalization
+      // Load agenda items for normalization and sessions
       const agendaResponse = await agendaService.getActiveAgendaItems();
       const agendaItems = agendaResponse.success ? agendaResponse.data : [];
       
@@ -382,19 +382,14 @@ export default function useSessionData(enableOfflineMode = true, autoRefresh = t
         setDiningError(diningErr.message);
       }
 
-      // Load agenda items (sessions)
-      const agendaResponse = await agendaService.getActiveAgendaItems();
-      let allSessionsData = [];
-          
-          if (agendaResponse.success && agendaResponse.data && agendaResponse.data.length > 0) {
-            allSessionsData = agendaResponse.data;
-      }
+      // Use agenda items for session data (already loaded above)
+      let allSessionsData = agendaItems;
 
       // Enhance session data
       const enhancedSessions = enhanceSessionData(
         allSessionsData,
         attendeeData,
-        seatData,
+        normalizedSeatData,
         seatingData
       );
 
@@ -418,7 +413,7 @@ export default function useSessionData(enableOfflineMode = true, autoRefresh = t
       });
 
       // Merge sessions and dining options for unified display
-      const allEventsCombined = mergeAndSortEvents(attendeeFilteredSessions, diningData || [], seatData, seatingData);
+      const allEventsCombined = mergeAndSortEvents(attendeeFilteredSessions, diningData || [], normalizedSeatData, seatingData);
       
       // Set state
       setSessions(filteredSessions);
