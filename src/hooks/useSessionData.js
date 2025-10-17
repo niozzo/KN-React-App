@@ -57,18 +57,6 @@ const isSessionUpcoming = (session, currentTime) => {
   
   const isUpcoming = currentTime < start;
   
-  // ✅ DEBUG: Log timing comparison for debugging
-  console.log('🕐 isSessionUpcoming calculation:', {
-    title: session.title,
-    date: session.date,
-    start_time: session.start_time,
-    currentTime: currentTime.toISOString(),
-    startTime: start.toISOString(),
-    isUpcoming,
-    timeDiff: start.getTime() - currentTime.getTime(),
-    daysDiff: Math.round((start.getTime() - currentTime.getTime()) / (1000 * 60 * 60 * 24))
-  });
-  
   return isUpcoming;
 };
 
@@ -167,27 +155,9 @@ const convertDiningToSessions = (diningOptions) => {
       end_time: null            // Set to null for dining events (no end time)
     };
     
-    // ✅ DEBUG: Log before calling isSessionUpcoming
-    console.log('🍽️ About to call isSessionUpcoming for:', {
-      title: dining.name,
-      date: dining.date,
-      time: dining.time,
-      mappedStartTime: sessionForTiming.start_time
-    });
-    
     // Calculate isActive and isUpcoming for dining options using mapped fields
     const isActive = isSessionActive(sessionForTiming, currentTime);
     const isUpcoming = isSessionUpcoming(sessionForTiming, currentTime);
-    
-    // ✅ DEBUG: Log dining event timing calculations
-    console.log('🍽️ Dining event timing:', {
-      title: dining.name,
-      date: dining.date,
-      time: dining.time,
-      currentTime: currentTime.toISOString(),
-      isActive,
-      isUpcoming
-    });
     
     return {
       id: `dining-${dining.id}`,
@@ -230,14 +200,6 @@ const convertDiningToSessions = (diningOptions) => {
  * @returns {Array} Combined and sorted array
  */
 const mergeAndSortEvents = (sessions, diningOptions, seatAssignments = [], seatingConfigurations = []) => {
-  console.log('🔄 mergeAndSortEvents called with:', { 
-    sessionsLength: sessions?.length || 0, 
-    diningOptionsLength: diningOptions?.length || 0,
-    seatAssignmentsLength: seatAssignments?.length || 0,
-    seatingConfigurationsLength: seatingConfigurations?.length || 0,
-    sessions,
-    diningOptions 
-  });
   
   // Convert dining options to session format
   const diningSessions = convertDiningToSessions(diningOptions);
@@ -280,8 +242,6 @@ const mergeAndSortEvents = (sessions, diningOptions, seatAssignments = [], seati
   // Combine sessions and enhanced dining
   const allEvents = [...sessions, ...enhancedDiningSessions];
   
-  console.log('🔄 Combined events:', { allEventsLength: allEvents?.length || 0, allEvents });
-  
   // Sort by date and time
   const sortedEvents = allEvents.sort((a, b) => {
     // First sort by date
@@ -292,7 +252,6 @@ const mergeAndSortEvents = (sessions, diningOptions, seatAssignments = [], seati
     return (a.start_time || '').localeCompare(b.start_time || '');
   });
   
-  console.log('🔄 Sorted events:', { sortedEventsLength: sortedEvents?.length || 0, sortedEvents });
   return sortedEvents;
 };
 
