@@ -128,7 +128,8 @@ export class SeatAssignmentNormalizationService extends BaseService {
 
   /**
    * Detect if there are inconsistent seat assignments across configurations
-   * Skip normalization if attendee has DIFFERENT seat positions across agenda items
+   * Skip normalization if attendee has DIFFERENT completed seat positions across agenda items
+   * Allow normalization for pending assignments (all null values)
    */
   private detectInconsistentAssignments(
     seatAssignments: SeatAssignment[],
@@ -146,7 +147,7 @@ export class SeatAssignmentNormalizationService extends BaseService {
       }
     }
 
-    // Check for inconsistencies - skip if attendee has DIFFERENT seat positions
+    // Check for inconsistencies - skip if attendee has DIFFERENT completed seat positions
     for (const [attendeeId, assignments] of attendeeAssignments) {
       if (assignments.length > 1) {
         console.log(`🔍 Checking attendee ${attendeeId} with ${assignments.length} assignments:`);
@@ -154,9 +155,21 @@ export class SeatAssignmentNormalizationService extends BaseService {
           console.log(`  Assignment ${index + 1}: table_name=${assignment.table_name}, seat_number=${assignment.seat_number}, row=${assignment.row_number}, col=${assignment.column_number}`);
         });
         
+        // Check if all assignments are pending (all null values)
+        const allPending = assignments.every(assignment => 
+          assignment.table_name === null && 
+          assignment.seat_number === null &&
+          assignment.row_number === null &&
+          assignment.column_number === null
+        );
+
+        if (allPending) {
+          console.log(`✅ Attendee ${attendeeId} has all pending assignments - normalization can proceed`);
+          continue;
+        }
+
+        // Check if any assignment has different completed seat position
         const firstAssignment = assignments[0];
-        
-        // Check if any assignment has different seat position
         const hasDifferentPositions = assignments.some(assignment => 
           assignment.table_name !== firstAssignment.table_name ||
           assignment.seat_number !== firstAssignment.seat_number ||
@@ -165,7 +178,7 @@ export class SeatAssignmentNormalizationService extends BaseService {
         );
 
         if (hasDifferentPositions) {
-          console.warn(`⚠️ Attendee ${attendeeId} has different seat positions across agenda items`);
+          console.warn(`⚠️ Attendee ${attendeeId} has different completed seat positions across agenda items`);
           console.warn(`⚠️ This suggests they were intentionally assigned different seats for different sessions`);
           console.warn(`⚠️ Skipping normalization to preserve existing seat assignments`);
           return true;
