@@ -17,7 +17,7 @@ import type { ServiceResult } from './interfaces/IAgendaService';
 import { pwaDataSyncService } from './pwaDataSyncService.ts';
 import { cacheMonitoringService } from './cacheMonitoringService.ts';
 import { cacheVersioningService, type CacheEntry } from './cacheVersioningService.ts';
-import { unifiedCacheService } from './unifiedCacheService.ts';
+import { simplifiedDataService } from './simplifiedDataService.ts';
 import { ServerDataSyncService } from './serverDataSyncService.ts';
 import { applicationDatabaseService } from './applicationDatabaseService.ts';
 import { AgendaTransformer } from '../transformers/agendaTransformer.ts';
@@ -30,16 +30,12 @@ export class AgendaService implements IAgendaService {
 
   private serverDataSyncService: ServerDataSyncService | null = null;
   private cacheService?: ICacheService;
-  private unifiedCache?: IUnifiedCacheService;
-
   constructor(
     serverDataSyncService?: IServerDataSyncService,
-    cacheService?: ICacheService,
-    unifiedCache?: IUnifiedCacheService
+    cacheService?: ICacheService
   ) {
     this.serverDataSyncService = serverDataSyncService as ServerDataSyncService || null;
     this.cacheService = cacheService;
-    this.unifiedCache = unifiedCache || unifiedCacheService;
     
     // Initialize serverDataSyncService for background refresh if not provided
     if (!this.serverDataSyncService) {
@@ -336,12 +332,12 @@ export class AgendaService implements IAgendaService {
    */
   async getActiveAgendaItems(): Promise<PaginatedResponse<AgendaItem>> {
     try {
-      // Use unified cache service
-      const cachedData = await this.unifiedCache!.get('kn_cache_agenda_items');
+      // Use simplified cache service
+      const result = await simplifiedDataService.getData('agenda_items');
       
-      if (cachedData) {
+      if (result.success && result.data) {
         // Data is already filtered in ServerDataSyncService
-        const agendaItems = (cachedData as any)?.data || cachedData;
+        const agendaItems = result.data;
         
         if (agendaItems.length > 0) {
           
@@ -405,8 +401,7 @@ export class AgendaService implements IAgendaService {
         if (Array.isArray(agendaItems) && agendaItems.length > 0) {
           console.log('🌐 API FALLBACK: Successfully fetched agenda items from API');
           
-          // Cache the data for future use
-          await this.unifiedCache!.set('kn_cache_agenda_items', agendaItems);
+          // Data is already cached by SimplifiedDataService
           
           // Data is already filtered and sorted in ServerDataSyncService
           const sortedItems = agendaItems
@@ -447,11 +442,11 @@ export class AgendaService implements IAgendaService {
         console.log('🌐 SYNC: Successfully synced agenda items');
         
         // Get the fresh data from cache
-        const freshCachedData = await this.unifiedCache!.get('kn_cache_agenda_items');
+        const freshResult = await simplifiedDataService.getData('agenda_items');
         
-        if (freshCachedData) {
+        if (freshResult.success && freshResult.data) {
           // Data is already filtered and sorted in ServerDataSyncService
-          const agendaItems = (freshCachedData as any)?.data || freshCachedData;
+          const agendaItems = freshResult.data;
           const sortedItems = agendaItems
             .sort((a: any, b: any) => {
               // First sort by date
@@ -500,8 +495,8 @@ export class AgendaService implements IAgendaService {
    */
   private async cacheAgendaItems(agendaItems: AgendaItem[]): Promise<void> {
     try {
-      await this.unifiedCache!.set('kn_cache_agenda_items', agendaItems);
-      console.log('💾 Cached', agendaItems.length, 'agenda items using unified cache');
+      // Data is already cached by SimplifiedDataService during sync
+      console.log('💾 Agenda items already cached by SimplifiedDataService');
     } catch (error) {
       console.warn('⚠️ Failed to cache agenda items:', error);
     }
@@ -513,7 +508,7 @@ export class AgendaService implements IAgendaService {
   async refreshAgendaItems(): Promise<ServiceResult<AgendaItem[]>> {
     try {
       // Force refresh by clearing cache first
-      await this.unifiedCache!.remove('kn_cache_agenda_items');
+      simplifiedDataService.clearCache();
       
       // Get fresh data
       const result = await this.getActiveAgendaItems();
