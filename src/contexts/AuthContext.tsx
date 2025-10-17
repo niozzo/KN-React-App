@@ -143,35 +143,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       // Step 3: Authentication successful, proceed with data sync
       
-      // Step 4: Sync data for offline use
-      console.log('🔐 Step 2: Authentication successful, syncing data for offline use...')
-      let syncResult = null
-      try {
-        // ✅ CHECK: If logout was called, skip sync
-        if (abortController.signal.aborted) {
-          console.log('⏸️ Login aborted - skipping data sync')
-          return { success: false, error: 'Login cancelled' }
-        }
-        
-        console.log('🚨 [LOGIN-DEBUG] About to call serverDataSyncService.syncAllData()')
-        syncResult = await serverDataSyncService.syncAllData()
-        console.log('🚨 [LOGIN-DEBUG] serverDataSyncService.syncAllData() completed:', syncResult)
-        
-        // ✅ CHECK: If logout was called during sync, abort
-        if (abortController.signal.aborted) {
-          console.log('⏸️ Login aborted - logout called during sync')
-          return { success: false, error: 'Login cancelled' }
-        }
-        
-        // Admin data sync completed
-        if (!syncResult.success) {
-          console.warn('⚠️ Admin data sync failed, but authentication succeeded:', syncResult.errors)
-        }
-      } catch (syncError) {
-        console.warn('⚠️ Admin data sync error, but authentication succeeded:', syncError)
-        // Authentication succeeded, but data sync failed - still allow login
-      }
-      
       // ✅ CHECK: Final abort check before setting state
       if (abortController.signal.aborted) {
         console.log('⏸️ Login aborted - not setting authentication state')
@@ -183,11 +154,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsAuthenticated(true)
       setAttendee(authResult.attendee)
       
-      // ✅ SIMPLIFIED: No periodic sync needed - cache is refreshed on login
-      console.log('✅ Data sync completed - no periodic sync needed with simplified cache')
-      
-      // Step 4: Single coordinated sync after authentication
-      console.log('🔄 Step 4: Starting coordinated authentication sync...')
+      // Step 3: Single coordinated sync after authentication
+      console.log('🔄 Step 3: Starting coordinated authentication sync...')
       try {
         if (abortController.signal.aborted) {
           console.log('⏸️ Login aborted - skipping authentication sync')
