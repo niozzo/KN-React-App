@@ -167,7 +167,11 @@ export class CompanyNormalizationService extends BaseService {
     }
     
     if (!this.isInitialized) {
-      console.warn('⚠️ Company Normalization Service not initialized, returning null');
+      console.warn('⚠️ Company Normalization Service not initialized, attempting lazy initialization...');
+      // ✅ DEFENSIVE: Attempt lazy initialization as fallback
+      this.initialize().catch(error => {
+        console.error('❌ Lazy initialization failed:', error);
+      });
       return null;
     }
     

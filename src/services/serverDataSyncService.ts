@@ -185,6 +185,11 @@ export class ServerDataSyncService extends BaseService {
     };
 
     try {
+      // ✅ SERVICE ORCHESTRATION: Ensure all services are ready before data processing
+      console.log('🔄 ServerDataSync: Ensuring all services are ready...');
+      const { serviceOrchestrator } = await import('./serviceOrchestrator');
+      await serviceOrchestrator.ensureServicesReady();
+      console.log('✅ ServerDataSync: All services initialized and ready');
       
       const supabaseClient = await this.getAuthenticatedClient();
       
