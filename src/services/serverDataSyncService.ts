@@ -134,6 +134,27 @@ export class ServerDataSyncService extends BaseService {
         .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
     }
     
+    // Seat assignments normalization for October 21st
+    if (tableName === 'seat_assignments') {
+      try {
+        const { seatAssignmentNormalizationService } = await import('./seatAssignmentNormalizationService');
+        const agendaItems = await this.getCachedData('agenda_items');
+        const seatingConfigurations = await this.getCachedData('seating_configurations');
+        
+        if (agendaItems && seatingConfigurations) {
+          records = seatAssignmentNormalizationService.normalizeSeatAssignmentsForDate(
+            records,
+            seatingConfigurations,
+            agendaItems,
+            '2025-10-21'
+          );
+        }
+      } catch (error) {
+        console.warn('⚠️ Seat assignment normalization failed:', error);
+        // Continue with original records if normalization fails
+      }
+    }
+    
     return records;
   }
 
@@ -618,6 +639,28 @@ export class ServerDataSyncService extends BaseService {
    */
   async syncAgendaItems(): Promise<any[]> {
     return this.syncTable('agenda_items');
+  }
+
+  /**
+   * Get cached data from localStorage for normalization
+   * @param tableName - Name of the table to get cached data for
+   * @returns Cached data or null if not found
+   */
+  private async getCachedData(tableName: string): Promise<any[] | null> {
+    try {
+      const cacheKey = `kn_cache_${tableName}`;
+      const cachedData = localStorage.getItem(cacheKey);
+      
+      if (cachedData) {
+        const cacheObj = JSON.parse(cachedData);
+        return cacheObj.data || cacheObj;
+      }
+      
+      return null;
+    } catch (error) {
+      console.warn(`⚠️ Failed to get cached data for ${tableName}:`, error);
+      return null;
+    }
   }
 
   /**
