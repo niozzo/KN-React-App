@@ -1,6 +1,6 @@
 import { applicationDatabaseService, SpeakerAssignment } from './applicationDatabaseService';
 import { pwaDataSyncService } from './pwaDataSyncService';
-import { unifiedCacheService } from './unifiedCacheService';
+import { simplifiedDataService } from './simplifiedDataService';
 import { getAllApplicationTables, type ApplicationTableName } from '../config/tableMappings';
 import { serviceRegistry } from './ServiceRegistry';
 import { SupabaseClientFactory } from './SupabaseClientFactory';
@@ -14,21 +14,13 @@ export class AdminService {
     let agendaItems = [];
     
     try {
-      // Try kn_cache_agenda_items first (current structure)
-      const cachedData = await unifiedCacheService.get('kn_cache_agenda_items');
-      if (cachedData) {
-        agendaItems = (cachedData as any).data || cachedData || [];
-      }
-      
-      // Fallback to legacy agendaItems if kn_cache_agenda_items is empty
-      if (agendaItems.length === 0) {
-        const legacyData = await unifiedCacheService.get('agendaItems');
-        if (legacyData) {
-          agendaItems = (legacyData as any).data || legacyData || [];
-        }
+      // Use simplified cache service
+      const result = await simplifiedDataService.getData('agenda_items');
+      if (result.success && result.data) {
+        agendaItems = result.data;
       }
     } catch (error) {
-      console.error('Error loading agenda items from unified cache:', error);
+      console.error('Error loading agenda items from simplified cache:', error);
     }
     
     // Get edited titles from application database metadata
@@ -87,21 +79,13 @@ export class AdminService {
     let diningOptions = [];
     
     try {
-      // Try kn_cache_dining_options first (current structure)
-      const cachedData = await unifiedCacheService.get('kn_cache_dining_options');
-      if (cachedData) {
-        diningOptions = (cachedData as any).data || cachedData || [];
-      }
-      
-      // Fallback to legacy diningOptions if kn_cache_dining_options is empty
-      if (diningOptions.length === 0) {
-        const legacyData = await unifiedCacheService.get('diningOptions');
-        if (legacyData) {
-          diningOptions = (legacyData as any).data || legacyData || [];
-        }
+      // Use simplified cache service
+      const result = await simplifiedDataService.getData('dining_options');
+      if (result.success && result.data) {
+        diningOptions = result.data;
       }
     } catch (error) {
-      console.error('Error loading dining options from unified cache:', error);
+      console.error('Error loading dining options from simplified cache:', error);
     }
     
     // Get edited titles from application database metadata
