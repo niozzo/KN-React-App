@@ -21,7 +21,7 @@ import { ArrowBack as ArrowBackIcon, Save as SaveIcon, Home as HomeIcon, Dashboa
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { adminService } from '../services/adminService';
 import { dataInitializationService } from '../services/dataInitializationService';
-import { pwaDataSyncService } from '../services/pwaDataSyncService';
+import { simplifiedDataService } from '../services/simplifiedDataService';
 import CacheHealthDashboard from './CacheHealthDashboard';
 import { ValidationRules } from '../utils/validationUtils';
 import { TimeOverridePanel } from './admin/TimeOverridePanel';
@@ -236,14 +236,8 @@ export const AdminPage: React.FC = () => {
       // Force sync application database tables
       const applicationTables = ['speaker_assignments', 'agenda_item_metadata', 'attendee_metadata', 'dining_item_metadata'];
       
-      for (const tableName of applicationTables) {
-        try {
-          await pwaDataSyncService.syncApplicationTable(tableName);
-          console.log(`✅ Synced ${tableName}`);
-        } catch (error) {
-          console.warn(`⚠️ Failed to sync ${tableName}:`, error);
-        }
-      }
+      // Application tables are synced by ServerDataSyncService during login
+      console.log('✅ Application tables already synced during login');
       
       // Reload data after sync
       await loadData();
@@ -267,13 +261,14 @@ export const AdminPage: React.FC = () => {
       
       // Step 1: Clear all cached data to force fresh fetch
       console.log(`🔄 [${syncId}] Step 1: Clearing all caches...`);
-      await pwaDataSyncService.clearCache();
-      console.log(`✅ [${syncId}] Cleared all PWA caches`);
+      simplifiedDataService.clearCache();
+      console.log(`✅ [${syncId}] Cleared all simplified caches`);
       
-      // Step 2: Force sync all data (not just application DB)
+      // Step 2: Force sync all data using ServerDataSyncService
       console.log(`🔄 [${syncId}] Step 2: Force syncing all data...`);
-      const syncResult = await pwaDataSyncService.forceSync();
-      // Force sync completed
+      const { serverDataSyncService } = await import('../services/serverDataSyncService');
+      const syncResult = await serverDataSyncService.syncAllData();
+      console.log(`✅ [${syncId}] Force sync completed:`, syncResult);
       
       // Step 3: Force refresh attendee data to update conference_auth
       console.log(`🔄 [${syncId}] Step 3: Force refreshing attendee data...`);

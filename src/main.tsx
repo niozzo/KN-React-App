@@ -5,22 +5,14 @@ import App from './App.tsx'
 import './styles/design-tokens.css'
 import './styles/components.css'
 import { ServiceRegistry } from './services/ServiceRegistry'
-import { ServiceWorkerCacheManager } from './services/ServiceWorkerCacheManager'
+// ServiceWorkerCacheManager removed - using simplified cache approach
 import { CompanyNormalizationService } from './services/companyNormalizationService'
 
 async function bootstrapApplication() {
   try {
     console.log('🚀 Bootstrap: Starting application initialization...');
     
-    // 🔧 SAFETY FIX: Reset any stuck logout flags on app startup
-    // This prevents the isLogoutInProgress flag from blocking sync operations
-    try {
-      const { pwaDataSyncService } = await import('./services/pwaDataSyncService');
-      pwaDataSyncService.setLogoutInProgress(false);
-      console.log('🔧 Bootstrap: Reset logout flag to prevent sync blocking');
-    } catch (error) {
-      console.warn('⚠️ Bootstrap: Could not reset logout flag:', error);
-    }
+    // ✅ SIMPLIFIED: No logout flags to reset with simplified cache approach
     
     // Initialize service registry first
     const serviceRegistry = ServiceRegistry.getInstance();
@@ -35,9 +27,7 @@ async function bootstrapApplication() {
       // Graceful degradation - continue without company normalization
     }
 
-    // Initialize service worker cache manager
-    const cacheManager = ServiceWorkerCacheManager.getInstance();
-    await cacheManager.initialize();
+    // ✅ SIMPLIFIED: Service worker handles caching automatically
 
     console.log('✅ Bootstrap: Application services initialized successfully');
 
