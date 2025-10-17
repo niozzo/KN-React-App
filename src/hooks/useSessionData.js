@@ -61,6 +61,31 @@ const isSessionUpcoming = (session, currentTime) => {
 };
 
 /**
+ * Filter sessions for current attendee
+ * @param {Array} sessions - All sessions
+ * @param {Object} attendee - Current attendee data
+ * @returns {Array} Filtered sessions
+ */
+const filterSessionsForAttendee = (sessions, attendee) => {
+  if (!attendee) {
+    return sessions;
+  }
+  
+  const filteredSessions = sessions.filter(session => {
+    if (session.session_type === 'breakout') {
+      // Check if attendee is assigned to this breakout using mapping service
+      const isAssigned = breakoutMappingService.isAttendeeAssignedToBreakout(session, attendee);
+      return isAssigned;
+    } else {
+      // Show all other session types (keynote, meal, etc.) to everyone
+      return true;
+    }
+  });
+
+  return filteredSessions;
+};
+
+/**
  * Enhanced session data with additional computed properties
  * @param {Array} sessions - Array of session objects
  * @param {Object} attendee - Current attendee data
@@ -331,9 +356,12 @@ export default function useSessionData(enableOfflineMode = true, autoRefresh = t
         seatingData
       );
 
+      // Filter sessions for current attendee (breakout sessions only show assigned tracks)
+      const attendeeFilteredSessions = filterSessionsForAttendee(enhancedSessions, attendeeData);
+
       // Filter sessions based on current time
       const currentTime = TimeService.getCurrentTime();
-      const filteredSessions = enhancedSessions.filter(session => {
+      const filteredSessions = attendeeFilteredSessions.filter(session => {
         // Show active sessions
         if (session.isActive) return true;
         
@@ -348,7 +376,7 @@ export default function useSessionData(enableOfflineMode = true, autoRefresh = t
       });
 
       // Merge sessions and dining options for unified display
-      const allEventsCombined = mergeAndSortEvents(enhancedSessions, diningData || [], seatData, seatingData);
+      const allEventsCombined = mergeAndSortEvents(attendeeFilteredSessions, diningData || [], seatData, seatingData);
       
       // Set state
       setSessions(filteredSessions);
@@ -446,14 +474,17 @@ export default function useSessionData(enableOfflineMode = true, autoRefresh = t
           seatingConfigurations
         );
         
+        // Filter sessions for current attendee (breakout sessions only show assigned tracks)
+        const attendeeFilteredSessions = filterSessionsForAttendee(enhancedSessions, attendee);
+        
         // Merge sessions and dining options for unified display
-        const allEventsCombined = mergeAndSortEvents(enhancedSessions, diningResponse || [], seatData, seatingData);
+        const allEventsCombined = mergeAndSortEvents(attendeeFilteredSessions, diningResponse || [], seatData, seatingData);
         
         // Find current and next sessions from ALL events (including dining options)
         const activeSession = allEventsCombined.find(s => s.isActive);
         const upcomingSession = allEventsCombined.find(s => s.isUpcoming);
         
-        setSessions(enhancedSessions);
+        setSessions(attendeeFilteredSessions);
         setAllSessions(enhancedSessions);
         setAllEvents(allEventsCombined);
         setCurrentSession(activeSession || null);
