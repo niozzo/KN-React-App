@@ -143,10 +143,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       console.log('🔄 Starting authentication process...')
       
-      // Validate cache is clean before login
-      console.log('🔍 Validating cache state before login...')
-      await this.validateCacheStateBeforeLogin()
-      
       // Step 1: Authenticate with the auth service FIRST (validate access code)
       console.log('🔐 Step 1: Authenticating with access code...')
       const authResult = await authenticateWithAccessCode(accessCode)
@@ -168,7 +164,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       }
       
-      // Step 3: Now that we're authenticated, sync data for offline use
+      // Step 3: Now that we're authenticated, validate cache state before sync
+      console.log('🔍 Validating cache state after authentication...')
+      await this.validateCacheStateBeforeLogin()
+      
+      // Step 4: Sync data for offline use
       console.log('🔐 Step 2: Authentication successful, syncing data for offline use...')
       let syncResult = null
       try {
