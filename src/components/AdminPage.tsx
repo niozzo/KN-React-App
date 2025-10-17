@@ -51,7 +51,7 @@ export const AdminPage: React.FC = () => {
 
       // Simplified: Load only basic agenda items and dining options for title editing
       console.log('📋 Loading agenda items...');
-      const agendaResponse = await simplifiedDataService.getAgendaItems();
+      const agendaResponse = await simplifiedDataService.getData('agenda_items');
       console.log('📋 Agenda response:', agendaResponse);
       if (agendaResponse.success && agendaResponse.data) {
         setAgendaItems(agendaResponse.data);
@@ -61,7 +61,7 @@ export const AdminPage: React.FC = () => {
       }
 
       console.log('🍽️ Loading dining options...');
-      const diningResponse = await simplifiedDataService.getDiningOptions();
+      const diningResponse = await simplifiedDataService.getData('dining_options');
       console.log('🍽️ Dining response:', diningResponse);
       if (diningResponse.success && diningResponse.data) {
         setDiningOptions(diningResponse.data);
