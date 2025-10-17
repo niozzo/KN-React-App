@@ -337,8 +337,8 @@ export default function useSessionData(enableOfflineMode = true, autoRefresh = t
       const attendeeData = await getCurrentAttendeeData();
       setAttendee(attendeeData);
 
-      // Load seat assignments
-      const seatData = await getAttendeeSeatAssignments();
+      // Load seat assignments for the current attendee
+      const seatData = await getAttendeeSeatAssignments(attendeeData.id);
       setSeatAssignments(seatData);
 
       // Load seating configurations
