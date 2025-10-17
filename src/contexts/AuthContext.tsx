@@ -82,23 +82,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, [])
 
-  const validateCacheStateBeforeLogin = useCallback(async () => {
+  const validateCacheStateAfterAuthentication = useCallback(async () => {
     try {
-      // Check for any existing cache entries
-      const cacheKeys: string[] = []
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i)
-        if (key && key.startsWith('kn_cache_')) {
-          cacheKeys.push(key)
+      // Only clear specific problematic cache entries that cause checksum mismatches
+      const problematicKeys = ['kn_cache_agenda_items'] // Only clear the specific problematic cache
+      const foundKeys: string[] = []
+      
+      for (const key of problematicKeys) {
+        if (localStorage.getItem(key)) {
+          foundKeys.push(key)
         }
       }
       
-      if (cacheKeys.length > 0) {
-        console.warn(`⚠️ Found ${cacheKeys.length} stale cache entries before login, clearing...`)
-        cacheKeys.forEach(key => localStorage.removeItem(key))
-        console.log('✅ Stale cache cleared successfully')
+      if (foundKeys.length > 0) {
+        console.warn(`⚠️ Found ${foundKeys.length} potentially corrupted cache entries, clearing...`)
+        foundKeys.forEach(key => localStorage.removeItem(key))
+        console.log('✅ Potentially corrupted cache cleared successfully')
       } else {
-        console.log('✅ Cache state clean - ready for fresh login')
+        console.log('✅ Cache state clean - no problematic entries found')
       }
     } catch (error) {
       console.warn('⚠️ Cache validation failed:', error)
@@ -166,8 +167,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       // Step 3: Now that we're authenticated, validate cache state before sync
       console.log('🔍 Validating cache state after authentication...')
-      // Temporarily disabled to test authentication
-      // await this.validateCacheStateBeforeLogin()
+      await this.validateCacheStateAfterAuthentication()
       
       // Step 4: Sync data for offline use
       console.log('🔐 Step 2: Authentication successful, syncing data for offline use...')
