@@ -86,6 +86,70 @@ const enhanceSessionData = (sessions, attendee, seatAssignments, seatingConfigur
 };
 
 /**
+ * Convert dining options to session format for unified display
+ * @param {Array} diningOptions - Array of dining option objects
+ * @returns {Array} Array of session objects
+ */
+const convertDiningToSessions = (diningOptions) => {
+  if (!diningOptions || diningOptions.length === 0) {
+    return [];
+  }
+  
+  return diningOptions.map(dining => ({
+    id: `dining-${dining.id}`,
+    title: dining.name,
+    description: dining.location || '',
+    date: dining.date,
+    start_time: dining.time,
+    end_time: dining.time, // Dining events typically don't have end times
+    location: dining.location || '',
+    session_type: 'meal',
+    type: 'meal',
+    capacity: dining.capacity || 0,
+    registered_count: 0,
+    attendee_selection: 'everyone',
+    selected_attendees: [],
+    isActive: false,
+    isUpcoming: false,
+    has_seating: dining.has_table_assignments || false,
+    seating_notes: dining.seating_notes || '',
+    seating_type: dining.seating_type || 'open',
+    speakers: [],
+    speakerInfo: '',
+    speaker: '',
+    seatInfo: null,
+    // Dining-specific fields
+    diningOption: true,
+    originalDiningId: dining.id,
+    seating_config: dining
+  }));
+};
+
+/**
+ * Merge and sort sessions and dining options by time
+ * @param {Array} sessions - Array of session objects
+ * @param {Array} diningOptions - Array of dining option objects
+ * @returns {Array} Combined and sorted array
+ */
+const mergeAndSortEvents = (sessions, diningOptions) => {
+  // Convert dining options to session format
+  const diningSessions = convertDiningToSessions(diningOptions);
+  
+  // Combine sessions and dining
+  const allEvents = [...sessions, ...diningSessions];
+  
+  // Sort by date and time
+  return allEvents.sort((a, b) => {
+    // First sort by date
+    const dateComparison = (a.date || '').localeCompare(b.date || '');
+    if (dateComparison !== 0) return dateComparison;
+    
+    // Then sort by start time
+    return (a.start_time || '').localeCompare(b.start_time || '');
+  });
+};
+
+/**
  * Custom hook for managing session data
  * @param {boolean} enableOfflineMode - Whether to enable offline mode
  * @param {boolean} autoRefresh - Whether to auto-refresh data
@@ -176,10 +240,13 @@ export default function useSessionData(enableOfflineMode = true, autoRefresh = t
         return false;
       });
 
+      // Merge sessions and dining options for unified display
+      const allEventsCombined = mergeAndSortEvents(enhancedSessions, diningData || []);
+      
       // Set state
       setSessions(filteredSessions);
       setAllSessions(enhancedSessions);
-      setAllEvents(enhancedSessions);
+      setAllEvents(allEventsCombined);
       setLastUpdated(new Date());
 
       // Find current and next sessions
@@ -234,9 +301,12 @@ export default function useSessionData(enableOfflineMode = true, autoRefresh = t
           seatingConfigurations
         );
         
+        // Merge sessions and dining options for unified display
+        const allEventsCombined = mergeAndSortEvents(enhancedSessions, diningResponse || []);
+        
         setSessions(enhancedSessions);
         setAllSessions(enhancedSessions);
-        setAllEvents(enhancedSessions);
+        setAllEvents(allEventsCombined);
         setLastUpdated(new Date());
       }
       
