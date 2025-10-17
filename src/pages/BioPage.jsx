@@ -5,6 +5,7 @@ import Card from '../components/common/Card';
 import { attendeeSearchService } from '../services/attendeeSearchService';
 import { CompanyNormalizationService } from '../services/companyNormalizationService';
 import { offlineAttendeeService } from '../services/offlineAttendeeService';
+import { offlineAwareImageService } from '../services/offlineAwareImageService';
 
 /**
  * Bio Page Component
@@ -268,7 +269,7 @@ const BioPage = () => {
         >
           {attendee.photo ? (
             <img
-              src={attendee.photo}
+              src={offlineAwareImageService.getHeadshotUrl(attendee.id, attendee.photo)}
               alt={`${fullName} headshot`}
               style={{
                 width: '100%',
@@ -379,7 +380,7 @@ const BioPage = () => {
       )}
       
       {/* Company Card - Reordered layout */}
-      {standardizedCompany && (
+      {standardizedCompany && standardizedCompany.name !== 'Apax Partners' && (
         <Card className="sponsor-card sponsor-card-vertical">
           {/* First row: Name and Geography */}
           <div className="sponsor-info-row">

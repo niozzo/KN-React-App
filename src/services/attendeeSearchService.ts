@@ -7,7 +7,7 @@
  */
 
 import { OfflineAttendeeService } from './offlineAttendeeService';
-import { pwaDataSyncService } from './pwaDataSyncService';
+// Removed pwaDataSyncService import - using simplified cache approach
 import { sponsorService } from './sponsorService';
 import { 
   Attendee, 
@@ -110,8 +110,10 @@ export class AttendeeSearchService {
    */
   private async getAllAttendeesFromCache(): Promise<Attendee[]> {
     try {
-      // Try PWA cache first
-      const cachedData = await pwaDataSyncService.getCachedTableData<Attendee>('attendees');
+      // Try simplified cache first
+      const { simplifiedDataService } = await import('./simplifiedDataService');
+      const cacheResult = await simplifiedDataService.getData<Attendee>('attendees');
+      const cachedData = cacheResult.success ? cacheResult.data : [];
       
       if (cachedData && cachedData.length > 0) {
         console.log(`📱 Using cached attendees data (${cachedData.length} records)`);

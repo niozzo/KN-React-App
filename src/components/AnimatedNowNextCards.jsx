@@ -27,6 +27,8 @@ const areSessionsOnDifferentDays = (session1, session2) => {
 const formatDateForDisplay = (dateString) => {
   if (!dateString) return '';
   
+  // ✅ FIX: Parse date without timezone conversion to avoid day shift
+  // Split YYYY-MM-DD and create date in local timezone
   const [year, month, day] = dateString.split('-').map(Number);
   const date = new Date(year, month - 1, day); // month is 0-indexed in Date constructor
   

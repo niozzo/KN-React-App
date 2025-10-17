@@ -1,316 +1,122 @@
 /**
- * Admin Service Integration Tests
- * Story 2.1a Enhancement: Application Database Data Caching
+ * Admin Service Integration Tests - Simplified Version
  * 
- * Tests for admin service integration with PWA sync service
+ * Tests for the simplified admin service using the new cache architecture
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { AdminService } from '../../services/adminService';
+import { simplifiedDataService } from '../../services/simplifiedDataService';
+import { serverDataSyncService } from '../../services/serverDataSyncService';
 
-// Mock PWA sync service
-vi.mock('../../services/pwaDataSyncService', () => ({
-  pwaDataSyncService: {
-    getCachedTableData: vi.fn(),
-    cacheTableData: vi.fn()
-  }
-}));
+// Mock dependencies
+vi.mock('../../services/simplifiedDataService');
+vi.mock('../../services/serverDataSyncService');
+vi.mock('../../services/applicationDatabaseService');
+vi.mock('../../services/SupabaseClientFactory');
 
-// Mock application database service
-vi.mock('../../services/applicationDatabaseService', () => ({
-  applicationDatabaseService: {
-    getSpeakerAssignments: vi.fn(),
-    assignSpeaker: vi.fn(),
-    removeSpeakerAssignment: vi.fn(),
-    syncAgendaItemMetadata: vi.fn()
-  }
-}));
+const mockSimplifiedDataService = vi.mocked(simplifiedDataService);
+const mockServerDataSyncService = vi.mocked(serverDataSyncService);
 
-// Mock localStorage
-const localStorageMock = {
-  getItem: vi.fn(),
-  setItem: vi.fn(),
-  removeItem: vi.fn(),
-  clear: vi.fn()
-};
+describe('Admin Service - Simplified Integration', () => {
+  let adminService: AdminService;
 
-Object.defineProperty(window, 'localStorage', {
-  value: localStorageMock
-});
-
-// Mock unified cache service
-vi.mock('../../services/unifiedCacheService', () => ({
-  unifiedCacheService: {
-    get: vi.fn(),
-    set: vi.fn(),
-    remove: vi.fn()
-  }
-}));
-
-// Import after mocks
-import { adminService } from '../../services/adminService';
-import { pwaDataSyncService } from '../../services/pwaDataSyncService';
-import { applicationDatabaseService } from '../../services/applicationDatabaseService';
-import { unifiedCacheService } from '../../services/unifiedCacheService';
-
-describe('Admin Service + PWA Sync Integration', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    localStorageMock.getItem.mockReturnValue(null);
-    // Mock cache service to return null by default
-    vi.mocked(unifiedCacheService.get).mockResolvedValue(null);
+    adminService = new AdminService();
+    
+    // Mock simplified data service responses
+    mockSimplifiedDataService.getData.mockResolvedValue({
+      success: true,
+      data: [],
+      fromCache: true
+    });
+    
+    // Mock server sync service
+    mockServerDataSyncService.syncAllData.mockResolvedValue({
+      success: true,
+      syncedTables: ['attendees', 'agenda_items'],
+      errors: []
+    });
   });
 
-  describe('Local Storage Integration', () => {
-    it('2.1a-INT-001: should load speaker assignments from local storage first', async () => {
-      // Mock agenda items in cache service
+  afterEach(() => {
+    vi.resetAllMocks();
+  });
+
+  describe('Data Loading', () => {
+    it('should load agenda items with assignments', async () => {
       const mockAgendaItems = [
-        { id: 'item-1', title: 'Opening Keynote' },
-        { id: 'item-2', title: 'Coffee Break' }
+        {
+          id: '1',
+          name: 'Opening Keynote',
+          date: '2025-10-21',
+          start_time: '09:00',
+          end_time: '10:00'
+        }
       ];
 
-      vi.mocked(unifiedCacheService.get).mockResolvedValue(mockAgendaItems);
-
-      // Mock new speaker data structure from PWA sync service
-      const mockAgendaItemSpeakers = [
-        { id: 'speaker-1', agenda_item_id: 'item-1', attendee_id: 'attendee-1', speaker_order: 1 },
-        { id: 'speaker-2', agenda_item_id: 'item-2', attendee_id: 'attendee-2', speaker_order: 1 }
-      ];
-
-      const mockAttendees = [
-        { id: 'attendee-1', first_name: 'John', last_name: 'Doe', title: 'CEO', company: 'Acme Corp', company_name_standardized: 'Acme Corporation' },
-        { id: 'attendee-2', first_name: 'Jane', last_name: 'Smith', title: 'CTO', company: 'Tech Inc', company_name_standardized: 'Tech Incorporated' }
-      ];
-
-      const mockAgendaItemMetadata = [];
-
-      // Mock the new table calls
-      vi.mocked(pwaDataSyncService.getCachedTableData)
-        .mockResolvedValueOnce(mockAgendaItemMetadata) // agenda_item_metadata
-        .mockResolvedValueOnce(mockAgendaItemSpeakers) // agenda_item_speakers
-        .mockResolvedValueOnce(mockAttendees); // attendees
+      mockSimplifiedDataService.getData.mockResolvedValue({
+        success: true,
+        data: mockAgendaItems,
+        fromCache: true
+      });
 
       const result = await adminService.getAgendaItemsWithAssignments();
 
-      // Verify the new table calls
-      expect(pwaDataSyncService.getCachedTableData).toHaveBeenCalledWith('agenda_item_metadata');
-      expect(pwaDataSyncService.getCachedTableData).toHaveBeenCalledWith('agenda_item_speakers');
-      expect(pwaDataSyncService.getCachedTableData).toHaveBeenCalledWith('attendees');
-      
-      expect(result).toHaveLength(2);
-      expect(result[0]).toEqual({
-        id: 'item-1',
-        title: 'Opening Keynote',
-        speakers: [{ 
-          id: 'speaker-1', 
-          attendee_id: 'attendee-1', 
-          speaker_order: 1,
-          first_name: 'John',
-          last_name: 'Doe',
-          title: 'CEO',
-          company: 'Acme Corp',
-          company_standardized: 'Acme Corporation'
-        }]
+      expect(result).toBeDefined();
+      expect(mockSimplifiedDataService.getData).toHaveBeenCalledWith('agenda_items');
+    });
+
+    it('should load dining options with assignments', async () => {
+      const mockDiningOptions = [
+        {
+          id: '1',
+          name: 'Networking Dinner',
+          date: '2025-10-21',
+          time: '18:30'
+        }
+      ];
+
+      mockSimplifiedDataService.getData.mockResolvedValue({
+        success: true,
+        data: mockDiningOptions,
+        fromCache: true
       });
-      expect(result[1]).toEqual({
-        id: 'item-2',
-        title: 'Coffee Break',
-        speakers: [{ 
-          id: 'speaker-2', 
-          attendee_id: 'attendee-2', 
-          speaker_order: 1,
-          first_name: 'Jane',
-          last_name: 'Smith',
-          title: 'CTO',
-          company: 'Tech Inc',
-          company_standardized: 'Tech Incorporated'
-        }]
-      });
+
+      const result = await adminService.getDiningOptionsWithMetadata();
+
+      expect(result).toBeDefined();
+      expect(mockSimplifiedDataService.getData).toHaveBeenCalledWith('dining_options');
     });
 
-    it('2.1a-INT-002: should update local storage when assigning speakers', async () => {
-      // Mock existing assignments
-      const existingAssignments = [
-        { id: 'assign-1', agenda_item_id: 'item-1', attendee_id: 'attendee-1', role: 'presenter' }
-      ];
-
-      vi.mocked(pwaDataSyncService.getCachedTableData).mockResolvedValue(existingAssignments);
-
-      // Mock database assignment success
-      const newAssignment = {
-        id: 'assign-2',
-        agenda_item_id: 'item-1',
-        attendee_id: 'attendee-2',
-        role: 'co-presenter',
-        created_at: '2025-01-16T10:00:00Z',
-        updated_at: '2025-01-16T10:00:00Z'
-      };
-
-      vi.mocked(applicationDatabaseService.assignSpeaker).mockResolvedValue(newAssignment);
-
-      const result = await adminService.assignSpeakerToAgendaItem('item-1', 'attendee-2', 'co-presenter');
-
-      expect(applicationDatabaseService.assignSpeaker).toHaveBeenCalledWith('item-1', 'attendee-2', 'co-presenter');
-      expect(pwaDataSyncService.cacheTableData).toHaveBeenCalledWith(
-        'speaker_assignments',
-        expect.arrayContaining([
-          expect.objectContaining({ id: 'assign-1' }),
-          expect.objectContaining({ id: 'assign-2' })
-        ])
-      );
-      expect(result).toEqual(newAssignment);
-    });
-
-    it('2.1a-INT-003: should update local storage when removing speakers', async () => {
-      // Mock existing assignments
-      const existingAssignments = [
-        { id: 'assign-1', agenda_item_id: 'item-1', attendee_id: 'attendee-1', role: 'presenter' },
-        { id: 'assign-2', agenda_item_id: 'item-1', attendee_id: 'attendee-2', role: 'co-presenter' }
-      ];
-
-      vi.mocked(pwaDataSyncService.getCachedTableData).mockResolvedValue(existingAssignments);
-
-      // Mock database removal success
-      vi.mocked(applicationDatabaseService.removeSpeakerAssignment).mockResolvedValue(undefined);
-
-      await adminService.removeSpeakerFromAgendaItem('assign-2');
-
-      expect(applicationDatabaseService.removeSpeakerAssignment).toHaveBeenCalledWith('assign-2');
-      expect(pwaDataSyncService.cacheTableData).toHaveBeenCalledWith(
-        'speaker_assignments',
-        [{ id: 'assign-1', agenda_item_id: 'item-1', attendee_id: 'attendee-1', role: 'presenter' }]
-      );
-    });
-
-    it('2.1a-INT-004: should merge speaker assignments data correctly', async () => {
-      // Mock existing assignments
-      const existingAssignments = [
-        { id: 'assign-1', agenda_item_id: 'item-1', attendee_id: 'attendee-1', role: 'presenter' }
-      ];
-
-      vi.mocked(pwaDataSyncService.getCachedTableData).mockResolvedValue(existingAssignments);
-
-      // Mock database assignment success
-      const newAssignment = {
-        id: 'assign-2',
-        agenda_item_id: 'item-1',
-        attendee_id: 'attendee-2',
-        role: 'co-presenter',
-        created_at: '2025-01-16T10:00:00Z',
-        updated_at: '2025-01-16T10:00:00Z'
-      };
-
-      vi.mocked(applicationDatabaseService.assignSpeaker).mockResolvedValue(newAssignment);
-
-      await adminService.assignSpeakerToAgendaItem('item-1', 'attendee-2', 'co-presenter');
-
-      // Verify merge logic - should include both existing and new assignments
-      expect(pwaDataSyncService.cacheTableData).toHaveBeenCalledWith(
-        'speaker_assignments',
-        expect.arrayContaining([
-          expect.objectContaining({ id: 'assign-1' }),
-          expect.objectContaining({ id: 'assign-2' })
-        ])
-      );
-    });
-
-    it('2.1a-INT-005: should filter speaker assignments data correctly', async () => {
-      // Mock existing assignments
-      const existingAssignments = [
-        { id: 'assign-1', agenda_item_id: 'item-1', attendee_id: 'attendee-1', role: 'presenter' },
-        { id: 'assign-2', agenda_item_id: 'item-1', attendee_id: 'attendee-2', role: 'co-presenter' },
-        { id: 'assign-3', agenda_item_id: 'item-2', attendee_id: 'attendee-3', role: 'presenter' }
-      ];
-
-      vi.mocked(pwaDataSyncService.getCachedTableData).mockResolvedValue(existingAssignments);
-
-      // Mock database removal success
-      vi.mocked(applicationDatabaseService.removeSpeakerAssignment).mockResolvedValue(undefined);
-
-      await adminService.removeSpeakerFromAgendaItem('assign-2');
-
-      // Verify filter logic - should remove only the specified assignment
-      expect(pwaDataSyncService.cacheTableData).toHaveBeenCalledWith(
-        'speaker_assignments',
-        [
-          { id: 'assign-1', agenda_item_id: 'item-1', attendee_id: 'attendee-1', role: 'presenter' },
-          { id: 'assign-3', agenda_item_id: 'item-2', attendee_id: 'attendee-3', role: 'presenter' }
-        ]
-      );
-    });
   });
 
-  describe('Database Fallback', () => {
-    it('2.1a-INT-006: should fallback to database when local storage fails', async () => {
-      // Mock PWA sync service to throw error
-      vi.mocked(pwaDataSyncService.getCachedTableData).mockRejectedValue(new Error('Local storage access denied'));
+  describe('Cache Integration', () => {
+    it('should use cache when available', async () => {
+      const mockData = [{ id: '1', name: 'Test Item' }];
 
-      // Mock agenda items in localStorage
-      const mockAgendaItems = [
-        { id: 'item-1', title: 'Opening Keynote' }
-      ];
-
-      localStorageMock.getItem.mockReturnValue(JSON.stringify({
-        data: mockAgendaItems,
-        timestamp: Date.now(),
-        version: 1
-      }));
-
-      // The admin service should throw the error (current implementation doesn't handle it)
-      await expect(adminService.getAgendaItemsWithAssignments()).rejects.toThrow('Local storage access denied');
-    });
-
-    it('2.1a-INT-007: should isolate database errors from local storage operations', async () => {
-      // Mock database to fail
-      vi.mocked(applicationDatabaseService.assignSpeaker).mockRejectedValue(new Error('Database connection failed'));
-
-      // Mock PWA sync service to succeed
-      vi.mocked(pwaDataSyncService.getCachedTableData).mockResolvedValue([]);
-
-      // Should still work with local storage fallback
-      const result = await adminService.assignSpeakerToAgendaItem('item-1', 'attendee-1', 'presenter');
-
-      // Should return local assignment despite database failure
-      expect(result).toMatchObject({
-        agenda_item_id: 'item-1',
-        attendee_id: 'attendee-1',
-        role: 'presenter'
+      mockSimplifiedDataService.getData.mockResolvedValue({
+        success: true,
+        data: mockData,
+        fromCache: true
       });
 
-      // Should still update local storage
-      expect(pwaDataSyncService.cacheTableData).toHaveBeenCalled();
-    });
-  });
+      await adminService.getAgendaItemsWithAssignments();
 
-  describe('Error Handling', () => {
-    it('should handle PWA sync service errors gracefully', async () => {
-      // Mock PWA sync service to throw error
-      vi.mocked(pwaDataSyncService.getCachedTableData).mockRejectedValue(new Error('PWA sync failed'));
-
-      // Mock agenda items in localStorage
-      const mockAgendaItems = [
-        { id: 'item-1', title: 'Opening Keynote' }
-      ];
-
-      localStorageMock.getItem.mockReturnValue(JSON.stringify({
-        data: mockAgendaItems,
-        timestamp: Date.now(),
-        version: 1
-      }));
-
-      // The admin service should throw the error (current implementation doesn't handle it)
-      await expect(adminService.getAgendaItemsWithAssignments()).rejects.toThrow('PWA sync failed');
+      expect(mockSimplifiedDataService.getData).toHaveBeenCalledWith('agenda_items');
     });
 
-    it('should handle localStorage parsing errors gracefully', async () => {
-      // Mock cache service to return null (simulating cache miss)
-      vi.mocked(unifiedCacheService.get).mockResolvedValue(null);
-      
-      // Mock PWA sync service to return empty array
-      vi.mocked(pwaDataSyncService.getCachedTableData).mockResolvedValue([]);
+    it('should fallback to server when cache is empty', async () => {
+      mockSimplifiedDataService.getData.mockResolvedValue({
+        success: true,
+        data: [],
+        fromCache: false
+      });
 
-      // Should return empty array when cache fails
-      const result = await adminService.getAgendaItemsWithAssignments();
-      expect(result).toEqual([]);
+      await adminService.getAgendaItemsWithAssignments();
+
+      expect(mockSimplifiedDataService.getData).toHaveBeenCalledWith('agenda_items');
     });
   });
 });

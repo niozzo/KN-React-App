@@ -16,7 +16,11 @@ const DayHeader = ({
   const formatDate = (dateString) => {
     if (!dateString) return '';
     
-    const date = new Date(dateString);
+    // ✅ FIX: Parse date without timezone conversion to avoid day shift
+    // Split YYYY-MM-DD and create date in local timezone
+    const [year, month, day] = dateString.split('-').map(Number);
+    const date = new Date(year, month - 1, day); // month is 0-indexed
+    
     return date.toLocaleDateString('en-US', { 
       weekday: 'long',
       month: 'long', 

@@ -11,7 +11,7 @@
 // NOTE: All data access must go through server-side authenticated endpoints
 // to comply with RLS. Do not use the Supabase anon client from the browser.
 import { isUserAuthenticated } from './authService'
-import { unifiedCacheService } from './unifiedCacheService'
+import { simplifiedDataService } from './simplifiedDataService'
 import type { Attendee } from '../types/attendee'
 import type { AgendaItem } from '../types/agenda'
 import type { Sponsor } from '../types/sponsor'
@@ -185,19 +185,11 @@ export const getAllAgendaItems = async (): Promise<AgendaItem[]> => {
   requireAuthentication()
   
   try {
-    // PRIMARY: Check unified cache first (populated during login)
-    try {
-      const cachedData = await unifiedCacheService.get('kn_cache_agenda_items')
-      if (cachedData) {
-        // Handle both direct array format and wrapped format
-        const agendaItems = cachedData.data || cachedData
-        if (Array.isArray(agendaItems) && agendaItems.length > 0) {
-          console.log('✅ Using cached agenda items from unified cache')
-          return [...agendaItems]
-        }
-      }
-    } catch (cacheError) {
-      console.warn('⚠️ Failed to load cached agenda items:', cacheError)
+    // PRIMARY: Check simplified cache first (populated during login)
+    const result = await simplifiedDataService.getData('agenda_items')
+    if (result.success && result.data && Array.isArray(result.data) && result.data.length > 0) {
+      console.log(`✅ Using ${result.fromCache ? 'cached' : 'fresh'} agenda items`)
+      return [...result.data]
     }
     
     // FALLBACK: Sync from database using same method as login

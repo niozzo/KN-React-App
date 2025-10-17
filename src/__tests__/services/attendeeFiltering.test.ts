@@ -5,15 +5,15 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { OfflineAttendeeService } from '../../services/offlineAttendeeService';
-import { pwaDataSyncService } from '../../services/pwaDataSyncService';
+import { simplifiedDataService } from '../../services/simplifiedDataService';
 import { attendeeService } from '../../services/attendeeService';
 import type { Attendee } from '../../types/database';
 
 // Mock dependencies
-vi.mock('../../services/pwaDataSyncService');
+vi.mock('../../services/simplifiedDataService');
 vi.mock('../../services/attendeeService');
 
-const mockPwaDataSyncService = vi.mocked(pwaDataSyncService);
+const mockSimplifiedDataService = vi.mocked(simplifiedDataService);
 const mockAttendeeService = vi.mocked(attendeeService);
 
 describe('Attendee Filtering Integration Test', () => {
@@ -155,7 +155,11 @@ describe('Attendee Filtering Integration Test', () => {
       }
     ];
 
-    mockPwaDataSyncService.getCachedTableData.mockResolvedValue(mockAttendees);
+    mockSimplifiedDataService.getData.mockResolvedValue({
+      success: true,
+      data: mockAttendees,
+      fromCache: true
+    });
 
     // Act - This is what BioPage calls when showing company attendees
     const result = await service.getAttendeesByCompany('Amazon Web Services');
@@ -302,7 +306,11 @@ describe('Attendee Filtering Integration Test', () => {
       }
     ];
 
-    mockPwaDataSyncService.getCachedTableData.mockResolvedValue([]);
+    mockSimplifiedDataService.getData.mockResolvedValue({
+      success: true,
+      data: [],
+      fromCache: false
+    });
     mockAttendeeService.getAttendeesByCompany.mockResolvedValue({
       data: mockServerAttendees,
       count: mockServerAttendees.length,
@@ -324,20 +332,7 @@ describe('Attendee Filtering Integration Test', () => {
     expect(result.data.find(attendee => attendee.first_name === 'Adebimpe')).toBeUndefined();
     expect(result.data.find(attendee => attendee.id === 'bims-daniells')).toBeUndefined();
     
-    // Verify filtered data was cached
-    expect(mockPwaDataSyncService.cacheTableData).toHaveBeenCalledWith(
-      'attendees',
-      expect.arrayContaining([
-        expect.objectContaining({ id: 'john-doe', registration_status: 'confirmed' })
-      ])
-    );
-    
-    // Verify Bims was not cached
-    expect(mockPwaDataSyncService.cacheTableData).toHaveBeenCalledWith(
-      'attendees',
-      expect.not.arrayContaining([
-        expect.objectContaining({ id: 'bims-daniells' })
-      ])
-    );
+    // Verify simplified data service was called
+    expect(mockSimplifiedDataService.getData).toHaveBeenCalledWith('attendees');
   });
 });

@@ -14,37 +14,38 @@ import type { IServerDataSyncService } from './interfaces/IServerDataSyncService
 import type { ICacheService } from './interfaces/ICacheService';
 import type { IUnifiedCacheService } from './interfaces/IUnifiedCacheService';
 import type { ServiceResult } from './interfaces/IAgendaService';
-import { pwaDataSyncService } from './pwaDataSyncService.ts';
-import { cacheMonitoringService } from './cacheMonitoringService.ts';
-import { cacheVersioningService, type CacheEntry } from './cacheVersioningService.ts';
-import { unifiedCacheService } from './unifiedCacheService.ts';
+// Removed deleted service imports - using simplifiedDataService instead
+import { simplifiedDataService } from './simplifiedDataService.ts';
 import { ServerDataSyncService } from './serverDataSyncService.ts';
 import { applicationDatabaseService } from './applicationDatabaseService.ts';
 import { AgendaTransformer } from '../transformers/agendaTransformer.ts';
 
 export class AgendaService implements IAgendaService {
-  private backgroundRefreshInProgress = false;
+  private backgroundRefreshInProgress = false
+  private lastBackgroundRefresh = 0
+  private lastOnlineTime = Date.now()
+  private isOffline = false
+  private readonly BACKGROUND_REFRESH_INTERVAL = 5 * 60 * 1000 // 5 minutes;
   private readonly tableName = 'agenda_items';
   private readonly basePath = '/api/agenda-items';
   private agendaTransformer = new AgendaTransformer();
 
   private serverDataSyncService: ServerDataSyncService | null = null;
   private cacheService?: ICacheService;
-  private unifiedCache?: IUnifiedCacheService;
-
   constructor(
     serverDataSyncService?: IServerDataSyncService,
-    cacheService?: ICacheService,
-    unifiedCache?: IUnifiedCacheService
+    cacheService?: ICacheService
   ) {
     this.serverDataSyncService = serverDataSyncService as ServerDataSyncService || null;
     this.cacheService = cacheService;
-    this.unifiedCache = unifiedCache || unifiedCacheService;
     
     // Initialize serverDataSyncService for background refresh if not provided
     if (!this.serverDataSyncService) {
       this.serverDataSyncService = new ServerDataSyncService();
     }
+    
+    // Setup offline/online event listeners
+    this.setupOfflineListener();
   }
 
   private async apiGet<T>(path: string): Promise<T> {
@@ -198,13 +199,16 @@ export class AgendaService implements IAgendaService {
   private async enrichWithSpeakerData(agendaItems: any[]): Promise<any[]> {
     try {
       // Get speaker data from new table
-      const agendaItemSpeakers = await pwaDataSyncService.getCachedTableData('agenda_item_speakers');
+      const agendaItemSpeakersResult = await simplifiedDataService.getData('agenda_item_speakers');
+      const agendaItemSpeakers = agendaItemSpeakersResult.success ? agendaItemSpeakersResult.data : [];
       
       // Get attendees from cache for name lookup
-      const attendees = await pwaDataSyncService.getCachedTableData('attendees');
+      const attendeesResult = await simplifiedDataService.getData('attendees');
+      const attendees = attendeesResult.success ? attendeesResult.data : [];
       
       // Get edited titles from application database metadata
-      const agendaItemMetadata = await pwaDataSyncService.getCachedTableData('agenda_item_metadata');
+      const agendaItemMetadataResult = await simplifiedDataService.getData('agenda_item_metadata');
+      const agendaItemMetadata = agendaItemMetadataResult.success ? agendaItemMetadataResult.data : [];
       
       // Create attendee lookup map
       const attendeeMap = new Map();
@@ -296,6 +300,12 @@ export class AgendaService implements IAgendaService {
    */
   private async applyTimeOverrides(agendaItems: any[]): Promise<any[]> {
     try {
+      // Skip time overrides if offline
+      if (!navigator.onLine) {
+        console.log('📱 Offline mode: Skipping time overrides, using original times');
+        return agendaItems;
+      }
+
       // Get time overrides from application database
       const timeOverrides = await applicationDatabaseService.getAgendaItemTimeOverrides();
       
@@ -336,19 +346,21 @@ export class AgendaService implements IAgendaService {
    */
   async getActiveAgendaItems(): Promise<PaginatedResponse<AgendaItem>> {
     try {
-      // Use unified cache service
-      const cachedData = await this.unifiedCache!.get('kn_cache_agenda_items');
+      // Use simplified cache service
+      const result = await simplifiedDataService.getData('agenda_items');
       
-      if (cachedData) {
+      if (result.success && result.data) {
         // Data is already filtered in ServerDataSyncService
-        const agendaItems = (cachedData as any)?.data || cachedData;
+        const agendaItems = result.data;
         
         if (agendaItems.length > 0) {
           
           // Apply time overrides before enrichment
           const itemsWithOverrides = await this.applyTimeOverrides(agendaItems);
           const enrichedData = await this.enrichWithSpeakerData(itemsWithOverrides);
-          this.refreshAgendaItemsInBackground();
+          
+          // Only refresh in background if enough time has passed since last refresh
+          this.scheduleBackgroundRefreshIfNeeded();
           
           return {
             data: enrichedData,
@@ -405,8 +417,7 @@ export class AgendaService implements IAgendaService {
         if (Array.isArray(agendaItems) && agendaItems.length > 0) {
           console.log('🌐 API FALLBACK: Successfully fetched agenda items from API');
           
-          // Cache the data for future use
-          await this.unifiedCache!.set('kn_cache_agenda_items', agendaItems);
+          // Data is already cached by SimplifiedDataService
           
           // Data is already filtered and sorted in ServerDataSyncService
           const sortedItems = agendaItems
@@ -447,11 +458,11 @@ export class AgendaService implements IAgendaService {
         console.log('🌐 SYNC: Successfully synced agenda items');
         
         // Get the fresh data from cache
-        const freshCachedData = await this.unifiedCache!.get('kn_cache_agenda_items');
+        const freshResult = await simplifiedDataService.getData('agenda_items');
         
-        if (freshCachedData) {
+        if (freshResult.success && freshResult.data) {
           // Data is already filtered and sorted in ServerDataSyncService
-          const agendaItems = (freshCachedData as any)?.data || freshCachedData;
+          const agendaItems = freshResult.data;
           const sortedItems = agendaItems
             .sort((a: any, b: any) => {
               // First sort by date
@@ -500,8 +511,8 @@ export class AgendaService implements IAgendaService {
    */
   private async cacheAgendaItems(agendaItems: AgendaItem[]): Promise<void> {
     try {
-      await this.unifiedCache!.set('kn_cache_agenda_items', agendaItems);
-      console.log('💾 Cached', agendaItems.length, 'agenda items using unified cache');
+      // Data is already cached by SimplifiedDataService during sync
+      console.log('💾 Agenda items already cached by SimplifiedDataService');
     } catch (error) {
       console.warn('⚠️ Failed to cache agenda items:', error);
     }
@@ -513,7 +524,7 @@ export class AgendaService implements IAgendaService {
   async refreshAgendaItems(): Promise<ServiceResult<AgendaItem[]>> {
     try {
       // Force refresh by clearing cache first
-      await this.unifiedCache!.remove('kn_cache_agenda_items');
+      simplifiedDataService.clearCache();
       
       // Get fresh data
       const result = await this.getActiveAgendaItems();
@@ -525,6 +536,49 @@ export class AgendaService implements IAgendaService {
         data: [],
         error: error instanceof Error ? error.message : 'Unknown error occurred'
       };
+    }
+  }
+
+  /**
+   * Setup offline/online event listeners for enhanced background sync
+   */
+  private setupOfflineListener(): void {
+    window.addEventListener('online', () => {
+      this.isOffline = false;
+      this.lastOnlineTime = Date.now();
+      console.log('🌐 Back online, background refresh re-enabled');
+      
+      // Trigger immediate refresh if we've been offline for a while
+      const timeOffline = Date.now() - this.lastOnlineTime;
+      if (timeOffline > this.BACKGROUND_REFRESH_INTERVAL) {
+        this.scheduleBackgroundRefreshIfNeeded();
+      }
+    });
+    
+    window.addEventListener('offline', () => {
+      this.isOffline = true;
+      console.log('📱 Gone offline, background refresh disabled');
+    });
+  }
+
+  /**
+   * Schedule background refresh only if enough time has passed since last refresh
+   */
+  private scheduleBackgroundRefreshIfNeeded(): void {
+    // Skip background refresh if offline
+    if (this.isOffline || !navigator.onLine) {
+      console.log('📱 Offline mode: Skipping background refresh');
+      return;
+    }
+    
+    const now = Date.now();
+    const timeSinceLastRefresh = now - this.lastBackgroundRefresh;
+    
+    if (timeSinceLastRefresh >= this.BACKGROUND_REFRESH_INTERVAL) {
+      console.log('🔄 Scheduling background refresh (interval reached)');
+      this.refreshAgendaItemsInBackground();
+    } else {
+      console.log(`⏰ Background refresh skipped (${Math.round((this.BACKGROUND_REFRESH_INTERVAL - timeSinceLastRefresh) / 1000)}s remaining)`);
     }
   }
 
@@ -551,7 +605,9 @@ export class AgendaService implements IAgendaService {
       const syncResult = await this.serverDataSyncService.syncAllData();
       
       if (syncResult.success && syncResult.syncedTables?.includes('agenda_items')) {
-        // The data is already cached by serverDataSyncService, so we don't need to cache it again
+        // Update last refresh time on successful sync
+        this.lastBackgroundRefresh = Date.now();
+        console.log('✅ Background refresh completed successfully');
       } else {
         console.warn('⚠️ Background refresh: serverDataSyncService failed, keeping existing cache');
       }

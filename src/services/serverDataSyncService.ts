@@ -13,6 +13,7 @@ import { attendeeInfoService } from './attendeeInfoService.ts';
 import { BaseService } from './baseService.ts';
 import { supabaseClientService } from './supabaseClientService.ts';
 import { logger } from '../utils/logger';
+import { simplifiedDataService } from './simplifiedDataService.ts';
 
 export interface ServerSyncResult {
   success: boolean;
@@ -174,6 +175,8 @@ export class ServerDataSyncService extends BaseService {
    * Sync all tables using server-side authentication
    */
   async syncAllData(): Promise<ServerSyncResult> {
+    console.log('🚨 [SYNC-DEBUG] syncAllData() called - starting data sync from database');
+    
     const result: ServerSyncResult = {
       success: true,
       syncedTables: [],
@@ -182,6 +185,11 @@ export class ServerDataSyncService extends BaseService {
     };
 
     try {
+      // ✅ SERVICE ORCHESTRATION: Ensure all services are ready before data processing
+      console.log('🔄 ServerDataSync: Ensuring all services are ready...');
+      const { serviceOrchestrator } = await import('./serviceOrchestrator');
+      await serviceOrchestrator.ensureServicesReady();
+      console.log('✅ ServerDataSync: All services initialized and ready');
       
       const supabaseClient = await this.getAuthenticatedClient();
       
@@ -263,21 +271,25 @@ export class ServerDataSyncService extends BaseService {
    */
   private async cacheTableData(tableName: string, data: any[]): Promise<void> {
     try {
-      const cacheKey = `kn_cache_${tableName}`;
-      
       // Apply comprehensive confidential data filtering for attendees
       let sanitizedData = data;
       if (tableName === 'attendees') {
         // Use AttendeeCacheFilterService for comprehensive filtering
         const { AttendeeCacheFilterService } = await import('./attendeeCacheFilterService');
-        sanitizedData = AttendeeCacheFilterService.filterAttendeesArray(data);
+        sanitizedData = await AttendeeCacheFilterService.filterAttendeesArray(data);
         console.log(`🔒 Filtered ${data.length} attendee records for cache storage`);
       }
 
-      // Use unified cache service for consistent caching
-      const { unifiedCacheService } = await import('./unifiedCacheService');
-      await unifiedCacheService.set(cacheKey, sanitizedData);
+      // Use kn_cache_ prefix to align with AuthenticationSyncService
+      const cacheKey = `kn_cache_${tableName}`;
+      const entry = {
+        data: sanitizedData,
+        timestamp: Date.now(),
+        tableName
+      };
       
+      localStorage.setItem(cacheKey, JSON.stringify(entry));
+      console.log(`✅ Cached ${sanitizedData.length} records for ${tableName}`);
       
     } catch (error) {
       console.error(`❌ Failed to cache ${tableName}:`, error);
@@ -286,40 +298,59 @@ export class ServerDataSyncService extends BaseService {
   }
 
   /**
-   * Get cached table data using unified cache service
+   * Get cached table data using simplified cache approach
    */
   async getCachedTableData<T>(tableName: string): Promise<T[]> {
     try {
-      const cacheKey = `kn_cache_${tableName}`;
+      const cacheKey = `cache_${tableName}`;
+      const cached = localStorage.getItem(cacheKey);
       
-      // Use unified cache service for consistent data retrieval
-      const { unifiedCacheService } = await import('./unifiedCacheService');
-      const cachedData = await unifiedCacheService.get(cacheKey);
-      
-      if (!cachedData) {
+      if (!cached) {
+        console.log(`⚠️ No cached data found for ${tableName}`);
         return [];
       }
 
-      // Handle both direct array format and wrapped format
-      const data = cachedData.data || cachedData;
-      return Array.isArray(data) ? data : [];
+      const entry = JSON.parse(cached);
+      
+      // Check if cache is expired (24 hours)
+      const now = Date.now();
+      const CACHE_EXPIRY_MS = 24 * 60 * 60 * 1000;
+      if (now - entry.timestamp > CACHE_EXPIRY_MS) {
+        console.log(`⏰ Cache expired for ${tableName}, removing...`);
+        localStorage.removeItem(cacheKey);
+        return [];
+      }
+
+      if (entry.data && Array.isArray(entry.data)) {
+        console.log(`✅ Retrieved ${entry.data.length} cached records for ${tableName}`);
+        return entry.data;
+      }
+      
+      return [];
       
     } catch (error) {
-      console.error(`❌ Failed to get cached ${tableName}:`, error);
+      console.error(`❌ Failed to get cached data for ${tableName}:`, error);
       return [];
     }
   }
 
   /**
-   * Clear all cached data using unified cache service
+   * Clear all cached data using simplified approach
    */
   async clearCache(): Promise<void> {
     try {
-      // Use unified cache service for consistent cache clearing
-      const { unifiedCacheService } = await import('./unifiedCacheService');
-      await unifiedCacheService.clear();
-
-      console.log('🗑️ Server sync cache cleared using unified cache service');
+      // Clear all cache_ prefixed entries
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('cache_')) {
+          keysToRemove.push(key);
+        }
+      }
+      
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+      console.log(`✅ Cleared ${keysToRemove.length} cache entries`);
+      
     } catch (error) {
       console.error('❌ Failed to clear cache:', error);
       throw error;
@@ -471,6 +502,66 @@ export class ServerDataSyncService extends BaseService {
         allFieldsInFirstRecord: records.length > 0 ? Object.keys(records[0]) : [],
         sampleRecord: records.length > 0 ? records[0] : null
       });
+      
+      // 🚨 DEBUG: Check for Maple & Ash seating assignments in raw DB response
+      if (tableName === 'seat_assignments') {
+        console.log('🚨 [MAPLE-ASH-DEBUG] Checking raw seat_assignments from database...');
+        
+        // Find Maple & Ash seating configuration ID
+        const mapleAshConfigId = '6b6b5e7e-7e12-4bff-86df-4656cbd85d16';
+        
+        // Look for seat assignments linked to Maple & Ash
+        const mapleAshAssignments = records.filter(record => 
+          record.seating_configuration_id === mapleAshConfigId
+        );
+        
+        console.log(`🚨 [MAPLE-ASH-DEBUG] Found ${mapleAshAssignments.length} seat assignments for Maple & Ash configuration:`, {
+          configId: mapleAshConfigId,
+          assignments: mapleAshAssignments.map(a => ({
+            id: a.id,
+            attendee_id: a.attendee_id,
+            table_name: a.table_name,
+            seat_number: a.seat_number,
+            row_number: a.row_number,
+            column_number: a.column_number,
+            attendee_first_name: a.attendee_first_name,
+            attendee_last_name: a.attendee_last_name
+          }))
+        });
+        
+        // Check if any assignments have non-null table_name or seat_number
+        const hasTableData = mapleAshAssignments.some(a => a.table_name !== null || a.seat_number !== null);
+        console.log(`🚨 [MAPLE-ASH-DEBUG] Has table/seat data: ${hasTableData}`);
+        
+        // Show sample of all seating configuration IDs in the data
+        const allConfigIds = [...new Set(records.map(r => r.seating_configuration_id))];
+        console.log(`🚨 [MAPLE-ASH-DEBUG] All seating configuration IDs in raw data:`, allConfigIds.slice(0, 10));
+      }
+      
+      // 🚨 DEBUG: Check for Maple & Ash seating configuration in raw DB response
+      if (tableName === 'seating_configurations') {
+        console.log('🚨 [MAPLE-ASH-DEBUG] Checking raw seating_configurations from database...');
+        
+        // Find Maple & Ash dining option ID
+        const mapleAshDiningId = '75d3f99a-3383-49a9-bc77-0328ece9df6c';
+        
+        // Look for seating configuration linked to Maple & Ash dining option
+        const mapleAshConfig = records.find(record => 
+          record.dining_option_id === mapleAshDiningId
+        );
+        
+        console.log(`🚨 [MAPLE-ASH-DEBUG] Maple & Ash seating configuration:`, {
+          found: !!mapleAshConfig,
+          config: mapleAshConfig ? {
+            id: mapleAshConfig.id,
+            dining_option_id: mapleAshConfig.dining_option_id,
+            agenda_item_id: mapleAshConfig.agenda_item_id,
+            has_seating: mapleAshConfig.has_seating,
+            seating_type: mapleAshConfig.seating_type,
+            layout_type: mapleAshConfig.layout_type
+          } : null
+        });
+      }
       
       // Debug logging removed - these diagnostic messages are not needed in production
       

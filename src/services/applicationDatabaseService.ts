@@ -227,6 +227,12 @@ class ApplicationDatabaseService extends BaseService {
   }
 
   async getAgendaItemTimeOverrides(): Promise<AgendaItemMetadata[]> {
+    // Skip database call if offline
+    if (!navigator.onLine) {
+      console.log('📱 Offline mode: Skipping time overrides database call');
+      return [];
+    }
+
     return this.retryOperation(
       async () => {
         const client = this.getClient();

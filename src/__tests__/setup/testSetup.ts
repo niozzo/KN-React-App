@@ -79,32 +79,14 @@ vi.mock('../../services/attendeeInfoService', () => ({
 }))
 
 // Mock the PWA data sync service
-vi.mock('../../services/pwaDataSyncService', () => ({
-  pwaDataSyncService: {
-    getSyncStatus: vi.fn().mockReturnValue({
-      isOnline: true,
-      lastSync: Date.now(),
-      pendingChanges: 0
-    }),
-    cacheTableData: vi.fn().mockResolvedValue(true),
-    getCachedTableData: vi.fn().mockResolvedValue([]),
-    syncAllData: vi.fn().mockResolvedValue({
+vi.mock('../../services/simplifiedDataService', () => ({
+  simplifiedDataService: {
+    getData: vi.fn().mockResolvedValue({
       success: true,
-      syncedTables: ['test_table'],
-      errors: []
+      data: [],
+      fromCache: true
     }),
-    forceSync: vi.fn().mockResolvedValue({
-      success: true,
-      syncedTables: ['test_table'],
-      errors: []
-    }),
-    clearCache: vi.fn().mockResolvedValue(true),
-    getOfflineDataStatus: vi.fn().mockResolvedValue({
-      attendees: true,
-      sessions: false,
-      hotels: true
-    }),
-    resolveConflict: vi.fn().mockResolvedValue(true)
+    clearCache: vi.fn().mockResolvedValue(undefined)
   }
 }))
 

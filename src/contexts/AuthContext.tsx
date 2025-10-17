@@ -82,6 +82,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, [])
 
+
   const checkAuthStatus = useCallback(async () => {
     try {
       const authStatus = getAuthStatus()
@@ -140,32 +141,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       }
       
-      // Step 3: Now that we're authenticated, sync data for offline use
-      console.log('🔐 Step 2: Authentication successful, syncing data for offline use...')
-      let syncResult = null
-      try {
-        // ✅ CHECK: If logout was called, skip sync
-        if (abortController.signal.aborted) {
-          console.log('⏸️ Login aborted - skipping data sync')
-          return { success: false, error: 'Login cancelled' }
-        }
-        
-        syncResult = await serverDataSyncService.syncAllData()
-        
-        // ✅ CHECK: If logout was called during sync, abort
-        if (abortController.signal.aborted) {
-          console.log('⏸️ Login aborted - logout called during sync')
-          return { success: false, error: 'Login cancelled' }
-        }
-        
-        // Admin data sync completed
-        if (!syncResult.success) {
-          console.warn('⚠️ Admin data sync failed, but authentication succeeded:', syncResult.errors)
-        }
-      } catch (syncError) {
-        console.warn('⚠️ Admin data sync error, but authentication succeeded:', syncError)
-        // Authentication succeeded, but data sync failed - still allow login
-      }
+      // Step 3: Authentication successful, proceed with data sync
       
       // ✅ CHECK: Final abort check before setting state
       if (abortController.signal.aborted) {
@@ -178,43 +154,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsAuthenticated(true)
       setAttendee(authResult.attendee)
       
-      // ✅ NEW: Start periodic sync now that user is authenticated
+      // Step 3: Single coordinated sync after authentication
+      console.log('🔄 Step 3: Starting coordinated authentication sync...')
+      let syncResult: { success: boolean; error?: string } = { success: false }
+      
       try {
-        const { pwaDataSyncService } = await import('../services/pwaDataSyncService')
-        pwaDataSyncService.startPeriodicSync()
-        console.log('🔄 Periodic sync started after successful login')
+        if (abortController.signal.aborted) {
+          console.log('⏸️ Login aborted - skipping authentication sync')
+          return { success: false, error: 'Login cancelled' }
+        }
+        
+        const { AuthenticationSyncService } = await import('../services/authenticationSyncService')
+        const authSyncService = AuthenticationSyncService.getInstance()
+        syncResult = await authSyncService.syncAfterAuthentication()
+        
+        if (!syncResult.success) {
+          console.warn('⚠️ Authentication sync failed:', syncResult.error)
+          // Continue with login even if sync fails - user can still use app
+        } else {
+          console.log('✅ Authentication sync completed successfully')
+        }
+        
       } catch (syncError) {
-        console.warn('⚠️ Failed to start periodic sync:', syncError)
-      }
-      
-      // ✅ NEW: Initialize attendee sync service
-      try {
-        // ✅ CHECK: One more abort check before final async operation
-        if (abortController.signal.aborted) {
-          console.log('⏸️ Login aborted - skipping attendee sync')
-          return { success: false, error: 'Login cancelled' }
-        }
-        
-        const { attendeeSyncService } = await import('../services/attendeeSyncService')
-        await attendeeSyncService.refreshAttendeeData()
-        // Attendee sync service initialized
-      } catch (attendeeError) {
-        console.warn('⚠️ Attendee sync initialization failed:', attendeeError)
-      }
-      
-      // ✅ CRITICAL FIX: Re-populate attendee cache after attendee sync service
-      // The attendee sync service may have cleared the cache, so we need to ensure it's populated
-      try {
-        if (abortController.signal.aborted) {
-          console.log('⏸️ Login aborted - skipping attendee cache repopulation')
-          return { success: false, error: 'Login cancelled' }
-        }
-        
-        const { serverDataSyncService } = await import('../services/serverDataSyncService')
-        await serverDataSyncService.syncAttendees()
-        console.log('✅ Attendee cache repopulated after sync service')
-      } catch (cacheError) {
-        console.warn('⚠️ Failed to repopulate attendee cache:', cacheError)
+        console.warn('⚠️ Authentication sync failed:', syncError)
+        // Continue with login even if sync fails
+        syncResult = { success: false, error: syncError instanceof Error ? syncError.message : 'Unknown sync error' }
       }
       
       // Load attendee name from the newly cached info
@@ -228,7 +192,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } else {
         console.log('⚠️ Using basic authentication (offline data may be limited)')
       }
-      console.log('👤 Attendee name cached for easy access:', cachedName?.full_name)
+      console.log('👤 Attendee name cached for easy access:', cachedName?.full_name || 'Not available')
 
       // Navigate to home page after successful authentication
       // Use setTimeout to ensure state update completes before navigation
@@ -304,14 +268,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log('🔐 Step 2: Clearing authentication state...')
       await authSignOut()
       
-      // Step 3: Update React state
-      console.log('⚛️ Step 3: Updating React state...')
+      // Step 3: Ensure cache is completely clean after logout
+      console.log('🧹 Step 3: Ensuring complete cache cleanup...')
+      try {
+        // Clear any remaining cache entries
+        const remainingCacheKeys: string[] = []
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i)
+          if (key && key.startsWith('kn_cache_')) {
+            remainingCacheKeys.push(key)
+          }
+        }
+        
+        if (remainingCacheKeys.length > 0) {
+          console.log(`🧹 Logout: Clearing ${remainingCacheKeys.length} remaining cache entries`)
+          remainingCacheKeys.forEach(key => localStorage.removeItem(key))
+        }
+        
+        console.log('✅ Logout: Cache completely clean')
+      } catch (error) {
+        console.warn('⚠️ Logout: Cache cleanup failed:', error)
+      }
+      
+      // Step 4: Update React state
+      console.log('⚛️ Step 4: Updating React state...')
       setIsAuthenticated(false)
       setAttendee(null)
       setAttendeeName(null)
       
-      // Step 4: Verify data clearing
-      console.log('✅ Step 4: Verifying data clearing...')
+      // Step 5: Verify data clearing
+      console.log('✅ Step 5: Verifying data clearing...')
       const verificationResult = await dataClearingService.verifyDataCleared()
       
       if (!verificationResult) {
@@ -421,6 +407,48 @@ export const LoginPage: React.FC = () => {
   
   // Focus preservation: Keep input focused during background re-renders
   const inputRef = useRef<HTMLInputElement>(null)
+
+  // Clean Cache Architecture: Ensure clean cache state when login page renders
+  useEffect(() => {
+    const ensureCleanCache = () => {
+      try {
+        console.log('🧹 LoginPage: Ensuring clean cache state...')
+        
+        // Clear ALL cache entries to ensure clean state
+        const cacheKeys: string[] = []
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i)
+          if (key && (
+            key.startsWith('kn_cache_') ||     // Our cached data
+            key.startsWith('kn_cached_') ||    // Session data
+            key.startsWith('kn_sync_') ||      // Sync status
+            key.startsWith('kn_conflicts') ||    // Conflicts
+            key.startsWith('sb-') ||           // Supabase auth tokens
+            key.includes('supabase')           // Any other Supabase keys
+          )) {
+            cacheKeys.push(key)
+          }
+        }
+        
+        if (cacheKeys.length > 0) {
+          console.log(`🧹 LoginPage: Clearing ${cacheKeys.length} cache entries for clean state`)
+          cacheKeys.forEach(key => localStorage.removeItem(key))
+          console.log('✅ LoginPage: Cache is now clean - ready for fresh authentication')
+        } else {
+          console.log('✅ LoginPage: Cache already clean')
+        }
+        
+        // Clear any authentication state
+        localStorage.removeItem('conference_auth')
+        
+      } catch (error) {
+        console.warn('⚠️ LoginPage: Failed to ensure clean cache:', error)
+      }
+    }
+    
+    // Run once when login page mounts
+    ensureCleanCache()
+  }, []) // Empty dependency array - run only once on mount
 
   const handleSubmit = useCallback(async (e?: React.FormEvent, codeToSubmit?: string) => {
     if (e) e.preventDefault()
