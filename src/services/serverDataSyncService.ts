@@ -275,8 +275,8 @@ export class ServerDataSyncService extends BaseService {
         console.log(`🔒 Filtered ${data.length} attendee records for cache storage`);
       }
 
-      // Use simplified cache approach - direct localStorage storage
-      const cacheKey = `cache_${tableName}`;
+      // Use kn_cache_ prefix to align with AuthenticationSyncService
+      const cacheKey = `kn_cache_${tableName}`;
       const entry = {
         data: sanitizedData,
         timestamp: Date.now(),

@@ -192,13 +192,16 @@ export class AgendaService implements IAgendaService {
   private async enrichWithSpeakerData(agendaItems: any[]): Promise<any[]> {
     try {
       // Get speaker data from new table
-      const agendaItemSpeakers = await pwaDataSyncService.getCachedTableData('agenda_item_speakers');
+      const agendaItemSpeakersResult = await simplifiedDataService.getData('agenda_item_speakers');
+      const agendaItemSpeakers = agendaItemSpeakersResult.success ? agendaItemSpeakersResult.data : [];
       
       // Get attendees from cache for name lookup
-      const attendees = await pwaDataSyncService.getCachedTableData('attendees');
+      const attendeesResult = await simplifiedDataService.getData('attendees');
+      const attendees = attendeesResult.success ? attendeesResult.data : [];
       
       // Get edited titles from application database metadata
-      const agendaItemMetadata = await pwaDataSyncService.getCachedTableData('agenda_item_metadata');
+      const agendaItemMetadataResult = await simplifiedDataService.getData('agenda_item_metadata');
+      const agendaItemMetadata = agendaItemMetadataResult.success ? agendaItemMetadataResult.data : [];
       
       // Create attendee lookup map
       const attendeeMap = new Map();
