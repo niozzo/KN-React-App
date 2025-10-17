@@ -82,30 +82,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, [])
 
-  const validateCacheStateAfterAuthentication = useCallback(async () => {
-    try {
-      // Only clear specific problematic cache entries that cause checksum mismatches
-      const problematicKeys = ['kn_cache_agenda_items'] // Only clear the specific problematic cache
-      const foundKeys: string[] = []
-      
-      for (const key of problematicKeys) {
-        if (localStorage.getItem(key)) {
-          foundKeys.push(key)
-        }
-      }
-      
-      if (foundKeys.length > 0) {
-        console.warn(`⚠️ Found ${foundKeys.length} potentially corrupted cache entries, clearing...`)
-        foundKeys.forEach(key => localStorage.removeItem(key))
-        console.log('✅ Potentially corrupted cache cleared successfully')
-      } else {
-        console.log('✅ Cache state clean - no problematic entries found')
-      }
-    } catch (error) {
-      console.warn('⚠️ Cache validation failed:', error)
-      // Non-critical, continue with login
-    }
-  }, [])
 
   const checkAuthStatus = useCallback(async () => {
     try {
@@ -165,9 +141,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       }
       
-      // Step 3: Now that we're authenticated, validate cache state before sync
-      console.log('🔍 Validating cache state after authentication...')
-      await this.validateCacheStateAfterAuthentication()
+      // Step 3: Authentication successful, proceed with data sync
       
       // Step 4: Sync data for offline use
       console.log('🔐 Step 2: Authentication successful, syncing data for offline use...')
@@ -453,6 +427,31 @@ export const LoginPage: React.FC = () => {
   
   // Focus preservation: Keep input focused during background re-renders
   const inputRef = useRef<HTMLInputElement>(null)
+
+  // Clear stale cache when login page renders (user not authenticated)
+  useEffect(() => {
+    const clearStaleCache = () => {
+      try {
+        const cacheKeys: string[] = []
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i)
+          if (key && key.startsWith('kn_cache_')) {
+            cacheKeys.push(key)
+          }
+        }
+        
+        if (cacheKeys.length > 0) {
+          console.log(`🧹 Clearing ${cacheKeys.length} stale cache entries on login page render`)
+          cacheKeys.forEach(key => localStorage.removeItem(key))
+          console.log('✅ Stale cache cleared - ready for fresh login')
+        }
+      } catch (error) {
+        console.warn('⚠️ Failed to clear stale cache:', error)
+      }
+    }
+    
+    clearStaleCache()
+  }, []) // Run once when login page mounts
 
   const handleSubmit = useCallback(async (e?: React.FormEvent, codeToSubmit?: string) => {
     if (e) e.preventDefault()
