@@ -19,7 +19,6 @@ import {
 } from '@mui/material';
 import { ArrowBack as ArrowBackIcon, Save as SaveIcon, Home as HomeIcon, AccessTime as AccessTimeIcon } from '@mui/icons-material';
 import { useNavigate, useOutletContext } from 'react-router-dom';
-import { unifiedCacheService } from '../services/unifiedCacheService';
 import { ValidationRules } from '../utils/validationUtils';
 import { TimeOverridePanel } from './admin/TimeOverridePanel';
 
@@ -54,20 +53,30 @@ export const AdminPage: React.FC = () => {
 
       // Load agenda items from cache
       console.log('📋 Loading agenda items from cache...');
-      const agendaCacheData = await unifiedCacheService.get('kn_cache_agenda_items');
+      const agendaCacheData = localStorage.getItem('kn_cache_agenda_items');
       if (agendaCacheData) {
-        const agendaItems = (agendaCacheData as any).data || agendaCacheData || [];
-        setAgendaItems(agendaItems);
-        console.log('📋 Loaded agenda items from cache:', agendaItems.length);
+        try {
+          const parsedData = JSON.parse(agendaCacheData);
+          const agendaItems = parsedData.data || parsedData || [];
+          setAgendaItems(agendaItems);
+          console.log('📋 Loaded agenda items from cache:', agendaItems.length);
+        } catch (error) {
+          console.error('Error parsing agenda items cache:', error);
+        }
       }
 
       // Load dining options from cache
       console.log('🍽️ Loading dining options from cache...');
-      const diningCacheData = await unifiedCacheService.get('kn_cache_dining_options');
+      const diningCacheData = localStorage.getItem('kn_cache_dining_options');
       if (diningCacheData) {
-        const diningOptions = (diningCacheData as any).data || diningCacheData || [];
-        setDiningOptions(diningOptions);
-        console.log('🍽️ Loaded dining options from cache:', diningOptions.length);
+        try {
+          const parsedData = JSON.parse(diningCacheData);
+          const diningOptions = parsedData.data || parsedData || [];
+          setDiningOptions(diningOptions);
+          console.log('🍽️ Loaded dining options from cache:', diningOptions.length);
+        } catch (error) {
+          console.error('Error parsing dining options cache:', error);
+        }
       }
 
       console.log('✅ Admin data loaded successfully');
