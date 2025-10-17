@@ -17,10 +17,9 @@ import {
   Divider,
   Chip
 } from '@mui/material';
-import { ArrowBack as ArrowBackIcon, Save as SaveIcon, Home as HomeIcon, Dashboard as DashboardIcon } from '@mui/icons-material';
+import { ArrowBack as ArrowBackIcon, Save as SaveIcon, Home as HomeIcon } from '@mui/icons-material';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { simplifiedDataService } from '../services/simplifiedDataService';
-import CacheHealthDashboard from './CacheHealthDashboard';
 import { ValidationRules } from '../utils/validationUtils';
 
 interface OutletContext {
@@ -40,7 +39,6 @@ export const AdminPage: React.FC = () => {
   const [diningTitleValue, setDiningTitleValue] = useState('');
   const [titleValidationError, setTitleValidationError] = useState('');
   const [diningTitleValidationError, setDiningTitleValidationError] = useState('');
-  const [showDashboard, setShowDashboard] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -200,108 +198,8 @@ export const AdminPage: React.FC = () => {
 
   // Speaker assignment management removed - now handled by main DB agenda_item_speakers
 
-  const handleRefreshData = async () => {
-    console.log('🔄 Refreshing data...');
-    await loadData();
-  };
 
-  const handleForceSyncApplicationDb = async () => {
-    try {
-      console.log('🔄 Force syncing application database...');
-      setLoading(true);
-      setError('');
-      
-      // Force sync application database tables
-      const applicationTables = ['speaker_assignments', 'agenda_item_metadata', 'attendee_metadata', 'dining_item_metadata'];
-      
-      // Application tables are synced by ServerDataSyncService during login
-      console.log('✅ Application tables already synced during login');
-      
-      // Reload data after sync
-      await loadData();
-      
-    } catch (error) {
-      setError('Failed to sync application database. Please try again.');
-      console.error('Error syncing application database:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const handleForceGlobalSync = async () => {
-    const syncStartTime = new Date().toISOString();
-    const syncId = `sync_${Date.now()}`;
-    
-    try {
-      console.log(`🔄 [${syncId}] Force global sync started at ${syncStartTime}`);
-      setForceSyncLoading(true);
-      setError('');
-      
-      // Step 1: Clear all cached data to force fresh fetch
-      console.log(`🔄 [${syncId}] Step 1: Clearing all caches...`);
-      simplifiedDataService.clearCache();
-      console.log(`✅ [${syncId}] Cleared all simplified caches`);
-      
-      // Step 2: Force sync all data using ServerDataSyncService
-      console.log(`🔄 [${syncId}] Step 2: Force syncing all data...`);
-      const { serverDataSyncService } = await import('../services/serverDataSyncService');
-      const syncResult = await serverDataSyncService.syncAllData();
-      console.log(`✅ [${syncId}] Force sync completed:`, syncResult);
-      
-      // Step 3: Force refresh attendee data to update conference_auth
-      console.log(`🔄 [${syncId}] Step 3: Force refreshing attendee data...`);
-      try {
-        const { attendeeSyncService } = await import('../services/attendeeSyncService');
-        const attendeeResult = await attendeeSyncService.refreshAttendeeData();
-        if (attendeeResult.success) {
-          console.log(`✅ [${syncId}] Attendee data refreshed successfully`);
-        } else {
-          console.warn(`⚠️ [${syncId}] Attendee data refresh failed:`, attendeeResult.error);
-        }
-      } catch (attendeeError) {
-        console.warn(`⚠️ [${syncId}] Attendee data refresh error:`, attendeeError);
-      }
-      
-      // Step 4: Reload all admin data
-      console.log(`🔄 [${syncId}] Step 4: Reloading admin panel data...`);
-      await loadData();
-      
-      const syncEndTime = new Date().toISOString();
-      const duration = new Date(syncEndTime).getTime() - new Date(syncStartTime).getTime();
-      
-      // Force global sync completed
-      console.log(`📊 [${syncId}] Sync Summary:`, {
-        syncId,
-        startTime: syncStartTime,
-        endTime: syncEndTime,
-        duration: `${duration}ms`,
-        syncResult: syncResult.success,
-        syncedTables: syncResult.syncedTables?.length || 0,
-        totalRecords: syncResult.totalRecords || 0,
-        errors: syncResult.errors?.length || 0,
-        attendeeDataRefreshed: true,
-        conferenceAuthUpdated: true
-      });
-      
-    } catch (error) {
-      const syncEndTime = new Date().toISOString();
-      const duration = new Date(syncEndTime).getTime() - new Date(syncStartTime).getTime();
-      
-      console.error(`❌ [${syncId}] Force global sync failed after ${duration}ms:`, error);
-      console.error(`📊 [${syncId}] Error Summary:`, {
-        syncId,
-        startTime: syncStartTime,
-        endTime: syncEndTime,
-        duration: `${duration}ms`,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined
-      });
-      
-      setError(`Failed to force global sync: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`);
-    } finally {
-      setForceSyncLoading(false);
-    }
-  };
 
   const extractTimeFromTimestamp = (timestamp: string): string => {
     if (!timestamp) return '';
@@ -344,34 +242,6 @@ export const AdminPage: React.FC = () => {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             Speaker Management Admin
           </Typography>
-          <Button
-            color="inherit"
-            startIcon={<SyncIcon />}
-            onClick={handleForceGlobalSync}
-            disabled={forceSyncLoading}
-            sx={{ 
-              mr: 1,
-              backgroundColor: forceSyncLoading ? 'rgba(255,255,255,0.2)' : 'transparent',
-              '&:hover': {
-                backgroundColor: 'rgba(255,255,255,0.1)'
-              }
-            }}
-          >
-            {forceSyncLoading ? 'Syncing...' : 'Force Global Sync'}
-          </Button>
-          <Button
-            color="inherit"
-            startIcon={<DashboardIcon />}
-            onClick={() => setShowDashboard(!showDashboard)}
-            sx={{ 
-              backgroundColor: showDashboard ? 'rgba(255,255,255,0.2)' : 'transparent',
-              '&:hover': {
-                backgroundColor: 'rgba(255,255,255,0.1)'
-              }
-            }}
-          >
-            Cache Health
-          </Button>
         </Toolbar>
       </AppBar>
 
@@ -606,19 +476,6 @@ export const AdminPage: React.FC = () => {
           </List>
         )}
 
-        {/* Cache Health Dashboard */}
-        {showDashboard && (
-          <Box sx={{ mt: 3 }}>
-            <Card>
-              <CardContent>
-                <Typography variant="h5" gutterBottom>
-                  Cache Health Dashboard
-                </Typography>
-                <CacheHealthDashboard isVisible={true} />
-              </CardContent>
-            </Card>
-          </Box>
-        )}
 
       </Box>
     </Box>
