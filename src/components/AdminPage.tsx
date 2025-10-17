@@ -19,7 +19,7 @@ import {
 } from '@mui/material';
 import { ArrowBack as ArrowBackIcon, Save as SaveIcon, Home as HomeIcon, AccessTime as AccessTimeIcon } from '@mui/icons-material';
 import { useNavigate, useOutletContext } from 'react-router-dom';
-import { simplifiedDataService } from '../services/simplifiedDataService';
+import { adminDataService } from '../services/adminDataService';
 import { ValidationRules } from '../utils/validationUtils';
 import { TimeOverridePanel } from './admin/TimeOverridePanel';
 
@@ -52,21 +52,21 @@ export const AdminPage: React.FC = () => {
       setLoading(true);
       setError('');
 
-      // Load agenda items using simplifiedDataService (handles cache properly)
-      console.log('📋 Loading agenda items...');
-      const agendaResponse = await simplifiedDataService.getData('agenda_items');
-      if (agendaResponse.success && agendaResponse.data) {
-        setAgendaItems(agendaResponse.data);
-        console.log('📋 Loaded agenda items:', agendaResponse.data.length);
-      }
+      // Load all conference data for admin management
+      console.log('🔧 Admin: Loading all conference data...');
+      await adminDataService.loadAllConferenceData();
 
-      // Load dining options using simplifiedDataService (handles cache properly)
-      console.log('🍽️ Loading dining options...');
-      const diningResponse = await simplifiedDataService.getData('dining_options');
-      if (diningResponse.success && diningResponse.data) {
-        setDiningOptions(diningResponse.data);
-        console.log('🍽️ Loaded dining options:', diningResponse.data.length);
-      }
+      // Load agenda items from admin cache
+      console.log('📋 Loading agenda items from admin cache...');
+      const agendaItems = adminDataService.getAdminCache('agenda_items');
+      setAgendaItems(agendaItems);
+      console.log('📋 Loaded agenda items:', agendaItems.length);
+
+      // Load dining options from admin cache
+      console.log('🍽️ Loading dining options from admin cache...');
+      const diningOptions = adminDataService.getAdminCache('dining_options');
+      setDiningOptions(diningOptions);
+      console.log('🍽️ Loaded dining options:', diningOptions.length);
 
       console.log('✅ Admin data loaded successfully');
 
