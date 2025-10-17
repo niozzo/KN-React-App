@@ -500,7 +500,7 @@ export default function useSessionData(enableOfflineMode = true, autoRefresh = t
       console.error('Failed to refresh data:', err);
       setError(err.message);
     }
-  }, [isAuthenticated, attendee, seatAssignments, seatingConfigurations]);
+  }, [isAuthenticated]); // ✅ FIX: Remove circular dependencies that cause infinite loop
 
   // Event handlers
   useEffect(() => {
