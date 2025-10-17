@@ -5,15 +5,15 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { OfflineAttendeeService } from '../../services/offlineAttendeeService';
-import { pwaDataSyncService } from '../../services/pwaDataSyncService';
+import { simplifiedDataService } from '../../services/simplifiedDataService';
 import { attendeeService } from '../../services/attendeeService';
 import type { Attendee } from '../../types/database';
 
 // Mock dependencies
-vi.mock('../../services/pwaDataSyncService');
+vi.mock('../../services/simplifiedDataService');
 vi.mock('../../services/attendeeService');
 
-const mockPwaDataSyncService = vi.mocked(pwaDataSyncService);
+const mockSimplifiedDataService = vi.mocked(simplifiedDataService);
 const mockAttendeeService = vi.mocked(attendeeService);
 
 describe('OfflineAttendeeService - Company Attendees Filtering', () => {
@@ -217,7 +217,11 @@ describe('OfflineAttendeeService - Company Attendees Filtering', () => {
         }
       ];
 
-      mockPwaDataSyncService.getCachedTableData.mockResolvedValue(mockAttendees);
+      mockSimplifiedDataService.getData.mockResolvedValue({
+        success: true,
+        data: mockAttendees,
+        fromCache: true
+      });
 
       // Act
       const result = await service.getAttendeesByCompany('Amazon Web Services');
@@ -363,7 +367,11 @@ describe('OfflineAttendeeService - Company Attendees Filtering', () => {
         }
       ];
 
-      mockPwaDataSyncService.getCachedTableData.mockResolvedValue([]);
+      mockSimplifiedDataService.getData.mockResolvedValue({
+        success: true,
+        data: [],
+        fromCache: false
+      });
       mockAttendeeService.getAttendeesByCompany.mockResolvedValue({
         data: mockServerAttendees,
         count: mockServerAttendees.length,
@@ -385,12 +393,7 @@ describe('OfflineAttendeeService - Company Attendees Filtering', () => {
       expect(result.data.find(attendee => attendee.first_name === 'Bims')).toBeUndefined();
       
       // Verify that filtered data was cached
-      expect(mockPwaDataSyncService.cacheTableData).toHaveBeenCalledWith(
-        'attendees',
-        expect.arrayContaining([
-          expect.objectContaining({ id: '1', registration_status: 'confirmed' })
-        ])
-      );
+      expect(mockSimplifiedDataService.getData).toHaveBeenCalledWith('attendees');
     });
 
     it('should handle case-insensitive company name matching', async () => {
@@ -459,7 +462,11 @@ describe('OfflineAttendeeService - Company Attendees Filtering', () => {
         }
       ];
 
-      mockPwaDataSyncService.getCachedTableData.mockResolvedValue(mockAttendees);
+      mockSimplifiedDataService.getData.mockResolvedValue({
+        success: true,
+        data: mockAttendees,
+        fromCache: true
+      });
 
       // Act - Test with different case
       const result = await service.getAttendeesByCompany('amazon web services');
@@ -536,7 +543,11 @@ describe('OfflineAttendeeService - Company Attendees Filtering', () => {
         }
       ];
 
-      mockPwaDataSyncService.getCachedTableData.mockResolvedValue(mockAttendees);
+      mockSimplifiedDataService.getData.mockResolvedValue({
+        success: true,
+        data: mockAttendees,
+        fromCache: true
+      });
 
       // Act
       const result = await service.getAttendeesByCompany('Amazon Web Services');
@@ -549,7 +560,7 @@ describe('OfflineAttendeeService - Company Attendees Filtering', () => {
 
     it('should handle errors gracefully', async () => {
       // Arrange
-      mockPwaDataSyncService.getCachedTableData.mockRejectedValue(new Error('Cache error'));
+      mockSimplifiedDataService.getData.mockRejectedValue(new Error('Cache error'));
 
       // Act
       const result = await service.getAttendeesByCompany('Amazon Web Services');

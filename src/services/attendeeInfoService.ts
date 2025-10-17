@@ -5,7 +5,7 @@
  * Provides easy access to logged-in attendee's basic information
  */
 
-import { unifiedCacheService } from './unifiedCacheService.ts';
+import { simplifiedDataService } from './simplifiedDataService.ts';
 
 export interface AttendeeInfo {
   id: string;
@@ -72,8 +72,8 @@ export class AttendeeInfoService {
         title: attendeeInfo.title
       };
 
-      // Use unified cache service for consistent caching
-      await unifiedCacheService.set(this.CACHE_KEY, sanitizedInfo, undefined, 'attendee-info-service');
+      // Use localStorage for simplified caching
+      localStorage.setItem(this.CACHE_KEY, JSON.stringify(sanitizedInfo));
       console.log('✅ Attendee info cached:', sanitizedInfo.full_name);
     } catch (error) {
       console.error('❌ Failed to cache attendee info:', error);
@@ -86,14 +86,13 @@ export class AttendeeInfoService {
    */
   async getCachedAttendeeInfo(): Promise<CachedAttendeeInfo | null> {
     try {
-      const cached = await unifiedCacheService.get(this.CACHE_KEY);
+      const cached = localStorage.getItem(this.CACHE_KEY);
       if (!cached) {
         return null;
       }
 
-      // Unified cache service handles expiration automatically
-      // The cached data is already the attendee info, not wrapped in a cache entry
-      return cached;
+      // Parse the cached data
+      return JSON.parse(cached);
     } catch (error) {
       console.error('❌ Failed to get cached attendee info:', error);
       return null;
@@ -128,7 +127,7 @@ export class AttendeeInfoService {
    */
   async clearAttendeeInfo(): Promise<void> {
     try {
-      await unifiedCacheService.remove(this.CACHE_KEY);
+      localStorage.removeItem(this.CACHE_KEY);
       console.log('🗑️ Attendee info cache cleared');
     } catch (error) {
       console.error('❌ Failed to clear attendee info cache:', error);

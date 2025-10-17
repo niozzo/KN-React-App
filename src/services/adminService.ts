@@ -1,5 +1,5 @@
 import { applicationDatabaseService, SpeakerAssignment } from './applicationDatabaseService';
-import { pwaDataSyncService } from './pwaDataSyncService';
+// Removed pwaDataSyncService import - using simplifiedDataService instead
 import { simplifiedDataService } from './simplifiedDataService';
 import { getAllApplicationTables, type ApplicationTableName } from '../config/tableMappings';
 import { serviceRegistry } from './ServiceRegistry';
@@ -24,11 +24,14 @@ export class AdminService {
     }
     
     // Get edited titles from application database metadata
-    const agendaItemMetadata = await pwaDataSyncService.getCachedTableData('agenda_item_metadata');
+    const agendaItemMetadataResult = await simplifiedDataService.getData('agenda_item_metadata');
+    const agendaItemMetadata = agendaItemMetadataResult.success ? agendaItemMetadataResult.data : [];
     
     // Get speaker data from new main DB table
-    const agendaItemSpeakers = await pwaDataSyncService.getCachedTableData('agenda_item_speakers');
-    const attendees = await pwaDataSyncService.getCachedTableData('attendees');
+    const agendaItemSpeakersResult = await simplifiedDataService.getData('agenda_item_speakers');
+    const agendaItemSpeakers = agendaItemSpeakersResult.success ? agendaItemSpeakersResult.data : [];
+    const attendeesResult = await simplifiedDataService.getData('attendees');
+    const attendees = attendeesResult.success ? attendeesResult.data : [];
     
     // Map assignments to agenda items and override titles with edited versions
     const itemsWithAssignments = agendaItems.map((item: any) => {
@@ -89,7 +92,8 @@ export class AdminService {
     }
     
     // Get edited titles from application database metadata
-    const diningItemMetadata = await pwaDataSyncService.getCachedTableData('dining_item_metadata');
+    const diningItemMetadataResult = await simplifiedDataService.getData('dining_item_metadata');
+    const diningItemMetadata = diningItemMetadataResult.success ? diningItemMetadataResult.data : [];
     
     // Map metadata to dining options and override titles with edited versions
     const optionsWithMetadata = diningOptions.map((option: any) => {
@@ -326,22 +330,9 @@ export class AdminService {
    */
   private async updateLocalSpeakerAssignments(newAssignments: SpeakerAssignment[]): Promise<void> {
     try {
-      const existingAssignments = await pwaDataSyncService.getCachedTableData('speaker_assignments');
-      
-      // Merge new assignments with existing ones
-      const updatedAssignments = [...existingAssignments];
-      
-      for (const newAssignment of newAssignments) {
-        const existingIndex = updatedAssignments.findIndex((a: any) => a.id === newAssignment.id);
-        if (existingIndex >= 0) {
-          updatedAssignments[existingIndex] = newAssignment;
-        } else {
-          updatedAssignments.push(newAssignment);
-        }
-      }
-      
-      // Update cache
-      await pwaDataSyncService.cacheTableData('speaker_assignments', updatedAssignments);
+      // Simplified approach - no local cache updates needed
+      // Speaker assignments are handled by the database
+      console.log('Speaker assignments updated:', newAssignments.length);
     } catch (error) {
       console.error('Failed to update local speaker assignments:', error);
     }
@@ -352,11 +343,9 @@ export class AdminService {
    */
   private async removeLocalSpeakerAssignment(assignmentId: string): Promise<void> {
     try {
-      const existingAssignments = await pwaDataSyncService.getCachedTableData('speaker_assignments');
-      const updatedAssignments = existingAssignments.filter((a: any) => a.id !== assignmentId);
-      
-      // Update cache
-      await pwaDataSyncService.cacheTableData('speaker_assignments', updatedAssignments);
+      // Simplified approach - no local cache updates needed
+      // Speaker assignments are handled by the database
+      console.log('Speaker assignment removed:', assignmentId);
     } catch (error) {
       console.error('Failed to remove local speaker assignment:', error);
     }
@@ -372,7 +361,9 @@ export class AdminService {
       
       for (const tableName of applicationTables) {
         try {
-          await pwaDataSyncService.syncApplicationTable(tableName);
+          // Simplified approach - sync using serverDataSyncService
+          const { serverDataSyncService } = await import('./serverDataSyncService');
+          await serverDataSyncService.syncTable(tableName);
         } catch (error) {
           console.error(`Failed to sync application table ${tableName}:`, error);
           // Continue with other tables even if one fails

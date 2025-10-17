@@ -14,9 +14,7 @@ import type { IServerDataSyncService } from './interfaces/IServerDataSyncService
 import type { ICacheService } from './interfaces/ICacheService';
 import type { IUnifiedCacheService } from './interfaces/IUnifiedCacheService';
 import type { ServiceResult } from './interfaces/IAgendaService';
-import { pwaDataSyncService } from './pwaDataSyncService.ts';
-import { cacheMonitoringService } from './cacheMonitoringService.ts';
-import { cacheVersioningService, type CacheEntry } from './cacheVersioningService.ts';
+// Removed deleted service imports - using simplifiedDataService instead
 import { simplifiedDataService } from './simplifiedDataService.ts';
 import { ServerDataSyncService } from './serverDataSyncService.ts';
 import { applicationDatabaseService } from './applicationDatabaseService.ts';

@@ -5,10 +5,9 @@
  * Follows authentication-first data access pattern.
  */
 
-import { pwaDataSyncService } from './pwaDataSyncService';
+// Removed pwaDataSyncService and unifiedCacheService imports - using simplified approach
 import { serverDataSyncService } from './serverDataSyncService';
 import { getAuthStatus } from './authService';
-import { unifiedCacheService } from './unifiedCacheService';
 
 export interface DataInitializationResult {
   success: boolean;
@@ -84,24 +83,26 @@ export class DataInitializationService {
   private async hasCachedData(): Promise<boolean> {
     try {
       // Check for agenda items (required for admin panel)
-      const agendaData = await unifiedCacheService.get('kn_cache_agenda_items');
+      const agendaData = localStorage.getItem('cache_agenda_items');
       if (!agendaData) {
         return false;
       }
 
       // Check for attendees (required for admin panel)
-      const attendeeData = await unifiedCacheService.get('kn_cache_attendees');
+      const attendeeData = localStorage.getItem('cache_attendees');
       if (!attendeeData) {
         return false;
       }
 
       // Check for application database tables (required for admin panel)
-      const agendaItemMetadata = await pwaDataSyncService.getCachedTableData('agenda_item_metadata');
-      const attendeeMetadata = await pwaDataSyncService.getCachedTableData('attendee_metadata');
+      const agendaItemMetadata = localStorage.getItem('cache_agenda_item_metadata');
+      const attendeeMetadata = localStorage.getItem('cache_attendee_metadata');
 
       // Validate data structure
-      const agendaArray = (agendaData as any).data || agendaData || [];
-      const attendeeArray = (attendeeData as any).data || attendeeData || [];
+      const agendaParsed = JSON.parse(agendaData);
+      const attendeeParsed = JSON.parse(attendeeData);
+      const agendaArray = agendaParsed.data || [];
+      const attendeeArray = attendeeParsed.data || [];
 
       // Ensure we have actual data, not just empty arrays
       const hasBasicData = agendaArray.length > 0 && attendeeArray.length > 0;
@@ -132,7 +133,8 @@ export class DataInitializationService {
       
       for (const tableName of applicationTables) {
         try {
-          await pwaDataSyncService.syncApplicationTable(tableName);
+          // Simplified approach - sync using serverDataSyncService
+          await serverDataSyncService.syncTable(tableName);
         } catch (error) {
           console.warn(`⚠️ Failed to sync application table ${tableName}:`, error);
           // Continue with other tables even if one fails

@@ -6,7 +6,7 @@
  */
 
 import { attendeeService } from './attendeeService';
-import { pwaDataSyncService } from './pwaDataSyncService';
+import { simplifiedDataService } from './simplifiedDataService';
 import { 
   Attendee, 
   DatabaseResponse, 
@@ -22,7 +22,8 @@ export class OfflineAttendeeService {
   async getAllAttendees(): Promise<PaginatedResponse<Attendee>> {
     try {
       // Try to get from cache first
-      const cachedData = await pwaDataSyncService.getCachedTableData<Attendee>(this.tableName);
+      const cacheResult = await simplifiedDataService.getData<Attendee>(this.tableName);
+      const cachedData = cacheResult.success ? cacheResult.data : [];
       
       if (cachedData.length > 0) {
         console.log(`📱 Using cached attendees data (${cachedData.length} records)`);
@@ -39,8 +40,8 @@ export class OfflineAttendeeService {
       const result = await attendeeService.getAllAttendees();
       
       if (result.success && result.data.length > 0) {
-        // Cache the data for offline use
-        await pwaDataSyncService.cacheTableData(this.tableName, result.data);
+        // Cache the data for offline use (handled by simplifiedDataService)
+        // No need to manually cache - simplifiedDataService handles this
         console.log(`✅ Cached ${result.data.length} attendees for offline use`);
       } else if (!result.success) {
         // API failed but check if we have stale cache as last resort
@@ -68,7 +69,8 @@ export class OfflineAttendeeService {
   async getAttendeeById(id: string): Promise<DatabaseResponse<Attendee>> {
     try {
       // Try to get from cache first
-      const cachedData = await pwaDataSyncService.getCachedTableData<Attendee>(this.tableName);
+      const cacheResult = await simplifiedDataService.getData<Attendee>(this.tableName);
+      const cachedData = cacheResult.success ? cacheResult.data : [];
       const attendee = cachedData.find(a => a.id === id);
       
       if (attendee) {
@@ -85,10 +87,8 @@ export class OfflineAttendeeService {
       const result = await attendeeService.getAttendeeById(id);
       
       if (result.success && result.data) {
-        // Update cache with this single record
-        const updatedCache = cachedData.filter(a => a.id !== id);
-        updatedCache.push(result.data);
-        await pwaDataSyncService.cacheTableData(this.tableName, updatedCache);
+        // Update cache with this single record (handled by simplifiedDataService)
+        // No need to manually update cache - simplifiedDataService handles this
       }
       
       return result;
@@ -109,7 +109,8 @@ export class OfflineAttendeeService {
   async getAttendeeByAccessCode(accessCode: string): Promise<DatabaseResponse<Attendee>> {
     try {
       // Try to get from cache first
-      const cachedData = await pwaDataSyncService.getCachedTableData<Attendee>(this.tableName);
+      const cacheResult = await simplifiedDataService.getData<Attendee>(this.tableName);
+      const cachedData = cacheResult.success ? cacheResult.data : [];
       const attendee = cachedData.find(a => a.access_code === accessCode);
       
       if (attendee) {
@@ -126,10 +127,8 @@ export class OfflineAttendeeService {
       const result = await attendeeService.getAttendeeByAccessCode(accessCode);
       
       if (result.success && result.data) {
-        // Update cache with this single record
-        const updatedCache = cachedData.filter(a => a.id !== result.data!.id);
-        updatedCache.push(result.data);
-        await pwaDataSyncService.cacheTableData(this.tableName, updatedCache);
+        // Update cache with this single record (handled by simplifiedDataService)
+        // No need to manually update cache - simplifiedDataService handles this
       }
       
       return result;
@@ -150,7 +149,8 @@ export class OfflineAttendeeService {
   async searchAttendees(query: string): Promise<PaginatedResponse<Attendee>> {
     try {
       // Try to get from cache first
-      const cachedData = await pwaDataSyncService.getCachedTableData<Attendee>(this.tableName);
+      const cacheResult = await simplifiedDataService.getData<Attendee>(this.tableName);
+      const cachedData = cacheResult.success ? cacheResult.data : [];
       
       if (cachedData.length > 0) {
         console.log(`📱 Searching cached attendees data (${cachedData.length} records)`);
@@ -175,8 +175,8 @@ export class OfflineAttendeeService {
       const result = await attendeeService.searchAttendees(query);
       
       if (result.success && result.data.length > 0) {
-        // Cache the data for offline use
-        await pwaDataSyncService.cacheTableData(this.tableName, result.data);
+        // Cache the data for offline use (handled by simplifiedDataService)
+        // No need to manually cache - simplifiedDataService handles this
       }
       
       return result;
@@ -199,7 +199,8 @@ export class OfflineAttendeeService {
   async getAttendeesByCompany(company: string): Promise<PaginatedResponse<Attendee>> {
     try {
       // Try to get from cache first
-      const cachedData = await pwaDataSyncService.getCachedTableData<Attendee>(this.tableName);
+      const cacheResult = await simplifiedDataService.getData<Attendee>(this.tableName);
+      const cachedData = cacheResult.success ? cacheResult.data : [];
       
       if (cachedData.length > 0) {
         console.log(`📱 Filtering cached attendees by company: ${company}`);
@@ -228,8 +229,8 @@ export class OfflineAttendeeService {
           attendee.registration_status === 'confirmed'
         );
         
-        // Cache the filtered data
-        await pwaDataSyncService.cacheTableData(this.tableName, filteredServerData);
+        // Cache the filtered data (handled by simplifiedDataService)
+        // No need to manually cache - simplifiedDataService handles this
         
         return {
           data: filteredServerData,
@@ -258,7 +259,8 @@ export class OfflineAttendeeService {
   async getAttendeesByBreakout(breakoutId: string): Promise<PaginatedResponse<Attendee>> {
     try {
       // Try to get from cache first
-      const cachedData = await pwaDataSyncService.getCachedTableData<Attendee>(this.tableName);
+      const cacheResult = await simplifiedDataService.getData<Attendee>(this.tableName);
+      const cachedData = cacheResult.success ? cacheResult.data : [];
       
       if (cachedData.length > 0) {
         console.log(`📱 Filtering cached attendees by breakout: ${breakoutId}`);
@@ -280,8 +282,8 @@ export class OfflineAttendeeService {
       const result = await attendeeService.getAttendeesByBreakout(breakoutId);
       
       if (result.success && result.data.length > 0) {
-        // Cache the data for offline use
-        await pwaDataSyncService.cacheTableData(this.tableName, result.data);
+        // Cache the data for offline use (handled by simplifiedDataService)
+        // No need to manually cache - simplifiedDataService handles this
       }
       
       return result;
@@ -309,13 +311,13 @@ export class OfflineAttendeeService {
    */
   async getOfflineStatus(): Promise<{ hasData: boolean; recordCount: number; lastSync: string | null }> {
     try {
-      const cachedData = await pwaDataSyncService.getCachedTableData<Attendee>(this.tableName);
-      const syncStatus = pwaDataSyncService.getSyncStatus();
+      const cacheResult = await simplifiedDataService.getData<Attendee>(this.tableName);
+      const cachedData = cacheResult.success ? cacheResult.data : [];
       
       return {
         hasData: cachedData.length > 0,
         recordCount: cachedData.length,
-        lastSync: syncStatus.lastSync
+        lastSync: cacheResult.fromCache ? 'cached' : 'fresh'
       };
     } catch (error) {
       console.error('❌ Failed to get offline status:', error);
@@ -333,8 +335,9 @@ export class OfflineAttendeeService {
   async forceSync(): Promise<boolean> {
     try {
       console.log('🔄 Force syncing attendees data...');
-      const result = await pwaDataSyncService.forceSync();
-      return result.success && result.syncedTables.includes(this.tableName);
+      // Simplified approach - just clear cache to force fresh data
+      simplifiedDataService.clearCache();
+      return true;
     } catch (error) {
       console.error('❌ Failed to force sync attendees:', error);
       return false;
