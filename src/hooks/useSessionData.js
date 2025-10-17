@@ -91,11 +91,14 @@ const enhanceSessionData = (sessions, attendee, seatAssignments, seatingConfigur
  * @returns {Array} Array of session objects
  */
 const convertDiningToSessions = (diningOptions) => {
+  console.log('🍽️ convertDiningToSessions called with:', { diningOptionsLength: diningOptions?.length || 0, diningOptions });
+  
   if (!diningOptions || diningOptions.length === 0) {
+    console.log('🍽️ No dining options to convert');
     return [];
   }
   
-  return diningOptions.map(dining => ({
+  const sessions = diningOptions.map(dining => ({
     id: `dining-${dining.id}`,
     title: dining.name,
     description: dining.location || '',
@@ -123,6 +126,9 @@ const convertDiningToSessions = (diningOptions) => {
     originalDiningId: dining.id,
     seating_config: dining
   }));
+  
+  console.log('🍽️ Converted dining sessions:', { sessionsLength: sessions?.length || 0, sessions });
+  return sessions;
 };
 
 /**
@@ -132,14 +138,23 @@ const convertDiningToSessions = (diningOptions) => {
  * @returns {Array} Combined and sorted array
  */
 const mergeAndSortEvents = (sessions, diningOptions) => {
+  console.log('🔄 mergeAndSortEvents called with:', { 
+    sessionsLength: sessions?.length || 0, 
+    diningOptionsLength: diningOptions?.length || 0,
+    sessions,
+    diningOptions 
+  });
+  
   // Convert dining options to session format
   const diningSessions = convertDiningToSessions(diningOptions);
   
   // Combine sessions and dining
   const allEvents = [...sessions, ...diningSessions];
   
+  console.log('🔄 Combined events:', { allEventsLength: allEvents?.length || 0, allEvents });
+  
   // Sort by date and time
-  return allEvents.sort((a, b) => {
+  const sortedEvents = allEvents.sort((a, b) => {
     // First sort by date
     const dateComparison = (a.date || '').localeCompare(b.date || '');
     if (dateComparison !== 0) return dateComparison;
@@ -147,6 +162,9 @@ const mergeAndSortEvents = (sessions, diningOptions) => {
     // Then sort by start time
     return (a.start_time || '').localeCompare(b.start_time || '');
   });
+  
+  console.log('🔄 Sorted events:', { sortedEventsLength: sortedEvents?.length || 0, sortedEvents });
+  return sortedEvents;
 };
 
 /**
@@ -251,8 +269,18 @@ export default function useSessionData(enableOfflineMode = true, autoRefresh = t
       setLastUpdated(new Date());
 
       // Find current and next sessions from ALL events (including dining options)
+      console.log('🔍 Finding current/next sessions from allEventsCombined:', { 
+        allEventsLength: allEventsCombined?.length || 0,
+        allEvents: allEventsCombined 
+      });
+      
       const activeSession = allEventsCombined.find(s => s.isActive);
       const upcomingSession = allEventsCombined.find(s => s.isUpcoming);
+      
+      console.log('🔍 Current/Next session detection:', {
+        activeSession: activeSession ? { id: activeSession.id, title: activeSession.title, isActive: activeSession.isActive } : null,
+        upcomingSession: upcomingSession ? { id: upcomingSession.id, title: upcomingSession.title, isUpcoming: upcomingSession.isUpcoming } : null
+      });
       
       setCurrentSession(activeSession || null);
       setNextSession(upcomingSession || null);
