@@ -37,20 +37,11 @@ Object.defineProperty(window, 'localStorage', {
   value: localStorageMock
 });
 
-// Mock unified cache service
-vi.mock('../../services/unifiedCacheService', () => ({
-  unifiedCacheService: {
-    get: vi.fn(),
-    set: vi.fn(),
-    remove: vi.fn()
-  }
-}));
+// Mock unified cache service - removed, using simplifiedDataService
 
 // Import after mocks
 import { adminService } from '../../services/adminService';
-import { pwaDataSyncService } from '../../services/pwaDataSyncService';
 import { applicationDatabaseService } from '../../services/applicationDatabaseService';
-import { unifiedCacheService } from '../../services/unifiedCacheService';
 
 describe('Admin Service + PWA Sync Integration', () => {
   beforeEach(() => {
