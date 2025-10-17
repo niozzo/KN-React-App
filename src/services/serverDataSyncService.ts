@@ -13,6 +13,7 @@ import { attendeeInfoService } from './attendeeInfoService.ts';
 import { BaseService } from './baseService.ts';
 import { supabaseClientService } from './supabaseClientService.ts';
 import { logger } from '../utils/logger';
+import { simplifiedDataService } from './simplifiedDataService.ts';
 
 export interface ServerSyncResult {
   success: boolean;
@@ -265,8 +266,6 @@ export class ServerDataSyncService extends BaseService {
    */
   private async cacheTableData(tableName: string, data: any[]): Promise<void> {
     try {
-      const cacheKey = `kn_cache_${tableName}`;
-      
       // Apply comprehensive confidential data filtering for attendees
       let sanitizedData = data;
       if (tableName === 'attendees') {
@@ -276,10 +275,16 @@ export class ServerDataSyncService extends BaseService {
         console.log(`🔒 Filtered ${data.length} attendee records for cache storage`);
       }
 
-      // Use unified cache service for consistent caching
-      const { unifiedCacheService } = await import('./unifiedCacheService');
-      await unifiedCacheService.set(cacheKey, sanitizedData);
+      // Use simplified cache approach - direct localStorage storage
+      const cacheKey = `cache_${tableName}`;
+      const entry = {
+        data: sanitizedData,
+        timestamp: Date.now(),
+        tableName
+      };
       
+      localStorage.setItem(cacheKey, JSON.stringify(entry));
+      console.log(`✅ Cached ${sanitizedData.length} records for ${tableName}`);
       
     } catch (error) {
       console.error(`❌ Failed to cache ${tableName}:`, error);
@@ -288,40 +293,59 @@ export class ServerDataSyncService extends BaseService {
   }
 
   /**
-   * Get cached table data using unified cache service
+   * Get cached table data using simplified cache approach
    */
   async getCachedTableData<T>(tableName: string): Promise<T[]> {
     try {
-      const cacheKey = `kn_cache_${tableName}`;
+      const cacheKey = `cache_${tableName}`;
+      const cached = localStorage.getItem(cacheKey);
       
-      // Use unified cache service for consistent data retrieval
-      const { unifiedCacheService } = await import('./unifiedCacheService');
-      const cachedData = await unifiedCacheService.get(cacheKey);
-      
-      if (!cachedData) {
+      if (!cached) {
+        console.log(`⚠️ No cached data found for ${tableName}`);
         return [];
       }
 
-      // Handle both direct array format and wrapped format
-      const data = cachedData.data || cachedData;
-      return Array.isArray(data) ? data : [];
+      const entry = JSON.parse(cached);
+      
+      // Check if cache is expired (24 hours)
+      const now = Date.now();
+      const CACHE_EXPIRY_MS = 24 * 60 * 60 * 1000;
+      if (now - entry.timestamp > CACHE_EXPIRY_MS) {
+        console.log(`⏰ Cache expired for ${tableName}, removing...`);
+        localStorage.removeItem(cacheKey);
+        return [];
+      }
+
+      if (entry.data && Array.isArray(entry.data)) {
+        console.log(`✅ Retrieved ${entry.data.length} cached records for ${tableName}`);
+        return entry.data;
+      }
+      
+      return [];
       
     } catch (error) {
-      console.error(`❌ Failed to get cached ${tableName}:`, error);
+      console.error(`❌ Failed to get cached data for ${tableName}:`, error);
       return [];
     }
   }
 
   /**
-   * Clear all cached data using unified cache service
+   * Clear all cached data using simplified approach
    */
   async clearCache(): Promise<void> {
     try {
-      // Use unified cache service for consistent cache clearing
-      const { unifiedCacheService } = await import('./unifiedCacheService');
-      await unifiedCacheService.clear();
-
-      console.log('🗑️ Server sync cache cleared using unified cache service');
+      // Clear all cache_ prefixed entries
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('cache_')) {
+          keysToRemove.push(key);
+        }
+      }
+      
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+      console.log(`✅ Cleared ${keysToRemove.length} cache entries`);
+      
     } catch (error) {
       console.error('❌ Failed to clear cache:', error);
       throw error;
