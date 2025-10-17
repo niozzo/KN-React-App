@@ -52,14 +52,22 @@ export const AdminPage: React.FC = () => {
       // Simplified: Load only basic agenda items and dining options for title editing
       console.log('📋 Loading agenda items...');
       const agendaResponse = await simplifiedDataService.getAgendaItems();
+      console.log('📋 Agenda response:', agendaResponse);
       if (agendaResponse.success && agendaResponse.data) {
         setAgendaItems(agendaResponse.data);
+        console.log('📋 Set agenda items:', agendaResponse.data.length);
+      } else {
+        console.warn('📋 No agenda items loaded:', agendaResponse);
       }
 
       console.log('🍽️ Loading dining options...');
       const diningResponse = await simplifiedDataService.getDiningOptions();
+      console.log('🍽️ Dining response:', diningResponse);
       if (diningResponse.success && diningResponse.data) {
         setDiningOptions(diningResponse.data);
+        console.log('🍽️ Set dining options:', diningResponse.data.length);
+      } else {
+        console.warn('🍽️ No dining options loaded:', diningResponse);
       }
 
       console.log('✅ Admin data loaded successfully');
@@ -264,7 +272,7 @@ export const AdminPage: React.FC = () => {
           Agenda Items
         </Typography>
 
-        {agendaItems.length === 0 ? (
+        {agendaItems.length === 0 && !loading ? (
           <Card sx={{ maxWidth: 600, mx: 'auto', mt: 4 }}>
             <CardContent sx={{ textAlign: 'center', p: 4 }}>
               <HomeIcon sx={{ fontSize: 64, color: 'primary.main', mb: 2 }} />
@@ -289,7 +297,7 @@ export const AdminPage: React.FC = () => {
               <Button
                 variant="outlined"
                 size="large"
-                onClick={handleRefreshData}
+                onClick={() => window.location.reload()}
               >
                 Refresh Data
               </Button>
