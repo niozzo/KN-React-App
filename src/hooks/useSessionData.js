@@ -556,6 +556,7 @@ export const useSessionData = (options = {}) => {
         
         // Look for seat assignments if we have the necessary data
         if (!localSeatAssignments.length || !localSeatingConfigurations.length) {
+          console.log(`🔍 DEBUG: No seat data available for ${event.type} event:`, event.name);
           return event;
         }
         
@@ -564,9 +565,18 @@ export const useSessionData = (options = {}) => {
         
         if (event.type === 'dining') {
           // For dining events, match by dining_option_id
+          console.log(`🔍 DEBUG: Looking for dining seating config for ${event.name} (ID: ${event.id})`);
+          console.log(`🔍 DEBUG: Available seating configs:`, localSeatingConfigurations.map(c => ({ id: c.id, dining_option_id: c.dining_option_id, agenda_item_id: c.agenda_item_id })));
+          
           seatingConfig = localSeatingConfigurations.find(
             config => config.dining_option_id === event.id
           );
+          
+          if (seatingConfig) {
+            console.log(`✅ DEBUG: Found seating config for ${event.name}:`, seatingConfig);
+          } else {
+            console.log(`❌ DEBUG: No seating config found for ${event.name} (ID: ${event.id})`);
+          }
         } else {
           // For agenda items, match by agenda_item_id
           seatingConfig = localSeatingConfigurations.find(
@@ -576,13 +586,23 @@ export const useSessionData = (options = {}) => {
         
         // If no seating configuration found, return event without seat info
         if (!seatingConfig) {
+          console.log(`❌ DEBUG: No seating configuration found for ${event.name}`);
           return event;
         }
         
         // Step 2: Find seat assignment using the configuration ID from bridge table
+        console.log(`🔍 DEBUG: Looking for seat assignment for config ID: ${seatingConfig.id}`);
+        console.log(`🔍 DEBUG: Available seat assignments:`, localSeatAssignments.map(s => ({ id: s.id, seating_configuration_id: s.seating_configuration_id, attendee_id: s.attendee_id })));
+        
         const seatAssignment = localSeatAssignments.find(seat => 
           seat.seating_configuration_id === seatingConfig.id
         );
+        
+        if (seatAssignment) {
+          console.log(`✅ DEBUG: Found seat assignment for ${event.name}:`, seatAssignment);
+        } else {
+          console.log(`❌ DEBUG: No seat assignment found for ${event.name} (config ID: ${seatingConfig.id})`);
+        }
         
         // Step 3: Return enhanced event with seat info
         return {
