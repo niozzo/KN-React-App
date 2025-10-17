@@ -149,6 +149,11 @@ export class SeatAssignmentNormalizationService extends BaseService {
     // Check for inconsistencies - skip if attendee has DIFFERENT seat positions
     for (const [attendeeId, assignments] of attendeeAssignments) {
       if (assignments.length > 1) {
+        console.log(`🔍 Checking attendee ${attendeeId} with ${assignments.length} assignments:`);
+        assignments.forEach((assignment, index) => {
+          console.log(`  Assignment ${index + 1}: table_name=${assignment.table_name}, seat_number=${assignment.seat_number}, row=${assignment.row_number}, col=${assignment.column_number}`);
+        });
+        
         const firstAssignment = assignments[0];
         
         // Check if any assignment has different seat position
