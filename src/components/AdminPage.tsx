@@ -240,7 +240,7 @@ export const AdminPage: React.FC = () => {
             <ArrowBackIcon />
           </IconButton>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Speaker Management Admin
+            Attendee Lookup
           </Typography>
         </Toolbar>
       </AppBar>
