@@ -428,37 +428,31 @@ export const LoginPage: React.FC = () => {
   // Focus preservation: Keep input focused during background re-renders
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // Clear stale cache when login page renders (user not authenticated)
+  // Clear ALL cache when login page renders (user not authenticated) - force fresh data
   useEffect(() => {
-    const clearStaleCache = () => {
+    const clearAllCache = () => {
       try {
-        // Only clear specific problematic cache entries that cause issues
-        // Don't clear all cache as some might be needed during login
-        const problematicKeys = [
-          'kn_cache_agenda_items', // This specific cache causes checksum mismatches
-          'kn_cached_sessions'     // Session cache that might be stale
-        ]
-        
-        const foundKeys: string[] = []
-        for (const key of problematicKeys) {
-          if (localStorage.getItem(key)) {
-            foundKeys.push(key)
+        const cacheKeys: string[] = []
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i)
+          if (key && key.startsWith('kn_cache_')) {
+            cacheKeys.push(key)
           }
         }
         
-        if (foundKeys.length > 0) {
-          console.log(`🧹 Clearing ${foundKeys.length} problematic cache entries on login page render`)
-          foundKeys.forEach(key => localStorage.removeItem(key))
-          console.log('✅ Problematic cache cleared - ready for fresh login')
+        if (cacheKeys.length > 0) {
+          console.log(`🧹 Clearing ALL ${cacheKeys.length} cache entries on login page render - forcing fresh data`)
+          cacheKeys.forEach(key => localStorage.removeItem(key))
+          console.log('✅ All cache cleared - ready for fresh login with fresh data')
         } else {
-          console.log('✅ No problematic cache entries found')
+          console.log('✅ No cache entries found - already clean')
         }
       } catch (error) {
-        console.warn('⚠️ Failed to clear stale cache:', error)
+        console.warn('⚠️ Failed to clear cache:', error)
       }
     }
     
-    clearStaleCache()
+    clearAllCache()
   }, []) // Run once when login page mounts
 
   const handleSubmit = useCallback(async (e?: React.FormEvent, codeToSubmit?: string) => {
