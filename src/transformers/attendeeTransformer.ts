@@ -84,6 +84,11 @@ export class AttendeeTransformer extends BaseTransformer<Attendee> {
         computation: (data: any) => {
           try {
             const service = CompanyNormalizationService.getInstance()
+            // ✅ DEFENSIVE: Check if service is initialized before calling
+            if (!service.isInitialized) {
+              console.warn('⚠️ Company Normalization Service not ready, skipping normalization')
+              return null
+            }
             return service.normalizeCompanyName(data.company)
           } catch (error) {
             console.warn('Company normalization failed:', error)
@@ -98,6 +103,11 @@ export class AttendeeTransformer extends BaseTransformer<Attendee> {
         computation: (data: any) => {
           try {
             const service = CompanyNormalizationService.getInstance()
+            // ✅ DEFENSIVE: Check if service is initialized before calling
+            if (!service.isInitialized) {
+              console.warn('⚠️ Company Normalization Service not ready, using original company name')
+              return data.company || ''
+            }
             const standardized = service.normalizeCompanyName(data.company)
             return standardized?.name || data.company || ''
           } catch (error) {
@@ -113,6 +123,11 @@ export class AttendeeTransformer extends BaseTransformer<Attendee> {
         computation: (data: any) => {
           try {
             const service = CompanyNormalizationService.getInstance()
+            // ✅ DEFENSIVE: Check if service is initialized before calling
+            if (!service.isInitialized) {
+              console.warn('⚠️ Company Normalization Service not ready, skipping sector lookup')
+              return undefined
+            }
             const standardized = service.normalizeCompanyName(data.company)
             return standardized?.sector || undefined
           } catch (error) {
@@ -128,6 +143,11 @@ export class AttendeeTransformer extends BaseTransformer<Attendee> {
         computation: (data: any) => {
           try {
             const service = CompanyNormalizationService.getInstance()
+            // ✅ DEFENSIVE: Check if service is initialized before calling
+            if (!service.isInitialized) {
+              console.warn('⚠️ Company Normalization Service not ready, skipping geography lookup')
+              return undefined
+            }
             const standardized = service.normalizeCompanyName(data.company)
             return standardized?.geography || undefined
           } catch (error) {

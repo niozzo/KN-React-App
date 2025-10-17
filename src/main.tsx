@@ -5,39 +5,25 @@ import App from './App.tsx'
 import './styles/design-tokens.css'
 import './styles/components.css'
 import { ServiceRegistry } from './services/ServiceRegistry'
-import { ServiceWorkerCacheManager } from './services/ServiceWorkerCacheManager'
+// ServiceWorkerCacheManager removed - using simplified cache approach
 import { CompanyNormalizationService } from './services/companyNormalizationService'
 
 async function bootstrapApplication() {
   try {
     console.log('🚀 Bootstrap: Starting application initialization...');
     
-    // 🔧 SAFETY FIX: Reset any stuck logout flags on app startup
-    // This prevents the isLogoutInProgress flag from blocking sync operations
-    try {
-      const { pwaDataSyncService } = await import('./services/pwaDataSyncService');
-      pwaDataSyncService.setLogoutInProgress(false);
-      console.log('🔧 Bootstrap: Reset logout flag to prevent sync blocking');
-    } catch (error) {
-      console.warn('⚠️ Bootstrap: Could not reset logout flag:', error);
-    }
+    // ✅ SIMPLIFIED: No logout flags to reset with simplified cache approach
     
     // Initialize service registry first
     const serviceRegistry = ServiceRegistry.getInstance();
     serviceRegistry.initialize();
 
-    // Initialize company normalization service (Story 8.7)
-    // Loads standardized_companies and company_aliases for O(1) lookup
-    try {
-      const companyService = CompanyNormalizationService.getInstance();
-      await companyService.initialize();
-    } catch (error) {
-      // Graceful degradation - continue without company normalization
-    }
+    // ✅ DISABLED: CompanyNormalizationService during bootstrap
+    // This was causing sync operations before authentication
+    // Company normalization will be handled after authentication
+    console.log('⏸️ CompanyNormalizationService: Skipped during bootstrap - will initialize after authentication')
 
-    // Initialize service worker cache manager
-    const cacheManager = ServiceWorkerCacheManager.getInstance();
-    await cacheManager.initialize();
+    // ✅ SIMPLIFIED: Service worker handles caching automatically
 
     console.log('✅ Bootstrap: Application services initialized successfully');
 

@@ -19,9 +19,13 @@ vi.mock('../../services/offlineAttendeeService', () => ({
   }))
 }));
 
-vi.mock('../../services/pwaDataSyncService', () => ({
-  pwaDataSyncService: {
-    getCachedTableData: vi.fn().mockResolvedValue([])
+vi.mock('../../services/simplifiedDataService', () => ({
+  simplifiedDataService: {
+    getData: vi.fn().mockResolvedValue({
+      success: true,
+      data: [],
+      fromCache: true
+    })
   }
 }));
 
@@ -176,8 +180,12 @@ describe('AttendeeSearchService', () => {
   describe('Basic Search Functionality', () => {
     it('should search attendees by name', async () => {
       // Mock the cache data
-      const { pwaDataSyncService } = await import('../../services/pwaDataSyncService');
-      vi.mocked(pwaDataSyncService.getCachedTableData).mockResolvedValue(mockAttendees);
+      const { simplifiedDataService } = await import('../../services/simplifiedDataService');
+      vi.mocked(simplifiedDataService.getData).mockResolvedValue({
+        success: true,
+        data: mockAttendees,
+        fromCache: true
+      });
 
       const filters: SearchFilters = {
         query: 'John'
@@ -192,8 +200,12 @@ describe('AttendeeSearchService', () => {
     });
 
     it('should search attendees by company', async () => {
-      const { pwaDataSyncService } = await import('../../services/pwaDataSyncService');
-      vi.mocked(pwaDataSyncService.getCachedTableData).mockResolvedValue(mockAttendees);
+      const { simplifiedDataService } = await import('../../services/simplifiedDataService');
+      vi.mocked(simplifiedDataService.getData).mockResolvedValue({
+        success: true,
+        data: mockAttendees,
+        fromCache: true
+      });
 
       const filters: SearchFilters = {
         query: 'TechCorp'
@@ -206,8 +218,12 @@ describe('AttendeeSearchService', () => {
     });
 
     it('should search attendees by title', async () => {
-      const { pwaDataSyncService } = await import('../../services/pwaDataSyncService');
-      vi.mocked(pwaDataSyncService.getCachedTableData).mockResolvedValue(mockAttendees);
+      const { simplifiedDataService } = await import('../../services/simplifiedDataService');
+      vi.mocked(simplifiedDataService.getData).mockResolvedValue({
+        success: true,
+        data: mockAttendees,
+        fromCache: true
+      });
 
       const filters: SearchFilters = {
         query: 'CTO'
@@ -222,8 +238,12 @@ describe('AttendeeSearchService', () => {
 
   describe('Filtering Functionality', () => {
     it('should filter by company', async () => {
-      const { pwaDataSyncService } = await import('../../services/pwaDataSyncService');
-      vi.mocked(pwaDataSyncService.getCachedTableData).mockResolvedValue(mockAttendees);
+      const { simplifiedDataService } = await import('../../services/simplifiedDataService');
+      vi.mocked(simplifiedDataService.getData).mockResolvedValue({
+        success: true,
+        data: mockAttendees,
+        fromCache: true
+      });
 
       const filters: SearchFilters = {
         company: 'TechCorp'
@@ -236,8 +256,12 @@ describe('AttendeeSearchService', () => {
     });
 
     it('should filter by role', async () => {
-      const { pwaDataSyncService } = await import('../../services/pwaDataSyncService');
-      vi.mocked(pwaDataSyncService.getCachedTableData).mockResolvedValue(mockAttendees);
+      const { simplifiedDataService } = await import('../../services/simplifiedDataService');
+      vi.mocked(simplifiedDataService.getData).mockResolvedValue({
+        success: true,
+        data: mockAttendees,
+        fromCache: true
+      });
 
       const filters: SearchFilters = {
         role: 'CFO'
@@ -252,8 +276,12 @@ describe('AttendeeSearchService', () => {
 
   describe('Sorting Functionality', () => {
     it('should sort by last name ascending', async () => {
-      const { pwaDataSyncService } = await import('../../services/pwaDataSyncService');
-      vi.mocked(pwaDataSyncService.getCachedTableData).mockResolvedValue(mockAttendees);
+      const { simplifiedDataService } = await import('../../services/simplifiedDataService');
+      vi.mocked(simplifiedDataService.getData).mockResolvedValue({
+        success: true,
+        data: mockAttendees,
+        fromCache: true
+      });
 
       const filters: SearchFilters = {
         sortBy: 'last_name',
@@ -267,8 +295,12 @@ describe('AttendeeSearchService', () => {
     });
 
     it('should sort by last name descending', async () => {
-      const { pwaDataSyncService } = await import('../../services/pwaDataSyncService');
-      vi.mocked(pwaDataSyncService.getCachedTableData).mockResolvedValue(mockAttendees);
+      const { simplifiedDataService } = await import('../../services/simplifiedDataService');
+      vi.mocked(simplifiedDataService.getData).mockResolvedValue({
+        success: true,
+        data: mockAttendees,
+        fromCache: true
+      });
 
       const filters: SearchFilters = {
         sortBy: 'last_name',
@@ -282,8 +314,12 @@ describe('AttendeeSearchService', () => {
     });
 
     it('should sort by company name', async () => {
-      const { pwaDataSyncService } = await import('../../services/pwaDataSyncService');
-      vi.mocked(pwaDataSyncService.getCachedTableData).mockResolvedValue(mockAttendees);
+      const { simplifiedDataService } = await import('../../services/simplifiedDataService');
+      vi.mocked(simplifiedDataService.getData).mockResolvedValue({
+        success: true,
+        data: mockAttendees,
+        fromCache: true
+      });
 
       const filters: SearchFilters = {
         sortBy: 'company',
@@ -299,8 +335,12 @@ describe('AttendeeSearchService', () => {
 
   describe('Caching Functionality', () => {
     it('should cache search results', async () => {
-      const { pwaDataSyncService } = await import('../../services/pwaDataSyncService');
-      vi.mocked(pwaDataSyncService.getCachedTableData).mockResolvedValue(mockAttendees);
+      const { simplifiedDataService } = await import('../../services/simplifiedDataService');
+      vi.mocked(simplifiedDataService.getData).mockResolvedValue({
+        success: true,
+        data: mockAttendees,
+        fromCache: true
+      });
 
       const filters: SearchFilters = {
         query: 'John'
@@ -333,8 +373,12 @@ describe('AttendeeSearchService', () => {
         company: `Company${i}`
       }));
 
-      const { pwaDataSyncService } = await import('../../services/pwaDataSyncService');
-      vi.mocked(pwaDataSyncService.getCachedTableData).mockResolvedValue(largeDataset);
+      const { simplifiedDataService } = await import('../../services/simplifiedDataService');
+      vi.mocked(simplifiedDataService.getData).mockResolvedValue({
+        success: true,
+        data: largeDataset,
+        fromCache: true
+      });
 
       const startTime = performance.now();
       
@@ -354,8 +398,12 @@ describe('AttendeeSearchService', () => {
 
   describe('Error Handling', () => {
     it('should handle empty cache gracefully', async () => {
-      const { pwaDataSyncService } = await import('../../services/pwaDataSyncService');
-      vi.mocked(pwaDataSyncService.getCachedTableData).mockResolvedValue([]);
+      const { simplifiedDataService } = await import('../../services/simplifiedDataService');
+      vi.mocked(simplifiedDataService.getData).mockResolvedValue({
+        success: true,
+        data: [],
+        fromCache: true
+      });
 
       const filters: SearchFilters = {
         query: 'test'
@@ -369,8 +417,8 @@ describe('AttendeeSearchService', () => {
     });
 
     it('should handle cache errors gracefully', async () => {
-      const { pwaDataSyncService } = await import('../../services/pwaDataSyncService');
-      vi.mocked(pwaDataSyncService.getCachedTableData).mockRejectedValue(new Error('Cache error'));
+      const { simplifiedDataService } = await import('../../services/simplifiedDataService');
+      vi.mocked(simplifiedDataService.getData).mockRejectedValue(new Error('Cache error'));
 
       const filters: SearchFilters = {
         query: 'test'

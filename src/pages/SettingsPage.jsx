@@ -5,7 +5,7 @@ import PageLayout from '../components/layout/PageLayout';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import { applicationDatabaseService } from '../services/applicationDatabaseService';
-import { pwaDataSyncService } from '../services/pwaDataSyncService';
+// Removed pwaDataSyncService import - using simplified cache approach
 import { logger } from '../utils/logger';
 
 /**
@@ -131,9 +131,10 @@ const SettingsPage = () => {
         logger.warn('Failed to clear AttendeeCacheFilterService cache', error, 'SettingsPage');
       }
       
-      // Step 2: Use PWA sync service with force refresh flag
+      // Step 2: Use simplified sync service
       logger.progress('Force syncing all data from database', null, 'SettingsPage');
-      const result = await pwaDataSyncService.syncAllData(true); // Force refresh flag
+      const { serverDataSyncService } = await import('../services/serverDataSyncService');
+      const result = await serverDataSyncService.syncAllData();
       
       if (result.success) {
         logger.success('Data refresh successful', null, 'SettingsPage');

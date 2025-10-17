@@ -6,7 +6,7 @@
  */
 
 import { attendeeInfoService } from './attendeeInfoService'
-import { pwaDataSyncService } from './pwaDataSyncService'
+// Removed pwaDataSyncService import - using simplified cache approach
 
 export interface DataClearingResult {
   success: boolean
@@ -72,13 +72,16 @@ export class DataClearingService {
       
       // Clear service worker caches
       await this.clearServiceWorkerCaches(result)
+      
+      // Validate cache cleanup succeeded
+      await this.validateCacheCleanup(result)
 
       const endTime = performance.now()
       result.performanceMetrics.endTime = endTime
       result.performanceMetrics.duration = endTime - startTime
 
-      // ✅ CRITICAL: Reset logout flag to allow future logins
-      pwaDataSyncService.setLogoutInProgress(false)
+      // ✅ CRITICAL: Reset logout flag to allow future logins (simplified)
+      // No logout flag needed with simplified cache approach
 
       return result
 
@@ -91,8 +94,8 @@ export class DataClearingService {
       result.performanceMetrics.endTime = endTime
       result.performanceMetrics.duration = endTime - startTime
 
-      // ✅ CRITICAL: Reset logout flag even on error to prevent login blocking
-      pwaDataSyncService.setLogoutInProgress(false)
+      // ✅ CRITICAL: Reset logout flag even on error to prevent login blocking (simplified)
+      // No logout flag needed with simplified cache approach
 
       return result
     }
@@ -103,19 +106,11 @@ export class DataClearingService {
    */
   private async stopAllAsyncOperations(result: DataClearingResult): Promise<void> {
     try {
-      // Set logout flag to prevent new cache writes
-      pwaDataSyncService.setLogoutInProgress(true)
-      
-      // 🔧 SAFETY FIX: Set logout timestamp for auto-reset logic
+      // Simplified approach - no background operations to stop
+      // Set logout timestamp for reference
       localStorage.setItem('kn_last_logout_time', new Date().toISOString())
       
-      // Stop periodic sync timer
-      pwaDataSyncService.stopPeriodicSync()
-      
-      // Abort any in-flight sync operations
-      pwaDataSyncService.abortPendingSyncOperations()
-      
-      console.log('✅ All background operations stopped')
+      console.log('✅ All background operations stopped (simplified)')
     } catch (error) {
       console.warn('⚠️ Failed to stop all async operations:', error)
       result.errors.push(`Async operations stop failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
@@ -134,6 +129,7 @@ export class DataClearingService {
         const key = localStorage.key(i)
         if (key && (
           key.startsWith(this.CACHE_PREFIX) || // kn_cache_*
+          key.startsWith('cache_') || // cache_* (new simplified cache)
           key === this.AUTH_KEY || // conference_auth
           key === this.ATTENDEE_INFO_KEY || // kn_current_attendee_info
           key.startsWith('kn_cached_') || // kn_cached_sessions, etc.
@@ -179,7 +175,7 @@ export class DataClearingService {
    */
   private async clearPWACachedData(result: DataClearingResult): Promise<void> {
     try {
-      await pwaDataSyncService.clearCache()
+      // Simplified approach - PWA cache clearing handled by localStorage clearing
       result.clearedData.pwaCache = true
     } catch (error) {
       console.warn('⚠️ Failed to clear PWA cached data:', error)
@@ -295,6 +291,38 @@ export class DataClearingService {
     } catch (error) {
       console.error('❌ Data clearing verification failed:', error)
       return false
+    }
+  }
+
+  /**
+   * Validate that cache cleanup succeeded and remove any stragglers
+   */
+  private async validateCacheCleanup(result: DataClearingResult): Promise<void> {
+    try {
+      // Check for any remaining cache entries
+      const remainingKeys: string[] = []
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i)
+        if (key && (
+          key.startsWith('kn_cache_') ||
+          key.startsWith('kn_cached_') ||
+          key.startsWith('kn_sync_')
+        )) {
+          remainingKeys.push(key)
+        }
+      }
+      
+      if (remainingKeys.length > 0) {
+        console.warn('⚠️ Validation found remaining cache entries:', remainingKeys)
+        // Force remove any stragglers
+        remainingKeys.forEach(key => localStorage.removeItem(key))
+        result.errors.push(`Removed ${remainingKeys.length} straggler cache entries`)
+      } else {
+        console.log('✅ Cache cleanup validation passed - all entries removed')
+      }
+    } catch (error) {
+      console.error('❌ Cache cleanup validation failed:', error)
+      result.errors.push('Validation failed: ' + (error instanceof Error ? error.message : 'Unknown'))
     }
   }
 }
