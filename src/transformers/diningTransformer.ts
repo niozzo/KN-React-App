@@ -25,7 +25,6 @@ export class DiningTransformer extends BaseTransformer<DiningOption> {
       
       // Capacity and seating
       { source: 'capacity', target: 'capacity', type: 'number', defaultValue: null },
-      { source: 'has_table_assignments', target: 'has_table_assignments', type: 'boolean', defaultValue: false },
       { source: 'tables', target: 'tables', type: 'array', defaultValue: [] },
       { source: 'layout_template_id', target: 'layout_template_id', type: 'string', defaultValue: null },
       { source: 'seating_notes', target: 'seating_notes', type: 'string', defaultValue: '' },
@@ -55,14 +54,6 @@ export class DiningTransformer extends BaseTransformer<DiningOption> {
         },
         type: 'boolean'
       },
-      {
-        name: 'hasSeatingAssignments',
-        sourceFields: ['has_table_assignments', 'tables'],
-        computation: (data: any) => {
-          return data.has_table_assignments && Array.isArray(data.tables) && data.tables.length > 0
-        },
-        type: 'boolean'
-      }
     ]
 
     const validationRules: ValidationRule[] = [

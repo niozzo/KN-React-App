@@ -41,7 +41,6 @@ export interface SeatingConfiguration {
   agenda_item_id: string | null      // Reference to agenda item (nullable)
   dining_option_id: string | null    // Reference to dining option (nullable)
   layout_template_id: string | null  // Reference to layout template (nullable)
-  has_seating: boolean               // Whether seating is configured
   seating_type: 'open' | 'assigned'  // Seating type
   auto_assignment_rules: any         // Auto-assignment rules object
   is_active: boolean                 // Active status

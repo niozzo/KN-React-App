@@ -200,7 +200,6 @@ const convertDiningToSessions = (diningOptions) => {
       selected_attendees: [],
       isActive,
       isUpcoming,
-      has_seating: dining.has_table_assignments || false,
       seating_notes: dining.seating_notes || '',
       seating_type: dining.seating_type || 'open',
       speakers: [],

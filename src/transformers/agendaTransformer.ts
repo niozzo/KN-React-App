@@ -24,7 +24,6 @@ export class AgendaTransformer extends BaseTransformer<AgendaItem> {
       { source: 'attendee_selection', target: 'attendee_selection', type: 'string', defaultValue: 'everyone' },
       { source: 'selected_attendees', target: 'selected_attendees', type: 'array', defaultValue: [] },
       { source: 'is_active', target: 'isActive', type: 'boolean', defaultValue: true },
-      { source: 'has_seating', target: 'has_seating', type: 'boolean', defaultValue: false },
       { source: 'seating_notes', target: 'seating_notes', type: 'string', defaultValue: '' },
       { source: 'seating_type', target: 'seating_type', type: 'string', defaultValue: 'open' },
       { source: 'created_at', target: 'created_at', type: 'date' },
@@ -312,8 +311,7 @@ export class AgendaTransformer extends BaseTransformer<AgendaItem> {
   getSchemaEvolutionMapping(): Record<string, string> {
     return {
       'type': 'session_type',           // Database field -> UI field
-      'is_active': 'isActive',
-      'has_seating': 'has_seating'
+      'is_active': 'isActive'
     }
   }
 
