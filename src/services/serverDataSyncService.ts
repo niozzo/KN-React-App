@@ -472,6 +472,66 @@ export class ServerDataSyncService extends BaseService {
         sampleRecord: records.length > 0 ? records[0] : null
       });
       
+      // 🔍 DEBUG: Check for Maple & Ash seating assignments in raw DB response
+      if (tableName === 'seat_assignments') {
+        console.log('🔍 [MAPLE-ASH-DEBUG] Checking raw seat_assignments from database...');
+        
+        // Find Maple & Ash seating configuration ID
+        const mapleAshConfigId = '6b6b5e7e-7e12-4bff-86df-4656cbd85d16';
+        
+        // Look for seat assignments linked to Maple & Ash
+        const mapleAshAssignments = records.filter(record => 
+          record.seating_configuration_id === mapleAshConfigId
+        );
+        
+        console.log(`🔍 [MAPLE-ASH-DEBUG] Found ${mapleAshAssignments.length} seat assignments for Maple & Ash configuration:`, {
+          configId: mapleAshConfigId,
+          assignments: mapleAshAssignments.map(a => ({
+            id: a.id,
+            attendee_id: a.attendee_id,
+            table_name: a.table_name,
+            seat_number: a.seat_number,
+            row_number: a.row_number,
+            column_number: a.column_number,
+            attendee_first_name: a.attendee_first_name,
+            attendee_last_name: a.attendee_last_name
+          }))
+        });
+        
+        // Check if any assignments have non-null table_name or seat_number
+        const hasTableData = mapleAshAssignments.some(a => a.table_name !== null || a.seat_number !== null);
+        console.log(`🔍 [MAPLE-ASH-DEBUG] Has table/seat data: ${hasTableData}`);
+        
+        // Show sample of all seating configuration IDs in the data
+        const allConfigIds = [...new Set(records.map(r => r.seating_configuration_id))];
+        console.log(`🔍 [MAPLE-ASH-DEBUG] All seating configuration IDs in raw data:`, allConfigIds.slice(0, 10));
+      }
+      
+      // 🔍 DEBUG: Check for Maple & Ash seating configuration in raw DB response
+      if (tableName === 'seating_configurations') {
+        console.log('🔍 [MAPLE-ASH-DEBUG] Checking raw seating_configurations from database...');
+        
+        // Find Maple & Ash dining option ID
+        const mapleAshDiningId = '75d3f99a-3383-49a9-bc77-0328ece9df6c';
+        
+        // Look for seating configuration linked to Maple & Ash dining option
+        const mapleAshConfig = records.find(record => 
+          record.dining_option_id === mapleAshDiningId
+        );
+        
+        console.log(`🔍 [MAPLE-ASH-DEBUG] Maple & Ash seating configuration:`, {
+          found: !!mapleAshConfig,
+          config: mapleAshConfig ? {
+            id: mapleAshConfig.id,
+            dining_option_id: mapleAshConfig.dining_option_id,
+            agenda_item_id: mapleAshConfig.agenda_item_id,
+            has_seating: mapleAshConfig.has_seating,
+            seating_type: mapleAshConfig.seating_type,
+            layout_type: mapleAshConfig.layout_type
+          } : null
+        });
+      }
+      
       // Debug logging removed - these diagnostic messages are not needed in production
       
       // Apply transformations using shared method
