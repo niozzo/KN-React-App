@@ -19,7 +19,7 @@ import {
 } from '@mui/material';
 import { ArrowBack as ArrowBackIcon, Save as SaveIcon, Home as HomeIcon, AccessTime as AccessTimeIcon } from '@mui/icons-material';
 import { useNavigate, useOutletContext } from 'react-router-dom';
-import { simplifiedDataService } from '../services/simplifiedDataService';
+import { unifiedCacheService } from '../services/unifiedCacheService';
 import { ValidationRules } from '../utils/validationUtils';
 import { TimeOverridePanel } from './admin/TimeOverridePanel';
 
@@ -52,17 +52,22 @@ export const AdminPage: React.FC = () => {
       setLoading(true);
       setError('');
 
-      // Simplified: Load only basic agenda items and dining options for title editing
-      console.log('📋 Loading agenda items...');
-      const agendaResponse = await simplifiedDataService.getData('agenda_items');
-      if (agendaResponse.success && agendaResponse.data) {
-        setAgendaItems(agendaResponse.data);
+      // Load agenda items from cache
+      console.log('📋 Loading agenda items from cache...');
+      const agendaCacheData = await unifiedCacheService.get('kn_cache_agenda_items');
+      if (agendaCacheData) {
+        const agendaItems = (agendaCacheData as any).data || agendaCacheData || [];
+        setAgendaItems(agendaItems);
+        console.log('📋 Loaded agenda items from cache:', agendaItems.length);
       }
 
-      console.log('🍽️ Loading dining options...');
-      const diningResponse = await simplifiedDataService.getData('dining_options');
-      if (diningResponse.success && diningResponse.data) {
-        setDiningOptions(diningResponse.data);
+      // Load dining options from cache
+      console.log('🍽️ Loading dining options from cache...');
+      const diningCacheData = await unifiedCacheService.get('kn_cache_dining_options');
+      if (diningCacheData) {
+        const diningOptions = (diningCacheData as any).data || diningCacheData || [];
+        setDiningOptions(diningOptions);
+        console.log('🍽️ Loaded dining options from cache:', diningOptions.length);
       }
 
       console.log('✅ Admin data loaded successfully');
