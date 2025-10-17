@@ -82,6 +82,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, [])
 
+  const validateCacheStateBeforeLogin = useCallback(async () => {
+    try {
+      // Check for any existing cache entries
+      const cacheKeys: string[] = []
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i)
+        if (key && key.startsWith('kn_cache_')) {
+          cacheKeys.push(key)
+        }
+      }
+      
+      if (cacheKeys.length > 0) {
+        console.warn(`⚠️ Found ${cacheKeys.length} stale cache entries before login, clearing...`)
+        cacheKeys.forEach(key => localStorage.removeItem(key))
+        console.log('✅ Stale cache cleared successfully')
+      } else {
+        console.log('✅ Cache state clean - ready for fresh login')
+      }
+    } catch (error) {
+      console.warn('⚠️ Cache validation failed:', error)
+      // Non-critical, continue with login
+    }
+  }, [])
+
   const checkAuthStatus = useCallback(async () => {
     try {
       const authStatus = getAuthStatus()
@@ -118,6 +142,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     
     try {
       console.log('🔄 Starting authentication process...')
+      
+      // Validate cache is clean before login
+      console.log('🔍 Validating cache state before login...')
+      await this.validateCacheStateBeforeLogin()
       
       // Step 1: Authenticate with the auth service FIRST (validate access code)
       console.log('🔐 Step 1: Authenticating with access code...')
@@ -187,9 +215,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.warn('⚠️ Failed to start periodic sync:', syncError)
       }
       
-      // ✅ NEW: Initialize attendee sync service
+      // Step 4A: Initialize attendee sync service
+      console.log('🔄 Step 4A: Initializing attendee sync service...')
       try {
-        // ✅ CHECK: One more abort check before final async operation
         if (abortController.signal.aborted) {
           console.log('⏸️ Login aborted - skipping attendee sync')
           return { success: false, error: 'Login cancelled' }
@@ -197,13 +225,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         
         const { attendeeSyncService } = await import('../services/attendeeSyncService')
         await attendeeSyncService.refreshAttendeeData()
-        // Attendee sync service initialized
+        console.log('✅ Attendee sync service initialized')
       } catch (attendeeError) {
         console.warn('⚠️ Attendee sync initialization failed:', attendeeError)
       }
-      
-      // ✅ CRITICAL FIX: Re-populate attendee cache after attendee sync service
-      // The attendee sync service may have cleared the cache, so we need to ensure it's populated
+
+      // Step 4B: Wait before cache repopulation to ensure clean state
+      await new Promise(resolve => setTimeout(resolve, 100))
+
+      // Step 4C: Repopulate attendee cache
+      console.log('🔄 Step 4B: Repopulating attendee cache...')
       try {
         if (abortController.signal.aborted) {
           console.log('⏸️ Login aborted - skipping attendee cache repopulation')
@@ -212,7 +243,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         
         const { serverDataSyncService } = await import('../services/serverDataSyncService')
         await serverDataSyncService.syncAttendees()
-        console.log('✅ Attendee cache repopulated after sync service')
+        console.log('✅ Attendee cache repopulated successfully')
       } catch (cacheError) {
         console.warn('⚠️ Failed to repopulate attendee cache:', cacheError)
       }

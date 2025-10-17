@@ -72,6 +72,9 @@ export class DataClearingService {
       
       // Clear service worker caches
       await this.clearServiceWorkerCaches(result)
+      
+      // Validate cache cleanup succeeded
+      await this.validateCacheCleanup(result)
 
       const endTime = performance.now()
       result.performanceMetrics.endTime = endTime
@@ -295,6 +298,38 @@ export class DataClearingService {
     } catch (error) {
       console.error('❌ Data clearing verification failed:', error)
       return false
+    }
+  }
+
+  /**
+   * Validate that cache cleanup succeeded and remove any stragglers
+   */
+  private async validateCacheCleanup(result: DataClearingResult): Promise<void> {
+    try {
+      // Check for any remaining cache entries
+      const remainingKeys: string[] = []
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i)
+        if (key && (
+          key.startsWith('kn_cache_') ||
+          key.startsWith('kn_cached_') ||
+          key.startsWith('kn_sync_')
+        )) {
+          remainingKeys.push(key)
+        }
+      }
+      
+      if (remainingKeys.length > 0) {
+        console.warn('⚠️ Validation found remaining cache entries:', remainingKeys)
+        // Force remove any stragglers
+        remainingKeys.forEach(key => localStorage.removeItem(key))
+        result.errors.push(`Removed ${remainingKeys.length} straggler cache entries`)
+      } else {
+        console.log('✅ Cache cleanup validation passed - all entries removed')
+      }
+    } catch (error) {
+      console.error('❌ Cache cleanup validation failed:', error)
+      result.errors.push('Validation failed: ' + (error instanceof Error ? error.message : 'Unknown'))
     }
   }
 }
