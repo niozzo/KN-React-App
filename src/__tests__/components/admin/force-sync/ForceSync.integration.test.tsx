@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { BrowserRouter, useOutletContext } from 'react-router-dom';
 import { AdminPage } from '../../../../components/AdminPage';
-import { pwaDataSyncService } from '../../../../services/pwaDataSyncService';
+import { simplifiedDataService } from '../../../../services/simplifiedDataService';
 import { dataInitializationService } from '../../../../services/dataInitializationService';
 import { adminService } from '../../../../services/adminService';
 
@@ -18,7 +18,7 @@ vi.mock('react-router-dom', async () => {
 });
 
 // Mock the services
-vi.mock('../../../../services/pwaDataSyncService');
+vi.mock('../../../../services/simplifiedDataService');
 vi.mock('../../../../services/dataInitializationService');
 vi.mock('../../../../services/adminService');
 

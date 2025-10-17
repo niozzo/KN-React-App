@@ -60,12 +60,7 @@ afterAll(async () => {
   vi.restoreAllMocks()
   
   // Destroy service singletons to remove event listeners and intervals
-  try {
-    const { pwaDataSyncService } = await import('../services/pwaDataSyncService');
-    pwaDataSyncService.destroy();
-  } catch (e) {
-    // Service may not be loaded in all tests
-  }
+  // pwaDataSyncService removed - using simplified cache approach
   
   try {
     const { errorMonitoringService } = await import('../services/errorMonitoringService');
