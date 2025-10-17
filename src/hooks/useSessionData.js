@@ -87,25 +87,60 @@ const enhanceSessionData = (sessions, attendee, seatAssignments, seatingConfigur
     const isActive = isSessionActive(session, currentTime);
     const isUpcoming = isSessionUpcoming(session, currentTime);
     
-    // Find seat assignment for this session
-    const seatAssignment = seatAssignments.find(assignment => 
-      assignment.session_id === session.id
-    );
+    // Enhanced seat assignment logic (from working build)
+    const enhanceEventWithSeatInfo = (event) => {
+      if (!event) {
+        return event || null;
+      }
+      
+      // Look for seat assignments if we have the necessary data
+      if (!seatAssignments.length || !seatingConfigurations.length) {
+        return event;
+      }
+      
+      // Step 1: Find the seating configuration for this event (bridge table lookup)
+      let seatingConfig = null;
+      
+      if (event.type === 'dining') {
+        // For dining events, match by dining_option_id
+        seatingConfig = seatingConfigurations.find(
+          config => config.dining_option_id === event.id
+        );
+      } else {
+        // For agenda items, match by agenda_item_id
+        seatingConfig = seatingConfigurations.find(
+          config => config.agenda_item_id === event.id
+        );
+      }
+      
+      // If no seating configuration found, return event without seat info
+      if (!seatingConfig) {
+        return event;
+      }
+      
+      // Step 2: Find seat assignment using the configuration ID from bridge table
+      const seatAssignment = seatAssignments.find(seat => 
+        seat.seating_configuration_id === seatingConfig.id
+      );
+      
+      // Step 3: Return enhanced event with seat info
+      return {
+        ...event,
+        seatInfo: seatAssignment ? {
+          table: seatAssignment.table_name,
+          seat: seatAssignment.seat_number,
+          row: seatAssignment.row_number,
+          column: seatAssignment.column_number,
+          position: seatAssignment.seat_position
+        } : null
+      };
+    };
     
-    // Find seating configuration for this session
-    const seatingConfig = seatingConfigurations.find(config => 
-      config.session_id === session.id
-    );
-    
-    return {
+    return enhanceEventWithSeatInfo({
       ...session,
       isActive,
-      isUpcoming,
-      seatAssignment,
-      seatingConfig,
-      hasSeating: !!seatingConfig,
-      hasSeatAssignment: !!seatAssignment
-    };
+      isUpcoming
+    });
   });
 };
 
@@ -194,10 +229,12 @@ const convertDiningToSessions = (diningOptions) => {
  * @param {Array} diningOptions - Array of dining option objects
  * @returns {Array} Combined and sorted array
  */
-const mergeAndSortEvents = (sessions, diningOptions) => {
+const mergeAndSortEvents = (sessions, diningOptions, seatAssignments = [], seatingConfigurations = []) => {
   console.log('🔄 mergeAndSortEvents called with:', { 
     sessionsLength: sessions?.length || 0, 
     diningOptionsLength: diningOptions?.length || 0,
+    seatAssignmentsLength: seatAssignments?.length || 0,
+    seatingConfigurationsLength: seatingConfigurations?.length || 0,
     sessions,
     diningOptions 
   });
@@ -205,8 +242,43 @@ const mergeAndSortEvents = (sessions, diningOptions) => {
   // Convert dining options to session format
   const diningSessions = convertDiningToSessions(diningOptions);
   
-  // Combine sessions and dining
-  const allEvents = [...sessions, ...diningSessions];
+  // Enhance dining sessions with seat assignment data
+  const enhancedDiningSessions = diningSessions.map(diningSession => {
+    // Enhanced seat assignment logic for dining events
+    if (!seatAssignments.length || !seatingConfigurations.length) {
+      return diningSession;
+    }
+    
+    // Step 1: Find the seating configuration for this dining event
+    const seatingConfig = seatingConfigurations.find(
+      config => config.dining_option_id === diningSession.id
+    );
+    
+    // If no seating configuration found, return dining session without seat info
+    if (!seatingConfig) {
+      return diningSession;
+    }
+    
+    // Step 2: Find seat assignment using the configuration ID from bridge table
+    const seatAssignment = seatAssignments.find(seat => 
+      seat.seating_configuration_id === seatingConfig.id
+    );
+    
+    // Step 3: Return enhanced dining session with seat info
+    return {
+      ...diningSession,
+      seatInfo: seatAssignment ? {
+        table: seatAssignment.table_name,
+        seat: seatAssignment.seat_number,
+        row: seatAssignment.row_number,
+        column: seatAssignment.column_number,
+        position: seatAssignment.seat_position
+      } : null
+    };
+  });
+  
+  // Combine sessions and enhanced dining
+  const allEvents = [...sessions, ...enhancedDiningSessions];
   
   console.log('🔄 Combined events:', { allEventsLength: allEvents?.length || 0, allEvents });
   
@@ -317,7 +389,7 @@ export default function useSessionData(enableOfflineMode = true, autoRefresh = t
       });
 
       // Merge sessions and dining options for unified display
-      const allEventsCombined = mergeAndSortEvents(enhancedSessions, diningData || []);
+      const allEventsCombined = mergeAndSortEvents(enhancedSessions, diningData || [], seatData, seatingData);
       
       // Set state
       setSessions(filteredSessions);
@@ -416,7 +488,7 @@ export default function useSessionData(enableOfflineMode = true, autoRefresh = t
         );
         
         // Merge sessions and dining options for unified display
-        const allEventsCombined = mergeAndSortEvents(enhancedSessions, diningResponse || []);
+        const allEventsCombined = mergeAndSortEvents(enhancedSessions, diningResponse || [], seatData, seatingData);
         
         // Find current and next sessions from ALL events (including dining options)
         const activeSession = allEventsCombined.find(s => s.isActive);
