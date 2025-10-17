@@ -129,7 +129,7 @@ const convertDiningToSessions = (diningOptions) => {
     const sessionForTiming = {
       ...dining,
       start_time: dining.time,  // Map 'time' to 'start_time'
-      end_time: dining.time     // Use same time for end_time (dining events don't have duration)
+      end_time: null            // Set to null for dining events (no end time)
     };
     
     // ✅ DEBUG: Log before calling isSessionUpcoming
@@ -160,7 +160,7 @@ const convertDiningToSessions = (diningOptions) => {
       description: dining.location || '',
       date: dining.date,
       start_time: dining.time,
-      end_time: dining.time, // Dining events typically don't have end times
+      end_time: null, // Dining events have no explicit end time
       location: dining.location || '',
       session_type: 'meal',
       type: 'meal',
@@ -478,6 +478,90 @@ export default function useSessionData(enableOfflineMode = true, autoRefresh = t
 
     return () => clearInterval(interval);
   }, [autoRefresh, isOffline, isAuthenticated, refreshData]);
+
+  // Listen for time override changes and re-evaluate session states
+  useEffect(() => {
+    const handleTimeOverrideChange = () => {
+      const currentTime = TimeService.getCurrentTime();
+      
+      const activeEvent = allEvents.find(event => 
+        isSessionActive(event, currentTime)
+      );
+      
+      const upcomingEvent = allEvents
+        .filter(event => isSessionUpcoming(event, currentTime))
+        .sort((a, b) => {
+          const dateComparison = (a.date || '').localeCompare(b.date || '');
+          if (dateComparison !== 0) return dateComparison;
+          const timeA = a.start_time || a.time || '';
+          const timeB = b.start_time || b.time || '';
+          return timeA.localeCompare(timeB);
+        })[0];
+      
+      setCurrentSession(prev => 
+        prev?.id !== activeEvent?.id ? (activeEvent || null) : prev
+      );
+      
+      setNextSession(prev => 
+        prev?.id !== upcomingEvent?.id ? (upcomingEvent || null) : prev
+      );
+    };
+
+    const handleStorageChange = (e) => {
+      if (e.key === 'kn_time_override' || e.key === 'kn_time_override_start') {
+        handleTimeOverrideChange();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('timeOverrideChanged', handleTimeOverrideChange);
+    window.addEventListener('timeOverrideBoundaryCrossed', handleTimeOverrideChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('timeOverrideChanged', handleTimeOverrideChange);
+      window.removeEventListener('timeOverrideBoundaryCrossed', handleTimeOverrideChange);
+    };
+  }, [allEvents]);
+
+  // Real-time update mechanism for both real time and time override
+  useEffect(() => {
+    if (allEvents.length === 0) return;
+
+    const isOverrideActive = TimeService.isOverrideActive();
+    
+    if (isOverrideActive) {
+      TimeService.startBoundaryMonitoring();
+    }
+
+    const handleRealTimeUpdate = () => {
+      const currentTime = TimeService.getCurrentTime();
+      
+      const activeEvent = allEvents.find(event => 
+        isSessionActive(event, currentTime)
+      );
+      
+      const upcomingEvent = allEvents
+        .filter(event => isSessionUpcoming(event, currentTime))
+        .sort((a, b) => {
+          const dateComparison = (a.date || '').localeCompare(b.date || '');
+          if (dateComparison !== 0) return dateComparison;
+          const timeA = a.start_time || a.time || '';
+          const timeB = b.start_time || b.time || '';
+          return timeA.localeCompare(timeB);
+        })[0];
+      
+      setCurrentSession(activeEvent || null);
+      setNextSession(upcomingEvent || null);
+    };
+
+    const interval = setInterval(handleRealTimeUpdate, 1000);
+
+    return () => {
+      clearInterval(interval);
+      TimeService.stopBoundaryMonitoring();
+    };
+  }, [allEvents]);
 
   return {
     // Data
