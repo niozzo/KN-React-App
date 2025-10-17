@@ -577,7 +577,6 @@ export class ServerDataSyncService extends BaseService {
             id: mapleAshConfig.id,
             dining_option_id: mapleAshConfig.dining_option_id,
             agenda_item_id: mapleAshConfig.agenda_item_id,
-            has_seating: mapleAshConfig.has_seating,
             seating_type: mapleAshConfig.seating_type,
             layout_type: mapleAshConfig.layout_type
           } : null

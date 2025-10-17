@@ -141,7 +141,6 @@ export interface AgendaItem {
   attendee_selection: string; // "everyone", "selected", etc.
   selected_attendees: string[]; // Array of attendee IDs
   is_active: boolean;
-  has_seating: boolean;
   seating_notes: string;
   seating_type: string; // "open", "assigned"
   created_at: string;

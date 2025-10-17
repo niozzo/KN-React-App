@@ -26,7 +26,6 @@ export interface DiningOption {
   
   // Capacity and Seating
   capacity: number             // Maximum capacity
-  has_table_assignments: boolean // Whether table assignments are configured
   tables: TableConfig[]        // Table configuration array
   layout_template_id: string | null // Layout template reference
   seating_notes: string        // Seating configuration notes

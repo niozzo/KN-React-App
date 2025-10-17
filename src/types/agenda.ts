@@ -40,7 +40,6 @@ export interface AgendaItem {
   
   // Status and Configuration
   isActive: boolean            // Active status (transformed from is_active)
-  has_seating: boolean         // Whether seating is configured
   seating_notes: string        // Seating configuration notes
   seating_type: SeatingType    // Seating type (open/assigned)
   
@@ -114,10 +113,6 @@ export const SESSION_TYPES: { value: SessionType; label: string }[] = [
   { value: 'networking', label: 'Networking' }
 ]
 
-export const SEATING_TYPES: { value: SeatingType; label: string }[] = [
-  { value: 'open-seating', label: 'Open Seating' },
-  { value: 'assigned-seating', label: 'Assigned Seating' }
-]
 
 // Helper functions
 export const formatTimeForDisplay = (time: string): string => {
@@ -142,9 +137,6 @@ export const calculateDuration = (startTime: string, endTime: string): number =>
   return (end.getTime() - start.getTime()) / (1000 * 60)
 }
 
-export const isAssignedSeating = (seatingType: SeatingType): boolean => {
-  return seatingType === 'assigned-seating'
-}
 
 // API response types
 export interface AgendaItemResponse {

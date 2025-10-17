@@ -93,7 +93,7 @@ export class SeatAssignmentNormalizationService extends BaseService {
     return agendaItems.filter(item => 
       item.date === targetDate && 
       item.session_type !== 'dining' &&
-      (item.has_seating === true || item.seating_type === 'assigned')
+      item.seating_type === 'assigned'
     );
   }
 
