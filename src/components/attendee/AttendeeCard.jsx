@@ -4,6 +4,7 @@ import Card, { CardHeader, CardContent } from '../common/Card';
 import Button from '../common/Button';
 import StatusTag from '../common/StatusTag';
 import { useLazyImage } from '../../hooks/useLazyImage';
+import { offlineAwareImageService } from '../../services/offlineAwareImageService';
 
 /**
  * Attendee Card Component
@@ -97,7 +98,7 @@ const AttendeeCard = forwardRef(({
           
           {photo && isVisible ? (
             <img
-              src={photo}
+              src={offlineAwareImageService.getHeadshotUrl(attendee.id, photo)}
               alt={`${name} headshot`}
               loading="lazy"
               style={{

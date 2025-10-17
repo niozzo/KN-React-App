@@ -35,20 +35,15 @@ export class AuthenticationSyncService extends BaseService {
       // Import services dynamically to avoid circular dependencies
       const { serverDataSyncService } = await import('./serverDataSyncService')
       const { attendeeSyncService } = await import('./attendeeSyncService')
+      const { serviceOrchestrator } = await import('./serviceOrchestrator')
       
       const syncedTables: string[] = []
       let totalRecords = 0
       
-      // Step 1: Initialize company normalization service FIRST (required for data processing)
-      console.log('🔄 AuthenticationSync: Initializing company normalization service...')
-      try {
-        const { CompanyNormalizationService } = await import('./companyNormalizationService')
-        const companyService = CompanyNormalizationService.getInstance()
-        await companyService.initialize()
-        console.log('✅ AuthenticationSync: Company normalization service initialized')
-      } catch (companyError) {
-        console.warn('⚠️ AuthenticationSync: Company normalization failed:', companyError)
-      }
+      // Step 1: Ensure all services are initialized via ServiceOrchestrator
+      console.log('🔄 AuthenticationSync: Ensuring all services are ready...')
+      await serviceOrchestrator.ensureServicesReady()
+      console.log('✅ AuthenticationSync: All services initialized and ready')
       
       // Step 2: Sync core data (attendees, agenda items)
       console.log('🔄 AuthenticationSync: Syncing core data...')
