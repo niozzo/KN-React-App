@@ -125,6 +125,13 @@ const convertDiningToSessions = (diningOptions) => {
   const currentTime = TimeService.getCurrentTime();
   
   const sessions = diningOptions.map(dining => {
+    // ✅ DEBUG: Log before calling isSessionUpcoming
+    console.log('🍽️ About to call isSessionUpcoming for:', {
+      title: dining.name,
+      date: dining.date,
+      time: dining.time
+    });
+    
     // Calculate isActive and isUpcoming for dining options
     const isActive = isSessionActive(dining, currentTime);
     const isUpcoming = isSessionUpcoming(dining, currentTime);
