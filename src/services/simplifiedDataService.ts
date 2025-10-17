@@ -22,7 +22,7 @@ export interface DataServiceResult {
 }
 
 export class SimplifiedDataService extends BaseService {
-  private readonly CACHE_PREFIX = 'cache_';
+  private readonly CACHE_PREFIX = 'kn_cache_';
   private readonly CACHE_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
 
   /**
