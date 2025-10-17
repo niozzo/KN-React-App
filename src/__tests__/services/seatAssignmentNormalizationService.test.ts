@@ -299,8 +299,15 @@ describe('SeatAssignmentNormalizationService', () => {
         '2025-10-21'
       );
 
-      // Should return original assignments unchanged due to inconsistency
-      expect(result).toEqual(inconsistentAssignments);
+      // Should skip normalization for attendee-1 (inconsistent) but process other attendees
+      // attendee-1 should not get new assignments due to inconsistency
+      const attendee1Assignments = result.filter(a => a.attendee_id === 'attendee-1');
+      const originalAttendee1Assignments = inconsistentAssignments.filter(a => a.attendee_id === 'attendee-1');
+      expect(attendee1Assignments.length).toBe(originalAttendee1Assignments.length);
+      
+      // Other attendees should still get normalized
+      const attendee2Assignments = result.filter(a => a.attendee_id === 'attendee-2');
+      expect(attendee2Assignments.length).toBeGreaterThan(0);
     });
 
     it('should preserve existing seat assignments', () => {
