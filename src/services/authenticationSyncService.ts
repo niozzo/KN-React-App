@@ -39,7 +39,18 @@ export class AuthenticationSyncService extends BaseService {
       const syncedTables: string[] = []
       let totalRecords = 0
       
-      // Step 1: Sync core data (attendees, agenda items)
+      // Step 1: Initialize company normalization service FIRST (required for data processing)
+      console.log('🔄 AuthenticationSync: Initializing company normalization service...')
+      try {
+        const { CompanyNormalizationService } = await import('./companyNormalizationService')
+        const companyService = CompanyNormalizationService.getInstance()
+        await companyService.initialize()
+        console.log('✅ AuthenticationSync: Company normalization service initialized')
+      } catch (companyError) {
+        console.warn('⚠️ AuthenticationSync: Company normalization failed:', companyError)
+      }
+      
+      // Step 2: Sync core data (attendees, agenda items)
       console.log('🔄 AuthenticationSync: Syncing core data...')
       const coreSyncResult = await serverDataSyncService.syncAllData()
       
@@ -51,7 +62,7 @@ export class AuthenticationSyncService extends BaseService {
         console.warn('⚠️ AuthenticationSync: Core sync failed, continuing with limited data')
       }
       
-      // Step 2: Sync attendee-specific data
+      // Step 3: Sync attendee-specific data
       console.log('🔄 AuthenticationSync: Syncing attendee data...')
       try {
         await attendeeSyncService.refreshAttendeeData()
@@ -59,17 +70,6 @@ export class AuthenticationSyncService extends BaseService {
         console.log('✅ AuthenticationSync: Attendee data sync completed')
       } catch (attendeeError) {
         console.warn('⚠️ AuthenticationSync: Attendee sync failed:', attendeeError)
-      }
-      
-      // Step 3: Initialize company normalization service after data sync
-      console.log('🔄 AuthenticationSync: Initializing company normalization service...')
-      try {
-        const { CompanyNormalizationService } = await import('./companyNormalizationService')
-        const companyService = CompanyNormalizationService.getInstance()
-        await companyService.initialize()
-        console.log('✅ AuthenticationSync: Company normalization service initialized')
-      } catch (companyError) {
-        console.warn('⚠️ AuthenticationSync: Company normalization failed:', companyError)
       }
       
       // Step 4: Validate cache population
