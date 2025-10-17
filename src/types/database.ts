@@ -173,7 +173,6 @@ export interface DiningOption {
   address: string;
   address_validated: boolean;
   capacity: number;
-  has_table_assignments: boolean;
   tables: Array<{
     table_name: string;
     capacity: number;

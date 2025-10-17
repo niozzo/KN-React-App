@@ -277,7 +277,7 @@ export class DiningService implements IDiningService {
       const { data, error, count } = await supabase
         .from(this.tableName)
         .select('*', { count: 'exact' })
-        .eq('has_table_assignments', true)
+        .eq('seating_type', 'assigned')
         .order('date', { ascending: true })
         .order('time', { ascending: true });
 
