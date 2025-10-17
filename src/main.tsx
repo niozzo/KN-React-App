@@ -18,14 +18,10 @@ async function bootstrapApplication() {
     const serviceRegistry = ServiceRegistry.getInstance();
     serviceRegistry.initialize();
 
-    // Initialize company normalization service (Story 8.7)
-    // Loads standardized_companies and company_aliases for O(1) lookup
-    try {
-      const companyService = CompanyNormalizationService.getInstance();
-      await companyService.initialize();
-    } catch (error) {
-      // Graceful degradation - continue without company normalization
-    }
+    // ✅ DISABLED: CompanyNormalizationService during bootstrap
+    // This was causing sync operations before authentication
+    // Company normalization will be handled after authentication
+    console.log('⏸️ CompanyNormalizationService: Skipped during bootstrap - will initialize after authentication')
 
     // ✅ SIMPLIFIED: Service worker handles caching automatically
 
