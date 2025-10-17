@@ -478,7 +478,7 @@ export default function useSessionData(enableOfflineMode = true, autoRefresh = t
         const attendeeFilteredSessions = filterSessionsForAttendee(enhancedSessions, attendee);
         
         // Merge sessions and dining options for unified display
-        const allEventsCombined = mergeAndSortEvents(attendeeFilteredSessions, diningResponse || [], seatData, seatingData);
+        const allEventsCombined = mergeAndSortEvents(attendeeFilteredSessions, diningResponse || [], seatAssignments, seatingConfigurations);
         
         // Find current and next sessions from ALL events (including dining options)
         const activeSession = allEventsCombined.find(s => s.isActive);
