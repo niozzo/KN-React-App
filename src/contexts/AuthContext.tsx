@@ -153,9 +153,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           return { success: false, error: 'Login cancelled' }
         }
         
-        console.log('🔍 [LOGIN-DEBUG] About to call serverDataSyncService.syncAllData()')
+        console.log('🚨 [LOGIN-DEBUG] About to call serverDataSyncService.syncAllData()')
         syncResult = await serverDataSyncService.syncAllData()
-        console.log('🔍 [LOGIN-DEBUG] serverDataSyncService.syncAllData() completed:', syncResult)
+        console.log('🚨 [LOGIN-DEBUG] serverDataSyncService.syncAllData() completed:', syncResult)
         
         // ✅ CHECK: If logout was called during sync, abort
         if (abortController.signal.aborted) {
