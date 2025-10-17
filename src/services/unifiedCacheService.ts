@@ -61,6 +61,15 @@ export class UnifiedCacheService {
         
         // Handle checksum mismatches by recalculating and fixing
         if (validation.issues?.includes('Cache data integrity check failed (checksum mismatch)')) {
+          // Check if this is first login (no authentication data)
+          if (!localStorage.getItem('conference_auth')) {
+            console.error('🚨 CRITICAL: Cache repair triggered on first login - this should not happen!');
+            console.error('🚨 This indicates stale cache from previous session');
+            // Clear the corrupted entry instead of repairing
+            await this.cleanupCorruptedCache(key);
+            return null;
+          }
+          
           console.warn(`⚠️ Checksum mismatch detected for ${key}, attempting repair...`);
           
           // Try to repair the checksum
