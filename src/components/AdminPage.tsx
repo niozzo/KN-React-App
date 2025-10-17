@@ -19,6 +19,7 @@ import {
 } from '@mui/material';
 import { ArrowBack as ArrowBackIcon, Save as SaveIcon, Home as HomeIcon, AccessTime as AccessTimeIcon } from '@mui/icons-material';
 import { useNavigate, useOutletContext } from 'react-router-dom';
+import { simplifiedDataService } from '../services/simplifiedDataService';
 import { ValidationRules } from '../utils/validationUtils';
 import { TimeOverridePanel } from './admin/TimeOverridePanel';
 
@@ -51,40 +52,20 @@ export const AdminPage: React.FC = () => {
       setLoading(true);
       setError('');
 
-      // Load agenda items from cache
-      console.log('📋 Loading agenda items from cache...');
-      const agendaCacheData = localStorage.getItem('kn_cache_agenda_items');
-      console.log('📋 Raw agenda cache data:', agendaCacheData);
-      if (agendaCacheData) {
-        try {
-          const parsedData = JSON.parse(agendaCacheData);
-          console.log('📋 Parsed agenda data:', parsedData);
-          const agendaItems = parsedData.data || parsedData || [];
-          setAgendaItems(agendaItems);
-          console.log('📋 Loaded agenda items from cache:', agendaItems.length, agendaItems);
-        } catch (error) {
-          console.error('Error parsing agenda items cache:', error);
-        }
-      } else {
-        console.log('📋 No agenda cache data found');
+      // Load agenda items using simplifiedDataService (handles cache properly)
+      console.log('📋 Loading agenda items...');
+      const agendaResponse = await simplifiedDataService.getData('agenda_items');
+      if (agendaResponse.success && agendaResponse.data) {
+        setAgendaItems(agendaResponse.data);
+        console.log('📋 Loaded agenda items:', agendaResponse.data.length);
       }
 
-      // Load dining options from cache
-      console.log('🍽️ Loading dining options from cache...');
-      const diningCacheData = localStorage.getItem('kn_cache_dining_options');
-      console.log('🍽️ Raw dining cache data:', diningCacheData);
-      if (diningCacheData) {
-        try {
-          const parsedData = JSON.parse(diningCacheData);
-          console.log('🍽️ Parsed dining data:', parsedData);
-          const diningOptions = parsedData.data || parsedData || [];
-          setDiningOptions(diningOptions);
-          console.log('🍽️ Loaded dining options from cache:', diningOptions.length, diningOptions);
-        } catch (error) {
-          console.error('Error parsing dining options cache:', error);
-        }
-      } else {
-        console.log('🍽️ No dining cache data found');
+      // Load dining options using simplifiedDataService (handles cache properly)
+      console.log('🍽️ Loading dining options...');
+      const diningResponse = await simplifiedDataService.getData('dining_options');
+      if (diningResponse.success && diningResponse.data) {
+        setDiningOptions(diningResponse.data);
+        console.log('🍽️ Loaded dining options:', diningResponse.data.length);
       }
 
       console.log('✅ Admin data loaded successfully');
