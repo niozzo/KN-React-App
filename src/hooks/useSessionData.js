@@ -199,8 +199,9 @@ export default function useSessionData(enableOfflineMode = true, autoRefresh = t
       setSeatingConfigurations(seatingData);
 
       // Load dining options
+      let diningData = [];
       try {
-        const diningData = await getAllDiningOptions();
+        diningData = await getAllDiningOptions();
         setDiningOptions(diningData);
         setDiningError(null);
       } catch (diningErr) {
