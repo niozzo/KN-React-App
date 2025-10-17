@@ -432,18 +432,26 @@ export const LoginPage: React.FC = () => {
   useEffect(() => {
     const clearStaleCache = () => {
       try {
-        const cacheKeys: string[] = []
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i)
-          if (key && key.startsWith('kn_cache_')) {
-            cacheKeys.push(key)
+        // Only clear specific problematic cache entries that cause issues
+        // Don't clear all cache as some might be needed during login
+        const problematicKeys = [
+          'kn_cache_agenda_items', // This specific cache causes checksum mismatches
+          'kn_cached_sessions'     // Session cache that might be stale
+        ]
+        
+        const foundKeys: string[] = []
+        for (const key of problematicKeys) {
+          if (localStorage.getItem(key)) {
+            foundKeys.push(key)
           }
         }
         
-        if (cacheKeys.length > 0) {
-          console.log(`🧹 Clearing ${cacheKeys.length} stale cache entries on login page render`)
-          cacheKeys.forEach(key => localStorage.removeItem(key))
-          console.log('✅ Stale cache cleared - ready for fresh login')
+        if (foundKeys.length > 0) {
+          console.log(`🧹 Clearing ${foundKeys.length} problematic cache entries on login page render`)
+          foundKeys.forEach(key => localStorage.removeItem(key))
+          console.log('✅ Problematic cache cleared - ready for fresh login')
+        } else {
+          console.log('✅ No problematic cache entries found')
         }
       } catch (error) {
         console.warn('⚠️ Failed to clear stale cache:', error)
