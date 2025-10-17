@@ -55,6 +55,18 @@ export class SeatAssignmentNormalizationService extends BaseService {
 
       if (targetConfigIds.length === 0) {
         console.log(`🪑 No seating configurations found for ${targetDate}, skipping normalization`);
+        
+        // ✅ FIX: Check for data inconsistencies
+        const allConfigs = seatingConfigurations.filter(config => 
+          targetAgendaItems.some(item => item.id === config.agenda_item_id)
+        );
+        const openConfigs = allConfigs.filter(config => config.seating_type === 'open');
+        
+        if (openConfigs.length > 0) {
+          console.warn(`⚠️ Data inconsistency detected: ${openConfigs.length} seating configurations have seating_type='open' but agenda items have seating_type='assigned'`);
+          console.warn(`⚠️ This suggests the cache is out of sync with the database. Consider forcing a cache refresh.`);
+        }
+        
         return seatAssignments;
       }
 
@@ -99,6 +111,7 @@ export class SeatAssignmentNormalizationService extends BaseService {
 
   /**
    * Find seating configurations associated with target agenda items
+   * Only include configurations that also have seating_type === 'assigned'
    */
   private findAssociatedSeatingConfigurations(
     seatingConfigurations: SeatingConfiguration[],
@@ -106,7 +119,8 @@ export class SeatAssignmentNormalizationService extends BaseService {
   ): string[] {
     return seatingConfigurations
       .filter(config => 
-        targetAgendaItems.some(item => item.id === config.agenda_item_id)
+        targetAgendaItems.some(item => item.id === config.agenda_item_id) &&
+        config.seating_type === 'assigned'  // ✅ FIX: Only include assigned seating configurations
       )
       .map(config => config.id);
   }
