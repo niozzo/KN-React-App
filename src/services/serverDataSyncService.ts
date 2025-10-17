@@ -174,6 +174,8 @@ export class ServerDataSyncService extends BaseService {
    * Sync all tables using server-side authentication
    */
   async syncAllData(): Promise<ServerSyncResult> {
+    console.log('🔍 [SYNC-DEBUG] syncAllData() called - starting data sync from database');
+    
     const result: ServerSyncResult = {
       success: true,
       syncedTables: [],
