@@ -17,10 +17,11 @@ import {
   Divider,
   Chip
 } from '@mui/material';
-import { ArrowBack as ArrowBackIcon, Save as SaveIcon, Home as HomeIcon } from '@mui/icons-material';
+import { ArrowBack as ArrowBackIcon, Save as SaveIcon, Home as HomeIcon, AccessTime as AccessTimeIcon } from '@mui/icons-material';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { simplifiedDataService } from '../services/simplifiedDataService';
 import { ValidationRules } from '../utils/validationUtils';
+import { TimeOverridePanel } from './admin/TimeOverridePanel';
 
 interface OutletContext {
   onLogout: () => void;
@@ -31,6 +32,7 @@ export const AdminPage: React.FC = () => {
   const navigate = useNavigate();
   const [agendaItems, setAgendaItems] = useState<any[]>([]);
   const [diningOptions, setDiningOptions] = useState<any[]>([]);
+  const [attendees, setAttendees] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [editingTitle, setEditingTitle] = useState<string | null>(null);
@@ -39,6 +41,7 @@ export const AdminPage: React.FC = () => {
   const [diningTitleValue, setDiningTitleValue] = useState('');
   const [titleValidationError, setTitleValidationError] = useState('');
   const [diningTitleValidationError, setDiningTitleValidationError] = useState('');
+  const [timeOverrideItem, setTimeOverrideItem] = useState<any>(null);
 
   useEffect(() => {
     loadData();
@@ -52,22 +55,14 @@ export const AdminPage: React.FC = () => {
       // Simplified: Load only basic agenda items and dining options for title editing
       console.log('📋 Loading agenda items...');
       const agendaResponse = await simplifiedDataService.getData('agenda_items');
-      console.log('📋 Agenda response:', agendaResponse);
       if (agendaResponse.success && agendaResponse.data) {
         setAgendaItems(agendaResponse.data);
-        console.log('📋 Set agenda items:', agendaResponse.data.length);
-      } else {
-        console.warn('📋 No agenda items loaded:', agendaResponse);
       }
 
       console.log('🍽️ Loading dining options...');
       const diningResponse = await simplifiedDataService.getData('dining_options');
-      console.log('🍽️ Dining response:', diningResponse);
       if (diningResponse.success && diningResponse.data) {
         setDiningOptions(diningResponse.data);
-        console.log('🍽️ Set dining options:', diningResponse.data.length);
-      } else {
-        console.warn('🍽️ No dining options loaded:', diningResponse);
       }
 
       console.log('✅ Admin data loaded successfully');
@@ -206,7 +201,39 @@ export const AdminPage: React.FC = () => {
 
   // Speaker assignment management removed - now handled by main DB agenda_item_speakers
 
+  const handleRefreshData = async () => {
+    console.log('🔄 Refreshing data...');
+    await loadData();
+  };
 
+  const handleForceSyncApplicationDb = async () => {
+    try {
+      console.log('🔄 Force syncing application database...');
+      setLoading(true);
+      setError('');
+      
+      // Force sync application database tables
+      const applicationTables = ['speaker_assignments', 'agenda_item_metadata', 'attendee_metadata', 'dining_item_metadata'];
+      
+      for (const tableName of applicationTables) {
+        try {
+          await pwaDataSyncService.syncApplicationTable(tableName);
+          console.log(`✅ Synced ${tableName}`);
+        } catch (error) {
+          console.warn(`⚠️ Failed to sync ${tableName}:`, error);
+        }
+      }
+      
+      // Reload data after sync
+      await loadData();
+      
+    } catch (error) {
+      setError('Failed to sync application database. Please try again.');
+      console.error('Error syncing application database:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
 
   const extractTimeFromTimestamp = (timestamp: string): string => {
@@ -231,6 +258,50 @@ export const AdminPage: React.FC = () => {
     }
   };
 
+  const handleTimeOverride = (item: any) => {
+    console.log('🕐 Opening time override for item:', item);
+    console.log('🕐 Item properties:', {
+      id: item.id,
+      title: item.title,
+      start_time: item.start_time,
+      end_time: item.end_time,
+      type: typeof item.start_time,
+      allKeys: Object.keys(item)
+    });
+    
+    // Convert timestamps to time format for the panel
+    const processedItem = {
+      ...item,
+      start_time: extractTimeFromTimestamp(item.start_time),
+      end_time: extractTimeFromTimestamp(item.end_time)
+    };
+    
+    console.log('🕐 Processed item for TimeOverridePanel:', {
+      id: processedItem.id,
+      title: processedItem.title,
+      start_time: processedItem.start_time,
+      end_time: processedItem.end_time
+    });
+    
+    setTimeOverrideItem(processedItem);
+  };
+
+  const handleTimeUpdate = async (startTime: string, endTime: string, enabled: boolean) => {
+    try {
+      // Refresh agenda items to show updated times
+      await loadData();
+      setTimeOverrideItem(null);
+      console.log('✅ Time override updated successfully');
+    } catch (error) {
+      console.error('❌ Failed to refresh data after time update:', error);
+      // Still close the panel even if refresh fails
+      setTimeOverrideItem(null);
+    }
+  };
+
+  const handleTimeOverrideClose = () => {
+    setTimeOverrideItem(null);
+  };
 
   if (loading) {
     return (
@@ -272,7 +343,7 @@ export const AdminPage: React.FC = () => {
           Agenda Items
         </Typography>
 
-        {agendaItems.length === 0 && !loading ? (
+        {agendaItems.length === 0 ? (
           <Card sx={{ maxWidth: 600, mx: 'auto', mt: 4 }}>
             <CardContent sx={{ textAlign: 'center', p: 4 }}>
               <HomeIcon sx={{ fontSize: 64, color: 'primary.main', mb: 2 }} />
@@ -297,7 +368,7 @@ export const AdminPage: React.FC = () => {
               <Button
                 variant="outlined"
                 size="large"
-                onClick={() => window.location.reload()}
+                onClick={handleRefreshData}
               >
                 Refresh Data
               </Button>
@@ -346,12 +417,22 @@ export const AdminPage: React.FC = () => {
                             <Typography variant="h6" sx={{ flexGrow: 1 }}>
                               {item.title}
                             </Typography>
-                            <Button
-                              size="small"
-                              onClick={() => handleTitleEdit(item.id, item.title)}
-                            >
-                              Edit Title
-                            </Button>
+                            <Box sx={{ display: 'flex', gap: 1 }}>
+                              <Button
+                                size="small"
+                                onClick={() => handleTitleEdit(item.id, item.title)}
+                              >
+                                Edit Title
+                              </Button>
+                              <Button
+                                size="small"
+                                startIcon={<AccessTimeIcon />}
+                                onClick={() => handleTimeOverride(item)}
+                                variant="outlined"
+                              >
+                                Override Times
+                              </Button>
+                            </Box>
                           </Box>
                         )}
                       </Box>
@@ -485,6 +566,17 @@ export const AdminPage: React.FC = () => {
         )}
 
 
+        {/* Time Override Panel */}
+        {timeOverrideItem && (
+          <TimeOverridePanel
+            agendaItemId={timeOverrideItem.id}
+            currentStartTime={timeOverrideItem.start_time}
+            currentEndTime={timeOverrideItem.end_time}
+            currentTitle={timeOverrideItem.title}
+            onTimeUpdate={handleTimeUpdate}
+            onClose={handleTimeOverrideClose}
+          />
+        )}
       </Box>
     </Box>
   );
