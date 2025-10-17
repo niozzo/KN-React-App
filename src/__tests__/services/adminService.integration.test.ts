@@ -7,11 +7,11 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// Mock PWA sync service
-vi.mock('../../services/pwaDataSyncService', () => ({
-  pwaDataSyncService: {
-    getCachedTableData: vi.fn(),
-    cacheTableData: vi.fn()
+// Mock simplified data service
+vi.mock('../../services/simplifiedDataService', () => ({
+  simplifiedDataService: {
+    getData: vi.fn(),
+    clearCache: vi.fn()
   }
 }));
 
