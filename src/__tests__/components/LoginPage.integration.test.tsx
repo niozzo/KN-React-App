@@ -183,9 +183,9 @@ describe('LoginPage - Integration Tests', () => {
       // 5. Verify input is dimmed during loading
       expect(input).toHaveStyle({ opacity: '0.7' })
 
-      // 6. Verify data sync and authentication were called
+      // 6. Verify authentication was called
+      // Note: Data sync is now handled by ServiceOrchestrator
       await waitFor(() => {
-        expect(vi.mocked(serverDataSyncService.syncAllData)).toHaveBeenCalled()
         expect(vi.mocked(authenticateWithAccessCode)).toHaveBeenCalledWith(TEST_DATA.VALID_ACCESS_CODE)
       }, { timeout: 2000 })
 
