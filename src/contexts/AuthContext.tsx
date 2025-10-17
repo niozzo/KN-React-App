@@ -156,6 +156,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       // Step 3: Single coordinated sync after authentication
       console.log('🔄 Step 3: Starting coordinated authentication sync...')
+      let syncResult: { success: boolean; error?: string } = { success: false }
+      
       try {
         if (abortController.signal.aborted) {
           console.log('⏸️ Login aborted - skipping authentication sync')
@@ -164,7 +166,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         
         const { AuthenticationSyncService } = await import('../services/authenticationSyncService')
         const authSyncService = AuthenticationSyncService.getInstance()
-        const syncResult = await authSyncService.syncAfterAuthentication()
+        syncResult = await authSyncService.syncAfterAuthentication()
         
         if (!syncResult.success) {
           console.warn('⚠️ Authentication sync failed:', syncResult.error)
@@ -176,6 +178,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } catch (syncError) {
         console.warn('⚠️ Authentication sync failed:', syncError)
         // Continue with login even if sync fails
+        syncResult = { success: false, error: syncError instanceof Error ? syncError.message : 'Unknown sync error' }
       }
       
       // Load attendee name from the newly cached info
