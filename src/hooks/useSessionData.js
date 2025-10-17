@@ -198,7 +198,7 @@ const convertDiningToSessions = (diningOptions) => {
       end_time: null, // Dining events have no explicit end time
       location: dining.location || '',
       session_type: 'meal',
-      type: 'meal',
+      type: 'dining',
       capacity: dining.capacity || 0,
       registered_count: 0,
       attendee_selection: 'everyone',
