@@ -271,7 +271,7 @@ export class ServerDataSyncService extends BaseService {
       if (tableName === 'attendees') {
         // Use AttendeeCacheFilterService for comprehensive filtering
         const { AttendeeCacheFilterService } = await import('./attendeeCacheFilterService');
-        sanitizedData = AttendeeCacheFilterService.filterAttendeesArray(data);
+        sanitizedData = await AttendeeCacheFilterService.filterAttendeesArray(data);
         console.log(`🔒 Filtered ${data.length} attendee records for cache storage`);
       }
 

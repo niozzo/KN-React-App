@@ -271,12 +271,12 @@ export default function useSessionData(enableOfflineMode = true, autoRefresh = t
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, [autoRefresh, isAuthenticated, loadSessionData]);
+  }, [autoRefresh, isAuthenticated]); // Remove loadSessionData dependency
 
   // Load data on mount and when dependencies change
   useEffect(() => {
     loadSessionData();
-  }, [loadSessionData]);
+  }, [isAuthenticated]); // Only depend on authentication status
 
   // Auto-refresh when online
   useEffect(() => {
