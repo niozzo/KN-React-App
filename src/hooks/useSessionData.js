@@ -22,14 +22,19 @@ import { breakoutMappingService } from '../services/breakoutMappingService';
 const isSessionActive = (session, currentTime) => {
   if (!session.start_time) return false;
   
-  const start = new Date(`${session.date}T${session.start_time}`);
+  // ✅ FIX: Parse date without timezone conversion to avoid day shift
+  // Split date and time, create Date objects in local timezone
+  const [year, month, day] = session.date.split('-').map(Number);
+  const [startHour, startMin, startSec] = session.start_time.split(':').map(Number);
+  const start = new Date(year, month - 1, day, startHour, startMin, startSec || 0);
   
   // If no end time, assume it ends at midnight
   let end;
   if (session.end_time) {
-    end = new Date(`${session.date}T${session.end_time}`);
+    const [endHour, endMin, endSec] = session.end_time.split(':').map(Number);
+    end = new Date(year, month - 1, day, endHour, endMin, endSec || 0);
   } else {
-    end = new Date(`${session.date}T23:59:59`);
+    end = new Date(year, month - 1, day, 23, 59, 59);
   }
   
   return currentTime >= start && currentTime <= end;
@@ -44,7 +49,12 @@ const isSessionActive = (session, currentTime) => {
 const isSessionUpcoming = (session, currentTime) => {
   if (!session.start_time) return false;
   
-  const start = new Date(`${session.date}T${session.start_time}`);
+  // ✅ FIX: Parse date without timezone conversion to avoid day shift
+  // Split date and time, create Date object in local timezone
+  const [year, month, day] = session.date.split('-').map(Number);
+  const [startHour, startMin, startSec] = session.start_time.split(':').map(Number);
+  const start = new Date(year, month - 1, day, startHour, startMin, startSec || 0);
+  
   return currentTime < start;
 };
 
