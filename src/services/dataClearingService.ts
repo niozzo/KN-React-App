@@ -137,6 +137,7 @@ export class DataClearingService {
         const key = localStorage.key(i)
         if (key && (
           key.startsWith(this.CACHE_PREFIX) || // kn_cache_*
+          key.startsWith('cache_') || // cache_* (new simplified cache)
           key === this.AUTH_KEY || // conference_auth
           key === this.ATTENDEE_INFO_KEY || // kn_current_attendee_info
           key.startsWith('kn_cached_') || // kn_cached_sessions, etc.
