@@ -98,34 +98,42 @@ const convertDiningToSessions = (diningOptions) => {
     return [];
   }
   
-  const sessions = diningOptions.map(dining => ({
-    id: `dining-${dining.id}`,
-    title: dining.name,
-    description: dining.location || '',
-    date: dining.date,
-    start_time: dining.time,
-    end_time: dining.time, // Dining events typically don't have end times
-    location: dining.location || '',
-    session_type: 'meal',
-    type: 'meal',
-    capacity: dining.capacity || 0,
-    registered_count: 0,
-    attendee_selection: 'everyone',
-    selected_attendees: [],
-    isActive: false,
-    isUpcoming: false,
-    has_seating: dining.has_table_assignments || false,
-    seating_notes: dining.seating_notes || '',
-    seating_type: dining.seating_type || 'open',
-    speakers: [],
-    speakerInfo: '',
-    speaker: '',
-    seatInfo: null,
-    // Dining-specific fields
-    diningOption: true,
-    originalDiningId: dining.id,
-    seating_config: dining
-  }));
+  const currentTime = TimeService.getCurrentTime();
+  
+  const sessions = diningOptions.map(dining => {
+    // Calculate isActive and isUpcoming for dining options
+    const isActive = isSessionActive(dining, currentTime);
+    const isUpcoming = isSessionUpcoming(dining, currentTime);
+    
+    return {
+      id: `dining-${dining.id}`,
+      title: dining.name,
+      description: dining.location || '',
+      date: dining.date,
+      start_time: dining.time,
+      end_time: dining.time, // Dining events typically don't have end times
+      location: dining.location || '',
+      session_type: 'meal',
+      type: 'meal',
+      capacity: dining.capacity || 0,
+      registered_count: 0,
+      attendee_selection: 'everyone',
+      selected_attendees: [],
+      isActive,
+      isUpcoming,
+      has_seating: dining.has_table_assignments || false,
+      seating_notes: dining.seating_notes || '',
+      seating_type: dining.seating_type || 'open',
+      speakers: [],
+      speakerInfo: '',
+      speaker: '',
+      seatInfo: null,
+      // Dining-specific fields
+      diningOption: true,
+      originalDiningId: dining.id,
+      seating_config: dining
+    };
+  });
   
   console.log('🍽️ Converted dining sessions:', { sessionsLength: sessions?.length || 0, sessions });
   return sessions;
