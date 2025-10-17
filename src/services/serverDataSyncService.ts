@@ -122,8 +122,7 @@ export class ServerDataSyncService extends BaseService {
       const { DiningTransformer } = await import('../transformers/diningTransformer.js');
       const diningTransformer = new DiningTransformer();
       records = diningTransformer.transformArrayFromDatabase(records);
-      // 🔧 FIX: Don't filter out inactive dining options - they may have seat assignments
-      // records = diningTransformer.filterActiveDiningOptions(records);
+      records = diningTransformer.filterActiveDiningOptions(records);
       records = diningTransformer.sortDiningOptions(records);
     }
     
