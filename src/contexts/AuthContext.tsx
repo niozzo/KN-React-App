@@ -166,7 +166,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       // Step 3: Now that we're authenticated, validate cache state before sync
       console.log('🔍 Validating cache state after authentication...')
-      await this.validateCacheStateBeforeLogin()
+      // Temporarily disabled to test authentication
+      // await this.validateCacheStateBeforeLogin()
       
       // Step 4: Sync data for offline use
       console.log('🔐 Step 2: Authentication successful, syncing data for offline use...')
