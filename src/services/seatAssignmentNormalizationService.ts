@@ -128,43 +128,44 @@ export class SeatAssignmentNormalizationService extends BaseService {
 
   /**
    * Detect if there are inconsistent seat assignments across configurations
+   * Skip normalization if attendee has DIFFERENT seat positions across agenda items
    */
   private detectInconsistentAssignments(
     seatAssignments: SeatAssignment[],
     targetConfigIds: string[]
   ): boolean {
-    // Group seat assignments by attendee for each configuration
-    const attendeeConfigurations = new Map<string, Map<string, SeatAssignment>>();
+    // Group seat assignments by attendee
+    const attendeeAssignments = new Map<string, SeatAssignment[]>();
 
     for (const assignment of seatAssignments) {
       if (targetConfigIds.includes(assignment.seating_configuration_id)) {
-        if (!attendeeConfigurations.has(assignment.attendee_id)) {
-          attendeeConfigurations.set(assignment.attendee_id, new Map());
+        if (!attendeeAssignments.has(assignment.attendee_id)) {
+          attendeeAssignments.set(assignment.attendee_id, []);
         }
-        
-        const attendeeConfigs = attendeeConfigurations.get(assignment.attendee_id)!;
-        attendeeConfigs.set(assignment.seating_configuration_id, assignment);
+        attendeeAssignments.get(assignment.attendee_id)!.push(assignment);
       }
     }
 
-    // Check for inconsistencies
-    for (const [attendeeId, configs] of attendeeConfigurations) {
-      if (configs.size > 1) {
-        // This attendee has assignments in multiple configurations
-        const assignments = Array.from(configs.values());
+    // Check for inconsistencies - skip if attendee has DIFFERENT seat positions
+    for (const [attendeeId, assignments] of attendeeAssignments) {
+      if (assignments.length > 1) {
         const firstAssignment = assignments[0];
         
-        // Check if all assignments have the same seat position
-        const hasInconsistentPositions = assignments.some(assignment => 
+        // Check if any assignment has different seat position
+        const hasDifferentPositions = assignments.some(assignment => 
           assignment.table_name !== firstAssignment.table_name ||
           assignment.seat_number !== firstAssignment.seat_number ||
           assignment.row_number !== firstAssignment.row_number ||
           assignment.column_number !== firstAssignment.column_number
         );
 
-        if (hasInconsistentPositions) {
-          console.warn(`⚠️ Inconsistent seat positions for attendee ${attendeeId} across configurations`);
+        if (hasDifferentPositions) {
+          console.warn(`⚠️ Attendee ${attendeeId} has different seat positions across agenda items`);
+          console.warn(`⚠️ This suggests they were intentionally assigned different seats for different sessions`);
+          console.warn(`⚠️ Skipping normalization to preserve existing seat assignments`);
           return true;
+        } else {
+          console.log(`✅ Attendee ${attendeeId} has consistent seat positions - normalization can proceed`);
         }
       }
     }
