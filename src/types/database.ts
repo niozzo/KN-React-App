@@ -186,20 +186,6 @@ export interface DiningOption {
   created_at: string;
 }
 
-// ============================================================================
-// HOTELS TABLE (0 records - empty, ready for data)
-// ============================================================================
-
-export interface Hotel {
-  id: string;
-  name: string;
-  address: string;
-  phone: string;
-  website: string;
-  is_active: boolean;
-  display_order: number;
-  created_at: string;
-}
 
 // ============================================================================
 // AUTHENTICATION TYPES
@@ -285,12 +271,6 @@ export interface DiningService {
   createDiningOption(option: Omit<DiningOption, 'id' | 'created_at'>): Promise<DatabaseResponse<DiningOption>>;
 }
 
-export interface HotelService {
-  getAllHotels(): Promise<PaginatedResponse<Hotel>>;
-  getActiveHotels(): Promise<PaginatedResponse<Hotel>>;
-  getHotelById(id: string): Promise<DatabaseResponse<Hotel>>;
-  createHotel(hotel: Omit<Hotel, 'id' | 'created_at'>): Promise<DatabaseResponse<Hotel>>;
-}
 
 export interface AccessCodeAuthService {
   authenticateWithAccessCode(accessCode: string): Promise<AccessCodeAuthResponse>;

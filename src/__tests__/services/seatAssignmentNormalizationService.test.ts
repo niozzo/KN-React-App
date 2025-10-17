@@ -62,7 +62,7 @@ describe('SeatAssignmentNormalizationService', () => {
         date: '2025-10-21',
         start_time: '12:00:00',
         end_time: '13:00:00',
-        session_type: 'dining',
+        session_type: 'meal',
         seating_type: 'assigned',
         location: 'Dining Room',
         capacity: 100,
@@ -215,10 +215,11 @@ describe('SeatAssignmentNormalizationService', () => {
         mockSeatAssignments,
         mockSeatingConfigurations,
         mockAgendaItems,
-        '2025-10-21'
+        '2025-10-21',
+        'attendee-1' // Test for attendee-1 only
       );
 
-      // Should have original assignments plus new ones for config-2
+      // Should have original assignments plus new ones for config-2 for attendee-1
       expect(result.length).toBeGreaterThan(mockSeatAssignments.length);
       
       // Check that attendee-1 now has assignment for config-2
@@ -230,14 +231,12 @@ describe('SeatAssignmentNormalizationService', () => {
       expect(attendee1Config2?.table_name).toBe('Table 1');
       expect(attendee1Config2?.seat_number).toBe(1);
 
-      // Check that attendee-2 now has assignment for config-2
+      // attendee-2 should not get new assignments since we're only normalizing for attendee-1
       const attendee2Config2 = result.find(assignment => 
         assignment.attendee_id === 'attendee-2' && 
         assignment.seating_configuration_id === 'config-2'
       );
-      expect(attendee2Config2).toBeDefined();
-      expect(attendee2Config2?.table_name).toBe('Table 1');
-      expect(attendee2Config2?.seat_number).toBe(2);
+      expect(attendee2Config2).toBeUndefined();
     });
 
     it('should leave other dates unchanged', () => {
@@ -245,7 +244,8 @@ describe('SeatAssignmentNormalizationService', () => {
         mockSeatAssignments,
         mockSeatingConfigurations,
         mockAgendaItems,
-        '2025-10-22'
+        '2025-10-22',
+        'attendee-1'
       );
 
       // Should return original assignments unchanged
@@ -257,7 +257,8 @@ describe('SeatAssignmentNormalizationService', () => {
         mockSeatAssignments,
         mockSeatingConfigurations,
         mockAgendaItems,
-        '2025-10-21'
+        '2025-10-21',
+        'attendee-1'
       );
 
       // Should not create assignments for dining event (agenda-3)
@@ -296,7 +297,8 @@ describe('SeatAssignmentNormalizationService', () => {
         inconsistentAssignments,
         mockSeatingConfigurations,
         mockAgendaItems,
-        '2025-10-21'
+        '2025-10-21',
+        'attendee-1'
       );
 
       // Should skip normalization for attendee-1 (inconsistent) but process other attendees
@@ -315,7 +317,8 @@ describe('SeatAssignmentNormalizationService', () => {
         mockSeatAssignments,
         mockSeatingConfigurations,
         mockAgendaItems,
-        '2025-10-21'
+        '2025-10-21',
+        'attendee-1'
       );
 
       // Original assignments should still be present
@@ -328,7 +331,8 @@ describe('SeatAssignmentNormalizationService', () => {
         [],
         [],
         [],
-        '2025-10-21'
+        '2025-10-21',
+        'attendee-1'
       );
 
       expect(result).toEqual([]);
@@ -339,7 +343,8 @@ describe('SeatAssignmentNormalizationService', () => {
         mockSeatAssignments,
         mockSeatingConfigurations,
         [], // No agenda items
-        '2025-10-21'
+        '2025-10-21',
+        'attendee-1'
       );
 
       expect(result).toEqual(mockSeatAssignments);
@@ -350,7 +355,8 @@ describe('SeatAssignmentNormalizationService', () => {
         mockSeatAssignments,
         [], // No seating configurations
         mockAgendaItems,
-        '2025-10-21'
+        '2025-10-21',
+        'attendee-1'
       );
 
       expect(result).toEqual(mockSeatAssignments);
@@ -361,7 +367,8 @@ describe('SeatAssignmentNormalizationService', () => {
         mockSeatAssignments,
         mockSeatingConfigurations,
         mockAgendaItems,
-        '2025-10-21'
+        '2025-10-21',
+        'attendee-1'
       );
 
       // All IDs should be unique
@@ -375,7 +382,8 @@ describe('SeatAssignmentNormalizationService', () => {
         mockSeatAssignments,
         mockSeatingConfigurations,
         mockAgendaItems,
-        '2025-10-21'
+        '2025-10-21',
+        'attendee-1'
       );
 
       // Find a replicated assignment
