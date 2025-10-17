@@ -35,16 +35,16 @@ export class SimplifiedDataService extends BaseService {
       // Check localStorage first (primary cache)
       const cached = this.getFromCache(tableName);
       if (cached) {
-        console.log(`✅ Using cached data for ${tableName}`);
+        console.log(`✅ LOCALSTORAGE: Using cached data for ${tableName} (${cached.length} records)`);
         return {
           success: true,
-          data: cached.data,
+          data: cached,
           fromCache: true
         };
       }
 
       // No cache - fetch from database
-      console.log(`🌐 No cache found for ${tableName}, fetching from database...`);
+      console.log(`🌐 FETCH: No cache found for ${tableName}, fetching from database...`);
       const freshData = await this.fetchFromDatabase(tableName);
       
       // Store in cache
@@ -57,7 +57,7 @@ export class SimplifiedDataService extends BaseService {
       };
 
     } catch (error) {
-      console.error(`❌ Failed to get data for ${tableName}:`, error);
+      console.error(`❌ ERROR: Failed to get data for ${tableName}:`, error);
       return {
         success: false,
         data: null,
@@ -124,26 +124,31 @@ export class SimplifiedDataService extends BaseService {
   private getFromCache(tableName: string): any | null {
     try {
       const cacheKey = `${this.CACHE_PREFIX}${tableName}`;
+      console.log(`🔍 CACHE CHECK: Looking for key "${cacheKey}"`);
+      
       const cached = localStorage.getItem(cacheKey);
       
       if (!cached) {
+        console.log(`❌ CACHE MISS: No data found for key "${cacheKey}"`);
         return null;
       }
 
       const entry: CacheEntry = JSON.parse(cached);
+      console.log(`📦 CACHE FOUND: Data for ${tableName} (${entry.data?.length || 0} records, age: ${Date.now() - entry.timestamp}ms)`);
       
       // Check if cache is expired
       const now = Date.now();
       if (now - entry.timestamp > this.CACHE_EXPIRY_MS) {
-        console.log(`⏰ Cache expired for ${tableName}, removing...`);
+        console.log(`⏰ CACHE EXPIRED: Removing expired cache for ${tableName}`);
         localStorage.removeItem(cacheKey);
         return null;
       }
 
+      console.log(`✅ CACHE VALID: Returning cached data for ${tableName}`);
       return entry.data;
       
     } catch (error) {
-      console.warn(`⚠️ Failed to read cache for ${tableName}:`, error);
+      console.warn(`⚠️ CACHE ERROR: Failed to read cache for ${tableName}:`, error);
       return null;
     }
   }
