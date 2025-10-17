@@ -69,8 +69,18 @@ const SessionCard = React.memo(({
   const hasSpecialStylingForSession = hasSpecialStyling(session);
   
   // Calculate start and end times for countdown
-  const startTime = start_time && date ? new Date(`${date}T${start_time}`) : null;
-  const endTime = end_time && date ? new Date(`${date}T${end_time}`) : null;
+  // ✅ FIX: Parse date without timezone conversion to avoid day shift
+  const startTime = start_time && date ? (() => {
+    const [year, month, day] = date.split('-').map(Number);
+    const [hour, min, sec] = start_time.split(':').map(Number);
+    return new Date(year, month - 1, day, hour, min, sec || 0);
+  })() : null;
+  
+  const endTime = end_time && date ? (() => {
+    const [year, month, day] = date.split('-').map(Number);
+    const [hour, min, sec] = end_time.split(':').map(Number);
+    return new Date(year, month - 1, day, hour, min, sec || 0);
+  })() : null;
   
   // Use countdown hook for real-time updates
   // Coffee breaks and meals show countdown when in "Now" status
