@@ -73,18 +73,7 @@ export class SeatAssignmentNormalizationService extends BaseService {
 
       console.log(`🪑 Found ${targetConfigIds.length} seating configurations for ${targetDate}`);
 
-      // Step 3: Check for configuration consistency
-      const hasInconsistentAssignments = this.detectInconsistentAssignments(
-        seatAssignments, 
-        targetConfigIds
-      );
-
-      if (hasInconsistentAssignments) {
-        console.warn(`⚠️ Inconsistent seat assignments detected for ${targetDate}, skipping normalization`);
-        return seatAssignments;
-      }
-
-      // Step 4: Create missing seat assignments
+      // Step 3: Create missing seat assignments with per-attendee processing
       const normalizedAssignments = this.createMissingSeatAssignments(
         seatAssignments,
         targetConfigIds
@@ -126,73 +115,10 @@ export class SeatAssignmentNormalizationService extends BaseService {
       .map(config => config.id);
   }
 
-  /**
-   * Detect if there are inconsistent seat assignments across configurations
-   * Skip normalization if attendee has DIFFERENT completed seat positions across agenda items
-   * Allow normalization for pending assignments (all null values)
-   */
-  private detectInconsistentAssignments(
-    seatAssignments: SeatAssignment[],
-    targetConfigIds: string[]
-  ): boolean {
-    // Group seat assignments by attendee
-    const attendeeAssignments = new Map<string, SeatAssignment[]>();
-
-    for (const assignment of seatAssignments) {
-      if (targetConfigIds.includes(assignment.seating_configuration_id)) {
-        if (!attendeeAssignments.has(assignment.attendee_id)) {
-          attendeeAssignments.set(assignment.attendee_id, []);
-        }
-        attendeeAssignments.get(assignment.attendee_id)!.push(assignment);
-      }
-    }
-
-    // Check for inconsistencies - skip if attendee has DIFFERENT completed seat positions
-    for (const [attendeeId, assignments] of attendeeAssignments) {
-      if (assignments.length > 1) {
-        console.log(`🔍 Checking attendee ${attendeeId} with ${assignments.length} assignments:`);
-        assignments.forEach((assignment, index) => {
-          console.log(`  Assignment ${index + 1}: table_name=${assignment.table_name}, seat_number=${assignment.seat_number}, row=${assignment.row_number}, col=${assignment.column_number}`);
-        });
-        
-        // Check if all assignments are pending (all null values)
-        const allPending = assignments.every(assignment => 
-          assignment.table_name === null && 
-          assignment.seat_number === null &&
-          assignment.row_number === null &&
-          assignment.column_number === null
-        );
-
-        if (allPending) {
-          console.log(`✅ Attendee ${attendeeId} has all pending assignments - normalization can proceed`);
-          continue;
-        }
-
-        // Check if any assignment has different completed seat position
-        const firstAssignment = assignments[0];
-        const hasDifferentPositions = assignments.some(assignment => 
-          assignment.table_name !== firstAssignment.table_name ||
-          assignment.seat_number !== firstAssignment.seat_number ||
-          assignment.row_number !== firstAssignment.row_number ||
-          assignment.column_number !== firstAssignment.column_number
-        );
-
-        if (hasDifferentPositions) {
-          console.warn(`⚠️ Attendee ${attendeeId} has different completed seat positions across agenda items`);
-          console.warn(`⚠️ This suggests they were intentionally assigned different seats for different sessions`);
-          console.warn(`⚠️ Skipping normalization to preserve existing seat assignments`);
-          return true;
-        } else {
-          console.log(`✅ Attendee ${attendeeId} has consistent seat positions - normalization can proceed`);
-        }
-      }
-    }
-
-    return false;
-  }
 
   /**
    * Create missing seat assignments by replicating existing ones
+   * Per-attendee processing: only skip individual attendees with inconsistencies
    */
   private createMissingSeatAssignments(
     seatAssignments: SeatAssignment[],
@@ -200,25 +126,36 @@ export class SeatAssignmentNormalizationService extends BaseService {
   ): SeatAssignment[] {
     const normalizedAssignments = [...seatAssignments];
     
-    // Find all attendees who have ANY seat assignment in target configurations
+    // Group seat assignments by attendee
+    const attendeeAssignments = new Map<string, SeatAssignment[]>();
     const attendeesWithSeats = new Set<string>();
-    const existingAssignments = new Map<string, SeatAssignment>();
 
     for (const assignment of seatAssignments) {
       if (targetConfigIds.includes(assignment.seating_configuration_id)) {
         attendeesWithSeats.add(assignment.attendee_id);
-        if (!existingAssignments.has(assignment.attendee_id)) {
-          existingAssignments.set(assignment.attendee_id, assignment);
+        if (!attendeeAssignments.has(assignment.attendee_id)) {
+          attendeeAssignments.set(assignment.attendee_id, []);
         }
+        attendeeAssignments.get(assignment.attendee_id)!.push(assignment);
       }
     }
 
     console.log(`👥 Found ${attendeesWithSeats.size} attendees with existing seat assignments`);
 
-    // For each attendee, ensure they have assignments in ALL target configurations
+    // Process each attendee individually
     for (const attendeeId of attendeesWithSeats) {
-      const existingAssignment = existingAssignments.get(attendeeId)!;
+      const assignments = attendeeAssignments.get(attendeeId)!;
       
+      // Check if this attendee has inconsistent assignments
+      if (this.hasInconsistentAssignmentsForAttendee(assignments)) {
+        console.warn(`⚠️ Skipping normalization for attendee ${attendeeId} - inconsistent assignments`);
+        continue;
+      }
+
+      // Get the first assignment as template for replication
+      const templateAssignment = assignments[0];
+      
+      // Ensure this attendee has assignments in ALL target configurations
       for (const configId of targetConfigIds) {
         // Check if this attendee already has an assignment for this configuration
         const hasAssignment = seatAssignments.some(assignment => 
@@ -228,7 +165,7 @@ export class SeatAssignmentNormalizationService extends BaseService {
 
         if (!hasAssignment) {
           // Create a replicated assignment
-          const replicatedAssignment = this.createReplicatedAssignment(existingAssignment, configId);
+          const replicatedAssignment = this.createReplicatedAssignment(templateAssignment, configId);
           normalizedAssignments.push(replicatedAssignment);
           console.log(`➕ Created seat assignment for attendee ${attendeeId} in configuration ${configId}`);
         }
@@ -236,6 +173,39 @@ export class SeatAssignmentNormalizationService extends BaseService {
     }
 
     return normalizedAssignments;
+  }
+
+  /**
+   * Check if an attendee has inconsistent seat assignments
+   * Returns true if attendee has different completed seat positions across agenda items
+   */
+  private hasInconsistentAssignmentsForAttendee(assignments: SeatAssignment[]): boolean {
+    if (assignments.length <= 1) {
+      return false; // No inconsistency possible with 0 or 1 assignment
+    }
+
+    // Check if all assignments are pending (all null values)
+    const allPending = assignments.every(assignment => 
+      assignment.table_name === null && 
+      assignment.seat_number === null &&
+      assignment.row_number === null &&
+      assignment.column_number === null
+    );
+
+    if (allPending) {
+      return false; // No inconsistency with all pending assignments
+    }
+
+    // Check if any assignment has different completed seat position
+    const firstAssignment = assignments[0];
+    const hasDifferentPositions = assignments.some(assignment => 
+      assignment.table_name !== firstAssignment.table_name ||
+      assignment.seat_number !== firstAssignment.seat_number ||
+      assignment.row_number !== firstAssignment.row_number ||
+      assignment.column_number !== firstAssignment.column_number
+    );
+
+    return hasDifferentPositions;
   }
 
   /**
