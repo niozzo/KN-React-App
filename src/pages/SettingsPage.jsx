@@ -109,7 +109,6 @@ const SettingsPage = () => {
         'kn_cache_attendees',
         'kn_cache_agenda_items', 
         'kn_cache_dining_options',
-        'kn_cache_hotels',
         'kn_cache_sponsors',
         'kn_cache_seat_assignments',
         'kn_cache_seating_configurations',

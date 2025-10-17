@@ -129,143 +129,8 @@ class ApplicationDatabaseService extends BaseService {
   }
 
   // Metadata Management Methods
-  async syncAgendaItemMetadata(agendaItem: any): Promise<void> {
-    const adminClient = this.getAdminClient();
-    const { error } = await adminClient
-      .from('agenda_item_metadata')
-      .upsert({
-        id: agendaItem.id,
-        title: agendaItem.title,
-        start_time: agendaItem.start_time,
-        end_time: agendaItem.end_time,
-        time_override_enabled: agendaItem.time_override_enabled || false,
-        last_synced: new Date().toISOString()
-      });
-    
-    if (error) throw error;
-  }
 
-  async updateAgendaItemTimes(
-    agendaItemId: string, 
-    startTime: string, 
-    endTime: string, 
-    enabled: boolean,
-    title?: string
-  ): Promise<void> {
-    const adminClient = this.getAdminClient();
-    
-    // Convert time strings (HH:MM) to timestamp format for database
-    const convertTimeToTimestamp = (timeStr: string): string => {
-      if (!timeStr) return '';
-      
-      // If it's already a full timestamp, return as-is
-      if (timeStr.includes('T') || timeStr.includes(' ')) {
-        return timeStr;
-      }
-      
-      // Convert HH:MM to HH:MM:SS format
-      const today = new Date().toISOString().split('T')[0]; // Get YYYY-MM-DD
-      if (/^\d{2}:\d{2}:\d{2}$/.test(timeStr)) return timeStr; return timeStr.padStart(5, "0") + ":00";
-    };
-    
-    const startTimestamp = convertTimeToTimestamp(startTime);
-    const endTimestamp = convertTimeToTimestamp(endTime);
-    
-    logger.debug('Storing time overrides (time-only approach)', {
-      original: { startTime, endTime },
-      normalized: { startTimestamp, endTimestamp }
-    }, 'ApplicationDatabaseService');
-    
-    const { error } = await adminClient
-      .from('agenda_item_metadata')
-      .upsert({
-        id: agendaItemId,
-        title: title || 'Session', // Provide default title if not provided
-        start_time: startTimestamp,
-        end_time: endTimestamp,
-        time_override_enabled: enabled,
-        last_synced: new Date().toISOString()
-      });
-    
-    if (error) throw error;
 
-    // Emit cache invalidation events for time override updates
-    this.emitTimeOverrideUpdatedEvent(agendaItemId, startTime, endTime, enabled);
-  }
-
-  /**
-   * Emit time override updated event for cache invalidation
-   */
-  private emitTimeOverrideUpdatedEvent(
-    agendaItemId: string, 
-    startTime: string, 
-    endTime: string, 
-    enabled: boolean
-  ): void {
-    try {
-      // Emit custom event for time override updates
-      const event = new CustomEvent('agendaTimeOverrideUpdated', {
-        detail: {
-          agendaItemId,
-          startTime,
-          endTime,
-          enabled,
-          timestamp: new Date().toISOString()
-        }
-      });
-      
-      window.dispatchEvent(event);
-      
-      // Also trigger cache invalidation through service registry
-      serviceRegistry.invalidateCache('agenda_items');
-      serviceRegistry.invalidateCache('agenda_item_metadata');
-      
-      logger.debug(`Time override event emitted for agenda item: ${agendaItemId}`, null, 'ApplicationDatabaseService');
-    } catch (error) {
-      logger.error('Failed to emit time override event', error, 'ApplicationDatabaseService');
-    }
-  }
-
-  async getAgendaItemTimeOverrides(): Promise<AgendaItemMetadata[]> {
-    // Skip database call if offline
-    if (!navigator.onLine) {
-      console.log('📱 Offline mode: Skipping time overrides database call');
-      return [];
-    }
-
-    return this.retryOperation(
-      async () => {
-        const client = this.getClient();
-        const { data, error } = await client
-          .from('agenda_item_metadata')
-          .select('*')
-          .eq('time_override_enabled', true);
-        
-        if (error) throw error;
-    
-    // Convert timestamps back to time format for UI consumption
-    const convertTimeForUI = (timeStr: string): string => {
-      
-      // If HH:MM:SS format, convert to HH:MM for UI
-      if (/^\d{2}:\d{2}:\d{2}$/.test(timeStr)) {
-        return timeStr.substring(0, 5); // Remove :SS part
-      }
-      
-      // If already HH:MM format, return as-is
-      return timeStr;    };
-    
-    const processedData = (data || []).map(item => ({
-      ...item,
-      start_time: convertTimeForUI(item.start_time || ''),
-      end_time: convertTimeForUI(item.end_time || '')
-    }));
-    
-        logger.debug('Retrieved time overrides from database', processedData, 'ApplicationDatabaseService');
-        return processedData;
-      },
-      'getAgendaItemTimeOverrides'
-    );
-  }
 
   async syncAttendeeMetadata(attendee: any): Promise<void> {
     const adminClient = this.getAdminClient();
@@ -281,28 +146,9 @@ class ApplicationDatabaseService extends BaseService {
     if (error) throw error;
   }
 
-  async syncDiningItemMetadata(diningItem: any): Promise<void> {
-    const adminClient = this.getAdminClient();
-    const { error } = await adminClient
-      .from('dining_item_metadata')
-      .upsert({
-        id: diningItem.id,
-        title: diningItem.title,
-        date: diningItem.date,
-        time: diningItem.time,
-        last_synced: new Date().toISOString()
-      });
-    
-    if (error) throw error;
-  }
 
   // Bulk Operations
   async syncAllMetadata(agendaItems: any[], attendees: any[]): Promise<void> {
-    // Sync agenda items
-    for (const item of agendaItems) {
-      await this.syncAgendaItemMetadata(item);
-    }
-    
     // Sync attendees
     for (const attendee of attendees) {
       await this.syncAttendeeMetadata(attendee);
@@ -400,14 +246,6 @@ export interface SpeakerAssignment {
   updated_at: string;
 }
 
-export interface AgendaItemMetadata {
-  id: string;
-  title: string;
-  start_time?: string;
-  end_time?: string;
-  time_override_enabled?: boolean;
-  last_synced: string;
-}
 
 export interface AttendeeMetadata {
   id: string;

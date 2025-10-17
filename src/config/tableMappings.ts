@@ -6,9 +6,9 @@
 export const TABLE_MAPPINGS = {
   application: {
     // speaker_assignments: 'speaker_assignments', // REMOVED - migrated to main DB agenda_item_speakers
-    agenda_item_metadata: 'agenda_item_metadata',
-    attendee_metadata: 'attendee_metadata',
-    dining_item_metadata: 'dining_item_metadata'
+    // agenda_item_metadata: 'agenda_item_metadata', // REMOVED - override functionality removed from admin panel
+    attendee_metadata: 'attendee_metadata'
+    // dining_item_metadata: 'dining_item_metadata' // REMOVED - no UI usage found
   },
   main: {
     attendees: 'attendees',

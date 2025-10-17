@@ -206,23 +206,14 @@ export class AgendaService implements IAgendaService {
       const attendeesResult = await simplifiedDataService.getData('attendees');
       const attendees = attendeesResult.success ? attendeesResult.data : [];
       
-      // Get edited titles from application database metadata
-      const agendaItemMetadataResult = await simplifiedDataService.getData('agenda_item_metadata');
-      const agendaItemMetadata = agendaItemMetadataResult.success ? agendaItemMetadataResult.data : [];
-      
       // Create attendee lookup map
       const attendeeMap = new Map();
       attendees.forEach((attendee: any) => {
         attendeeMap.set(attendee.id, attendee);
       });
       
-      // Enrich each agenda item with ordered speakers and title overrides
+      // Enrich each agenda item with ordered speakers
       const enrichedItems = agendaItems.map(item => {
-        // Find any edited metadata for this agenda item
-        const metadata = agendaItemMetadata.find((meta: any) => meta.id === item.id);
-        
-        // Override title if it was edited in the application database
-        const finalTitle = (metadata as any)?.title || item.title;
         
         const matchingSpeakers = agendaItemSpeakers.filter((speaker: any) => speaker.agenda_item_id === item.id);
         
@@ -280,7 +271,7 @@ export class AgendaService implements IAgendaService {
         
         return {
           ...item,
-          title: finalTitle, // Use edited title if available
+          title: item.title, // Use original title from database
           speakers,
           speakerInfo // For backward compatibility with existing components
         };

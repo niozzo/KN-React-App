@@ -38,17 +38,17 @@ export class ServerDataSyncService extends BaseService {
     'agenda_items',
     'agenda_item_speakers', // NEW: Speaker assignments from main DB
     'dining_options',
-    'hotels',
     'seating_configurations'
     // 'user_profiles' removed - table is unused (see login-cache-optimization-findings.md)
+    // 'hotels' removed - getAllHotels() function exists but is never called
   ];
 
   // Application database tables (from separate Supabase project)
   private readonly applicationTablesToSync = [
     // 'speaker_assignments' removed - DEPRECATED, migrated to main DB agenda_item_speakers
-    'agenda_item_metadata', 
+    // 'agenda_item_metadata' removed - override functionality removed from admin panel
     // 'attendee_metadata' removed - no read operations found (see login-cache-optimization-findings.md)
-    'dining_item_metadata'
+    // 'dining_item_metadata' removed - no UI usage found
   ];
 
   constructor() {
@@ -127,33 +127,14 @@ export class ServerDataSyncService extends BaseService {
       records = diningTransformer.sortDiningOptions(records);
     }
     
-    // Sponsors and hotels filtering/sorting
-    if (tableName === 'sponsors' || tableName === 'hotels') {
+    // Sponsors filtering/sorting
+    if (tableName === 'sponsors') {
       records = records
         .filter(r => r.is_active !== false)
         .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
     }
     
-    // Seat assignments normalization for October 21st
-    if (tableName === 'seat_assignments') {
-      try {
-        const { seatAssignmentNormalizationService } = await import('./seatAssignmentNormalizationService');
-        const agendaItems = await this.getCachedData('agenda_items');
-        const seatingConfigurations = await this.getCachedData('seating_configurations');
-        
-        if (agendaItems && seatingConfigurations) {
-          records = seatAssignmentNormalizationService.normalizeSeatAssignmentsForDate(
-            records,
-            seatingConfigurations,
-            agendaItems,
-            '2025-10-21'
-          );
-        }
-      } catch (error) {
-        console.warn('⚠️ Seat assignment normalization failed:', error);
-        // Continue with original records if normalization fails
-      }
-    }
+    // Note: Seat assignment normalization is now handled per-user in useSessionData hook
     
     return records;
   }
@@ -619,12 +600,6 @@ export class ServerDataSyncService extends BaseService {
     return this.syncTable('sponsors');
   }
 
-  /**
-   * Sync hotels table specifically
-   */
-  async syncHotels(): Promise<any[]> {
-    return this.syncTable('hotels');
-  }
 
   /**
    * Sync seating configurations table specifically

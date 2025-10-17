@@ -21,18 +21,20 @@ export class SeatAssignmentNormalizationService extends BaseService {
   }
 
   /**
-   * Normalize seat assignments for a specific date
+   * Normalize seat assignments for a specific date for the current user only
    * @param seatAssignments - Current seat assignments
    * @param seatingConfigurations - All seating configurations
    * @param agendaItems - All agenda items
    * @param targetDate - Date to normalize (YYYY-MM-DD format)
+   * @param currentUserId - ID of the current user
    * @returns Normalized seat assignments
    */
   normalizeSeatAssignmentsForDate(
     seatAssignments: SeatAssignment[],
     seatingConfigurations: SeatingConfiguration[],
     agendaItems: AgendaItem[],
-    targetDate: string
+    targetDate: string,
+    currentUserId: string
   ): SeatAssignment[] {
     console.log(`🔄 SeatAssignmentNormalization: Starting normalization for ${targetDate}`);
 
@@ -73,10 +75,11 @@ export class SeatAssignmentNormalizationService extends BaseService {
 
       console.log(`🪑 Found ${targetConfigIds.length} seating configurations for ${targetDate}`);
 
-      // Step 3: Create missing seat assignments with per-attendee processing
+      // Step 3: Create missing seat assignments for current user only
       const normalizedAssignments = this.createMissingSeatAssignments(
         seatAssignments,
-        targetConfigIds
+        targetConfigIds,
+        currentUserId
       );
 
       console.log(`✅ SeatAssignmentNormalization: Normalization completed for ${targetDate}`);
@@ -94,7 +97,7 @@ export class SeatAssignmentNormalizationService extends BaseService {
   private identifyTargetAgendaItems(agendaItems: AgendaItem[], targetDate: string): AgendaItem[] {
     return agendaItems.filter(item => 
       item.date === targetDate && 
-      item.session_type !== 'dining' &&
+      item.session_type !== 'meal' &&
       item.seating_type === 'assigned'
     );
   }
@@ -117,58 +120,50 @@ export class SeatAssignmentNormalizationService extends BaseService {
 
 
   /**
-   * Create missing seat assignments by replicating existing ones
-   * Per-attendee processing: only skip individual attendees with inconsistencies
+   * Create missing seat assignments by replicating existing ones for current user only
    */
   private createMissingSeatAssignments(
     seatAssignments: SeatAssignment[],
-    targetConfigIds: string[]
+    targetConfigIds: string[],
+    currentUserId: string
   ): SeatAssignment[] {
     const normalizedAssignments = [...seatAssignments];
     
-    // Group seat assignments by attendee
-    const attendeeAssignments = new Map<string, SeatAssignment[]>();
-    const attendeesWithSeats = new Set<string>();
+    // Get current user's existing assignments for target configurations
+    const userAssignments = seatAssignments.filter(assignment => 
+      assignment.attendee_id === currentUserId && 
+      targetConfigIds.includes(assignment.seating_configuration_id)
+    );
 
-    for (const assignment of seatAssignments) {
-      if (targetConfigIds.includes(assignment.seating_configuration_id)) {
-        attendeesWithSeats.add(assignment.attendee_id);
-        if (!attendeeAssignments.has(assignment.attendee_id)) {
-          attendeeAssignments.set(assignment.attendee_id, []);
-        }
-        attendeeAssignments.get(assignment.attendee_id)!.push(assignment);
-      }
+    console.log(`👤 Found ${userAssignments.length} existing seat assignments for current user`);
+
+    if (userAssignments.length === 0) {
+      console.log(`👤 No existing assignments for current user, skipping normalization`);
+      return normalizedAssignments;
     }
 
-    console.log(`👥 Found ${attendeesWithSeats.size} attendees with existing seat assignments`);
+    // Check if current user has inconsistent assignments
+    if (this.hasInconsistentAssignmentsForAttendee(userAssignments)) {
+      console.warn(`⚠️ Skipping normalization for current user - inconsistent assignments`);
+      return normalizedAssignments;
+    }
 
-    // Process each attendee individually
-    for (const attendeeId of attendeesWithSeats) {
-      const assignments = attendeeAssignments.get(attendeeId)!;
-      
-      // Check if this attendee has inconsistent assignments
-      if (this.hasInconsistentAssignmentsForAttendee(assignments)) {
-        console.warn(`⚠️ Skipping normalization for attendee ${attendeeId} - inconsistent assignments`);
-        continue;
-      }
+    // Get the first assignment as template for replication
+    const templateAssignment = userAssignments[0];
+    
+    // Ensure current user has assignments in ALL target configurations
+    for (const configId of targetConfigIds) {
+      // Check if current user already has an assignment for this configuration
+      const hasAssignment = seatAssignments.some(assignment => 
+        assignment.attendee_id === currentUserId && 
+        assignment.seating_configuration_id === configId
+      );
 
-      // Get the first assignment as template for replication
-      const templateAssignment = assignments[0];
-      
-      // Ensure this attendee has assignments in ALL target configurations
-      for (const configId of targetConfigIds) {
-        // Check if this attendee already has an assignment for this configuration
-        const hasAssignment = seatAssignments.some(assignment => 
-          assignment.attendee_id === attendeeId && 
-          assignment.seating_configuration_id === configId
-        );
-
-        if (!hasAssignment) {
-          // Create a replicated assignment
-          const replicatedAssignment = this.createReplicatedAssignment(templateAssignment, configId);
-          normalizedAssignments.push(replicatedAssignment);
-          console.log(`➕ Created seat assignment for attendee ${attendeeId} in configuration ${configId}`);
-        }
+      if (!hasAssignment) {
+        // Create a replicated assignment
+        const replicatedAssignment = this.createReplicatedAssignment(templateAssignment, configId);
+        normalizedAssignments.push(replicatedAssignment);
+        console.log(`➕ Created seat assignment for current user in configuration ${configId}`);
       }
     }
 

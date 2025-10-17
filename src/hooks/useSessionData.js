@@ -280,6 +280,37 @@ const mergeAndSortEvents = (sessions, diningOptions, seatAssignments = [], seati
 };
 
 /**
+ * Apply seat assignment normalization for October 21st
+ * @param {Array} seatData - Raw seat assignments
+ * @param {Object} attendeeData - Current attendee data
+ * @param {Array} agendaItems - All agenda items
+ * @param {Array} seatingData - All seating configurations
+ * @returns {Array} Normalized seat assignments
+ */
+const applySeatAssignmentNormalization = async (seatData, attendeeData, agendaItems, seatingData) => {
+  try {
+    const { seatAssignmentNormalizationService } = await import('../services/seatAssignmentNormalizationService');
+    
+    if (agendaItems && seatingData && attendeeData?.id) {
+      const normalizedSeatData = seatAssignmentNormalizationService.normalizeSeatAssignmentsForDate(
+        seatData,
+        seatingData,
+        agendaItems,
+        '2025-10-21',
+        attendeeData.id
+      );
+      console.log(`🔄 Seat assignment normalization applied for user ${attendeeData.id}`);
+      return normalizedSeatData;
+    }
+    
+    return seatData;
+  } catch (normalizationError) {
+    console.warn('⚠️ Seat assignment normalization failed:', normalizationError);
+    return seatData;
+  }
+};
+
+/**
  * Custom hook for managing session data
  * @param {boolean} enableOfflineMode - Whether to enable offline mode
  * @param {boolean} autoRefresh - Whether to auto-refresh data
@@ -322,11 +353,23 @@ export default function useSessionData(enableOfflineMode = true, autoRefresh = t
 
       // Load seat assignments for the current attendee
       const seatData = await getAttendeeSeatAssignments(attendeeData.id);
-      setSeatAssignments(seatData);
-
+      
       // Load seating configurations
       const seatingData = await getAllSeatingConfigurations();
       setSeatingConfigurations(seatingData);
+      
+      // Load agenda items for normalization
+      const agendaResponse = await agendaService.getActiveAgendaItems();
+      const agendaItems = agendaResponse.success ? agendaResponse.data : [];
+      
+      // Apply seat assignment normalization for October 21st
+      const normalizedSeatData = await applySeatAssignmentNormalization(
+        seatData,
+        attendeeData,
+        agendaItems,
+        seatingData
+      );
+      setSeatAssignments(normalizedSeatData);
 
       // Load dining options
       let diningData = [];
@@ -459,25 +502,40 @@ export default function useSessionData(enableOfflineMode = true, autoRefresh = t
     if (!isAuthenticated) return;
     
     try {
-      // Load fresh data
-      const [agendaResponse, diningResponse] = await Promise.all([
+      // Load fresh data including seat assignments
+      const [agendaResponse, diningResponse, freshSeatData, freshSeatingData] = await Promise.all([
         agendaService.getActiveAgendaItems(),
-        getAllDiningOptions()
+        getAllDiningOptions(),
+        getAttendeeSeatAssignments(attendee?.id),
+        getAllSeatingConfigurations()
       ]);
+      
+      // Apply seat assignment normalization for October 21st
+      const agendaItems = agendaResponse.success ? agendaResponse.data : [];
+      const normalizedSeatData = await applySeatAssignmentNormalization(
+        freshSeatData,
+        attendee,
+        agendaItems,
+        freshSeatingData
+      );
+      
+      // Update seat assignments and seating configurations state
+      setSeatAssignments(normalizedSeatData);
+      setSeatingConfigurations(freshSeatingData);
       
       if (agendaResponse.success && agendaResponse.data && agendaResponse.data.length > 0) {
         const enhancedSessions = enhanceSessionData(
           agendaResponse.data,
           attendee,
-          seatAssignments,
-          seatingConfigurations
+          normalizedSeatData,
+          freshSeatingData
         );
         
         // Filter sessions for current attendee (breakout sessions only show assigned tracks)
         const attendeeFilteredSessions = filterSessionsForAttendee(enhancedSessions, attendee);
         
         // Merge sessions and dining options for unified display
-        const allEventsCombined = mergeAndSortEvents(attendeeFilteredSessions, diningResponse || [], seatAssignments, seatingConfigurations);
+        const allEventsCombined = mergeAndSortEvents(attendeeFilteredSessions, diningResponse || [], normalizedSeatData, freshSeatingData);
         
         // Find current and next sessions from ALL events (including dining options)
         const activeSession = allEventsCombined.find(s => s.isActive);
@@ -499,7 +557,7 @@ export default function useSessionData(enableOfflineMode = true, autoRefresh = t
       console.error('Failed to refresh data:', err);
       setError(err.message);
     }
-  }, [isAuthenticated]); // ✅ FIX: Remove circular dependencies that cause infinite loop
+  }, [isAuthenticated, attendee]); // Add attendee dependency for seat assignment reload
 
   // Event handlers
   useEffect(() => {

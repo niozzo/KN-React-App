@@ -91,39 +91,15 @@ export class AdminService {
       console.error('Error loading dining options from simplified cache:', error);
     }
     
-    // Get edited titles from application database metadata
-    const diningItemMetadataResult = await simplifiedDataService.getData('dining_item_metadata');
-    const diningItemMetadata = diningItemMetadataResult.success ? diningItemMetadataResult.data : [];
-    
-    // Map metadata to dining options and override titles with edited versions
-    const optionsWithMetadata = diningOptions.map((option: any) => {
-      // Find any edited metadata for this dining option
-      const metadata = diningItemMetadata.find((meta: any) => meta.id === option.id);
-      
-      // Override title if it was edited in the application database
-      const finalTitle = (metadata as any)?.title || option.name;
-      
-      return {
-        ...option,
-        name: finalTitle, // Use edited title if available
-        original_name: option.name // Keep original for reference
-      };
-    });
+    // Use dining options directly from cache
+    const optionsWithMetadata = diningOptions;
     
     return optionsWithMetadata;
   }
 
   async updateAgendaItemTitle(agendaItemId: string, newTitle: string): Promise<void> {
-    // Update in application database metadata
-    try {
-      await applicationDatabaseService.syncAgendaItemMetadata({
-        id: agendaItemId,
-        title: newTitle
-      });
-    } catch (error) {
-      console.warn('Database sync failed, updating local storage only:', error);
-      // Continue with local storage update even if database fails
-    }
+    // Note: Override functionality removed from admin panel
+    // This method is kept for backward compatibility but does nothing
     
     // Update local storage - check both possible keys
     const cachedData = localStorage.getItem('kn_cache_agenda_items');
@@ -160,20 +136,8 @@ export class AdminService {
   }
 
   async updateDiningOptionTitle(diningOptionId: string, newTitle: string): Promise<void> {
-    // Update in application database metadata
-    try {
-      await applicationDatabaseService.syncDiningItemMetadata({
-        id: diningOptionId,
-        title: newTitle
-      });
-      
-      // Trigger cache invalidation for dining metadata
-      serviceRegistry.invalidateCache('dining_item_metadata');
-      
-    } catch (error) {
-      console.warn('Database sync failed, updating local storage only:', error);
-      // Continue with local storage update even if database fails
-    }
+    // Note: Override functionality removed from admin panel
+    // This method is kept for backward compatibility but does nothing
     
     // Update local storage - check both possible keys
     const cachedData = localStorage.getItem('kn_cache_dining_options');

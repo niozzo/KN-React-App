@@ -424,60 +424,6 @@ export const getAttendeeDiningSelections = async (attendeeId: string): Promise<D
   }
 }
 
-/**
- * Get all hotels (shared data - same for all authenticated users)
- * @returns Array of all hotels
- */
-export const getAllHotels = async (): Promise<Hotel[]> => {
-  requireAuthentication()
-  
-  try {
-    // PRIMARY: Check localStorage first (populated during login)
-    try {
-      const cachedData = localStorage.getItem('kn_cache_hotels')
-      if (cachedData) {
-        const cacheObj = JSON.parse(cachedData)
-        const hotels = cacheObj.data || cacheObj
-        if (Array.isArray(hotels) && hotels.length > 0) {
-          return hotels
-        }
-      }
-    } catch (cacheError) {
-      console.warn('⚠️ Failed to load cached hotels:', cacheError)
-    }
-    
-    // FALLBACK: Sync from database using same method as login
-    const { serverDataSyncService } = await import('./serverDataSyncService')
-    const data = await serverDataSyncService.syncTable('hotels')
-    return data
-  } catch (error) {
-    console.error('❌ Error fetching hotels:', error)
-    throw new DataServiceError('Failed to fetch hotels', 'FETCH_ERROR')
-  }
-}
-
-/**
- * Get attendee's hotel selection (personalized data)
- * @param attendeeId - ID of the attendee
- * @returns Selected hotel or null
- */
-export const getAttendeeHotelSelection = async (attendeeId: string): Promise<Hotel | null> => {
-  requireAuthentication()
-  
-  try {
-    // Get attendee data from cached attendees
-    const allAttendees = await getAllAttendees() // Direct call
-    const attendee = allAttendees.find(a => a.id === attendeeId)
-    if (!attendee?.hotel_selection) return null
-    // Get hotel data from cached hotels
-    const allHotels = await getAllHotels() // Direct call
-    const hotel = allHotels.find(h => h.id === attendee.hotel_selection)
-    return hotel || null
-  } catch (error) {
-    console.error('❌ Error fetching hotel selection:', error)
-    throw new DataServiceError('Failed to fetch hotel selection', 'FETCH_ERROR')
-  }
-}
 
 /**
  * Get all seating configurations (shared data - same for all authenticated users)
