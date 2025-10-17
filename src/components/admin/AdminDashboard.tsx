@@ -41,14 +41,7 @@ export const AdminDashboard: React.FC = () => {
 
   const adminCards: AdminCard[] = [
     {
-      title: 'Agenda Management',
-      description: 'Manage agenda items, speaker assignments, dining options, cache health, and time overrides',
-      icon: <DashboardIcon sx={{ fontSize: 48 }} />,
-      path: '/admin/manage',
-      color: '#1976d2'
-    },
-    {
-      title: 'QR Code Generator',
+      title: 'Attendee Lookup',
       description: 'Generate QR codes and shareable URLs for attendee access',
       icon: <QrCodeIcon sx={{ fontSize: 48 }} />,
       path: '/admin/qr-generator',
