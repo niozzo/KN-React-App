@@ -81,3 +81,4 @@ dist/
 
 # Confidential data (cached local copies with real data)
 docs/localCacheCopy/
+console

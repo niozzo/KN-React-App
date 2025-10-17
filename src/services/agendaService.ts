@@ -21,7 +21,11 @@ import { applicationDatabaseService } from './applicationDatabaseService.ts';
 import { AgendaTransformer } from '../transformers/agendaTransformer.ts';
 
 export class AgendaService implements IAgendaService {
-  private backgroundRefreshInProgress = false;
+  private backgroundRefreshInProgress = false
+  private lastBackgroundRefresh = 0
+  private lastOnlineTime = Date.now()
+  private isOffline = false
+  private readonly BACKGROUND_REFRESH_INTERVAL = 5 * 60 * 1000 // 5 minutes;
   private readonly tableName = 'agenda_items';
   private readonly basePath = '/api/agenda-items';
   private agendaTransformer = new AgendaTransformer();
@@ -39,6 +43,9 @@ export class AgendaService implements IAgendaService {
     if (!this.serverDataSyncService) {
       this.serverDataSyncService = new ServerDataSyncService();
     }
+    
+    // Setup offline/online event listeners
+    this.setupOfflineListener();
   }
 
   private async apiGet<T>(path: string): Promise<T> {
@@ -293,6 +300,12 @@ export class AgendaService implements IAgendaService {
    */
   private async applyTimeOverrides(agendaItems: any[]): Promise<any[]> {
     try {
+      // Skip time overrides if offline
+      if (!navigator.onLine) {
+        console.log('📱 Offline mode: Skipping time overrides, using original times');
+        return agendaItems;
+      }
+
       // Get time overrides from application database
       const timeOverrides = await applicationDatabaseService.getAgendaItemTimeOverrides();
       
@@ -345,7 +358,9 @@ export class AgendaService implements IAgendaService {
           // Apply time overrides before enrichment
           const itemsWithOverrides = await this.applyTimeOverrides(agendaItems);
           const enrichedData = await this.enrichWithSpeakerData(itemsWithOverrides);
-          this.refreshAgendaItemsInBackground();
+          
+          // Only refresh in background if enough time has passed since last refresh
+          this.scheduleBackgroundRefreshIfNeeded();
           
           return {
             data: enrichedData,
@@ -525,6 +540,49 @@ export class AgendaService implements IAgendaService {
   }
 
   /**
+   * Setup offline/online event listeners for enhanced background sync
+   */
+  private setupOfflineListener(): void {
+    window.addEventListener('online', () => {
+      this.isOffline = false;
+      this.lastOnlineTime = Date.now();
+      console.log('🌐 Back online, background refresh re-enabled');
+      
+      // Trigger immediate refresh if we've been offline for a while
+      const timeOffline = Date.now() - this.lastOnlineTime;
+      if (timeOffline > this.BACKGROUND_REFRESH_INTERVAL) {
+        this.scheduleBackgroundRefreshIfNeeded();
+      }
+    });
+    
+    window.addEventListener('offline', () => {
+      this.isOffline = true;
+      console.log('📱 Gone offline, background refresh disabled');
+    });
+  }
+
+  /**
+   * Schedule background refresh only if enough time has passed since last refresh
+   */
+  private scheduleBackgroundRefreshIfNeeded(): void {
+    // Skip background refresh if offline
+    if (this.isOffline || !navigator.onLine) {
+      console.log('📱 Offline mode: Skipping background refresh');
+      return;
+    }
+    
+    const now = Date.now();
+    const timeSinceLastRefresh = now - this.lastBackgroundRefresh;
+    
+    if (timeSinceLastRefresh >= this.BACKGROUND_REFRESH_INTERVAL) {
+      console.log('🔄 Scheduling background refresh (interval reached)');
+      this.refreshAgendaItemsInBackground();
+    } else {
+      console.log(`⏰ Background refresh skipped (${Math.round((this.BACKGROUND_REFRESH_INTERVAL - timeSinceLastRefresh) / 1000)}s remaining)`);
+    }
+  }
+
+  /**
    * Refresh agenda items in background without blocking UI
    * Uses the injected serverDataSyncService to ensure consistency
    */
@@ -547,7 +605,9 @@ export class AgendaService implements IAgendaService {
       const syncResult = await this.serverDataSyncService.syncAllData();
       
       if (syncResult.success && syncResult.syncedTables?.includes('agenda_items')) {
-        // The data is already cached by serverDataSyncService, so we don't need to cache it again
+        // Update last refresh time on successful sync
+        this.lastBackgroundRefresh = Date.now();
+        console.log('✅ Background refresh completed successfully');
       } else {
         console.warn('⚠️ Background refresh: serverDataSyncService failed, keeping existing cache');
       }

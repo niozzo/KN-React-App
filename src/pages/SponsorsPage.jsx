@@ -3,6 +3,7 @@ import PageLayout from '../components/layout/PageLayout';
 import Card from '../components/common/Card';
 import { getSponsorsFromStandardizedCompanies } from '../services/dataService';
 import { offlineAttendeeService } from '../services/offlineAttendeeService';
+import { offlineAwareImageService } from '../services/offlineAwareImageService';
 
 /**
  * Sponsors Page Component
@@ -287,7 +288,7 @@ const SponsorsPage = () => {
               {/* Middle: Logo centered */}
               <div className="sponsor-logo-container">
                 <img
-                  src={sponsor.logo}
+                  src={offlineAwareImageService.getSponsorLogoUrl(sponsor)}
                   alt={`${sponsor.name} logo`}
                   onError={handleLogoError}
                 />
