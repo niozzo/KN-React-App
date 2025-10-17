@@ -61,7 +61,18 @@ export class AuthenticationSyncService extends BaseService {
         console.warn('⚠️ AuthenticationSync: Attendee sync failed:', attendeeError)
       }
       
-      // Step 3: Validate cache population
+      // Step 3: Initialize company normalization service after data sync
+      console.log('🔄 AuthenticationSync: Initializing company normalization service...')
+      try {
+        const { CompanyNormalizationService } = await import('./companyNormalizationService')
+        const companyService = CompanyNormalizationService.getInstance()
+        await companyService.initialize()
+        console.log('✅ AuthenticationSync: Company normalization service initialized')
+      } catch (companyError) {
+        console.warn('⚠️ AuthenticationSync: Company normalization failed:', companyError)
+      }
+      
+      // Step 4: Validate cache population
       const cacheValid = await this.validateCachePopulation()
       if (!cacheValid) {
         console.warn('⚠️ AuthenticationSync: Cache validation failed')
