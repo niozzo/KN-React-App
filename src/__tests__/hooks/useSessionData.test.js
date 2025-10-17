@@ -46,11 +46,7 @@ vi.mock('../../services/simplifiedDataService', () => ({
   }
 }));
 
-vi.mock('../../services/breakoutMappingService', () => ({
-  breakoutMappingService: {
-    getBreakoutMappings: vi.fn()
-  }
-}));
+// Note: breakoutMappingService is now a real service, no mock needed
 
 describe('useSessionData Hook - Simplified', () => {
   let mockAgendaService, mockDataService, mockTimeService, mockUseAuth;

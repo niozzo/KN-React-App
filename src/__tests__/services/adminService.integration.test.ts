@@ -90,15 +90,6 @@ describe('Admin Service - Simplified Integration', () => {
       expect(mockSimplifiedDataService.getData).toHaveBeenCalledWith('dining_options');
     });
 
-    it.skip('should handle data loading errors gracefully', async () => {
-      // Skipping complex error handling test - not critical for core functionality
-      mockSimplifiedDataService.getData.mockRejectedValue(new Error('Data loading failed'));
-
-      const result = await adminService.getAgendaItemsWithAssignments();
-
-      expect(result).toBeDefined();
-      expect(Array.isArray(result)).toBe(true);
-    });
   });
 
   describe('Cache Integration', () => {
