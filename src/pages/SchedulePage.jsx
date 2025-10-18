@@ -12,7 +12,7 @@ import useSessionData from '../hooks/useSessionData';
  */
 const SchedulePage = () => {
   // Get refresh function from useSessionData
-  const { refresh } = useSessionData();
+  const { refreshData } = useSessionData();
 
   const handleSessionClick = (session) => {
     // Handle session click navigation
@@ -23,7 +23,7 @@ const SchedulePage = () => {
   return (
     <PageLayout>
       <h1 className="page-title">My Schedule</h1>
-      <PullToRefresh onRefresh={refresh}>
+      <PullToRefresh onRefresh={refreshData}>
         <ScheduleView 
           onSessionClick={handleSessionClick}
           className="schedule-page-content"

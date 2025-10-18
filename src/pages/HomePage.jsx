@@ -36,7 +36,7 @@ const HomePage = () => {
     isOffline,
     error,
     diningError,
-    refresh
+    refreshData
   } = useSessionData({
     autoRefresh: true,
     refreshInterval: 300000, // 5 minutes
@@ -526,7 +526,7 @@ const HomePage = () => {
 
   return (
     <PageLayout data-testid="home-page">
-      <PullToRefresh onRefresh={refresh}>
+      <PullToRefresh onRefresh={refreshData}>
         {/* Time Override (Dev/Staging Only) */}
         <TimeOverride />
         
