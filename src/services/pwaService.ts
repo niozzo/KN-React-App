@@ -3,21 +3,40 @@ import { Workbox } from 'workbox-window';
 class PWAService {
   private workbox: Workbox | null = null;
   private isInstalled = false;
+  private isFirstRegistration = true;
 
   constructor() {
     this.initializeWorkbox();
     this.checkInstallationStatus();
   }
 
-  private initializeWorkbox() {
+  private async initializeWorkbox() {
     if ('serviceWorker' in navigator && navigator.serviceWorker.addEventListener) {
+      // Check if service worker already exists
+      try {
+        const registration = await navigator.serviceWorker.getRegistration();
+        if (registration) {
+          this.isFirstRegistration = false;
+        }
+      } catch (error) {
+        console.warn('Failed to check service worker registration:', error);
+      }
+
       this.workbox = new Workbox('/sw.js');
       
       this.workbox.addEventListener('waiting', () => {
-        this.showUpdateAvailable();
+        console.log('🔄 New version detected - will reload automatically');
       });
 
       this.workbox.addEventListener('controlling', () => {
+        if (this.isFirstRegistration) {
+          console.log('✅ Service worker registered successfully - no reload needed');
+          this.isFirstRegistration = false;
+          return; // Don't reload on first registration
+        }
+        
+        // Real update - reload automatically
+        console.log('🔄 New version active - reloading automatically...');
         window.location.reload();
       });
 
@@ -32,14 +51,7 @@ class PWAService {
     }
   }
 
-  private showUpdateAvailable() {
-    if (confirm('A new version is available. Would you like to update?')) {
-      this.workbox?.addEventListener('controlling', () => {
-        window.location.reload();
-      });
-      this.workbox?.messageSkipWaiting();
-    }
-  }
+  // Removed showUpdateAvailable - updates are now automatic
 
   public isAppInstalled(): boolean {
     return this.isInstalled;
