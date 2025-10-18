@@ -177,7 +177,6 @@ export class ServerDataSyncService extends BaseService {
    * Sync all tables using server-side authentication
    */
   async syncAllData(): Promise<ServerSyncResult> {
-    console.log('🚨 [SYNC-DEBUG] syncAllData() called - starting data sync from database');
     
     const result: ServerSyncResult = {
       success: true,
@@ -496,71 +495,7 @@ export class ServerDataSyncService extends BaseService {
       
       let records = data || [];
       
-      console.log(`📊 [MAIN-DB-SINGLE-SYNC] Results from MAIN DB table "${tableName}":`, {
-        table: tableName,
-        recordCount: records.length,
-        allFieldsInFirstRecord: records.length > 0 ? Object.keys(records[0]) : [],
-        sampleRecord: records.length > 0 ? records[0] : null
-      });
       
-      // 🚨 DEBUG: Check for Maple & Ash seating assignments in raw DB response
-      if (tableName === 'seat_assignments') {
-        console.log('🚨 [MAPLE-ASH-DEBUG] Checking raw seat_assignments from database...');
-        
-        // Find Maple & Ash seating configuration ID
-        const mapleAshConfigId = '6b6b5e7e-7e12-4bff-86df-4656cbd85d16';
-        
-        // Look for seat assignments linked to Maple & Ash
-        const mapleAshAssignments = records.filter(record => 
-          record.seating_configuration_id === mapleAshConfigId
-        );
-        
-        console.log(`🚨 [MAPLE-ASH-DEBUG] Found ${mapleAshAssignments.length} seat assignments for Maple & Ash configuration:`, {
-          configId: mapleAshConfigId,
-          assignments: mapleAshAssignments.map(a => ({
-            id: a.id,
-            attendee_id: a.attendee_id,
-            table_name: a.table_name,
-            seat_number: a.seat_number,
-            row_number: a.row_number,
-            column_number: a.column_number,
-            attendee_first_name: a.attendee_first_name,
-            attendee_last_name: a.attendee_last_name
-          }))
-        });
-        
-        // Check if any assignments have non-null table_name or seat_number
-        const hasTableData = mapleAshAssignments.some(a => a.table_name !== null || a.seat_number !== null);
-        console.log(`🚨 [MAPLE-ASH-DEBUG] Has table/seat data: ${hasTableData}`);
-        
-        // Show sample of all seating configuration IDs in the data
-        const allConfigIds = [...new Set(records.map(r => r.seating_configuration_id))];
-        console.log(`🚨 [MAPLE-ASH-DEBUG] All seating configuration IDs in raw data:`, allConfigIds.slice(0, 10));
-      }
-      
-      // 🚨 DEBUG: Check for Maple & Ash seating configuration in raw DB response
-      if (tableName === 'seating_configurations') {
-        console.log('🚨 [MAPLE-ASH-DEBUG] Checking raw seating_configurations from database...');
-        
-        // Find Maple & Ash dining option ID
-        const mapleAshDiningId = '75d3f99a-3383-49a9-bc77-0328ece9df6c';
-        
-        // Look for seating configuration linked to Maple & Ash dining option
-        const mapleAshConfig = records.find(record => 
-          record.dining_option_id === mapleAshDiningId
-        );
-        
-        console.log(`🚨 [MAPLE-ASH-DEBUG] Maple & Ash seating configuration:`, {
-          found: !!mapleAshConfig,
-          config: mapleAshConfig ? {
-            id: mapleAshConfig.id,
-            dining_option_id: mapleAshConfig.dining_option_id,
-            agenda_item_id: mapleAshConfig.agenda_item_id,
-            seating_type: mapleAshConfig.seating_type,
-            layout_type: mapleAshConfig.layout_type
-          } : null
-        });
-      }
       
       // Debug logging removed - these diagnostic messages are not needed in production
       
@@ -583,23 +518,15 @@ export class ServerDataSyncService extends BaseService {
    */
   async syncUserSeatAssignments(supabaseClient: any): Promise<any[]> {
     try {
-      console.log('🔍 [DEBUG] syncUserSeatAssignments called');
-      
       // Get current attendee ID from authentication state
       const currentAttendeeId = this.getCurrentAttendeeId();
       
-      console.log('🔍 [DEBUG] Current attendee ID:', currentAttendeeId);
-      console.log('🔍 [DEBUG] localStorage conference_auth:', localStorage.getItem('conference_auth'));
-      
       if (!currentAttendeeId) {
         console.log('⚠️ No current attendee ID found, skipping seat assignments sync');
-        console.log('🔍 [DEBUG] Skipping seat_assignments sync - will be synced after authentication');
         // SKIP: Don't sync seat_assignments without authentication
         // This prevents the 1000-record bulk sync issue
         return [];
       }
-      
-      console.log(`🎯 [USER-SPECIFIC-SYNC] Syncing seat assignments for attendee: ${currentAttendeeId}`);
       
       const { data, error } = await supabaseClient
         .from('seat_assignments')
@@ -611,25 +538,6 @@ export class ServerDataSyncService extends BaseService {
       }
       
       const records = data || [];
-      
-      console.log(`📊 [USER-SPECIFIC-SYNC] Found ${records.length} seat assignments for current user`);
-      
-      // 🚨 DEBUG: Check for dining assignments in user's data
-      const mapleAshConfigId = '6b6b5e7e-7e12-4bff-86df-4656cbd85d16';
-      const diningAssignments = records.filter(record => 
-        record.seating_configuration_id === mapleAshConfigId
-      );
-      
-      if (diningAssignments.length > 0) {
-        console.log(`🍽️ [USER-SPECIFIC-SYNC] Found ${diningAssignments.length} dining assignments for current user:`, {
-          assignments: diningAssignments.map(a => ({
-            id: a.id,
-            table_name: a.table_name,
-            seat_number: a.seat_number,
-            attendee_name: `${a.attendee_first_name} ${a.attendee_last_name}`
-          }))
-        });
-      }
       
       // Apply transformations using shared method
       const transformedRecords = await this.applyTransformations('seat_assignments', records);
@@ -650,38 +558,27 @@ export class ServerDataSyncService extends BaseService {
    */
   private getCurrentAttendeeId(): string | null {
     try {
-      console.log('🔍 [DEBUG] getCurrentAttendeeId called');
-      
       // Try to get from localStorage first
       const authData = localStorage.getItem('conference_auth');
-      console.log('🔍 [DEBUG] localStorage conference_auth exists:', !!authData);
       
       if (authData) {
         const auth = JSON.parse(authData);
-        console.log('🔍 [DEBUG] Parsed auth data:', auth);
-        console.log('🔍 [DEBUG] Auth attendee:', auth.attendee);
-        console.log('🔍 [DEBUG] Auth attendee ID:', auth.attendee?.id);
         
         if (auth.attendee && auth.attendee.id) {
-          console.log('✅ [DEBUG] Found attendee ID from localStorage:', auth.attendee.id);
           return auth.attendee.id;
         }
       }
       
       // Fallback: try to get from current session
-      console.log('🔍 [DEBUG] Trying Supabase session fallback');
       const { supabaseClientService } = require('./supabaseClientService');
       const client = supabaseClientService.getClient();
       const session = client.auth.getSession();
-      
-      console.log('🔍 [DEBUG] Supabase session:', session);
       
       if (session && session.data && session.data.user) {
         // This would need to be implemented based on your auth structure
         console.log('🔍 Session found, but attendee ID extraction needs implementation');
       }
       
-      console.log('❌ [DEBUG] No attendee ID found');
       return null;
     } catch (error) {
       console.warn('⚠️ Failed to get current attendee ID:', error);
