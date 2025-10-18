@@ -242,43 +242,6 @@ export class AgendaTransformer extends BaseTransformer<AgendaItem> {
     return super.transformFromDatabase(dbData)
   }
 
-  /**
-   * Transform agenda data with time override support
-   */
-  async transformFromDatabaseWithTimeOverrides(dbData: any, timeOverrides?: Map<string, any>): Promise<AgendaItem> {
-    // First apply standard transformation
-    const transformedItem = this.transformFromDatabase(dbData)
-    
-    // Check if time overrides exist for this item
-    if (timeOverrides && timeOverrides.has(transformedItem.id)) {
-      const override = timeOverrides.get(transformedItem.id)
-      if (override.time_override_enabled) {
-        // Apply time overrides while preserving original times as fallback
-        transformedItem.start_time = override.start_time || transformedItem.start_time
-        transformedItem.end_time = override.end_time || transformedItem.end_time
-        
-        // Recalculate computed fields with override times
-        transformedItem.duration = this.calculateDuration(transformedItem.start_time, transformedItem.end_time)
-        transformedItem.timeRange = `${transformedItem.start_time} - ${transformedItem.end_time}`
-      }
-    }
-    
-    return transformedItem
-  }
-
-  /**
-   * Transform array of agenda items with time overrides
-   */
-  async transformArrayFromDatabaseWithTimeOverrides(dbDataArray: any[], timeOverrides?: Map<string, any>): Promise<AgendaItem[]> {
-    const transformedItems = []
-    
-    for (const dbData of dbDataArray) {
-      const transformedItem = await this.transformFromDatabaseWithTimeOverrides(dbData, timeOverrides)
-      transformedItems.push(transformedItem)
-    }
-    
-    return transformedItems
-  }
 
   /**
    * Helper method to calculate duration

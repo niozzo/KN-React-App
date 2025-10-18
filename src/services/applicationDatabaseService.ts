@@ -218,30 +218,6 @@ class ApplicationDatabaseService extends BaseService {
     }));
   }
 
-  /**
-   * Get agenda item time overrides
-   * Returns time overrides for agenda items from the application database
-   */
-  async getAgendaItemTimeOverrides(): Promise<AgendaItemTimeOverride[]> {
-    try {
-      const client = this.getClient();
-      
-      const { data, error } = await client
-        .from('agenda_item_metadata')
-        .select('id, start_time, end_time, time_override_enabled')
-        .eq('time_override_enabled', true);
-      
-      if (error) {
-        logger.warn('Failed to fetch agenda item time overrides', { error: error.message }, 'ApplicationDatabaseService');
-        return [];
-      }
-      
-      return data || [];
-    } catch (error) {
-      logger.warn('Error fetching agenda item time overrides', { error: error instanceof Error ? error.message : 'Unknown error' }, 'ApplicationDatabaseService');
-      return [];
-    }
-  }
 }
 
 // Export singleton instance
@@ -279,11 +255,5 @@ export interface AttendeeMetadata {
   last_synced: string;
 }
 
-export interface AgendaItemTimeOverride {
-  id: string;
-  start_time?: string;
-  end_time?: string;
-  time_override_enabled: boolean;
-}
 
 

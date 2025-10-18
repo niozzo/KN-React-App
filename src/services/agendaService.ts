@@ -286,51 +286,6 @@ export class AgendaService implements IAgendaService {
     }
   }
 
-  /**
-   * Apply time overrides to agenda items
-   */
-  private async applyTimeOverrides(agendaItems: any[]): Promise<any[]> {
-    try {
-      // Skip time overrides if offline
-      if (!navigator.onLine) {
-        console.log('📱 Offline mode: Skipping time overrides, using original times');
-        return agendaItems;
-      }
-
-      // Get time overrides from application database
-      const timeOverrides = await applicationDatabaseService.getAgendaItemTimeOverrides();
-      
-      if (timeOverrides.length === 0) {
-        return agendaItems;
-      }
-      
-      // Convert overrides to Map for efficient lookup
-      const timeOverridesMap = new Map();
-      timeOverrides.forEach(override => {
-        timeOverridesMap.set(override.id, override);
-      });
-      
-      // Apply time overrides directly without re-transforming
-      const transformedItems = agendaItems.map(item => {
-        const override = timeOverridesMap.get(item.id);
-        if (override) {
-          return {
-            ...item,
-            start_time: override.start_time || item.start_time,
-            end_time: override.end_time || item.end_time,
-            date: override.date || item.date
-          };
-        }
-        return item;
-      });
-      
-      return transformedItems;
-    } catch (error) {
-      // Don't fail the entire operation if time overrides fail
-      console.warn('⚠️ Time overrides unavailable, using original times:', error);
-      return agendaItems; // Return original items without overrides
-    }
-  }
 
   /**
    * Get active agenda items only
@@ -346,9 +301,8 @@ export class AgendaService implements IAgendaService {
         
         if (agendaItems.length > 0) {
           
-          // Apply time overrides before enrichment
-          const itemsWithOverrides = await this.applyTimeOverrides(agendaItems);
-          const enrichedData = await this.enrichWithSpeakerData(itemsWithOverrides);
+          // Enrich with speaker data
+          const enrichedData = await this.enrichWithSpeakerData(agendaItems);
           
           // Only refresh in background if enough time has passed since last refresh
           this.scheduleBackgroundRefreshIfNeeded();
@@ -418,9 +372,8 @@ export class AgendaService implements IAgendaService {
               return (a.start_time || '').localeCompare(b.start_time || '');
             });
           
-          // Apply time overrides before enrichment
-          const itemsWithOverrides = await this.applyTimeOverrides(sortedItems);
-          const enrichedData = await this.enrichWithSpeakerData(itemsWithOverrides);
+          // Enrich with speaker data
+          const enrichedData = await this.enrichWithSpeakerData(sortedItems);
           
           return {
             data: enrichedData,
@@ -464,9 +417,8 @@ export class AgendaService implements IAgendaService {
               return (a.start_time || '').localeCompare(b.start_time || '')
             });
           
-          // Apply time overrides before enrichment
-          const itemsWithOverrides = await this.applyTimeOverrides(sortedItems);
-          const enrichedData = await this.enrichWithSpeakerData(itemsWithOverrides);
+          // Enrich with speaker data
+          const enrichedData = await this.enrichWithSpeakerData(sortedItems);
           
           console.log('🌐 SYNC: Retrieved', enrichedData.length, 'agenda items from cache');
           return {
