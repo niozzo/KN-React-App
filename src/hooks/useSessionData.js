@@ -589,7 +589,7 @@ export default function useSessionData(enableOfflineMode = true, autoRefresh = t
 
     const interval = setInterval(() => {
       refreshData();
-    }, 5 * 60 * 1000); // 5 minutes
+    }, 6 * 60 * 60 * 1000); // 6 hours
 
     return () => clearInterval(interval);
   }, [autoRefresh, isOffline, isAuthenticated, refreshData]);
