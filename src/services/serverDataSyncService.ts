@@ -488,6 +488,11 @@ export class ServerDataSyncService extends BaseService {
       
       console.log(`🔍 [MAIN-DB-SINGLE-SYNC] Query to MAIN database table: ${tableName}`);
       
+      // 🎯 OPTIMIZATION: For seat_assignments, only sync user-specific data
+      if (tableName === 'seat_assignments') {
+        return await this.syncUserSeatAssignments(supabaseClient);
+      }
+      
       const { data, error } = await supabaseClient
         .from(tableName)
         .select('*');
@@ -576,6 +581,97 @@ export class ServerDataSyncService extends BaseService {
     } catch (error) {
       console.error(`Failed to sync ${tableName}:`, error);
       throw error;
+    }
+  }
+
+  /**
+   * Sync user-specific seat assignments (optimized for individual users)
+   * This avoids the 1000-record limit issue by only syncing the current user's assignments
+   */
+  private async syncUserSeatAssignments(supabaseClient: any): Promise<any[]> {
+    try {
+      // Get current attendee ID from authentication state
+      const currentAttendeeId = this.getCurrentAttendeeId();
+      
+      if (!currentAttendeeId) {
+        console.log('⚠️ No current attendee ID found, skipping seat assignments sync');
+        return [];
+      }
+      
+      console.log(`🎯 [USER-SPECIFIC-SYNC] Syncing seat assignments for attendee: ${currentAttendeeId}`);
+      
+      const { data, error } = await supabaseClient
+        .from('seat_assignments')
+        .select('*')
+        .eq('attendee_id', currentAttendeeId);
+      
+      if (error) {
+        throw new Error(`Failed to sync user seat assignments: ${error.message}`);
+      }
+      
+      const records = data || [];
+      
+      console.log(`📊 [USER-SPECIFIC-SYNC] Found ${records.length} seat assignments for current user`);
+      
+      // 🚨 DEBUG: Check for dining assignments in user's data
+      const mapleAshConfigId = '6b6b5e7e-7e12-4bff-86df-4656cbd85d16';
+      const diningAssignments = records.filter(record => 
+        record.seating_configuration_id === mapleAshConfigId
+      );
+      
+      if (diningAssignments.length > 0) {
+        console.log(`🍽️ [USER-SPECIFIC-SYNC] Found ${diningAssignments.length} dining assignments for current user:`, {
+          assignments: diningAssignments.map(a => ({
+            id: a.id,
+            table_name: a.table_name,
+            seat_number: a.seat_number,
+            attendee_name: `${a.attendee_first_name} ${a.attendee_last_name}`
+          }))
+        });
+      }
+      
+      // Apply transformations using shared method
+      const transformedRecords = await this.applyTransformations('seat_assignments', records);
+      
+      // Cache the user-specific data
+      await this.cacheTableData('seat_assignments', transformedRecords);
+      
+      return transformedRecords;
+      
+    } catch (error) {
+      console.error(`❌ Failed to sync user seat assignments:`, error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Get current attendee ID from authentication state
+   */
+  private getCurrentAttendeeId(): string | null {
+    try {
+      // Try to get from localStorage first
+      const authData = localStorage.getItem('conference_auth');
+      if (authData) {
+        const auth = JSON.parse(authData);
+        if (auth.attendee && auth.attendee.id) {
+          return auth.attendee.id;
+        }
+      }
+      
+      // Fallback: try to get from current session
+      const { supabaseClientService } = require('./supabaseClientService');
+      const client = supabaseClientService.getClient();
+      const session = client.auth.getSession();
+      
+      if (session && session.data && session.data.user) {
+        // This would need to be implemented based on your auth structure
+        console.log('🔍 Session found, but attendee ID extraction needs implementation');
+      }
+      
+      return null;
+    } catch (error) {
+      console.warn('⚠️ Failed to get current attendee ID:', error);
+      return null;
     }
   }
 
