@@ -299,8 +299,7 @@ export class AgendaService implements IAgendaService {
           // Enrich with speaker data
           const enrichedData = await this.enrichWithSpeakerData(agendaItems);
           
-          // Only refresh in background if enough time has passed since last refresh
-          this.scheduleBackgroundRefreshIfNeeded();
+          // Background refresh handled by useSessionData hook
           
           return {
             data: enrichedData,
