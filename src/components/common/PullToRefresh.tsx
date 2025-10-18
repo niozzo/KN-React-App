@@ -20,6 +20,13 @@ const PullToRefresh: React.FC<PullToRefreshProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   
+  // Debug logging
+  console.log('PullToRefresh component received:', {
+    hookOptions,
+    hasOnRefresh: !!hookOptions.onRefresh,
+    onRefreshType: typeof hookOptions.onRefresh
+  });
+  
   const {
     isPulling,
     isRefreshing,
