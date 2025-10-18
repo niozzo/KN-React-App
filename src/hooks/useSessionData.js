@@ -236,8 +236,9 @@ const mergeAndSortEvents = (sessions, diningOptions, seatAssignments = [], seati
     }
     
     // Step 1: Find the seating configuration for this dining event
+    // Use originalDiningId to match against dining_option_id in seating configs
     const seatingConfig = seatingConfigurations.find(
-      config => config.dining_option_id === diningSession.id
+      config => config.dining_option_id === diningSession.originalDiningId
     );
     
     // If no seating configuration found, return dining session without seat info
