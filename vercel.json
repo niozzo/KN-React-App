@@ -9,6 +9,9 @@
       "develop": true
     }
   },
+  "env": {
+    "NODE_ENV": "development"
+  },
   "github": {
     "enabled": true,
     "autoAlias": true,

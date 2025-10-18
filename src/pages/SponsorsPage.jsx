@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import PageLayout from '../components/layout/PageLayout';
 import Card from '../components/common/Card';
+import PullToRefresh from '../components/common/PullToRefresh';
 import { getSponsorsFromStandardizedCompanies } from '../services/dataService';
 import { offlineAttendeeService } from '../services/offlineAttendeeService';
 import { offlineAwareImageService } from '../services/offlineAwareImageService';
@@ -19,28 +20,42 @@ const SponsorsPage = () => {
   const [expandedDescriptions, setExpandedDescriptions] = useState({});
   const [companyAttendees, setCompanyAttendees] = useState({});
 
+  // Load sponsors function - extracted for reuse
+  const loadSponsors = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch sponsors from standardized_companies table
+      const sponsorsData = await getSponsorsFromStandardizedCompanies();
+      setSponsors(sponsorsData);
+      setError(null);
+      
+      console.log(`✅ Loaded ${sponsorsData.length} sponsors from standardized companies`);
+      
+    } catch (err) {
+      console.error('Error loading sponsors:', err);
+      setError('Failed to load sponsors. Please try again.');
+      setSponsors([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Refresh function for pull-to-refresh
+  const handleRefresh = async () => {
+    try {
+      // Clear sponsor cache to force fresh data
+      localStorage.removeItem('kn_cache_sponsors');
+      
+      // Reload sponsors data
+      await loadSponsors();
+    } catch (error) {
+      console.error('Failed to refresh sponsor data:', error);
+    }
+  };
+
   // Load sponsors from standardized companies
   useEffect(() => {
-    const loadSponsors = async () => {
-      try {
-        setLoading(true);
-        
-        // Fetch sponsors from standardized_companies table
-        const sponsorsData = await getSponsorsFromStandardizedCompanies();
-        setSponsors(sponsorsData);
-        setError(null);
-        
-        console.log(`✅ Loaded ${sponsorsData.length} sponsors from standardized companies`);
-        
-      } catch (err) {
-        console.error('Error loading sponsors:', err);
-        setError('Failed to load sponsors. Please try again.');
-        setSponsors([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadSponsors();
   }, []);
 
@@ -190,8 +205,8 @@ const SponsorsPage = () => {
   return (
     <PageLayout>
       <h1 className="page-title">Sponsor Directory</h1>
-
-      {/* Search Section */}
+      <PullToRefresh onRefresh={handleRefresh}>
+        {/* Search Section */}
       <div
         className="search-container"
         style={{
@@ -452,6 +467,7 @@ const SponsorsPage = () => {
           <div style={{ fontSize: '10px', fontWeight: 'normal' }}>Top</div>
         </button>
       )}
+      </PullToRefresh>
     </PageLayout>
   );
 };

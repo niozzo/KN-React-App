@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import PageLayout from '../components/layout/PageLayout';
 import Card from '../components/common/Card';
+import PullToRefresh from '../components/common/PullToRefresh';
 import { attendeeSearchService } from '../services/attendeeSearchService';
 import { CompanyNormalizationService } from '../services/companyNormalizationService';
 import { offlineAttendeeService } from '../services/offlineAttendeeService';
@@ -22,6 +23,20 @@ const BioPage = () => {
   const [companyAttendees, setCompanyAttendees] = useState([]);
 
   const attendeeId = searchParams.get('id');
+
+  // Refresh function for pull-to-refresh
+  const handleRefresh = async () => {
+    try {
+      // Clear attendee cache to force fresh data
+      localStorage.removeItem('kn_cache_attendees');
+      
+      // Reload attendee data by calling the loadAttendee function
+      // This will trigger the useEffect that loads attendee data
+      window.location.reload();
+    } catch (error) {
+      console.error('Failed to refresh attendee data:', error);
+    }
+  };
 
   // Architectural compliance validation
   const validateArchitectureCompliance = () => {
@@ -216,7 +231,8 @@ const BioPage = () => {
 
   return (
     <PageLayout>
-      {/* Back Button */}
+      <PullToRefresh onRefresh={handleRefresh}>
+        {/* Back Button */}
       <div className="back-link-container" style={{ marginBottom: 'var(--space-sm)' }}>
         <button 
           className="back-link"
@@ -531,7 +547,7 @@ const BioPage = () => {
           )}
         </Card>
       )}
-      
+      </PullToRefresh>
     </PageLayout>
   );
 };

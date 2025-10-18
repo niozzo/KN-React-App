@@ -6,6 +6,7 @@ import ConferenceEndedCard from '../components/ConferenceEndedCard';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import InstallPrompt from '../components/InstallPrompt';
+import PullToRefresh from '../components/common/PullToRefresh';
 import useSessionData from '../hooks/useSessionData';
 import TimeOverride from '../components/dev/TimeOverride';
 import TimeService from '../services/timeService';
@@ -525,18 +526,19 @@ const HomePage = () => {
 
   return (
     <PageLayout data-testid="home-page">
-      {/* Time Override (Dev/Staging Only) */}
-      <TimeOverride />
-      
-      {/* Offline indicator */}
-      {isOffline && (
-        <div className="offline-indicator">
-          <span>📱 Offline mode - showing cached data</span>
-        </div>
-      )}
+      <PullToRefresh onRefresh={refresh}>
+        {/* Time Override (Dev/Staging Only) */}
+        <TimeOverride />
+        
+        {/* Offline indicator */}
+        {isOffline && (
+          <div className="offline-indicator">
+            <span>📱 Offline mode - showing cached data</span>
+          </div>
+        )}
 
-      {/* Now/Next Section */}
-      <section className="now-next-section">
+        {/* Now/Next Section */}
+        <section className="now-next-section">
         {getDateTitle() && (
           <h2 className="date-title" style={{
             fontFamily: 'var(--font-heading)',
@@ -634,6 +636,7 @@ const HomePage = () => {
       {/* <section className="install-prompt-section">
         <InstallPrompt placement="home" />
       </section> */}
+      </PullToRefresh>
     </PageLayout>
   );
 };

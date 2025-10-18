@@ -1,6 +1,8 @@
 import React from 'react';
 import PageLayout from '../components/layout/PageLayout';
 import ScheduleView from '../components/ScheduleView';
+import PullToRefresh from '../components/common/PullToRefresh';
+import useSessionData from '../hooks/useSessionData';
 
 /**
  * Schedule Page Component
@@ -9,6 +11,9 @@ import ScheduleView from '../components/ScheduleView';
  * Replaces hardcoded SchedulePage with dynamic ScheduleView integration
  */
 const SchedulePage = () => {
+  // Get refresh function from useSessionData
+  const { refresh } = useSessionData();
+
   const handleSessionClick = (session) => {
     // Handle session click navigation
     console.log('Session clicked:', session);
@@ -18,10 +23,12 @@ const SchedulePage = () => {
   return (
     <PageLayout>
       <h1 className="page-title">My Schedule</h1>
-      <ScheduleView 
-        onSessionClick={handleSessionClick}
-        className="schedule-page-content"
-      />
+      <PullToRefresh onRefresh={refresh}>
+        <ScheduleView 
+          onSessionClick={handleSessionClick}
+          className="schedule-page-content"
+        />
+      </PullToRefresh>
     </PageLayout>
   );
 };
