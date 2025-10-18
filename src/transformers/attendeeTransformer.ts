@@ -105,7 +105,7 @@ export class AttendeeTransformer extends BaseTransformer<Attendee> {
             const service = CompanyNormalizationService.getInstance()
             // ✅ DEFENSIVE: Check if service is initialized before calling
             if (!service.isInitialized) {
-              console.warn('⚠️ Company Normalization Service not ready, using original company name')
+              // Silent fallback - no console warning to avoid infinite loop
               return data.company || ''
             }
             const standardized = service.normalizeCompanyName(data.company)
@@ -125,7 +125,7 @@ export class AttendeeTransformer extends BaseTransformer<Attendee> {
             const service = CompanyNormalizationService.getInstance()
             // ✅ DEFENSIVE: Check if service is initialized before calling
             if (!service.isInitialized) {
-              console.warn('⚠️ Company Normalization Service not ready, skipping sector lookup')
+              // Silent fallback - no console warning to avoid infinite loop
               return undefined
             }
             const standardized = service.normalizeCompanyName(data.company)
@@ -145,7 +145,7 @@ export class AttendeeTransformer extends BaseTransformer<Attendee> {
             const service = CompanyNormalizationService.getInstance()
             // ✅ DEFENSIVE: Check if service is initialized before calling
             if (!service.isInitialized) {
-              console.warn('⚠️ Company Normalization Service not ready, skipping geography lookup')
+              // Silent fallback - no console warning to avoid infinite loop
               return undefined
             }
             const standardized = service.normalizeCompanyName(data.company)
