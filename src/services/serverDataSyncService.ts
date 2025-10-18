@@ -195,32 +195,16 @@ export class ServerDataSyncService extends BaseService {
       
       const supabaseClient = await this.getAuthenticatedClient();
       
-      // Sync each table
+      // Sync each table using the optimized syncTable method
       for (const tableName of this.tableToSync) {
         try {
-          
-          const { data, error } = await supabaseClient
-            .from(tableName)
-            .select('*');
-          
-          if (error) {
-            logger.error(`Failed to sync ${tableName}`, error.message, 'ServerDataSyncService');
-            result.errors.push(`Failed to sync ${tableName}: ${error.message}`);
-            continue;
-          }
-          
-          let records = data || [];
-          
-          // Debug logging removed - these diagnostic messages are not needed in production
-          
-          // Apply transformations using shared method
-          records = await this.applyTransformations(tableName, records);
-          
-          // Cache the data locally
-          await this.cacheTableData(tableName, records);
+          console.log(`🔄 Syncing table: ${tableName}`);
+          const records = await this.syncTable(tableName);
           
           result.syncedTables.push(tableName);
           result.totalRecords += records.length;
+          
+          console.log(`✅ Synced ${records.length} records from ${tableName}`);
           
         } catch (error) {
           const errorMsg = `Failed to sync ${tableName}: ${error instanceof Error ? error.message : 'Unknown error'}`;
