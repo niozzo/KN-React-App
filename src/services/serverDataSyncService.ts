@@ -581,7 +581,7 @@ export class ServerDataSyncService extends BaseService {
    * Sync user-specific seat assignments (optimized for individual users)
    * This avoids the 1000-record limit issue by only syncing the current user's assignments
    */
-  private async syncUserSeatAssignments(supabaseClient: any): Promise<any[]> {
+  async syncUserSeatAssignments(supabaseClient: any): Promise<any[]> {
     try {
       console.log('🔍 [DEBUG] syncUserSeatAssignments called');
       

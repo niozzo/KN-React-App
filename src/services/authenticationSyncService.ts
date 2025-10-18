@@ -70,10 +70,12 @@ export class AuthenticationSyncService extends BaseService {
       // Step 4: Sync user-specific seat assignments (now that auth is complete)
       console.log('🔄 AuthenticationSync: Syncing user-specific seat assignments...')
       try {
-        const seatAssignments = await serverDataSyncService.syncTable('seat_assignments')
+        // DIRECT APPROACH: Call the user-specific method directly
+        const supabaseClient = await serverDataSyncService.getAuthenticatedClient()
+        const seatAssignments = await serverDataSyncService.syncUserSeatAssignments(supabaseClient)
         syncedTables.push('seat_assignments')
         totalRecords += seatAssignments.length
-        console.log(`✅ AuthenticationSync: Seat assignments sync completed (${seatAssignments.length} records)`)
+        console.log(`✅ AuthenticationSync: User-specific seat assignments sync completed (${seatAssignments.length} records)`)
       } catch (seatError) {
         console.warn('⚠️ AuthenticationSync: Seat assignments sync failed:', seatError)
       }
