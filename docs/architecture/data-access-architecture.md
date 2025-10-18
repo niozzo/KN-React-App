@@ -86,6 +86,32 @@ graph TD
 
 ### **2. Service Layer Architecture**
 
+**NEW (2025-01-18)**: Performance Optimizations for Login Flow
+
+```typescript
+// ✅ OPTIMIZED: Service initialization happens once during authentication
+// authenticationSyncService.ts handles service orchestration
+// serverDataSyncService.ts no longer calls ensureServicesReady()
+
+// ✅ OPTIMIZED: Selective field queries for attendees
+if (tableName === 'attendees') {
+  query = query.select(`
+    id, first_name, last_name, title, company, bio, photo, salutation,
+    registration_status, registration_id, dining_selections, selected_breakouts,
+    attributes, is_cfo, is_apax_ep, primary_attendee_id, company_name_standardized,
+    last_synced_at, created_at, updated_at
+  `);
+} else {
+  query = query.select('*');
+}
+
+// ✅ OPTIMIZED: Parallel sync operations
+const [coreSyncResult, attendeeSyncResult] = await Promise.allSettled([
+  serverDataSyncService.syncAllData(),
+  attendeeSyncService.refreshAttendeeData()
+]);
+```
+
 ```typescript
 // ✅ CORRECT: Environment-aware service layer with dual database support
 class DataService {
