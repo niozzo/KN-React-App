@@ -16,7 +16,8 @@ export class SupabaseClientFactory {
 
   static getAuthClient(): SupabaseClient {
     if (!SupabaseClientFactory.authClient) {
-      console.log('🔧 SupabaseClientFactory: Creating auth client singleton');
+      console.log('🔧 SupabaseClientFactory: Creating EXTERNAL database client');
+      console.log('🏗️ This is expected - different from Application database client');
       SupabaseClientFactory.authClient = createClient(
         import.meta.env.VITE_SUPABASE_URL!,
         import.meta.env.VITE_SUPABASE_ANON_KEY!

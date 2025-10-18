@@ -215,6 +215,18 @@ return await apiGet('/api/attendees')
 
 ## Troubleshooting
 
+### **Service Worker Registration Issues**
+- **Page Refresh on First Visit**: Fixed - service worker now detects first registration vs updates
+- **Solution**: Only reloads for real updates, not initial registration
+- **Expected Behavior**: Service worker registers without page refresh on first visit
+
+### **GoTrueClient Warnings**
+- **Multiple Instances**: Expected behavior for dual-database architecture
+- **External Database**: Conference data (read-only) - iikcgdhztkrexuuqheli.supabase.co
+- **Application Database**: User data (read-write) - VITE_APPLICATION_DB_URL
+- **Different Storage Keys**: Prevents data mixing between databases
+- **Console Messages**: Look for architectural context messages explaining this behavior
+
 ### **Common Issues**
 - **Install Prompt**: May take time to appear in Chrome
 - **Service Worker**: Requires HTTPS in production

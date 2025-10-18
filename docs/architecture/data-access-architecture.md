@@ -54,6 +54,10 @@ Multiple GoTrueClient instances detected in the same browser context
 ```
 This warning can be safely ignored as it's expected behavior for our dual-database architecture.
 
+**Note:** If you see this warning 4+ times on first visit, this indicates a service worker 
+registration issue that has been fixed. The service worker now detects first registration 
+vs real updates and only reloads for actual updates.
+
 **ServiceRegistry Initialization:**
 The ServiceRegistry should only initialize once per session. If you see:
 ```

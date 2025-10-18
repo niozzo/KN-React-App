@@ -44,6 +44,11 @@ export class ServiceRegistry {
       return;
     }
 
+    // Add architectural context
+    console.log('🏗️ DUAL DATABASE ARCHITECTURE: Multiple GoTrueClient instances are EXPECTED');
+    console.log('🏗️ External DB: Conference data | Application DB: User data');
+    console.log('🏗️ Different storage keys prevent data mixing - this is intentional');
+
     if (!APPLICATION_DB_URL || !APPLICATION_DB_ANON_KEY) {
       console.error('❌ Missing application database environment variables');
       throw new Error('Missing application database environment variables');
