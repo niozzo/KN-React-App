@@ -49,15 +49,16 @@ export const usePullToRefresh = (options: PullToRefreshOptions = {}): PullToRefr
   // Calculate pull progress (0-1)
   const pullProgress = Math.min(pullDistance / threshold, 1);
 
-  // Check if we're at the top of the page
+  // Check if we can pull to refresh (allow from anywhere on page)
   const checkCanPull = useCallback(() => {
     if (disabled || isRefreshing) {
       setCanPull(false);
       return;
     }
     
-    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-    setCanPull(scrollTop === 0);
+    // Allow pull-to-refresh from anywhere on the page
+    // This provides a more intuitive UX like modern mobile apps
+    setCanPull(true);
   }, [disabled, isRefreshing]);
 
   // Reset pull state
@@ -71,18 +72,16 @@ export const usePullToRefresh = (options: PullToRefreshOptions = {}): PullToRefr
   const handleTouchStart = useCallback((e: TouchEvent) => {
     if (disabled || isRefreshing) return;
     
-    checkCanPull();
-    if (!canPull) return;
-
+    // Always allow touch start - we'll check direction in touch move
     startY.current = e.touches[0].clientY;
     currentY.current = e.touches[0].clientY;
     touchStartTime.current = Date.now();
     isDragging.current = false;
-  }, [disabled, isRefreshing, canPull, checkCanPull]);
+  }, [disabled, isRefreshing]);
 
   // Handle touch move
   const handleTouchMove = useCallback((e: TouchEvent) => {
-    if (disabled || isRefreshing || !canPull) return;
+    if (disabled || isRefreshing) return;
 
     currentY.current = e.touches[0].clientY;
     const deltaY = currentY.current - startY.current;
@@ -99,7 +98,7 @@ export const usePullToRefresh = (options: PullToRefreshOptions = {}): PullToRefr
       setPullDistance(adjustedDistance);
       setIsPulling(adjustedDistance > 10);
     }
-  }, [disabled, isRefreshing, canPull, threshold, resistance]);
+  }, [disabled, isRefreshing, threshold, resistance]);
 
   // Handle touch end
   const handleTouchEnd = useCallback(async () => {
@@ -131,17 +130,9 @@ export const usePullToRefresh = (options: PullToRefreshOptions = {}): PullToRefr
     resetPull();
   }, [disabled, isRefreshing, threshold, onRefresh, resetPull]);
 
-  // Set up scroll listener
+  // Initialize canPull state
   useEffect(() => {
-    const handleScroll = () => checkCanPull();
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    
-    // Initial check
     checkCanPull();
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
   }, [checkCanPull]);
 
   return {
