@@ -99,6 +99,16 @@ export const usePullToRefresh = (options: PullToRefreshOptions = {}): PullToRefr
       
       setPullDistance(adjustedDistance);
       setIsPulling(adjustedDistance > 10);
+      
+      // Debug logging
+      if (adjustedDistance > 50) {
+        console.log('Pull progress:', {
+          deltaY,
+          adjustedDistance,
+          threshold,
+          progress: (adjustedDistance / threshold * 100).toFixed(1) + '%'
+        });
+      }
     }
   }, [disabled, isRefreshing, canPull, threshold, resistance]);
 
@@ -112,9 +122,21 @@ export const usePullToRefresh = (options: PullToRefreshOptions = {}): PullToRefr
     const deltaY = currentY.current - startY.current;
     const pullDuration = Date.now() - touchStartTime.current;
     
+    // Apply same resistance calculation as in touch move
+    const resistanceFactor = Math.max(0.7, 1 - (deltaY / (threshold * resistance * 3)));
+    const adjustedDistance = deltaY * resistanceFactor;
+    
     // Trigger refresh if pulled far enough or fast enough
-    const shouldRefresh = deltaY > threshold || 
-                        (deltaY > threshold * 0.6 && pullDuration < 300);
+    const shouldRefresh = adjustedDistance > threshold || 
+                        (adjustedDistance > threshold * 0.6 && pullDuration < 300);
+    
+    console.log('Pull-to-refresh debug:', {
+      deltaY,
+      adjustedDistance,
+      threshold,
+      shouldRefresh,
+      pullDuration
+    });
     
     if (shouldRefresh && onRefresh) {
       try {
@@ -130,7 +152,7 @@ export const usePullToRefresh = (options: PullToRefreshOptions = {}): PullToRefr
     }
     
     resetPull();
-  }, [disabled, isRefreshing, threshold, onRefresh, resetPull]);
+  }, [disabled, isRefreshing, threshold, resistance, onRefresh, resetPull]);
 
   // Set up scroll listener
   useEffect(() => {
