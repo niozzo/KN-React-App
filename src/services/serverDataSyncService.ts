@@ -186,11 +186,7 @@ export class ServerDataSyncService extends BaseService {
     };
 
     try {
-      // ✅ SERVICE ORCHESTRATION: Ensure all services are ready before data processing
-      console.log('🔄 ServerDataSync: Ensuring all services are ready...');
-      const { serviceOrchestrator } = await import('./serviceOrchestrator');
-      await serviceOrchestrator.ensureServicesReady();
-      console.log('✅ ServerDataSync: All services initialized and ready');
+      // Service initialization handled by authenticationSyncService
       
       const supabaseClient = await this.getAuthenticatedClient();
       
@@ -485,9 +481,23 @@ export class ServerDataSyncService extends BaseService {
         return await this.syncUserSeatAssignments(supabaseClient);
       }
       
-      const { data, error } = await supabaseClient
-        .from(tableName)
-        .select('*');
+      // Use selective field queries for attendees to improve performance and security
+      let query = supabaseClient.from(tableName);
+      
+      if (tableName === 'attendees') {
+        // Only fetch safe fields for attendees (prevents confidential data from leaving database)
+        query = query.select(`
+          id, first_name, last_name, title, company, bio, photo, salutation,
+          registration_status, registration_id, dining_selections, selected_breakouts,
+          attributes, is_cfo, is_apax_ep, primary_attendee_id, company_name_standardized,
+          last_synced_at, created_at, updated_at
+        `);
+      } else {
+        // Use select('*') for other tables
+        query = query.select('*');
+      }
+      
+      const { data, error } = await query;
       
       if (error) {
         throw new Error(`Failed to sync ${tableName}: ${error.message}`);

@@ -45,26 +45,32 @@ export class AuthenticationSyncService extends BaseService {
       await serviceOrchestrator.ensureServicesReady()
       console.log('✅ AuthenticationSync: All services initialized and ready')
       
-      // Step 2: Sync core data (attendees, agenda items)
-      console.log('🔄 AuthenticationSync: Syncing core data...')
-      const coreSyncResult = await serverDataSyncService.syncAllData()
+      // Step 2: Parallel sync of core data and attendee data
+      console.log('🔄 AuthenticationSync: Starting parallel sync operations...')
       
-      if (coreSyncResult.success) {
-        syncedTables.push(...coreSyncResult.syncedTables)
-        totalRecords += coreSyncResult.totalRecords
+      const [coreSyncResult, attendeeSyncResult] = await Promise.allSettled([
+        // Core data sync (attendees, agenda items, etc.)
+        serverDataSyncService.syncAllData(),
+        // Attendee-specific data refresh
+        attendeeSyncService.refreshAttendeeData()
+      ])
+      
+      // Process core sync result
+      if (coreSyncResult.status === 'fulfilled' && coreSyncResult.value.success) {
+        syncedTables.push(...coreSyncResult.value.syncedTables)
+        totalRecords += coreSyncResult.value.totalRecords
         console.log('✅ AuthenticationSync: Core data sync completed')
       } else {
-        console.warn('⚠️ AuthenticationSync: Core sync failed, continuing with limited data')
+        const error = coreSyncResult.status === 'rejected' ? coreSyncResult.reason : coreSyncResult.value?.errors
+        console.warn('⚠️ AuthenticationSync: Core sync failed:', error)
       }
       
-      // Step 3: Sync attendee-specific data
-      console.log('🔄 AuthenticationSync: Syncing attendee data...')
-      try {
-        await attendeeSyncService.refreshAttendeeData()
+      // Process attendee sync result
+      if (attendeeSyncResult.status === 'fulfilled') {
         syncedTables.push('attendee_sync')
         console.log('✅ AuthenticationSync: Attendee data sync completed')
-      } catch (attendeeError) {
-        console.warn('⚠️ AuthenticationSync: Attendee sync failed:', attendeeError)
+      } else {
+        console.warn('⚠️ AuthenticationSync: Attendee sync failed:', attendeeSyncResult.reason)
       }
       
       // Step 4: Sync user-specific seat assignments (now that auth is complete)
