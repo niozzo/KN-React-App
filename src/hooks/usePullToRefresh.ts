@@ -31,7 +31,7 @@ export interface PullToRefreshResult extends PullToRefreshState {
 export const usePullToRefresh = (options: PullToRefreshOptions = {}): PullToRefreshResult => {
   const {
     threshold = 80,
-    resistance = 2.5,
+    resistance = 1.5, // Reduced from 2.5 for better responsiveness
     disabled = false,
     onRefresh
   } = options;
@@ -92,8 +92,9 @@ export const usePullToRefresh = (options: PullToRefreshOptions = {}): PullToRefr
       e.preventDefault();
       isDragging.current = true;
       
-      // Apply resistance - harder to pull as distance increases
-      const resistanceFactor = Math.max(0.1, 1 - (deltaY / (threshold * resistance)));
+      // Apply minimal resistance for better responsiveness
+      // Use most of the actual pull distance
+      const resistanceFactor = Math.max(0.7, 1 - (deltaY / (threshold * resistance * 3)));
       const adjustedDistance = deltaY * resistanceFactor;
       
       setPullDistance(adjustedDistance);
