@@ -138,17 +138,32 @@ export const usePullToRefresh = (options: PullToRefreshOptions = {}): PullToRefr
       pullDuration
     });
     
+    console.log('Pull-to-refresh check:', {
+      shouldRefresh,
+      hasOnRefresh: !!onRefresh,
+      onRefreshType: typeof onRefresh
+    });
+    
     if (shouldRefresh && onRefresh) {
       try {
+        console.log('Calling onRefresh function...');
         setIsRefreshing(true);
         logger.debug('Pull-to-refresh triggered', null, 'usePullToRefresh');
         await onRefresh();
         logger.success('Pull-to-refresh completed', null, 'usePullToRefresh');
+        console.log('onRefresh completed successfully');
       } catch (error) {
+        console.error('onRefresh failed:', error);
         logger.error('Pull-to-refresh failed', error, 'usePullToRefresh');
       } finally {
         setIsRefreshing(false);
+        console.log('Pull-to-refresh finished, isRefreshing set to false');
       }
+    } else {
+      console.log('Pull-to-refresh not triggered:', {
+        shouldRefresh,
+        hasOnRefresh: !!onRefresh
+      });
     }
     
     resetPull();
