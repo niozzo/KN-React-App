@@ -1,4 +1,13 @@
 /**
+ * DUAL DATABASE ARCHITECTURE NOTICE:
+ * This service manages TWO separate Supabase databases:
+ * 1. External DB (Conference Data): iikcgdhztkrexuuqheli.supabase.co
+ * 2. Application DB (User Data): VITE_APPLICATION_DB_URL
+ * 
+ * Multiple GoTrueClient instances are EXPECTED and INTENTIONAL.
+ * Each database uses different storage keys for security.
+ * The Supabase warning can be safely ignored.
+ * 
  * Service Registry for managing singleton instances
  * Prevents multiple GoTrueClient instances and provides centralized service management
  */
@@ -31,7 +40,7 @@ export class ServiceRegistry {
    */
   public initialize(): void {
     if (this.isInitialized) {
-      console.warn('⚠️ ServiceRegistry already initialized');
+      console.log('✅ ServiceRegistry already initialized - skipping duplicate initialization');
       return;
     }
 
@@ -58,8 +67,16 @@ export class ServiceRegistry {
       console.log('✅ ServiceRegistry initialized successfully');
     } catch (error) {
       console.error('❌ Failed to initialize ServiceRegistry:', error);
+      this.isInitialized = false;
       throw error;
     }
+  }
+
+  /**
+   * Check if ServiceRegistry is initialized
+   */
+  public isServiceInitialized(): boolean {
+    return this.isInitialized;
   }
 
   /**

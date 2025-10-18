@@ -1,3 +1,13 @@
+/**
+ * DUAL DATABASE ARCHITECTURE NOTICE:
+ * This factory creates clients for the EXTERNAL database only.
+ * The APPLICATION database is managed by ServiceRegistry.
+ * 
+ * Multiple GoTrueClient instances are EXPECTED due to:
+ * - Different database URLs
+ * - Different storage keys
+ * - Different authentication contexts
+ */
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 export class SupabaseClientFactory {

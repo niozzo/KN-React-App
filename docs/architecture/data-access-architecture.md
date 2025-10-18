@@ -38,6 +38,29 @@ const attendees = cacheObj.data || cacheObj  // Handle both formats
 
 ## ⚠️ CRITICAL: Environment-Based Data Access
 
+### **Dual Database Architecture**
+
+**IMPORTANT**: Multiple GoTrueClient instances are **EXPECTED** and **INTENTIONAL** in our architecture.
+
+**Architecture Rationale:**
+- **External Database**: Conference data (read-only) - `iikcgdhztkrexuuqheli.supabase.co`
+- **Application Database**: User data (read-write) - `VITE_APPLICATION_DB_URL`
+- **Security**: Different storage keys prevent data mixing
+- **Performance**: Optimized for different use cases
+
+**Console Warnings to Ignore:**
+```
+Multiple GoTrueClient instances detected in the same browser context
+```
+This warning can be safely ignored as it's expected behavior for our dual-database architecture.
+
+**ServiceRegistry Initialization:**
+The ServiceRegistry should only initialize once per session. If you see:
+```
+⚠️ ServiceRegistry already initialized
+```
+This indicates a duplicate initialization call that should be removed.
+
 ### **Local Development Mode**
 - **Data Source**: Local API endpoints (`/api/*`)
 - **Database**: No direct database connections
