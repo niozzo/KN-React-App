@@ -593,22 +593,10 @@ export class ServerDataSyncService extends BaseService {
       
       if (!currentAttendeeId) {
         console.log('⚠️ No current attendee ID found, skipping seat assignments sync');
-        console.log('🔍 [DEBUG] Falling back to bulk sync for seat_assignments');
-        // FALLBACK: Use bulk sync if no user ID
-        const { data, error } = await supabaseClient
-          .from('seat_assignments')
-          .select('*');
-        
-        if (error) {
-          throw new Error(`Failed to sync seat assignments: ${error.message}`);
-        }
-        
-        const records = data || [];
-        console.log(`📊 [FALLBACK] Found ${records.length} seat assignments (bulk sync)`);
-        
-        const transformedRecords = await this.applyTransformations('seat_assignments', records);
-        await this.cacheTableData('seat_assignments', transformedRecords);
-        return transformedRecords;
+        console.log('🔍 [DEBUG] Skipping seat_assignments sync - will be synced after authentication');
+        // SKIP: Don't sync seat_assignments without authentication
+        // This prevents the 1000-record bulk sync issue
+        return [];
       }
       
       console.log(`🎯 [USER-SPECIFIC-SYNC] Syncing seat assignments for attendee: ${currentAttendeeId}`);
