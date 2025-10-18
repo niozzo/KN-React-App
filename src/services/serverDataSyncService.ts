@@ -574,12 +574,32 @@ export class ServerDataSyncService extends BaseService {
    */
   private async syncUserSeatAssignments(supabaseClient: any): Promise<any[]> {
     try {
+      console.log('🔍 [DEBUG] syncUserSeatAssignments called');
+      
       // Get current attendee ID from authentication state
       const currentAttendeeId = this.getCurrentAttendeeId();
       
+      console.log('🔍 [DEBUG] Current attendee ID:', currentAttendeeId);
+      console.log('🔍 [DEBUG] localStorage conference_auth:', localStorage.getItem('conference_auth'));
+      
       if (!currentAttendeeId) {
         console.log('⚠️ No current attendee ID found, skipping seat assignments sync');
-        return [];
+        console.log('🔍 [DEBUG] Falling back to bulk sync for seat_assignments');
+        // FALLBACK: Use bulk sync if no user ID
+        const { data, error } = await supabaseClient
+          .from('seat_assignments')
+          .select('*');
+        
+        if (error) {
+          throw new Error(`Failed to sync seat assignments: ${error.message}`);
+        }
+        
+        const records = data || [];
+        console.log(`📊 [FALLBACK] Found ${records.length} seat assignments (bulk sync)`);
+        
+        const transformedRecords = await this.applyTransformations('seat_assignments', records);
+        await this.cacheTableData('seat_assignments', transformedRecords);
+        return transformedRecords;
       }
       
       console.log(`🎯 [USER-SPECIFIC-SYNC] Syncing seat assignments for attendee: ${currentAttendeeId}`);
@@ -633,25 +653,38 @@ export class ServerDataSyncService extends BaseService {
    */
   private getCurrentAttendeeId(): string | null {
     try {
+      console.log('🔍 [DEBUG] getCurrentAttendeeId called');
+      
       // Try to get from localStorage first
       const authData = localStorage.getItem('conference_auth');
+      console.log('🔍 [DEBUG] localStorage conference_auth exists:', !!authData);
+      
       if (authData) {
         const auth = JSON.parse(authData);
+        console.log('🔍 [DEBUG] Parsed auth data:', auth);
+        console.log('🔍 [DEBUG] Auth attendee:', auth.attendee);
+        console.log('🔍 [DEBUG] Auth attendee ID:', auth.attendee?.id);
+        
         if (auth.attendee && auth.attendee.id) {
+          console.log('✅ [DEBUG] Found attendee ID from localStorage:', auth.attendee.id);
           return auth.attendee.id;
         }
       }
       
       // Fallback: try to get from current session
+      console.log('🔍 [DEBUG] Trying Supabase session fallback');
       const { supabaseClientService } = require('./supabaseClientService');
       const client = supabaseClientService.getClient();
       const session = client.auth.getSession();
+      
+      console.log('🔍 [DEBUG] Supabase session:', session);
       
       if (session && session.data && session.data.user) {
         // This would need to be implemented based on your auth structure
         console.log('🔍 Session found, but attendee ID extraction needs implementation');
       }
       
+      console.log('❌ [DEBUG] No attendee ID found');
       return null;
     } catch (error) {
       console.warn('⚠️ Failed to get current attendee ID:', error);
