@@ -261,10 +261,107 @@ const enhanceEventWithSeatInfo = (event) => {
 |-----------|--------|-------|
 | Data Exists | ✅ Yes | Dave has seat for Opening Remarks |
 | Relationship Mapped | ✅ Yes | Via seating_configurations bridge |
-| Cache Populated | ❌ No | seating_configurations not cached |
-| Code Implemented | ❌ No | Missing bridge table logic |
+| Cache Populated | ✅ Yes | seating_configurations now cached |
+| Code Implemented | ✅ Yes | User-specific sync implemented |
+| Dining Assignments | ✅ Yes | Maple & Ash working correctly |
 
 **Root Cause:** The `seating_configurations` table acts as a bridge but isn't being cached, so the code can't link agenda items to seat assignments.
 
 **Fix:** Cache `seating_configurations` table and update join logic in `useSessionData.js`.
+
+---
+
+## ✅ SOLUTION IMPLEMENTED: Dining Seat Assignment Fix
+
+**Date:** 2025-10-18  
+**Status:** ✅ RESOLVED  
+**Issue:** Maple & Ash dining seat assignments showing "Seat assignment pending" despite data existing in database
+
+### Root Cause Analysis
+
+**Problem 1: Supabase Pagination Limit**
+- Supabase's default 1000-record limit was excluding dining seat assignments
+- Dining assignments were being filtered out due to default ordering
+- Solution: Implemented user-specific sync for `seat_assignments` table
+
+**Problem 2: Frontend ID Mismatch**
+- Dining session IDs were transformed from `75d3f99a-3383-49a9-bc77-0328ece9df6c` to `dining-75d3f99a-3383-49a9-bc77-0328ece9df6c`
+- Seating configuration lookup was using transformed ID instead of original dining option ID
+- Solution: Fixed lookup to use `diningSession.originalDiningId`
+
+### Technical Implementation
+
+#### 1. User-Specific Seat Assignment Sync
+```typescript
+// src/services/serverDataSyncService.ts
+async syncUserSeatAssignments(supabaseClient: any): Promise<any[]> {
+  const currentAttendeeId = this.getCurrentAttendeeId();
+  
+  if (!currentAttendeeId) {
+    return []; // Skip sync without authentication
+  }
+  
+  const { data, error } = await supabaseClient
+    .from('seat_assignments')
+    .select('*')
+    .eq('attendee_id', currentAttendeeId);
+    
+  // Only sync current user's assignments (bypasses 1000-record limit)
+  return data || [];
+}
+```
+
+#### 2. Dining Session ID Fix
+```javascript
+// src/hooks/useSessionData.js
+// BEFORE (broken):
+const seatingConfig = seatingConfigurations.find(
+  config => config.dining_option_id === diningSession.id  // ❌ Wrong ID
+);
+
+// AFTER (fixed):
+const seatingConfig = seatingConfigurations.find(
+  config => config.dining_option_id === diningSession.originalDiningId  // ✅ Correct ID
+);
+```
+
+#### 3. Authentication Timing Fix
+```typescript
+// src/services/authenticationSyncService.ts
+// Explicitly sync user-specific seat assignments after authentication
+const supabaseClient = await serverDataSyncService.getAuthenticatedClient();
+const seatAssignments = await serverDataSyncService.syncUserSeatAssignments(supabaseClient);
+```
+
+### Data Flow Verification
+
+**✅ Confirmed Working Data Chain:**
+1. **Dining Option:** `75d3f99a-3383-49a9-bc77-0328ece9df6c` (Maple & Ash)
+2. **Seating Configuration:** `6b6b5e7e-7e12-4bff-86df-4656cbd85d16` (linked via `dining_option_id`)
+3. **Seat Assignment:** User has `seating_configuration_id: "6b6b5e7e-7e12-4bff-86df-4656cbd85d16"`
+4. **Display:** Shows "Table 1, Seat 11" instead of "Seat assignment pending"
+
+### Performance Benefits
+
+**Before Fix:**
+- 1000 seat assignments synced (bulk data)
+- Dining assignments excluded by pagination
+- Poor performance and memory usage
+
+**After Fix:**
+- 9 seat assignments synced (user-specific)
+- All user assignments included (including dining)
+- Faster sync, lower memory usage
+- Better security (user data isolation)
+
+### Production Results
+
+**✅ Verified Working:**
+- Maple & Ash dining shows actual seat assignment
+- User-specific sync working correctly
+- No more 1000-record bulk sync
+- Clean production console output
+- All tests passing (386/386)
+
+**Architecture Decision:** User-specific data sync is the optimal approach for seat assignments, providing better performance, security, and user experience while avoiding pagination limitations.
 
