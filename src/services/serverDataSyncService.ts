@@ -198,13 +198,22 @@ export class ServerDataSyncService extends BaseService {
       // Sync each table using the optimized syncTable method
       for (const tableName of this.tableToSync) {
         try {
-          console.log(`🔄 Syncing table: ${tableName}`);
+          console.log(`🔄 [SYNC-ALL-DATA] Syncing table: ${tableName}`);
+          
+          if (tableName === 'seat_assignments') {
+            console.log(`🎯 [SYNC-ALL-DATA] About to sync seat_assignments - this should trigger user-specific logic`);
+          }
+          
           const records = await this.syncTable(tableName);
           
           result.syncedTables.push(tableName);
           result.totalRecords += records.length;
           
-          console.log(`✅ Synced ${records.length} records from ${tableName}`);
+          console.log(`✅ [SYNC-ALL-DATA] Synced ${records.length} records from ${tableName}`);
+          
+          if (tableName === 'seat_assignments') {
+            console.log(`🎯 [SYNC-ALL-DATA] seat_assignments sync completed with ${records.length} records`);
+          }
           
         } catch (error) {
           const errorMsg = `Failed to sync ${tableName}: ${error instanceof Error ? error.message : 'Unknown error'}`;
