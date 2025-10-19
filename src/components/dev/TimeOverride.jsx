@@ -13,10 +13,10 @@ import { ValidationRules } from '../../utils/validationUtils';
  * Available in all environments for testing
  */
 const TimeOverride = () => {
-  // Show in all environments for testing
-  // if (process.env.NODE_ENV === 'production') {
-  //   return null;
-  // }
+  // Hide in production, show in development and staging
+  if (process.env.NODE_ENV === 'production') {
+    return null;
+  }
 
   const [isOpen, setIsOpen] = useState(false);
   const [overrideDateTime, setOverrideDateTime] = useState('');
