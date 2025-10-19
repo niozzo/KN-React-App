@@ -274,59 +274,92 @@ export class AdminService {
 
   async getSeatAssignmentsForAttendee(attendeeId: string): Promise<any[]> {
     try {
-      // ADMIN-ONLY: Fetch seat assignments with session names via joins
+      // ADMIN-ONLY: Fetch seat assignments directly from Supabase
       const { supabase } = await import('../lib/supabase');
       
-      const { data, error } = await supabase
+      // First, get the basic seat assignments
+      const { data: seatAssignments, error: seatError } = await supabase
         .from('seat_assignments')
-        .select(`
-          *,
-          seating_configurations!inner(
-            id,
-            agenda_item_id,
-            dining_option_id,
-            agenda_items(
-              id,
-              title,
-              start_time,
-              end_time
-            ),
-            dining_options(
-              id,
-              name,
-              start_time,
-              end_time
-            )
-          )
-        `)
+        .select('*')
         .eq('attendee_id', attendeeId)
         .order('assigned_at', { ascending: true });
       
-      if (error) {
-        throw error;
+      console.log('🔍 DEBUG: Seat assignments query result:', {
+        attendeeId,
+        seatAssignmentsCount: seatAssignments?.length || 0,
+        seatAssignments,
+        error: seatError
+      });
+      
+      if (seatError) {
+        throw seatError;
+      }
+      
+      if (!seatAssignments || seatAssignments.length === 0) {
+        console.log('🔍 DEBUG: No seat assignments found for attendee:', attendeeId);
+        return [];
+      }
+      
+      // Get seating configurations for these assignments
+      const configIds = seatAssignments.map(sa => sa.seating_configuration_id);
+      const { data: configurations, error: configError } = await supabase
+        .from('seating_configurations')
+        .select('id, agenda_item_id, dining_option_id')
+        .in('id', configIds);
+      
+      if (configError) {
+        console.warn('Error fetching seating configurations:', configError);
+      }
+      
+      // Get agenda items
+      const agendaItemIds = configurations?.map(c => c.agenda_item_id).filter(Boolean) || [];
+      const { data: agendaItems, error: agendaError } = await supabase
+        .from('agenda_items')
+        .select('id, title, start_time, end_time')
+        .in('id', agendaItemIds);
+      
+      if (agendaError) {
+        console.warn('Error fetching agenda items:', agendaError);
+      }
+      
+      // Get dining options
+      const diningOptionIds = configurations?.map(c => c.dining_option_id).filter(Boolean) || [];
+      const { data: diningOptions, error: diningError } = await supabase
+        .from('dining_options')
+        .select('id, name, start_time, end_time')
+        .in('id', diningOptionIds);
+      
+      if (diningError) {
+        console.warn('Error fetching dining options:', diningError);
       }
       
       // Transform the data to include session names
-      const transformedData = (data || []).map(assignment => {
-        const config = assignment.seating_configurations;
+      const transformedData = seatAssignments.map(assignment => {
+        const config = configurations?.find(c => c.id === assignment.seating_configuration_id);
         let sessionName = 'Unknown Session';
         let sessionType = 'Unknown';
         let sessionTime = null;
         
-        if (config.agenda_items) {
-          sessionName = config.agenda_items.title;
-          sessionType = 'Agenda Item';
-          sessionTime = {
-            start: config.agenda_items.start_time,
-            end: config.agenda_items.end_time
-          };
-        } else if (config.dining_options) {
-          sessionName = config.dining_options.name;
-          sessionType = 'Dining Option';
-          sessionTime = {
-            start: config.dining_options.start_time,
-            end: config.dining_options.end_time
-          };
+        if (config?.agenda_item_id) {
+          const agendaItem = agendaItems?.find(ai => ai.id === config.agenda_item_id);
+          if (agendaItem) {
+            sessionName = agendaItem.title;
+            sessionType = 'Agenda Item';
+            sessionTime = {
+              start: agendaItem.start_time,
+              end: agendaItem.end_time
+            };
+          }
+        } else if (config?.dining_option_id) {
+          const diningOption = diningOptions?.find(do => do.id === config.dining_option_id);
+          if (diningOption) {
+            sessionName = diningOption.name;
+            sessionType = 'Dining Option';
+            sessionTime = {
+              start: diningOption.start_time,
+              end: diningOption.end_time
+            };
+          }
         }
         
         return {
@@ -334,8 +367,8 @@ export class AdminService {
           session_name: sessionName,
           session_type: sessionType,
           session_time: sessionTime,
-          agenda_item_id: config.agenda_item_id,
-          dining_option_id: config.dining_option_id
+          agenda_item_id: config?.agenda_item_id,
+          dining_option_id: config?.dining_option_id
         };
       });
       
