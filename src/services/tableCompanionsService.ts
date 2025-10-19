@@ -12,6 +12,9 @@ export interface TableCompanion {
   attendee_id: string;
   first_name: string;
   last_name: string;
+  company: string;
+  company_standardized: string;
+  title: string;
   seat_number: number | null;
   assignment_type: 'manual' | 'automatic';
 }
@@ -80,7 +83,11 @@ export class TableCompanionsService extends BaseService {
           seat_number,
           assignment_type,
           seating_configuration_id,
-          attendees!inner(company),
+          attendees!inner(
+            company,
+            title,
+            company_name_standardized
+          ),
           seating_configurations!inner(dining_option_id)
         `)
         .eq('table_name', tableName)
@@ -101,7 +108,9 @@ export class TableCompanionsService extends BaseService {
         attendee_id: assignment.attendee_id,
         first_name: assignment.attendee_first_name,
         last_name: assignment.attendee_last_name,
-        company: (assignment.attendees as any)?.company || 'N/A', // Access company from joined table
+        company: (assignment.attendees as any)?.company || 'N/A',
+        company_standardized: (assignment.attendees as any)?.company_name_standardized || (assignment.attendees as any)?.company || 'N/A',
+        title: (assignment.attendees as any)?.title || 'N/A',
         seat_number: assignment.seat_number,
         assignment_type: assignment.assignment_type
       }));

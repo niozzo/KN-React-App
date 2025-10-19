@@ -199,20 +199,16 @@ export const TableCompanionsWidget: React.FC<TableCompanionsWidgetProps> = ({
                     >
                       {companion.first_name} {companion.last_name}
                     </a>
-                    {companion.seat_number && (
-                      <span 
-                        style={{ 
-                          color: 'var(--ink-600)',
-                          fontSize: '12px',
-                          backgroundColor: 'var(--ink-100)',
-                          padding: '2px 6px',
-                          borderRadius: 'var(--radius-sm)',
-                          marginLeft: 'var(--space-sm)'
-                        }}
-                      >
-                        Seat {companion.seat_number}
-                      </span>
-                    )}
+                    <span 
+                      style={{ 
+                        color: 'var(--ink-600)',
+                        fontSize: '12px',
+                        marginLeft: 'var(--space-sm)',
+                        fontStyle: 'italic'
+                      }}
+                    >
+                      {companion.title} at {companion.company_standardized}
+                    </span>
                   </li>
                 ))}
               </ul>
