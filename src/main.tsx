@@ -18,10 +18,10 @@ async function bootstrapApplication() {
     const serviceRegistry = ServiceRegistry.getInstance();
     serviceRegistry.initialize();
 
-    // ✅ DISABLED: CompanyNormalizationService during bootstrap
-    // This was causing sync operations before authentication
-    // Company normalization will be handled after authentication
-    console.log('⏸️ CompanyNormalizationService: Skipped during bootstrap - will initialize after authentication')
+    // ✅ CompanyNormalizationService will be initialized after authentication
+    // This prevents sync operations before authentication
+    // Company normalization happens during login process
+    console.log('✅ CompanyNormalizationService: Will initialize after authentication (this is correct)')
 
     // ✅ SIMPLIFIED: Service worker handles caching automatically
 
