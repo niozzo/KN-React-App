@@ -42,14 +42,16 @@ describe('AdminService.getAllAttendeesWithAccessCodes', () => {
         first_name: 'John',
         last_name: 'Doe',
         email: 'john@example.com',
-        access_code: 'ABC123'
+        access_code: 'ABC123',
+        registration_status: 'confirmed'
       },
       {
         id: '2',
         first_name: 'Jane',
         last_name: 'Smith',
         email: 'jane@example.com',
-        access_code: 'XYZ789'
+        access_code: 'XYZ789',
+        registration_status: 'confirmed'
       }
     ];
 
@@ -62,7 +64,7 @@ describe('AdminService.getAllAttendeesWithAccessCodes', () => {
     expect(result).toHaveLength(2);
     expect(result[0]).toEqual(mockAttendees[0]);
     expect(mockSupabase.from).toHaveBeenCalledWith('attendees');
-    expect(mockSupabase.select).toHaveBeenCalledWith('id, first_name, last_name, email, access_code');
+    expect(mockSupabase.select).toHaveBeenCalledWith('id, first_name, last_name, email, access_code, registration_status');
     expect(mockSupabase.not).toHaveBeenCalledWith('access_code', 'is', null);
     expect(mockSupabase.order).toHaveBeenCalledWith('last_name', { ascending: true });
   });
@@ -75,14 +77,16 @@ describe('AdminService.getAllAttendeesWithAccessCodes', () => {
         first_name: 'Jane',
         last_name: 'Anderson',
         email: 'jane@example.com',
-        access_code: 'XYZ789'
+        access_code: 'XYZ789',
+        registration_status: 'confirmed'
       },
       {
         id: '2',
         first_name: 'John',
         last_name: 'Doe',
         email: 'john@example.com',
-        access_code: 'ABC123'
+        access_code: 'ABC123',
+        registration_status: 'confirmed'
       }
     ];
 
@@ -141,7 +145,8 @@ describe('AdminService.getAllAttendeesWithAccessCodes', () => {
         first_name: 'John',
         last_name: 'Doe',
         email: 'john@example.com',
-        access_code: 'ABC123'
+        access_code: 'ABC123',
+        registration_status: 'confirmed'
       }
     ];
 
@@ -162,7 +167,8 @@ describe('AdminService.getAllAttendeesWithAccessCodes', () => {
         first_name: 'John',
         last_name: 'Doe',
         email: 'john@example.com',
-        access_code: 'ABC123'
+        access_code: 'ABC123',
+        registration_status: 'confirmed'
       }
     ];
 
@@ -173,8 +179,8 @@ describe('AdminService.getAllAttendeesWithAccessCodes', () => {
 
     // Assert
     expect(result).toHaveLength(1);
-    expect(Object.keys(result[0])).toEqual(['id', 'first_name', 'last_name', 'email', 'access_code']);
-    expect(mockSupabase.select).toHaveBeenCalledWith('id, first_name, last_name, email, access_code');
+    expect(Object.keys(result[0])).toEqual(['id', 'first_name', 'last_name', 'email', 'access_code', 'registration_status']);
+    expect(mockSupabase.select).toHaveBeenCalledWith('id, first_name, last_name, email, access_code, registration_status');
   });
 
   it('should handle empty result set gracefully', async () => {
