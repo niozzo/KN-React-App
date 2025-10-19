@@ -93,32 +93,37 @@ const filterSessionsForAttendee = (sessions, attendee) => {
         }
       });
       
-      // For breakout sessions, only show if user is assigned (using title-based matching)
+      // For breakout sessions, only show if user is assigned (using simple key phrase matching)
       if (attendee && attendee.selected_breakouts) {
         const sessionTitle = session.title?.toLowerCase() || '';
         const selectedBreakouts = attendee.selected_breakouts || [];
         
         return selectedBreakouts.some(breakout => {
           const breakoutLower = breakout.toLowerCase();
-          const normalizedBreakout = breakoutLower.replace(/-/g, ' ').replace(/\s+/g, ' ');
-          const normalizedSession = sessionTitle.replace(/[^\w\s]/g, '').replace(/\s+/g, ' ');
           
-          console.log('🔍 DEBUG: Title matching:', {
+          // Simple key phrase matching:
+          // "track-a-revenue-growth" -> "track a" -> matches "Track A: Driving Revenue Growth"
+          // "track-b-operational-performance" -> "track b" -> matches "Track B: Driving Operational Performance"  
+          // "ceo-summit" -> "ceo" -> matches "Apax Software CEO Summit"
+          
+          let keyPhrase = '';
+          if (breakoutLower.includes('track-a') || breakoutLower.includes('track a')) {
+            keyPhrase = 'track a';
+          } else if (breakoutLower.includes('track-b') || breakoutLower.includes('track b')) {
+            keyPhrase = 'track b';
+          } else if (breakoutLower.includes('ceo')) {
+            keyPhrase = 'ceo';
+          }
+          
+          console.log('🔍 DEBUG: Simple key phrase matching:', {
             breakout: breakout,
             breakoutLower: breakoutLower,
-            normalizedBreakout: normalizedBreakout,
+            keyPhrase: keyPhrase,
             sessionTitle: sessionTitle,
-            normalizedSession: normalizedSession,
-            match1: breakoutLower.includes(sessionTitle),
-            match2: sessionTitle.includes(breakoutLower),
-            match3: normalizedBreakout.includes(normalizedSession),
-            match4: normalizedSession.includes(normalizedBreakout)
+            match: keyPhrase && sessionTitle.includes(keyPhrase)
           });
           
-          return breakoutLower.includes(sessionTitle) || 
-                 sessionTitle.includes(breakoutLower) ||
-                 normalizedBreakout.includes(normalizedSession) ||
-                 normalizedSession.includes(normalizedBreakout);
+          return keyPhrase && sessionTitle.includes(keyPhrase);
         });
       }
       
