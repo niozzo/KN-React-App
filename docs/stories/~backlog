@@ -1,16 +1,13 @@
-utiltiy to look for seating errors
-checksum on page navigation?
 Who is sitin by you
 analytics
-remove dynamic override. in just production?
 
-
-broadcast message
+see if supabase and vercel will handle the load
 content crawl, qa as much as you can
-TBD Pull to refresh
+broadcast message
 
 
 CONTENT
+fix the inconsistent seat assignments
 remove apax from keynote speaker
 clean up first agenda title, remoe duplicate room name
 Directions to dining event on Tuesday?
@@ -20,3 +17,6 @@ Breakfast information for Tuesday / Wednesday?
 COMPLETE
 use supabase utitliy to get images.
 why does nick have different tables?
+utiltiy to look for seating errors
+only check for new data va timestamp
+remove dynamic override. in just production?
