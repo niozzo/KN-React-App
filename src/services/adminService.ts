@@ -340,6 +340,8 @@ export class AdminService {
       
       console.log('🔍 DEBUG: Dining options fetched:', {
         diningOptions,
+        diningOptionsCount: diningOptions?.length || 0,
+        diningOptionIds: diningOptions?.map(do => do.id) || [],
         error: diningError
       });
       
@@ -385,6 +387,11 @@ export class AdminService {
             };
           } else {
             console.log('🔍 DEBUG: Dining option not found:', config.dining_option_id);
+            // Fallback: If we have a dining_option_id but can't find the dining option,
+            // it's still a dining session, just with unknown details
+            sessionName = `Dining Session (${config.dining_option_id.substring(0, 8)}...)`;
+            sessionType = 'Dining Option (Unknown)';
+            sessionTime = null;
           }
         } else {
           console.log('🔍 DEBUG: No agenda_item_id or dining_option_id in config:', config);
