@@ -318,36 +318,97 @@ export class AdminService {
         console.warn('Error fetching seating configurations:', configError);
       }
       
-      // Get agenda items
+      // Get agenda items - try local cache first, then database
       const agendaItemIds = configurations?.map(c => c.agenda_item_id).filter(Boolean) || [];
-      const { data: agendaItems, error: agendaError } = await supabase
-        .from('agenda_items')
-        .select('id, title, start_time, end_time')
-        .in('id', agendaItemIds);
+      let agendaItems = [];
       
-      if (agendaError) {
-        console.warn('Error fetching agenda items:', agendaError);
+      // Try local cache first
+      try {
+        const cachedData = localStorage.getItem('kn_cache_agenda_items');
+        if (cachedData) {
+          const parsed = JSON.parse(cachedData);
+          const cachedAgendaItems = parsed.data || parsed || [];
+          agendaItems = cachedAgendaItems.filter(ai => agendaItemIds.includes(ai.id));
+          console.log('🔍 DEBUG: Found agenda items in cache:', {
+            cachedCount: cachedAgendaItems.length,
+            matchingCount: agendaItems.length,
+            matchingIds: agendaItems.map(ai => ai.id)
+          });
+        }
+      } catch (error) {
+        console.warn('Error reading agenda items from cache:', error);
       }
       
-      // Get dining options
+      // If cache didn't have all the items we need, fetch from database
+      if (agendaItems.length < agendaItemIds.length) {
+        console.log('🔍 DEBUG: Cache incomplete for agenda items, fetching from database...');
+        const { data: dbAgendaItems, error: agendaError } = await supabase
+          .from('agenda_items')
+          .select('id, title, start_time, end_time')
+          .in('id', agendaItemIds);
+        
+        if (agendaError) {
+          console.warn('Error fetching agenda items from database:', agendaError);
+        } else if (dbAgendaItems) {
+          // Merge database results with cache results
+          const existingIds = agendaItems.map(ai => ai.id);
+          const newItems = dbAgendaItems.filter(ai => !existingIds.includes(ai.id));
+          agendaItems = [...agendaItems, ...newItems];
+        }
+      }
+      
+      // Get dining options - try local cache first, then database
       const diningOptionIds = configurations?.map(c => c.dining_option_id).filter(Boolean) || [];
       console.log('🔍 DEBUG: Dining option IDs to fetch:', diningOptionIds);
       
-      const { data: diningOptions, error: diningError } = await supabase
-        .from('dining_options')
-        .select('id, name, start_time, end_time')
-        .in('id', diningOptionIds);
+      let diningOptions = [];
       
-      console.log('🔍 DEBUG: Dining options fetched:', {
-        diningOptions,
-        diningOptionsCount: diningOptions?.length || 0,
-        diningOptionIds: diningOptions?.map(do => do.id) || [],
-        error: diningError
-      });
-      
-      if (diningError) {
-        console.warn('Error fetching dining options:', diningError);
+      // Try local cache first
+      try {
+        const cachedData = localStorage.getItem('kn_cache_dining_options');
+        if (cachedData) {
+          const parsed = JSON.parse(cachedData);
+          const cachedDiningOptions = parsed.data || parsed || [];
+          diningOptions = cachedDiningOptions.filter(do => diningOptionIds.includes(do.id));
+          console.log('🔍 DEBUG: Found dining options in cache:', {
+            cachedCount: cachedDiningOptions.length,
+            matchingCount: diningOptions.length,
+            matchingIds: diningOptions.map(do => do.id)
+          });
+        }
+      } catch (error) {
+        console.warn('Error reading dining options from cache:', error);
       }
+      
+      // If cache didn't have all the options we need, fetch from database
+      if (diningOptions.length < diningOptionIds.length) {
+        console.log('🔍 DEBUG: Cache incomplete, fetching from database...');
+        const { data: dbDiningOptions, error: diningError } = await supabase
+          .from('dining_options')
+          .select('id, name, start_time, end_time')
+          .in('id', diningOptionIds);
+        
+        console.log('🔍 DEBUG: Dining options from database:', {
+          dbDiningOptions,
+          dbCount: dbDiningOptions?.length || 0,
+          error: diningError
+        });
+        
+        if (diningError) {
+          console.warn('Error fetching dining options from database:', diningError);
+        } else if (dbDiningOptions) {
+          // Merge database results with cache results
+          const existingIds = diningOptions.map(do => do.id);
+          const newOptions = dbDiningOptions.filter(do => !existingIds.includes(do.id));
+          diningOptions = [...diningOptions, ...newOptions];
+        }
+      }
+      
+      console.log('🔍 DEBUG: Final dining options:', {
+        totalCount: diningOptions.length,
+        optionIds: diningOptions.map(do => do.id),
+        optionNames: diningOptions.map(do => do.name)
+      });
       
       // Transform the data to include session names
       const transformedData = seatAssignments.map(assignment => {
