@@ -179,10 +179,7 @@ export const TableCompanionsWidget: React.FC<TableCompanionsWidgetProps> = ({
                     style={{
                       marginBottom: 'var(--space-sm)',
                       fontSize: '14px',
-                      color: 'var(--ink-700)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between'
+                      color: 'var(--ink-700)'
                     }}
                   >
                     <a
@@ -192,23 +189,23 @@ export const TableCompanionsWidget: React.FC<TableCompanionsWidgetProps> = ({
                         color: 'var(--purple-700)',
                         textDecoration: 'none',
                         fontWeight: '500',
-                        flex: 1
+                        display: 'block',
+                        marginBottom: '2px'
                       }}
                       onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
                       onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
                     >
                       {companion.first_name} {companion.last_name}
                     </a>
-                    <span 
+                    <div 
                       style={{ 
                         color: 'var(--ink-600)',
                         fontSize: '12px',
-                        marginLeft: 'var(--space-sm)',
                         fontStyle: 'italic'
                       }}
                     >
                       {companion.title} at {companion.company_standardized}
-                    </span>
+                    </div>
                   </li>
                 ))}
               </ul>
