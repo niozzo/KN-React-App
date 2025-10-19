@@ -13,8 +13,13 @@ import { ValidationRules } from '../../utils/validationUtils';
  * Available in all environments for testing
  */
 const TimeOverride = () => {
-  // Hide in production, show in development and staging
-  if (process.env.NODE_ENV === 'production') {
+  // Hide only in true production (main branch), show in development and staging
+  // Check if we're on the main production domain (not develop branch)
+  const isProduction = process.env.NODE_ENV === 'production' && 
+                      !window.location.hostname.includes('develop-') &&
+                      !window.location.hostname.includes('localhost');
+  
+  if (isProduction) {
     return null;
   }
 
