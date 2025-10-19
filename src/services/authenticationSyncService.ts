@@ -45,6 +45,25 @@ export class AuthenticationSyncService extends BaseService {
       await serviceOrchestrator.ensureServicesReady()
       console.log('✅ AuthenticationSync: All services initialized and ready')
       
+      // Step 1.5: Wait for Company Normalization Service to be fully ready
+      console.log('🔄 AuthenticationSync: Verifying Company Normalization Service is ready...')
+      const { CompanyNormalizationService } = await import('./companyNormalizationService')
+      const companyService = CompanyNormalizationService.getInstance()
+      
+      // Wait until service is actually initialized (with timeout)
+      let attempts = 0
+      const maxAttempts = 100 // 1 second timeout
+      while (!companyService.isInitialized && attempts < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, 10))
+        attempts++
+      }
+      
+      if (!companyService.isInitialized) {
+        console.warn('⚠️ AuthenticationSync: Company Normalization Service not ready after 1s, proceeding anyway')
+      } else {
+        console.log('✅ AuthenticationSync: Company Normalization Service confirmed ready')
+      }
+      
       // Step 2: Parallel sync of core data and attendee data
       console.log('🔄 AuthenticationSync: Starting parallel sync operations...')
       
