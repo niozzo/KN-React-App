@@ -67,11 +67,25 @@ const isSessionUpcoming = (session, currentTime) => {
  */
 const filterSessionsForAttendee = (sessions, attendee) => {
   if (!attendee) {
+    console.log('🔍 DEBUG: No attendee data, returning all sessions');
     return sessions;
   }
   
+  console.log('🔍 DEBUG: Filtering sessions for attendee:', {
+    attendee_id: attendee.id,
+    selected_breakouts: attendee.selected_breakouts,
+    sessions_count: sessions.length
+  });
+  
   const filteredSessions = sessions.filter(session => {
     if (session.session_type === 'breakout-session') {
+      console.log('🔍 DEBUG: Processing breakout session:', {
+        session_id: session.id,
+        session_title: session.title,
+        attendee_breakouts: attendee.selected_breakouts,
+        is_assigned: attendee.selected_breakouts?.includes(session.id)
+      });
+      
       // For breakout sessions, only show if user is assigned
       if (attendee && attendee.selected_breakouts) {
         return attendee.selected_breakouts.includes(session.id);
@@ -83,6 +97,12 @@ const filterSessionsForAttendee = (sessions, attendee) => {
       // Show all other session types (keynote, meal, etc.) to everyone
       return true;
     }
+  });
+
+  console.log('🔍 DEBUG: Filtered sessions result:', {
+    original_count: sessions.length,
+    filtered_count: filteredSessions.length,
+    filtered_sessions: filteredSessions.map(s => ({ id: s.id, title: s.title, type: s.session_type }))
   });
 
   return filteredSessions;
@@ -397,8 +417,30 @@ export default function useSessionData(enableOfflineMode = true, autoRefresh = t
         seatingData
       );
 
+      // 🔍 DEBUG: Log attendee data and sessions for debugging
+      console.log('🔍 DEBUG: Attendee data:', {
+        id: attendeeData?.id,
+        selected_breakouts: attendeeData?.selected_breakouts,
+        selected_breakouts_type: typeof attendeeData?.selected_breakouts,
+        selected_breakouts_length: attendeeData?.selected_breakouts?.length
+      });
+      
+      console.log('🔍 DEBUG: All sessions before filtering:', enhancedSessions.map(s => ({
+        id: s.id,
+        title: s.title,
+        session_type: s.session_type,
+        type: s.type
+      })));
+      
       // Filter sessions for current attendee (breakout sessions only show assigned tracks)
       const attendeeFilteredSessions = filterSessionsForAttendee(enhancedSessions, attendeeData);
+      
+      console.log('🔍 DEBUG: Sessions after filtering:', attendeeFilteredSessions.map(s => ({
+        id: s.id,
+        title: s.title,
+        session_type: s.session_type,
+        type: s.type
+      })));
 
       // Filter sessions based on current time
       const currentTime = TimeService.getCurrentTime();
