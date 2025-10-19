@@ -32,12 +32,7 @@ const WiFiNetworkCard = () => {
     <Card 
       className="wifi-network-card"
       style={{
-        background: 'var(--white)',
-        borderRadius: 'var(--radius-2xl)',
-        padding: 'var(--space-xl)',
-        boxShadow: 'var(--shadow-xl)',
-        border: '2px solid var(--blue-200)',
-        marginBottom: 'var(--space-lg)'
+        border: '2px solid var(--blue-200)'
       }}
     >
       <div className="card-header" style={{ 

@@ -578,22 +578,6 @@ const HomePage = () => {
             cursor: 'pointer'
           }}
         >
-          <div 
-            className="cta-icon"
-            style={{
-              width: '48px',
-              height: '48px',
-              background: 'var(--purple-050)',
-              borderRadius: 'var(--radius-xl)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 'var(--text-3xl)',
-              flexShrink: 0
-            }}
-          >
-            📅
-          </div>
           <div className="cta-content" style={{ flex: 1, minWidth: 0 }}>
             <h3 
               className="cta-title"
