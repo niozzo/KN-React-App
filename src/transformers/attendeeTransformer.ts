@@ -174,10 +174,10 @@ export class AttendeeTransformer extends BaseTransformer<Attendee> {
     // Schema evolution is now handled in the base class
     const result = super.transformFromDatabase(dbData)
     
-    // Story 8.7: Replace company field with normalized canonical name
-    // This way, no UI changes are needed - the company field already displays everywhere
-    if (result.companyDisplayName && result.companyDisplayName !== result.company) {
-      result.company = result.companyDisplayName
+    // Story 8.7: Use database-provided standardized company name
+    // This ensures consistency since company_name_standardized is already populated and canonical
+    if (dbData.company_name_standardized) {
+      result.company = dbData.company_name_standardized
     }
     
     return result
