@@ -351,7 +351,7 @@ export class AdminService {
             };
           }
         } else if (config?.dining_option_id) {
-          const diningOption = diningOptions?.find(do => do.id === config.dining_option_id);
+          const diningOption = diningOptions?.find(dining => dining.id === config.dining_option_id);
           if (diningOption) {
             sessionName = diningOption.name;
             sessionType = 'Dining Option';
