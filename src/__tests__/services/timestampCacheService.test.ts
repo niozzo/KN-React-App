@@ -42,7 +42,7 @@ describe('TimestampCacheService', () => {
       select: vi.fn().mockReturnThis(),
       gte: vi.fn().mockReturnThis(),
       neq: vi.fn().mockReturnThis(),
-      limit: vi.fn().mockReturnThis()
+      limit: vi.fn()
     };
     
     mockSyncTable = vi.mocked(serverDataSyncService.syncTable);
@@ -80,7 +80,7 @@ describe('TimestampCacheService', () => {
       // Set a timestamp
       localStorage.setItem('kn_last_sync_attendees', '2025-01-01T00:00:00.000Z');
       
-      // Mock the entire chain to return no changes
+      // Reset and mock the entire chain to return no changes
       mockSupabaseClient.from.mockReturnValue(mockSupabaseClient);
       mockSupabaseClient.select.mockReturnValue(mockSupabaseClient);
       mockSupabaseClient.gte.mockReturnValue(mockSupabaseClient);
