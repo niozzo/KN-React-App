@@ -58,13 +58,13 @@ const PullToRefresh: React.FC<PullToRefreshProps> = ({
         ...style
       }}
     >
-      {/* Pull indicator */}
+      {/* Pull indicator - positioned in body content */}
       {(isPulling || isRefreshing) && (
         <div
           className="pull-indicator"
           style={{
-            position: 'fixed',
-            top: '-80px',
+            position: 'relative',
+            top: 0,
             left: 0,
             right: 0,
             height: '80px',
@@ -73,10 +73,9 @@ const PullToRefresh: React.FC<PullToRefreshProps> = ({
             alignItems: 'center',
             justifyContent: 'center',
             zIndex: 1000,
-            transform: `translateY(${isRefreshing ? '80px' : Math.min(pullDistance, 80)}px)`,
-            transition: isRefreshing ? 'transform 0.3s ease' : 'none',
             borderBottom: '1px solid var(--purple-200)',
-            boxShadow: '0 2px 8px rgba(139, 92, 246, 0.1)'
+            boxShadow: '0 2px 8px rgba(139, 92, 246, 0.1)',
+            marginBottom: isRefreshing ? '0' : '0'
           }}
         >
           <div
@@ -123,7 +122,7 @@ const PullToRefresh: React.FC<PullToRefreshProps> = ({
       {/* Content */}
       <div
         style={{
-          transform: isPulling ? `translateY(${pullDistance}px)` : 'none',
+          transform: isPulling ? `translateY(${Math.max(0, pullDistance - 80)}px)` : 'none',
           transition: isRefreshing ? 'transform 0.4s cubic-bezier(0.4, 0.0, 0.2, 1)' : 'none'
         }}
       >
