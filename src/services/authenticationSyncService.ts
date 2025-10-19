@@ -45,13 +45,6 @@ export class AuthenticationSyncService extends BaseService {
       await serviceOrchestrator.ensureServicesReady()
       console.log('✅ AuthenticationSync: All services initialized and ready')
       
-      // Step 1.5: Initialize Company Normalization Service for data processing
-      console.log('🔄 AuthenticationSync: Initializing Company Normalization Service...')
-      const { CompanyNormalizationService } = await import('./companyNormalizationService')
-      const companyService = CompanyNormalizationService.getInstance()
-      await companyService.initialize()
-      console.log('✅ AuthenticationSync: Company Normalization Service ready')
-      
       // Step 2: Parallel sync of core data and attendee data
       console.log('🔄 AuthenticationSync: Starting parallel sync operations...')
       
