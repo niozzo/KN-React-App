@@ -1,4 +1,4 @@
-why does nick have different tables?
+utiltiy to look for seating errors
 checksum on page navigation?
 Who is sitin by you
 analytics
@@ -8,4 +8,15 @@ remove dynamic override. in just production?
 broadcast message
 content crawl, qa as much as you can
 TBD Pull to refresh
-One other thing is to make sure that you are using the Supabase image optimization service to pull web friendly images and not the giant full sized files...
+
+
+CONTENT
+remove apax from keynote speaker
+clean up first agenda title, remoe duplicate room name
+Directions to dining event on Tuesday?
+Breakfast information for Tuesday / Wednesday?
+
+
+COMPLETE
+use supabase utitliy to get images.
+why does nick have different tables?

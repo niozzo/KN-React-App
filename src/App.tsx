@@ -15,6 +15,7 @@ import { AuthProvider, withAuth, LoginPage } from './contexts/AuthContext'
 import { AdminApp } from './components/AdminApp'
 import { AdminDashboard } from './components/admin/AdminDashboard'
 import { QRCodeGenerator } from './components/admin/QRCodeGenerator'
+import { SeatingQACheck } from './components/admin/SeatingQACheck'
 
 // Component to handle scroll restoration
 function ScrollToTop() {
@@ -64,6 +65,7 @@ function App() {
           <Route path="/admin" element={<AdminApp />}>
             <Route index element={<AdminDashboard />} />
             <Route path="qr-generator" element={<QRCodeGenerator />} />
+            <Route path="seating-qa" element={<SeatingQACheck />} />
           </Route>
           <Route path="/offline" element={<OfflinePage />} />
         </Routes>

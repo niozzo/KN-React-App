@@ -19,7 +19,8 @@ import {
 import {
   Dashboard as DashboardIcon,
   QrCode2 as QrCodeIcon,
-  ExitToApp as ExitIcon
+  ExitToApp as ExitIcon,
+  Assignment as AssignmentIcon
 } from '@mui/icons-material';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 
@@ -46,6 +47,13 @@ export const AdminDashboard: React.FC = () => {
       icon: <QrCodeIcon sx={{ fontSize: 48 }} />,
       path: '/admin/qr-generator',
       color: '#2e7d32'
+    },
+    {
+      title: 'Seating QA Check',
+      description: 'Validate seat assignment consistency and data accuracy',
+      icon: <AssignmentIcon sx={{ fontSize: 48 }} />,
+      path: '/admin/seating-qa',
+      color: '#d32f2f'
     }
   ];
 
