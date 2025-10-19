@@ -547,10 +547,41 @@ export class ServerDataSyncService extends BaseService {
         throw new Error(`Failed to sync user seat assignments: ${error.message}`);
       }
       
+      // 🔍 DEBUG: Log raw database response
+      console.log('🔍 RAW DATABASE RESPONSE for seat_assignments:', {
+        attendeeId: currentAttendeeId,
+        rawData: data,
+        recordCount: data?.length || 0
+      });
+      
+      // 🔍 DEBUG: Log each record's row/column values
+      if (data && data.length > 0) {
+        console.log('🔍 RAW SEAT ASSIGNMENT DATA:', data.map(record => ({
+          id: record.id,
+          seating_configuration_id: record.seating_configuration_id,
+          row_number: record.row_number,
+          column_number: record.column_number,
+          table_name: record.table_name,
+          seat_number: record.seat_number,
+          assigned_at: record.assigned_at
+        })));
+      }
+      
       const records = data || [];
       
       // Apply transformations using shared method
       const transformedRecords = await this.applyTransformations('seat_assignments', records);
+      
+      // 🔍 DEBUG: Log transformed data to see if it changed
+      console.log('🔍 TRANSFORMED SEAT ASSIGNMENT DATA:', transformedRecords.map(record => ({
+        id: record.id,
+        seating_configuration_id: record.seating_configuration_id,
+        row_number: record.row_number,
+        column_number: record.column_number,
+        table_name: record.table_name,
+        seat_number: record.seat_number,
+        assigned_at: record.assigned_at
+      })));
       
       // Cache the user-specific data
       await this.cacheTableData('seat_assignments', transformedRecords);
