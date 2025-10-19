@@ -135,7 +135,7 @@ export const useSessionData = (user = { id: 'test-user' }) => {
       // Filter sessions based on attendee assignments
       const filteredSessions = allSessions.filter(session => {
         // Show all non-breakout sessions to all users
-        if (session.session_type !== 'breakout-session') {
+        if (session.session_type !== 'breakout') {
           return true;
         }
         

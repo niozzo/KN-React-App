@@ -78,7 +78,7 @@ const filterSessionsForAttendee = (sessions, attendee) => {
   });
   
   const filteredSessions = sessions.filter(session => {
-    if (session.session_type === 'breakout-session') {
+    if (session.session_type === 'breakout') {
       console.log('🔍 DEBUG: Processing breakout session:', {
         session_id: session.id,
         session_title: session.title,
