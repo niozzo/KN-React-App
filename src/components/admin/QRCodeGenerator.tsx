@@ -19,12 +19,20 @@ import {
   Divider,
   Stack,
   Autocomplete,
-  TextField
+  TextField,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Chip
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
   ContentCopy as CopyIcon,
-  Download as DownloadIcon
+  Download as DownloadIcon,
+  Refresh as RefreshIcon
 } from '@mui/icons-material';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
@@ -51,6 +59,8 @@ export const QRCodeGenerator: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [copySuccess, setCopySuccess] = useState(false);
+  const [seatAssignments, setSeatAssignments] = useState<any[]>([]);
+  const [loadingSeatAssignments, setLoadingSeatAssignments] = useState(false);
 
   useEffect(() => {
     loadAttendees();
@@ -67,6 +77,20 @@ export const QRCodeGenerator: React.FC = () => {
       console.error('Error loading attendees:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadSeatAssignments = async (attendeeId: string) => {
+    try {
+      setLoadingSeatAssignments(true);
+      setError('');
+      const data = await adminService.getSeatAssignmentsForAttendee(attendeeId);
+      setSeatAssignments(data);
+    } catch (err) {
+      setError('Failed to load seat assignments. Please try again.');
+      console.error('Error loading seat assignments:', err);
+    } finally {
+      setLoadingSeatAssignments(false);
     }
   };
 
@@ -197,7 +221,14 @@ export const QRCodeGenerator: React.FC = () => {
                 <Autocomplete
                   options={attendees}
                   value={selectedAttendee}
-                  onChange={(_, newValue) => setSelectedAttendee(newValue)}
+                  onChange={(_, newValue) => {
+                    setSelectedAttendee(newValue);
+                    if (newValue) {
+                      loadSeatAssignments(newValue.id);
+                    } else {
+                      setSeatAssignments([]);
+                    }
+                  }}
                   getOptionLabel={(option) => `${option.first_name} ${option.last_name}`}
                   renderOption={(props, option) => (
                     <li {...props} key={option.id}>
@@ -314,6 +345,131 @@ export const QRCodeGenerator: React.FC = () => {
             </CardContent>
           </Card>
         </Box>
+
+        {/* Seat Assignments Card */}
+        {selectedAttendee && (
+          <Card sx={{ mt: 3 }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Typography variant="h6">
+                  Raw Seat Assignment Data
+                </Typography>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={<RefreshIcon />}
+                  onClick={() => selectedAttendee && loadSeatAssignments(selectedAttendee.id)}
+                  disabled={loadingSeatAssignments}
+                >
+                  Refresh
+                </Button>
+              </Box>
+
+              {loadingSeatAssignments ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+                  <CircularProgress />
+                </Box>
+              ) : seatAssignments.length > 0 ? (
+                <TableContainer component={Paper} variant="outlined">
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell><strong>ID</strong></TableCell>
+                        <TableCell><strong>Seating Config ID</strong></TableCell>
+                        <TableCell><strong>Row</strong></TableCell>
+                        <TableCell><strong>Column</strong></TableCell>
+                        <TableCell><strong>Table</strong></TableCell>
+                        <TableCell><strong>Seat</strong></TableCell>
+                        <TableCell><strong>Assigned At</strong></TableCell>
+                        <TableCell><strong>Assignment Type</strong></TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {seatAssignments.map((assignment, index) => (
+                        <TableRow key={assignment.id || index}>
+                          <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>
+                            {assignment.id}
+                          </TableCell>
+                          <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>
+                            {assignment.seating_configuration_id}
+                          </TableCell>
+                          <TableCell>
+                            {assignment.row_number !== null ? (
+                              <Chip 
+                                label={assignment.row_number} 
+                                size="small" 
+                                color="primary" 
+                                variant="outlined"
+                              />
+                            ) : (
+                              <Typography variant="body2" color="text.secondary">null</Typography>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {assignment.column_number !== null ? (
+                              <Chip 
+                                label={assignment.column_number} 
+                                size="small" 
+                                color="secondary" 
+                                variant="outlined"
+                              />
+                            ) : (
+                              <Typography variant="body2" color="text.secondary">null</Typography>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {assignment.table_name ? (
+                              <Chip 
+                                label={assignment.table_name} 
+                                size="small" 
+                                color="success" 
+                                variant="outlined"
+                              />
+                            ) : (
+                              <Typography variant="body2" color="text.secondary">null</Typography>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {assignment.seat_number !== null ? (
+                              <Chip 
+                                label={assignment.seat_number} 
+                                size="small" 
+                                color="info" 
+                                variant="outlined"
+                              />
+                            ) : (
+                              <Typography variant="body2" color="text.secondary">null</Typography>
+                            )}
+                          </TableCell>
+                          <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>
+                            {new Date(assignment.assigned_at).toLocaleString()}
+                          </TableCell>
+                          <TableCell>
+                            <Chip 
+                              label={assignment.assignment_type || 'N/A'} 
+                              size="small" 
+                              color={assignment.assignment_type === 'manual' ? 'warning' : 'default'}
+                              variant="outlined"
+                            />
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              ) : (
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 4 }}>
+                  <Typography variant="body1" color="text.secondary">
+                    No seat assignments found for this attendee
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                    This attendee may not have been assigned to any sessions with seating
+                  </Typography>
+                </Box>
+              )}
+            </CardContent>
+          </Card>
+        )}
       </Box>
     </Box>
   );

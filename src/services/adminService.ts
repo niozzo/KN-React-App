@@ -272,6 +272,30 @@ export class AdminService {
     }
   }
 
+  async getSeatAssignmentsForAttendee(attendeeId: string): Promise<any[]> {
+    try {
+      // ADMIN-ONLY: Fetch seat assignments directly from Supabase
+      const { supabase } = await import('../lib/supabase');
+      
+      const { data, error } = await supabase
+        .from('seat_assignments')
+        .select('*')
+        .eq('attendee_id', attendeeId)
+        .order('assigned_at', { ascending: true });
+      
+      if (error) {
+        throw error;
+      }
+      
+      return data || [];
+      
+    } catch (error) {
+      console.error('Error in getSeatAssignmentsForAttendee:', error);
+      // Return empty array on error rather than throwing
+      return [];
+    }
+  }
+
   // Validation methods
   validatePasscode(passcode: string): boolean {
     return passcode === 'da1sy';
