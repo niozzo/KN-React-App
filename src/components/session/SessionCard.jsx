@@ -431,18 +431,14 @@ const SessionCard = React.memo(({
                 color: 'var(--text-primary)'
               }}>
                 {/* Support both table/seat format (dining) and row/column format (theater seating) */}
-                {seatInfo.table && seatInfo.seat ? (
-                  isDiningEventSession 
-                    ? seatInfo.table  // Dining: Just "Table 1" (no seat number)
-                    : `Row ${seatInfo.table + 1} • Seat ${seatInfo.seat + 1}` // Agenda: Add 1 to convert from 0-indexed to 1-indexed
-                ) : seatInfo.row && seatInfo.column ? (
-                  `Row ${seatInfo.row + 1} • Seat ${seatInfo.column + 1}` // Add 1 to convert from 0-indexed to 1-indexed
-                ) : seatInfo.row ? (
-                  `Row ${seatInfo.row + 1}` // Add 1 to convert from 0-indexed to 1-indexed
+                {seatInfo.row && seatInfo.column ? (
+                  `Row ${seatInfo.row} • Seat ${seatInfo.column}` // Data is already 1-indexed
                 ) : seatInfo.table ? (
                   isDiningEventSession 
-                    ? seatInfo.table
-                    : `Row ${seatInfo.table + 1}` // Add 1 to convert from 0-indexed to 1-indexed
+                    ? seatInfo.table  // Dining: Just "Table 1" (no seat number)
+                    : seatInfo.table  // Table name for other events
+                ) : seatInfo.seat ? (
+                  `Seat ${seatInfo.seat}` // Seat number only
                 ) : (
                   'Seat assigned'
                 )}

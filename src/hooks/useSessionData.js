@@ -173,7 +173,7 @@ const enhanceSessionData = (sessions, attendee, seatAssignments, seatingConfigur
     const isActive = isSessionActive(session, currentTime);
     const isUpcoming = isSessionUpcoming(session, currentTime);
     
-    // Enhanced seat assignment logic (from working build)
+    // Simplified seat assignment logic using transformed data
     const enhanceEventWithSeatInfo = (event) => {
       if (!event) {
         return event || null;
@@ -187,57 +187,23 @@ const enhanceSessionData = (sessions, attendee, seatAssignments, seatingConfigur
         seating_type: event.seating_type
       });
       
-      // Look for seat assignments if we have the necessary data
-      if (!seatAssignments.length || !seatingConfigurations.length) {
-        console.log('🔍 DEBUG: Missing data - seatAssignments:', seatAssignments.length, 'seatingConfigurations:', seatingConfigurations.length);
-        return event;
-      }
-      
-      // Step 1: Find the seating configuration for this event (bridge table lookup)
-      let seatingConfig = null;
-      
-      if (event.type === 'dining') {
-        // For dining events, match by dining_option_id
-        seatingConfig = seatingConfigurations.find(
-          config => config.dining_option_id === event.id
-        );
-        console.log('🔍 DEBUG: Dining event - looking for config with dining_option_id:', event.id);
-      } else {
-        // For agenda items, match by agenda_item_id
-        seatingConfig = seatingConfigurations.find(
-          config => config.agenda_item_id === event.id
-        );
-        console.log('🔍 DEBUG: Agenda event - looking for config with agenda_item_id:', event.id);
-      }
-      
-      // 🔍 DEBUG: Log seating configuration found
-      console.log('🔍 DEBUG: Seating configuration found:', seatingConfig);
-      
-      // If no seating configuration found, return event without seat info
-      if (!seatingConfig) {
-        console.log('🔍 DEBUG: No seating configuration found for event:', event.id);
-        return event;
-      }
-      
-      // Step 2: Find seat assignment using the configuration ID from bridge table
-      const seatAssignment = seatAssignments.find(seat => 
-        seat.seating_configuration_id === seatingConfig.id
+      // Simple lookup - no bridge table needed (already done in transformer)
+      const seatAssignment = seatAssignments.find(sa => 
+        sa.sessionId === event.id
       );
       
       // 🔍 DEBUG: Log seat assignment found
       console.log('🔍 DEBUG: Seat assignment found:', seatAssignment);
-      console.log('🔍 DEBUG: Looking for seating_configuration_id:', seatingConfig.id);
-      console.log('🔍 DEBUG: Available seat assignment config IDs:', seatAssignments.map(s => s.seating_configuration_id));
       
-      // Step 3: Return enhanced event with seat info
+      // Data is already display-ready (1-indexed)
       const result = {
         ...event,
         seatInfo: seatAssignment ? {
-          table: seatAssignment.table_name,
-          seat: seatAssignment.seat_number,
-          row: seatAssignment.row_number,
-          column: seatAssignment.column_number,
-          position: seatAssignment.seat_position
+          table: seatAssignment.table,
+          seat: seatAssignment.seat,
+          row: seatAssignment.row,      // Already 1-indexed
+          column: seatAssignment.column, // Already 1-indexed
+          position: null // Not used in current UI
         } : null
       };
       
@@ -326,38 +292,22 @@ const mergeAndSortEvents = (sessions, diningOptions, seatAssignments = [], seati
   // Convert dining options to session format
   const diningSessions = convertDiningToSessions(diningOptions);
   
-  // Enhance dining sessions with seat assignment data
+  // Enhanced dining sessions with seat assignment data (simplified)
   const enhancedDiningSessions = diningSessions.map(diningSession => {
-    // Enhanced seat assignment logic for dining events
-    if (!seatAssignments.length || !seatingConfigurations.length) {
-      return diningSession;
-    }
-    
-    // Step 1: Find the seating configuration for this dining event
-    // Use originalDiningId to match against dining_option_id in seating configs
-    const seatingConfig = seatingConfigurations.find(
-      config => config.dining_option_id === diningSession.originalDiningId
+    // Simple lookup - no bridge table needed (already done in transformer)
+    const seatAssignment = seatAssignments.find(sa => 
+      sa.sessionId === diningSession.originalDiningId
     );
     
-    // If no seating configuration found, return dining session without seat info
-    if (!seatingConfig) {
-      return diningSession;
-    }
-    
-    // Step 2: Find seat assignment using the configuration ID from bridge table
-    const seatAssignment = seatAssignments.find(seat => 
-      seat.seating_configuration_id === seatingConfig.id
-    );
-    
-    // Step 3: Return enhanced dining session with seat info
+    // Data is already display-ready (1-indexed)
     return {
       ...diningSession,
       seatInfo: seatAssignment ? {
-        table: seatAssignment.table_name,
-        seat: seatAssignment.seat_number,
-        row: seatAssignment.row_number,
-        column: seatAssignment.column_number,
-        position: seatAssignment.seat_position
+        table: seatAssignment.table,
+        seat: seatAssignment.seat,
+        row: seatAssignment.row,      // Already 1-indexed
+        column: seatAssignment.column, // Already 1-indexed
+        position: null // Not used in current UI
       } : null
     };
   });
@@ -379,7 +329,8 @@ const mergeAndSortEvents = (sessions, diningOptions, seatAssignments = [], seati
 };
 
 /**
- * Apply seat assignment normalization for October 21st
+ * DEPRECATED: Apply seat assignment normalization for October 21st
+ * @deprecated This function is no longer used - seat assignments are now transformed at the source
  * @param {Array} seatData - Raw seat assignments
  * @param {Object} attendeeData - Current attendee data
  * @param {Array} agendaItems - All agenda items
@@ -387,26 +338,9 @@ const mergeAndSortEvents = (sessions, diningOptions, seatAssignments = [], seati
  * @returns {Array} Normalized seat assignments
  */
 const applySeatAssignmentNormalization = async (seatData, attendeeData, agendaItems, seatingData) => {
-  try {
-    const { seatAssignmentNormalizationService } = await import('../services/seatAssignmentNormalizationService');
-    
-    if (agendaItems && seatingData && attendeeData?.id) {
-      const normalizedSeatData = seatAssignmentNormalizationService.normalizeSeatAssignmentsForDate(
-        seatData,
-        seatingData,
-        agendaItems,
-        '2025-10-21',
-        attendeeData.id
-      );
-      console.log(`🔄 Seat assignment normalization applied for user ${attendeeData.id}`);
-      return normalizedSeatData;
-    }
-    
-    return seatData;
-  } catch (normalizationError) {
-    console.warn('⚠️ Seat assignment normalization failed:', normalizationError);
-    return seatData;
-  }
+  // DEPRECATED: No longer used - seat assignments are transformed at the source
+  console.log('⚠️ DEPRECATED: applySeatAssignmentNormalization is no longer used');
+  return seatData;
 };
 
 /**
@@ -474,17 +408,7 @@ export default function useSessionData(enableOfflineMode = true, autoRefresh = t
       const agendaResponse = await agendaService.getActiveAgendaItems();
       const agendaItems = agendaResponse.success ? agendaResponse.data : [];
       
-      // Apply seat assignment normalization for October 21st
-      // DISABLED: Commented out to disable October 21st seat assignment normalization
-      // const normalizedSeatData = await applySeatAssignmentNormalization(
-      //   seatData,
-      //   attendeeData,
-      //   agendaItems,
-      //   seatingData
-      // );
-      // setSeatAssignments(normalizedSeatData);
-      
-      // Use original seat data without normalization
+      // Seat assignments are now transformed at the source (1-indexed, display-ready)
       setSeatAssignments(seatData);
 
       // Load dining options
@@ -644,18 +568,10 @@ export default function useSessionData(enableOfflineMode = true, autoRefresh = t
         getAllSeatingConfigurations()
       ]);
       
-      // Apply seat assignment normalization for October 21st
-      // DISABLED: Commented out to disable October 21st seat assignment normalization
+      // Seat assignments are now transformed at the source (1-indexed, display-ready)
       const agendaItems = agendaResponse.success ? agendaResponse.data : [];
-      // const normalizedSeatData = await applySeatAssignmentNormalization(
-      //   freshSeatData,
-      //   attendee,
-      //   agendaItems,
-      //   freshSeatingData
-      // );
       
       // Update seat assignments and seating configurations state
-      // Use original seat data without normalization
       setSeatAssignments(freshSeatData);
       setSeatingConfigurations(freshSeatingData);
       
@@ -671,7 +587,7 @@ export default function useSessionData(enableOfflineMode = true, autoRefresh = t
         const attendeeFilteredSessions = filterSessionsForAttendee(enhancedSessions, attendee);
         
         // Merge sessions and dining options for unified display
-        const allEventsCombined = mergeAndSortEvents(attendeeFilteredSessions, diningResponse || [], normalizedSeatData, freshSeatingData);
+        const allEventsCombined = mergeAndSortEvents(attendeeFilteredSessions, diningResponse || [], freshSeatData, freshSeatingData);
         
         // Find current and next sessions from ALL events (including dining options)
         const activeSession = allEventsCombined.find(s => s.isActive);

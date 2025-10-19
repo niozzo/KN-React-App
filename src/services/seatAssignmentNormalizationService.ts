@@ -1,5 +1,10 @@
 /**
- * Seat Assignment Normalization Service
+ * DEPRECATED: Seat Assignment Normalization Service
+ * 
+ * @deprecated This service is no longer used. Seat assignments are now transformed at the source
+ * using the unified transformer in src/transformers/seatAssignmentTransformer.ts.
+ * 
+ * This file is kept for reference but should not be used in new code.
  * 
  * Handles normalization of seat assignments for specific dates to ensure consistency.
  * For October 21st, ensures all agenda items (excluding dining) have consistent seat assignments.

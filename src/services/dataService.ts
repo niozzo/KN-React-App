@@ -20,6 +20,8 @@ import type { DiningOption } from '../types/dining'
 import type { Hotel } from '../types/hotel'
 import type { EnhancedSponsor } from './enhancedSponsorService'
 import type { StandardizedCompany } from '../types/standardizedCompany'
+import type { TransformedSeatAssignment } from '../transformers/seatAssignmentTransformer'
+import { transformSeatAssignments } from '../transformers/seatAssignmentTransformer'
 
 /**
  * Base error class for data service errors
@@ -332,59 +334,109 @@ export const getAllSponsorsWithStandardizedData = async (): Promise<EnhancedSpon
 }
 
 /**
- * Get all seat assignments (personalized data - specific to attendee)
- * @param attendeeId - ID of the attendee
- * @returns Array of seat assignments for the attendee
+ * Helper function to get agenda items from cache
  */
-export const getAttendeeSeatAssignments = async (attendeeId: string): Promise<SeatAssignment[]> => {
-  requireAuthentication()
-  
+const getAgendaItemsFromCache = async (): Promise<AgendaItem[]> => {
   try {
-    // PRIMARY: Check localStorage first (populated during login)
-    try {
-      const cachedData = localStorage.getItem('kn_cache_seat_assignments')
-      if (cachedData) {
-        const cacheObj = JSON.parse(cachedData)
-        // Handle both direct array format and wrapped format
-        const seatAssignments = cacheObj.data || cacheObj
-        
-        // 🔍 DEBUG: Log raw cached data
-        console.log('🔍 DEBUG: Raw cached seat assignments data:', {
-          cacheObj,
-          seatAssignmentsCount: seatAssignments?.length || 0,
-          attendeeId
-        });
-        
-        const attendeeSeats = seatAssignments.filter((seat: SeatAssignment) => seat.attendee_id === attendeeId)
-        
-        // 🔍 DEBUG: Log filtered seat assignments for this attendee
-        console.log('🔍 DEBUG: Filtered seat assignments for attendee:', {
-          attendeeId,
-          seatAssignmentsCount: attendeeSeats.length,
-          seatAssignments: attendeeSeats
-        });
-        
-        return attendeeSeats // Return even if empty array
-      }
-    } catch (cacheError) {
-      console.warn('⚠️ Failed to load cached seat assignments:', cacheError)
+    const cached = localStorage.getItem('kn_cache_agenda_items')
+    if (cached) {
+      const parsed = JSON.parse(cached)
+      return parsed.data || parsed || []
     }
-    
-    // FALLBACK: Sync seat_assignments table if cache is empty
-    console.log('🌐 SYNC: No cached seat assignments, syncing from database...')
-    const { serverDataSyncService } = await import('./serverDataSyncService')
-    await serverDataSyncService.syncTable('seat_assignments')
-    // Re-read from cache after sync
+  } catch (error) {
+    console.warn('Failed to read agenda items from cache:', error)
+  }
+  return []
+}
+
+/**
+ * Helper function to get dining options from cache
+ */
+const getDiningOptionsFromCache = async (): Promise<DiningOption[]> => {
+  try {
+    const cached = localStorage.getItem('kn_cache_dining_options')
+    if (cached) {
+      const parsed = JSON.parse(cached)
+      return parsed.data || parsed || []
+    }
+  } catch (error) {
+    console.warn('Failed to read dining options from cache:', error)
+  }
+  return []
+}
+
+/**
+ * Get raw seat assignments from cache or database
+ */
+const fetchRawSeatAssignments = async (attendeeId: string): Promise<SeatAssignment[]> => {
+  // PRIMARY: Check localStorage first (populated during login)
+  try {
     const cachedData = localStorage.getItem('kn_cache_seat_assignments')
     if (cachedData) {
       const cacheObj = JSON.parse(cachedData)
       const seatAssignments = cacheObj.data || cacheObj
-      return seatAssignments.filter((seat: SeatAssignment) => seat.attendee_id === attendeeId)
+      
+      const attendeeSeats = seatAssignments.filter((seat: SeatAssignment) => seat.attendee_id === attendeeId)
+      return attendeeSeats
     }
-    return []
+  } catch (cacheError) {
+    console.warn('⚠️ Failed to load cached seat assignments:', cacheError)
+  }
+  
+  // FALLBACK: Sync seat_assignments table if cache is empty
+  console.log('🌐 SYNC: No cached seat assignments, syncing from database...')
+  const { serverDataSyncService } = await import('./serverDataSyncService')
+  await serverDataSyncService.syncTable('seat_assignments')
+  
+  // Re-read from cache after sync
+  const cachedData = localStorage.getItem('kn_cache_seat_assignments')
+  if (cachedData) {
+    const cacheObj = JSON.parse(cachedData)
+    const seatAssignments = cacheObj.data || cacheObj
+    return seatAssignments.filter((seat: SeatAssignment) => seat.attendee_id === attendeeId)
+  }
+  return []
+}
+
+/**
+ * Get transformed seat assignments (display-ready format)
+ * @param attendeeId - ID of the attendee
+ * @returns Array of transformed seat assignments for the attendee
+ */
+export const getAttendeeSeatAssignments = async (attendeeId: string): Promise<TransformedSeatAssignment[]> => {
+  requireAuthentication()
+  
+  try {
+    // Get raw seat assignments (from cache or database)
+    const rawAssignments = await fetchRawSeatAssignments(attendeeId)
+    
+    // Get supporting data from cache (cache is already populated at login)
+    const seatingConfigs = await getAllSeatingConfigurations()
+    const agendaItems = await getAgendaItemsFromCache()
+    const diningOptions = await getDiningOptionsFromCache()
+    
+    // Transform once using the unified transformer
+    return transformSeatAssignments(rawAssignments, seatingConfigs, agendaItems, diningOptions)
   } catch (error) {
     console.error('❌ Error fetching seat assignments:', error)
     throw new DataServiceError('Failed to fetch seat assignments', 'FETCH_ERROR')
+  }
+}
+
+/**
+ * DEPRECATED: Get raw seat assignments (personalized data - specific to attendee)
+ * @deprecated Use getAttendeeSeatAssignments() for transformed data
+ * @param attendeeId - ID of the attendee
+ * @returns Array of raw seat assignments for the attendee
+ */
+export const getAttendeeSeatAssignmentsRaw = async (attendeeId: string): Promise<SeatAssignment[]> => {
+  requireAuthentication()
+  
+  try {
+    return await fetchRawSeatAssignments(attendeeId)
+  } catch (error) {
+    console.error('❌ Error fetching raw seat assignments:', error)
+    throw new DataServiceError('Failed to fetch raw seat assignments', 'FETCH_ERROR')
   }
 }
 
