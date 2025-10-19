@@ -347,7 +347,23 @@ export const getAttendeeSeatAssignments = async (attendeeId: string): Promise<Se
         const cacheObj = JSON.parse(cachedData)
         // Handle both direct array format and wrapped format
         const seatAssignments = cacheObj.data || cacheObj
+        
+        // 🔍 DEBUG: Log raw cached data
+        console.log('🔍 DEBUG: Raw cached seat assignments data:', {
+          cacheObj,
+          seatAssignmentsCount: seatAssignments?.length || 0,
+          attendeeId
+        });
+        
         const attendeeSeats = seatAssignments.filter((seat: SeatAssignment) => seat.attendee_id === attendeeId)
+        
+        // 🔍 DEBUG: Log filtered seat assignments for this attendee
+        console.log('🔍 DEBUG: Filtered seat assignments for attendee:', {
+          attendeeId,
+          seatAssignmentsCount: attendeeSeats.length,
+          seatAssignments: attendeeSeats
+        });
+        
         return attendeeSeats // Return even if empty array
       }
     } catch (cacheError) {
@@ -439,6 +455,14 @@ export const getAllSeatingConfigurations = async (): Promise<any[]> => {
       if (cachedData) {
         const cacheObj = JSON.parse(cachedData)
         const configs = cacheObj.data || cacheObj
+        
+        // 🔍 DEBUG: Log raw cached seating configurations data
+        console.log('🔍 DEBUG: Raw cached seating configurations data:', {
+          cacheObj,
+          configsCount: configs?.length || 0,
+          configs: configs
+        });
+        
         if (Array.isArray(configs) && configs.length > 0) {
           return configs
         }

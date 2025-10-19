@@ -155,6 +155,20 @@ const filterSessionsForAttendee = (sessions, attendee) => {
 const enhanceSessionData = (sessions, attendee, seatAssignments, seatingConfigurations) => {
   const currentTime = TimeService.getCurrentTime();
   
+  // 🔍 DEBUG: Log raw data inputs
+  console.log('🔍 DEBUG: enhanceSessionData inputs:', {
+    sessionsCount: sessions?.length || 0,
+    attendeeId: attendee?.id,
+    seatAssignmentsCount: seatAssignments?.length || 0,
+    seatingConfigurationsCount: seatingConfigurations?.length || 0
+  });
+  
+  // 🔍 DEBUG: Log all seat assignments for this user
+  console.log('🔍 DEBUG: All seat assignments for user:', seatAssignments);
+  
+  // 🔍 DEBUG: Log all seating configurations
+  console.log('🔍 DEBUG: All seating configurations:', seatingConfigurations);
+  
   return sessions.map(session => {
     const isActive = isSessionActive(session, currentTime);
     const isUpcoming = isSessionUpcoming(session, currentTime);
@@ -165,8 +179,17 @@ const enhanceSessionData = (sessions, attendee, seatAssignments, seatingConfigur
         return event || null;
       }
       
+      // 🔍 DEBUG: Log current event being processed
+      console.log('🔍 DEBUG: Processing event:', {
+        id: event.id,
+        title: event.title,
+        type: event.type,
+        seating_type: event.seating_type
+      });
+      
       // Look for seat assignments if we have the necessary data
       if (!seatAssignments.length || !seatingConfigurations.length) {
+        console.log('🔍 DEBUG: Missing data - seatAssignments:', seatAssignments.length, 'seatingConfigurations:', seatingConfigurations.length);
         return event;
       }
       
@@ -178,15 +201,21 @@ const enhanceSessionData = (sessions, attendee, seatAssignments, seatingConfigur
         seatingConfig = seatingConfigurations.find(
           config => config.dining_option_id === event.id
         );
+        console.log('🔍 DEBUG: Dining event - looking for config with dining_option_id:', event.id);
       } else {
         // For agenda items, match by agenda_item_id
         seatingConfig = seatingConfigurations.find(
           config => config.agenda_item_id === event.id
         );
+        console.log('🔍 DEBUG: Agenda event - looking for config with agenda_item_id:', event.id);
       }
+      
+      // 🔍 DEBUG: Log seating configuration found
+      console.log('🔍 DEBUG: Seating configuration found:', seatingConfig);
       
       // If no seating configuration found, return event without seat info
       if (!seatingConfig) {
+        console.log('🔍 DEBUG: No seating configuration found for event:', event.id);
         return event;
       }
       
@@ -195,8 +224,13 @@ const enhanceSessionData = (sessions, attendee, seatAssignments, seatingConfigur
         seat.seating_configuration_id === seatingConfig.id
       );
       
+      // 🔍 DEBUG: Log seat assignment found
+      console.log('🔍 DEBUG: Seat assignment found:', seatAssignment);
+      console.log('🔍 DEBUG: Looking for seating_configuration_id:', seatingConfig.id);
+      console.log('🔍 DEBUG: Available seat assignment config IDs:', seatAssignments.map(s => s.seating_configuration_id));
+      
       // Step 3: Return enhanced event with seat info
-      return {
+      const result = {
         ...event,
         seatInfo: seatAssignment ? {
           table: seatAssignment.table_name,
@@ -206,6 +240,11 @@ const enhanceSessionData = (sessions, attendee, seatAssignments, seatingConfigur
           position: seatAssignment.seat_position
         } : null
       };
+      
+      // 🔍 DEBUG: Log final result
+      console.log('🔍 DEBUG: Final seatInfo for event:', result.seatInfo);
+      
+      return result;
     };
     
     return enhanceEventWithSeatInfo({
@@ -414,9 +453,22 @@ export default function useSessionData(enableOfflineMode = true, autoRefresh = t
       // Load seat assignments for the current attendee
       const seatData = await getAttendeeSeatAssignments(attendeeData.id);
       
+      // 🔍 DEBUG: Log seat data loaded
+      console.log('🔍 DEBUG: Seat data loaded for attendee:', {
+        attendeeId: attendeeData.id,
+        seatDataCount: seatData?.length || 0,
+        seatData: seatData
+      });
+      
       // Load seating configurations
       const seatingData = await getAllSeatingConfigurations();
       setSeatingConfigurations(seatingData);
+      
+      // 🔍 DEBUG: Log seating data loaded
+      console.log('🔍 DEBUG: Seating configurations loaded:', {
+        seatingDataCount: seatingData?.length || 0,
+        seatingData: seatingData
+      });
       
       // Load agenda items for normalization and sessions
       const agendaResponse = await agendaService.getActiveAgendaItems();
