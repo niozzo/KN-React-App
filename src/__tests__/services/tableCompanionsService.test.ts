@@ -112,7 +112,10 @@ describe('TableCompanionsService - Basic Functionality', () => {
           attendee_first_name: 'John',
           attendee_last_name: 'Doe',
           seat_number: 1,
-          assignment_type: 'manual'
+          assignment_type: 'manual',
+          seating_configuration_id: 'config-1',
+          attendees: { company: 'Acme Corp', title: 'CEO', company_name_standardized: 'Acme Corp' },
+          seating_configurations: { dining_option_id: 'dining-event-1' }
         }
       ];
       
@@ -147,6 +150,9 @@ describe('TableCompanionsService - Basic Functionality', () => {
           attendee_id: 'attendee-1',
           first_name: 'John',
           last_name: 'Doe',
+          company: 'Acme Corp',
+          company_standardized: 'Acme Corp',
+          title: 'CEO',
           seat_number: 1,
           assignment_type: 'manual'
         }

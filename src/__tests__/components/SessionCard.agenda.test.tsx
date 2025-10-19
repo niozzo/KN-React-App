@@ -6,8 +6,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
+import React from 'react';
 import SessionCard from '../../components/session/SessionCard';
 import useCountdown from '../../hooks/useCountdown';
+import { AuthProvider } from '../../contexts/AuthContext';
 
 // Mock the useCountdown hook
 vi.mock('../../hooks/useCountdown', () => ({
@@ -44,12 +46,21 @@ import * as sessionUtils from '../../utils/sessionUtils';
 
 const mockUseCountdown = vi.mocked(useCountdown);
 
+// Test wrapper component with AuthProvider
+const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <BrowserRouter>
+    <AuthProvider>
+      {children}
+    </AuthProvider>
+  </BrowserRouter>
+);
+
 // Helper function to render SessionCard with router
 const renderSessionCard = (props) => {
   return render(
-    <BrowserRouter>
+    <TestWrapper>
       <SessionCard {...props} />
-    </BrowserRouter>
+    </TestWrapper>
   );
 };
 
@@ -82,11 +93,14 @@ describe('SessionCard Agenda Variant', () => {
     sessionUtils.getSessionClassName.mockReturnValue('session-card session-card--session');
     sessionUtils.hasSpecialStyling.mockReturnValue(false);
     
-    // Default countdown mock
+    // Default countdown mock with complete object structure
     mockUseCountdown.mockReturnValue({
+      timeRemaining: 900000,
       formattedTime: '15 minutes left',
       isActive: false,
-      minutesRemaining: 15
+      isComplete: false,
+      minutesRemaining: 15,
+      hoursRemaining: 0
     });
   });
 

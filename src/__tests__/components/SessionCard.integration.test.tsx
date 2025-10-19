@@ -6,8 +6,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
+import React from 'react';
 import SessionCard from '../../components/session/SessionCard';
 import useCountdown from '../../hooks/useCountdown';
+import { AuthProvider } from '../../contexts/AuthContext';
 
 // Mock the useCountdown hook
 vi.mock('../../hooks/useCountdown', () => ({
@@ -23,6 +25,15 @@ vi.mock('react-router-dom', async () => {
     useNavigate: () => mockNavigate
   };
 });
+
+// Test wrapper component with AuthProvider
+const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <BrowserRouter>
+    <AuthProvider>
+      {children}
+    </AuthProvider>
+  </BrowserRouter>
+);
 
 const mockSession = {
   id: '1',
@@ -51,9 +62,9 @@ const mockKeynoteSession = {
 
 const renderWithRouter = (component) => {
   return render(
-    <BrowserRouter>
+    <TestWrapper>
       {component}
-    </BrowserRouter>
+    </TestWrapper>
   );
 };
 
@@ -61,20 +72,23 @@ describe('SessionCard Integration Tests', () => {
   const mockUseCountdown = vi.mocked(useCountdown);
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    // Don't clear all mocks to preserve the useCountdown mock
     mockNavigate.mockClear();
     
-    // Default mock for useCountdown
+    // Ensure useCountdown mock is properly set with complete object structure
     mockUseCountdown.mockReturnValue({
+      timeRemaining: 1380000,
       formattedTime: '23 minutes left',
       isActive: true,
+      isComplete: false,
       minutesRemaining: 23,
-      timeRemaining: 1380000
+      hoursRemaining: 0
     });
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    // Don't restore all mocks to preserve the useCountdown mock
+    mockNavigate.mockClear();
   });
 
   describe('Now Card (Current Session)', () => {
