@@ -98,7 +98,7 @@ const AttendeeCard = forwardRef(({
           
           {photo && isVisible ? (
             <img
-              src={offlineAwareImageService.getHeadshotUrl(attendee.id, photo)}
+              src={offlineAwareImageService.getHeadshotUrl(attendee.id, photo, 80, 80, 80)}
               alt={`${name} headshot`}
               loading="lazy"
               style={{

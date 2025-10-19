@@ -7,6 +7,7 @@
 
 import React from 'react';
 import { Attendee } from '../../types/database';
+import { offlineAwareImageService } from '../../services/offlineAwareImageService';
 import './AttendeeCard.css';
 
 interface AttendeeCardProps {
@@ -35,7 +36,9 @@ const AttendeeCard: React.FC<AttendeeCardProps> = ({
 
   // Get attendee photo or fallback
   const getPhotoUrl = (): string => {
-    if (attendee.photo) return attendee.photo;
+    if (attendee.photo) {
+      return offlineAwareImageService.getHeadshotUrl(attendee.id, attendee.photo, 64, 64, 75);
+    }
     
     // Generate initials for fallback
     const initials = [attendee.first_name, attendee.last_name]

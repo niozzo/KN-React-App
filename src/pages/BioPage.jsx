@@ -312,7 +312,7 @@ const BioPage = () => {
         >
           {attendee.photo ? (
             <img
-              src={offlineAwareImageService.getHeadshotUrl(attendee.id, attendee.photo)}
+              src={offlineAwareImageService.getHeadshotUrl(attendee.id, attendee.photo, 250, 250, 85)}
               alt={`${fullName} headshot`}
               style={{
                 width: '100%',

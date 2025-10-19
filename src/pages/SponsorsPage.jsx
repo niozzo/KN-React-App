@@ -331,7 +331,7 @@ const SponsorsPage = () => {
               {/* Middle: Logo centered */}
               <div className="sponsor-logo-container">
                 <img
-                  src={offlineAwareImageService.getSponsorLogoUrl(sponsor)}
+                  src={offlineAwareImageService.getSponsorLogoUrl(sponsor, 150, 75, 85)}
                   alt={`${sponsor.name} logo`}
                   onError={handleLogoError}
                 />

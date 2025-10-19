@@ -28,51 +28,62 @@ export class OfflineAwareImageService {
   }
   
   /**
-   * Get attendee headshot URL with offline fallback
+   * Get attendee headshot URL with offline fallback and Supabase image optimization
    * @param attendeeId - Attendee ID
    * @param photoUrl - Optional photo URL from attendee data
-   * @returns Headshot URL with offline fallback
+   * @param width - Desired width (default: 80)
+   * @param height - Desired height (default: 80)
+   * @param quality - Image quality 20-100 (default: 80)
+   * @returns Optimized headshot URL with offline fallback
    */
-  getHeadshotUrl(attendeeId: string, photoUrl?: string): string {
+  getHeadshotUrl(attendeeId: string, photoUrl?: string, width: number = 80, height: number = 80, quality: number = 80): string {
     // If we have a photo URL, use it with offline fallback
     if (photoUrl) {
       return this.getImageUrl(photoUrl, '/assets/placeholder-avatar.png');
     }
     
-    // Generate Supabase storage URL
-    const originalUrl = `https://iikcgdhztkrexuuqheli.supabase.co/storage/v1/object/public/attendee-headshots/${attendeeId}`;
-    return this.getImageUrl(originalUrl, '/assets/placeholder-avatar.png');
+    // Generate optimized Supabase storage URL with transformations
+    const baseUrl = `https://iikcgdhztkrexuuqheli.supabase.co/storage/v1/render/image/public/attendee-headshots/${attendeeId}`;
+    const optimizedUrl = `${baseUrl}?width=${width}&height=${height}&quality=${quality}&resize=cover`;
+    return this.getImageUrl(optimizedUrl, '/assets/placeholder-avatar.png');
   }
   
   /**
-   * Get company logo URL with offline fallback
+   * Get company logo URL with offline fallback and Supabase image optimization
    * @param companyId - Company ID
    * @param logoUrl - Optional logo URL from company data
-   * @returns Logo URL with offline fallback
+   * @param width - Desired width (default: 120)
+   * @param height - Desired height (default: 60)
+   * @param quality - Image quality 20-100 (default: 85)
+   * @returns Optimized logo URL with offline fallback
    */
-  getLogoUrl(companyId: string, logoUrl?: string): string {
+  getLogoUrl(companyId: string, logoUrl?: string, width: number = 120, height: number = 60, quality: number = 85): string {
     // If we have a logo URL, use it with offline fallback
     if (logoUrl) {
       return this.getImageUrl(logoUrl, '/assets/placeholder-logo.png');
     }
     
-    // Generate Supabase storage URL
-    const originalUrl = `https://iikcgdhztkrexuuqheli.supabase.co/storage/v1/object/public/company-logos/${companyId}`;
-    return this.getImageUrl(originalUrl, '/assets/placeholder-logo.png');
+    // Generate optimized Supabase storage URL with transformations
+    const baseUrl = `https://iikcgdhztkrexuuqheli.supabase.co/storage/v1/render/image/public/company-logos/${companyId}`;
+    const optimizedUrl = `${baseUrl}?width=${width}&height=${height}&quality=${quality}&resize=contain`;
+    return this.getImageUrl(optimizedUrl, '/assets/placeholder-logo.png');
   }
   
   /**
-   * Get sponsor logo URL with offline fallback
+   * Get sponsor logo URL with offline fallback and Supabase image optimization
    * @param sponsor - Sponsor object with logo and name
-   * @returns Logo URL with offline fallback
+   * @param width - Desired width (default: 150)
+   * @param height - Desired height (default: 75)
+   * @param quality - Image quality 20-100 (default: 85)
+   * @returns Optimized logo URL with offline fallback
    */
-  getSponsorLogoUrl(sponsor: any): string {
+  getSponsorLogoUrl(sponsor: any, width: number = 150, height: number = 75, quality: number = 85): string {
     // If we have a logo URL, use it with offline fallback
     if (sponsor.logo && sponsor.logo.trim()) {
       return this.getImageUrl(sponsor.logo, '/assets/placeholder-logo.png');
     }
     
-    // Generate Clearbit fallback URL
+    // Generate Clearbit fallback URL (already optimized)
     const domainPart = sponsor.name.toLowerCase().replace(/[^a-z0-9]/g, '');
     const clearbitUrl = `https://logo.clearbit.com/${domainPart}.com`;
     return this.getImageUrl(clearbitUrl, '/assets/placeholder-logo.png');
