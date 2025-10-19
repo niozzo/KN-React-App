@@ -118,8 +118,14 @@ const filterSessionsForAttendee = (sessions, attendee) => {
       return true;
     }
     
-    // For breakout sessions, check if attendee is assigned
-    return attendee.selected_breakouts.includes(session.id);
+    // For breakout sessions, check if attendee is assigned (using title-based matching)
+    const sessionTitle = session.title?.toLowerCase() || '';
+    const selectedBreakouts = attendee.selected_breakouts || [];
+    
+    return selectedBreakouts.some(breakout => 
+      breakout.toLowerCase().includes(sessionTitle) || 
+      sessionTitle.includes(breakout.toLowerCase())
+    );
   });
 };
 

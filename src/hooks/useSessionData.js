@@ -93,9 +93,15 @@ const filterSessionsForAttendee = (sessions, attendee) => {
         }
       });
       
-      // For breakout sessions, only show if user is assigned
+      // For breakout sessions, only show if user is assigned (using title-based matching)
       if (attendee && attendee.selected_breakouts) {
-        return attendee.selected_breakouts.includes(session.id);
+        const sessionTitle = session.title?.toLowerCase() || '';
+        const selectedBreakouts = attendee.selected_breakouts || [];
+        
+        return selectedBreakouts.some(breakout => 
+          breakout.toLowerCase().includes(sessionTitle) || 
+          sessionTitle.includes(breakout.toLowerCase())
+        );
       }
       
       // If no attendee data, don't show breakout sessions

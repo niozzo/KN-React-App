@@ -139,9 +139,15 @@ export const useSessionData = (user = { id: 'test-user' }) => {
           return true;
         }
         
-        // For breakout sessions, only show if user is assigned
+        // For breakout sessions, only show if user is assigned (using title-based matching)
         if (attendeeData && attendeeData.selected_breakouts) {
-          return attendeeData.selected_breakouts.includes(session.id);
+          const sessionTitle = session.title?.toLowerCase() || '';
+          const selectedBreakouts = attendeeData.selected_breakouts || [];
+          
+          return selectedBreakouts.some(breakout => 
+            breakout.toLowerCase().includes(sessionTitle) || 
+            sessionTitle.includes(breakout.toLowerCase())
+          );
         }
         
         // If no attendee data, don't show breakout sessions
