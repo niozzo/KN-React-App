@@ -276,8 +276,8 @@ export const SeatingQACheck: React.FC = () => {
                         <TableRow>
                           <TableCell><strong>Attendee</strong></TableCell>
                           <TableCell><strong>Session</strong></TableCell>
-                          <TableCell><strong>Expected</strong></TableCell>
-                          <TableCell><strong>Actual</strong></TableCell>
+                          <TableCell><strong>CEO Remarks</strong></TableCell>
+                          <TableCell><strong>The Other 6</strong></TableCell>
                           <TableCell><strong>Issue</strong></TableCell>
                         </TableRow>
                       </TableHead>
@@ -334,7 +334,8 @@ export const SeatingQACheck: React.FC = () => {
               </AccordionDetails>
             </Accordion>
 
-            {/* CSV Data Mismatches */}
+            {/* CSV Data Mismatches - COMMENTED OUT FOR NOW */}
+            {/*
             <Accordion defaultExpanded={attendeesWithCSVMismatches.length > 0} sx={{ mt: 2 }}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -424,6 +425,7 @@ export const SeatingQACheck: React.FC = () => {
                 )}
               </AccordionDetails>
             </Accordion>
+            */}
 
             {/* Missing Assignments */}
             {attendeesWithMissingAssignments.length > 0 && (

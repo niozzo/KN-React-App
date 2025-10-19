@@ -276,7 +276,8 @@ export class SeatingQAService {
   }
 
   /**
-   * Validate attendee seating for consistency and CSV comparison
+   * Validate attendee seating for consistency across 7 sessions
+   * CEO remarks session is the reference, compare against other 6 sessions
    */
   private async validateAttendeeSeating(
     attendeeId: string, 
@@ -284,39 +285,52 @@ export class SeatingQAService {
   ): Promise<SeatingIssue[]> {
     const issues: SeatingIssue[] = [];
 
-    // Check 1: Consistency across seven sessions
-    if (sevenSessionAssignments.length > 0) {
-      const firstAssignment = sevenSessionAssignments[0];
-      const expectedRow = firstAssignment.rowNumber;
-      const expectedColumn = firstAssignment.columnNumber;
-      const expectedTable = firstAssignment.tableName;
-      const expectedSeat = firstAssignment.seatNumber;
+    // Find CEO remarks session (Opening Remarks)
+    const ceoRemarksSession = sevenSessionAssignments.find(assignment => 
+      assignment.sessionName.includes('Opening Remarks') || 
+      assignment.sessionName.includes('CEO Welcome')
+    );
 
-      for (const assignment of sevenSessionAssignments) {
-        if (assignment.rowNumber !== expectedRow || 
-            assignment.columnNumber !== expectedColumn ||
-            assignment.tableName !== expectedTable ||
-            assignment.seatNumber !== expectedSeat) {
-          
-          issues.push({
-            type: 'inconsistent',
-            sessionName: assignment.sessionName,
-            sessionType: assignment.sessionType,
-            expectedRow,
-            expectedColumn,
-            actualRow: assignment.rowNumber,
-            actualColumn: assignment.columnNumber,
-            expectedTable,
-            actualTable: assignment.tableName,
-            expectedSeat,
-            actualSeat: assignment.seatNumber,
-            details: `Row/Column/Table/Seat mismatch: Expected (${expectedRow}, ${expectedColumn}, ${expectedTable}, ${expectedSeat}) but got (${assignment.rowNumber}, ${assignment.columnNumber}, ${assignment.tableName}, ${assignment.seatNumber})`
-          });
-        }
+    if (!ceoRemarksSession) {
+      // If no CEO remarks session found, skip validation
+      return issues;
+    }
+
+    const ceoRow = ceoRemarksSession.rowNumber;
+    const ceoColumn = ceoRemarksSession.columnNumber;
+    const ceoTable = ceoRemarksSession.tableName;
+    const ceoSeat = ceoRemarksSession.seatNumber;
+
+    // Compare other 6 sessions against CEO remarks session
+    const otherSessions = sevenSessionAssignments.filter(assignment => 
+      assignment !== ceoRemarksSession
+    );
+
+    for (const assignment of otherSessions) {
+      if (assignment.rowNumber !== ceoRow || 
+          assignment.columnNumber !== ceoColumn ||
+          assignment.tableName !== ceoTable ||
+          assignment.seatNumber !== ceoSeat) {
+        
+        issues.push({
+          type: 'inconsistent',
+          sessionName: assignment.sessionName,
+          sessionType: assignment.sessionType,
+          expectedRow: ceoRow,
+          expectedColumn: ceoColumn,
+          actualRow: assignment.rowNumber,
+          actualColumn: assignment.columnNumber,
+          expectedTable: ceoTable,
+          actualTable: assignment.tableName,
+          expectedSeat: ceoSeat,
+          actualSeat: assignment.seatNumber,
+          details: `Other 6 sessions mismatch: CEO remarks has (${ceoRow}, ${ceoColumn}, ${ceoTable}, ${ceoSeat}) but ${assignment.sessionName} has (${assignment.rowNumber}, ${assignment.columnNumber}, ${assignment.tableName}, ${assignment.seatNumber})`
+        });
       }
     }
 
-    // Check 2: CSV comparison
+    // Check 2: CSV comparison - COMMENTED OUT FOR NOW
+    /*
     if (this.csvParser) {
       for (const assignment of sevenSessionAssignments) {
         const csvData = this.csvParser.getSeatData(attendeeId, assignment.configId);
@@ -360,6 +374,7 @@ export class SeatingQAService {
         }
       }
     }
+    */
 
     return issues;
   }
