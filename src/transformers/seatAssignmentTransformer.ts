@@ -53,6 +53,31 @@ export function transformSeatAssignments(
         continue
       }
 
+      // NEW: If this is a child config, use parent's seat assignment instead
+      // TODO 2026: Generalize this to work for any parent-child relationship using
+      // config.parent_configuration_id and config.copy_type === 'layout_and_assignments'
+      // instead of hardcoded Opening Remarks ID
+      const OPENING_REMARKS_CONFIG_ID = 'b890ef94-3cdd-4c30-982d-884a1cec4bd5';
+
+      let finalAssignment = assignment;
+      if (config.parent_configuration_id === OPENING_REMARKS_CONFIG_ID) {
+        const parentAssignment = rawAssignments.find(
+          a => a.attendee_id === assignment.attendee_id && 
+               a.seating_configuration_id === OPENING_REMARKS_CONFIG_ID
+        );
+        
+        if (parentAssignment) {
+          // Use parent's row/column for display
+          finalAssignment = {
+            ...assignment,
+            row_number: parentAssignment.row_number,
+            column_number: parentAssignment.column_number,
+            table_name: parentAssignment.table_name,
+            seat_number: parentAssignment.seat_number
+          };
+        }
+      }
+
       // Determine session type and get session data
       let sessionName = 'Unknown Session'
       let sessionType: 'agenda' | 'dining' = 'agenda'
@@ -87,24 +112,24 @@ export function transformSeatAssignments(
 
       // Transform seat data
       const transformed: TransformedSeatAssignment = {
-        id: assignment.id,
+        id: finalAssignment.id,
         sessionName,
         sessionType,
         sessionId,
         // Convert 0-indexed to 1-indexed for row/column
-        row: assignment.row_number !== null ? assignment.row_number + 1 : null,
-        column: assignment.column_number !== null ? assignment.column_number + 1 : null,
+        row: finalAssignment.row_number !== null ? finalAssignment.row_number + 1 : null,
+        column: finalAssignment.column_number !== null ? finalAssignment.column_number + 1 : null,
         // Table and seat are already 1-indexed
-        table: assignment.table_name,
-        seat: assignment.seat_number,
-        assignedAt: assignment.assigned_at,
-        assignmentType: assignment.assignment_type
+        table: finalAssignment.table_name,
+        seat: finalAssignment.seat_number,
+        assignedAt: finalAssignment.assigned_at,
+        assignmentType: finalAssignment.assignment_type
       }
 
       result.push(transformed)
 
     } catch (error) {
-      console.error(`❌ Error transforming assignment ${assignment.id}:`, error)
+      console.error(`❌ Error transforming assignment ${finalAssignment.id}:`, error)
       skippedCount++
     }
   }

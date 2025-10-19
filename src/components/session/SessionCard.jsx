@@ -249,6 +249,31 @@ const SessionCard = React.memo(({
           </div>
         )}
 
+        {/* Agenda Item Open Seating Information */}
+        {!isDiningEventSession && session.seating_type === 'open' && (
+          <div 
+            className="seat-assignment"
+            style={{ 
+              cursor: 'default',
+              background: 'white',
+              borderRadius: 'var(--radius-md)',
+              padding: 'var(--space-sm)',
+              marginTop: 'var(--space-sm)',
+              border: '1px solid var(--purple-500)',
+              display: 'flex',
+              alignItems: 'center'
+            }}
+          >
+            <span style={{ 
+              fontSize: 'var(--text-base)', 
+              fontWeight: '500',
+              color: 'var(--text-primary)'
+            }}>
+              Open seating
+            </span>
+          </div>
+        )}
+
         {(speakers && speakers.length > 0) || (speakerInfo && typeof speakerInfo === 'string' && speakerInfo.trim()) || (speaker && typeof speaker === 'string' && speaker.trim()) ? (
           <div className="session-details">
             <div className="session-detail" style={{ display: 'block' }}>
@@ -432,7 +457,13 @@ const SessionCard = React.memo(({
               }}>
                 {/* Support both table/seat format (dining) and row/column format (theater seating) */}
                 {seatInfo.row && seatInfo.column ? (
-                  `Row ${seatInfo.row} • Seat ${seatInfo.column}` // Data is already 1-indexed
+                  // For agenda items (non-dining, non-meal), show only row
+                  // For dining events and meals, show both row and seat
+                  isDiningEventSession || isMealSession ? (
+                    `Row ${seatInfo.row} • Seat ${seatInfo.column}` // Dining/Meal: Show both
+                  ) : (
+                    `Row ${seatInfo.row}` // Agenda: Show only row
+                  )
                 ) : seatInfo.table ? (
                   isDiningEventSession 
                     ? seatInfo.table  // Dining: Just "Table 1" (no seat number)
