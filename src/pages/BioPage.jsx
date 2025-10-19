@@ -24,17 +24,44 @@ const BioPage = () => {
 
   const attendeeId = searchParams.get('id');
 
-  // Refresh function for pull-to-refresh
+  // Enhanced refresh function that follows settings page pattern
   const handleRefresh = async () => {
     try {
-      // Clear attendee cache to force fresh data
-      localStorage.removeItem('kn_cache_attendees');
+      console.log('🔄 [PULL-TO-REFRESH] Starting cache clearing and data refresh');
       
-      // Reload attendee data by calling the loadAttendee function
-      // This will trigger the useEffect that loads attendee data
-      window.location.reload();
+      // Step 1: Clear all relevant cache entries to force fresh fetch (same as settings page)
+      const cacheKeys = [
+        'kn_cache_attendees',
+        'kn_cache_agenda_items', 
+        'kn_cache_dining_options',
+        'kn_cache_sponsors',
+        'kn_cache_seat_assignments',
+        'kn_cache_seating_configurations',
+        'kn_cached_sessions'
+      ];
+      
+      cacheKeys.forEach(key => {
+        localStorage.removeItem(key);
+        console.log(`🧹 [PULL-TO-REFRESH] Cleared cache: ${key}`);
+      });
+      
+      // Step 2: Use serverDataSyncService.syncAllData() (same as settings page)
+      const { serverDataSyncService } = await import('../services/serverDataSyncService');
+      const result = await serverDataSyncService.syncAllData();
+      
+      if (result.success) {
+        console.log('✅ [PULL-TO-REFRESH] Data refresh successful');
+        console.log(`📊 [PULL-TO-REFRESH] Synced tables: ${result.syncedTables.join(', ')}`);
+        
+        // Step 3: Reload page to trigger fresh data fetch
+        window.location.reload();
+      } else {
+        console.error('❌ [PULL-TO-REFRESH] Data refresh failed:', result.errors);
+        throw new Error(`Failed to refresh data: ${result.errors.join(', ')}`);
+      }
     } catch (error) {
-      console.error('Failed to refresh attendee data:', error);
+      console.error('❌ [PULL-TO-REFRESH] Refresh error:', error);
+      throw error;
     }
   };
 
