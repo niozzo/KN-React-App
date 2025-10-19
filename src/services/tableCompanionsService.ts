@@ -69,6 +69,8 @@ export class TableCompanionsService extends BaseService {
       console.log(`🌐 Fetching table companions for ${tableName} from main database`);
       
       const supabase = supabaseClientService.getClient();
+      // Query seat assignments through the correct schema relationship:
+      // DINING_OPTION → SEATING_CONFIGURATION → SEAT_ASSIGNMENT
       const { data: seatAssignments, error } = await supabase
         .from('seat_assignments')
         .select(`
@@ -76,10 +78,13 @@ export class TableCompanionsService extends BaseService {
           attendee_first_name,
           attendee_last_name,
           seat_number,
-          assignment_type
+          assignment_type,
+          seating_configuration_id,
+          attendees!inner(company),
+          seating_configurations!inner(dining_option_id)
         `)
         .eq('table_name', tableName)
-        .eq('dining_event_id', diningEventId);
+        .eq('seating_configurations.dining_option_id', diningEventId);
       
       if (error) {
         console.error('❌ Error fetching seat assignments:', error);
@@ -96,6 +101,7 @@ export class TableCompanionsService extends BaseService {
         attendee_id: assignment.attendee_id,
         first_name: assignment.attendee_first_name,
         last_name: assignment.attendee_last_name,
+        company: (assignment.attendees as any)?.company || 'N/A', // Access company from joined table
         seat_number: assignment.seat_number,
         assignment_type: assignment.assignment_type
       }));
