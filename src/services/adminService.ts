@@ -369,11 +369,11 @@ export class AdminService {
         if (cachedData) {
           const parsed = JSON.parse(cachedData);
           const cachedDiningOptions = parsed.data || parsed || [];
-          diningOptions = cachedDiningOptions.filter(do => diningOptionIds.includes(do.id));
+            diningOptions = cachedDiningOptions.filter(dining => diningOptionIds.includes(dining.id));
           console.log('🔍 DEBUG: Found dining options in cache:', {
             cachedCount: cachedDiningOptions.length,
             matchingCount: diningOptions.length,
-            matchingIds: diningOptions.map(do => do.id)
+            matchingIds: diningOptions.map(dining => dining.id)
           });
         }
       } catch (error) {
@@ -398,16 +398,16 @@ export class AdminService {
           console.warn('Error fetching dining options from database:', diningError);
         } else if (dbDiningOptions) {
           // Merge database results with cache results
-          const existingIds = diningOptions.map(do => do.id);
-          const newOptions = dbDiningOptions.filter(do => !existingIds.includes(do.id));
+          const existingIds = diningOptions.map(dining => dining.id);
+          const newOptions = dbDiningOptions.filter(dining => !existingIds.includes(dining.id));
           diningOptions = [...diningOptions, ...newOptions];
         }
       }
       
       console.log('🔍 DEBUG: Final dining options:', {
         totalCount: diningOptions.length,
-        optionIds: diningOptions.map(do => do.id),
-        optionNames: diningOptions.map(do => do.name)
+        optionIds: diningOptions.map(dining => dining.id),
+        optionNames: diningOptions.map(dining => dining.name)
       });
       
       // Transform the data to include session names
