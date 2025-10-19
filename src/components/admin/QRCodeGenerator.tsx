@@ -31,12 +31,10 @@ import {
 import {
   ArrowBack as ArrowBackIcon,
   ContentCopy as CopyIcon,
-  Download as DownloadIcon,
   Refresh as RefreshIcon,
   TableChart as TableChartIcon
 } from '@mui/icons-material';
 import { useNavigate, useOutletContext } from 'react-router-dom';
-import { QRCodeSVG } from 'qrcode.react';
 import { adminService } from '../../services/adminService';
 import { generateAttendeeCSV, downloadCSV } from '../../utils/csvExport';
 
@@ -50,6 +48,7 @@ interface AttendeeWithCode {
   last_name: string;
   email: string;
   access_code: string;
+  registration_status: string;
 }
 
 export const QRCodeGenerator: React.FC = () => {
@@ -115,59 +114,6 @@ export const QRCodeGenerator: React.FC = () => {
     }
   };
 
-  const handleDownloadQR = () => {
-    if (!selectedAttendee) return;
-
-    try {
-      const svg = document.getElementById('qr-code-svg') as unknown as SVGElement;
-      if (!svg) {
-        setError('QR code not found');
-        return;
-      }
-
-      // Create canvas from SVG
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        setError('Canvas not supported');
-        return;
-      }
-
-      const svgData = new XMLSerializer().serializeToString(svg);
-      const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-      const url = URL.createObjectURL(svgBlob);
-
-      const img = new Image();
-      img.onload = () => {
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx.drawImage(img, 0, 0);
-
-        canvas.toBlob((blob) => {
-          if (blob) {
-            const downloadUrl = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.download = `qr-code-${selectedAttendee.first_name}-${selectedAttendee.last_name}.png`;
-            link.href = downloadUrl;
-            link.click();
-            URL.revokeObjectURL(downloadUrl);
-          }
-        });
-
-        URL.revokeObjectURL(url);
-      };
-
-      img.onerror = () => {
-        setError('Failed to generate QR code image');
-        URL.revokeObjectURL(url);
-      };
-
-      img.src = url;
-    } catch (err) {
-      console.error('Error downloading QR code:', err);
-      setError('Failed to download QR code');
-    }
-  };
 
   const handleBack = () => {
     navigate('/admin');
@@ -247,7 +193,7 @@ export const QRCodeGenerator: React.FC = () => {
                   onClick={handleExportCSV}
                   disabled={loading || attendees.length === 0}
                 >
-                  Export All URLs
+                  Export Confirmed
                 </Button>
               </Box>
 
@@ -273,6 +219,15 @@ export const QRCodeGenerator: React.FC = () => {
                       <Box>
                         <Typography variant="body1">
                           {option.first_name} {option.last_name}
+                          {option.registration_status && (
+                            <Chip 
+                              label={option.registration_status} 
+                              size="small" 
+                              color={option.registration_status === 'confirmed' ? 'success' : 'default'}
+                              variant="outlined"
+                              sx={{ ml: 1 }}
+                            />
+                          )}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
                           {option.email} • {option.access_code}
@@ -310,70 +265,60 @@ export const QRCodeGenerator: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* QR Code Display */}
+          {/* Attendee Details Display */}
           <Card sx={{ flex: 1 }}>
             <CardContent>
               {selectedAttendee ? (
                 <>
                   <Typography variant="h6" gutterBottom>
-                    QR Code for {selectedAttendee.first_name} {selectedAttendee.last_name}
+                    Attendee Details
                   </Typography>
 
                   <Divider sx={{ my: 2 }} />
 
-                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-                    {/* QR Code */}
-                    <Paper elevation={3} sx={{ p: 3, bgcolor: 'white' }}>
-                      <QRCodeSVG
-                        id="qr-code-svg"
-                        value={generateURL(selectedAttendee.access_code)}
-                        size={256}
-                        level="H"
-                        includeMargin={true}
-                      />
-                    </Paper>
-
-                    {/* Attendee Details */}
-                    <Box sx={{ width: '100%' }}>
-                      <Typography variant="body2" color="text.secondary" gutterBottom>
-                        <strong>Name:</strong> {selectedAttendee.first_name} {selectedAttendee.last_name}
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    {/* Attendee Information */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                      <Typography variant="h6">
+                        {selectedAttendee.first_name} {selectedAttendee.last_name}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary" gutterBottom>
-                        <strong>Email:</strong> {selectedAttendee.email}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary" gutterBottom>
-                        <strong>Access Code:</strong> {selectedAttendee.access_code}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{ wordBreak: 'break-all' }}>
-                        <strong>URL:</strong> {generateURL(selectedAttendee.access_code)}
-                      </Typography>
+                      {selectedAttendee.registration_status && (
+                        <Chip 
+                          label={selectedAttendee.registration_status} 
+                          size="small" 
+                          color={selectedAttendee.registration_status === 'confirmed' ? 'success' : 'default'}
+                          variant="outlined"
+                        />
+                      )}
                     </Box>
 
-                    {/* Action Buttons */}
-                    <Stack direction="row" spacing={2} sx={{ width: '100%' }}>
+                    <Typography variant="body2" color="text.secondary">
+                      <strong>Email:</strong> {selectedAttendee.email}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      <strong>Access Code:</strong> {selectedAttendee.access_code}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ wordBreak: 'break-all' }}>
+                      <strong>Login URL:</strong> {generateURL(selectedAttendee.access_code)}
+                    </Typography>
+
+                    {/* Copy URL Button */}
+                    <Box sx={{ mt: 3 }}>
                       <Button
                         variant="contained"
                         startIcon={<CopyIcon />}
                         onClick={handleCopyURL}
                         fullWidth
                       >
-                        Copy URL
+                        Copy Login URL
                       </Button>
-                      <Button
-                        variant="outlined"
-                        startIcon={<DownloadIcon />}
-                        onClick={handleDownloadQR}
-                        fullWidth
-                      >
-                        Download QR
-                      </Button>
-                    </Stack>
+                    </Box>
                   </Box>
                 </>
               ) : (
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 8 }}>
                   <Typography variant="h6" color="text.secondary">
-                    Select an attendee to generate QR code
+                    Select an attendee to view details
                   </Typography>
                   <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                     Search and click on an attendee from the list

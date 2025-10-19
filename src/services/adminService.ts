@@ -244,6 +244,7 @@ export class AdminService {
     last_name: string;
     email: string;
     access_code: string;
+    registration_status: string;
   }>> {
     try {
       // ADMIN-ONLY: Fetch directly from Supabase to get access codes
@@ -255,7 +256,7 @@ export class AdminService {
       
       const { data, error } = await supabase
         .from('attendees')
-        .select('id, first_name, last_name, email, access_code')
+        .select('id, first_name, last_name, email, access_code, registration_status')
         .not('access_code', 'is', null)
         .order('last_name', { ascending: true });
       
