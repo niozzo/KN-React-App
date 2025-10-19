@@ -40,7 +40,12 @@ const WiFiNetworkCard = () => {
         marginBottom: 'var(--space-lg)'
       }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--space-md)' }}>
+      <div className="card-header" style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'flex-start',
+        marginBottom: 'var(--space-sm)'
+      }}>
         <h3 
           className="wifi-title"
           style={{
@@ -54,73 +59,75 @@ const WiFiNetworkCard = () => {
         </h3>
       </div>
       
-      <div className="network-details" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
-        <div className="network-name" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
-          <span style={{ 
-            fontSize: 'var(--text-sm)', 
-            color: 'var(--ink-600)',
-            fontWeight: 'var(--font-medium)',
-            minWidth: '60px'
-          }}>
-            Network:
-          </span>
-          <span style={{ 
-            fontSize: 'var(--text-base)', 
-            color: 'var(--ink-900)',
-            fontWeight: 'var(--font-medium)'
-          }}>
-            {networkName}
-          </span>
-        </div>
-        
-        <div className="password-row" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
-          <span style={{ 
-            fontSize: 'var(--text-sm)', 
-            color: 'var(--ink-600)',
-            fontWeight: 'var(--font-medium)',
-            minWidth: '60px'
-          }}>
-            Password:
-          </span>
-          <span style={{ 
-            fontSize: 'var(--text-base)', 
-            color: 'var(--ink-900)',
-            fontWeight: 'var(--font-medium)',
-            background: 'var(--blue-050)',
-            padding: 'var(--space-xs) var(--space-sm)',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--blue-200)'
-          }}>
-            {password}
-          </span>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={handleCopyPassword}
-            style={{
+      <div className="card-content">
+        <div className="network-details" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
+          <div className="network-name" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
+            <span style={{ 
+              fontSize: 'var(--text-base)', 
+              color: 'var(--ink-700)',
+              fontWeight: 'var(--font-medium)',
+              minWidth: '60px'
+            }}>
+              Network:
+            </span>
+            <span style={{ 
+              fontSize: 'var(--text-base)', 
+              color: 'var(--coral)',
+              fontWeight: 'var(--font-medium)'
+            }}>
+              {networkName}
+            </span>
+          </div>
+          
+          <div className="password-row" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
+            <span style={{ 
+              fontSize: 'var(--text-base)', 
+              color: 'var(--ink-700)',
+              fontWeight: 'var(--font-medium)',
+              minWidth: '60px'
+            }}>
+              Password:
+            </span>
+            <span style={{ 
+              fontSize: 'var(--text-base)', 
+              color: 'var(--coral)',
+              fontWeight: 'var(--font-medium)',
+              background: 'var(--blue-050)',
               padding: 'var(--space-xs) var(--space-sm)',
-              fontSize: 'var(--text-sm)',
-              minWidth: 'auto',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 'var(--space-xs)',
-              border: '1px solid var(--blue-300)',
-              background: 'var(--white)',
-              color: 'var(--blue-700)'
-            }}
-          >
-            {copied ? (
-              <>
-                <span>✓</span>
-                <span>Copied!</span>
-              </>
-            ) : (
-              <>
-                <span>📋</span>
-                <span>Copy</span>
-              </>
-            )}
-          </Button>
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--blue-200)'
+            }}>
+              {password}
+            </span>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleCopyPassword}
+              style={{
+                padding: 'var(--space-xs) var(--space-sm)',
+                fontSize: 'var(--text-sm)',
+                minWidth: 'auto',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-xs)',
+                border: '1px solid var(--blue-300)',
+                background: 'var(--white)',
+                color: 'var(--blue-700)'
+              }}
+            >
+              {copied ? (
+                <>
+                  <span>✓</span>
+                  <span>Copied!</span>
+                </>
+              ) : (
+                <>
+                  <span>📋</span>
+                  <span>Copy</span>
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       </div>
     </Card>
