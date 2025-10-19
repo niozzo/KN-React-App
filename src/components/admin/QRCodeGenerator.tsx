@@ -374,8 +374,8 @@ export const QRCodeGenerator: React.FC = () => {
                   <Table size="small">
                     <TableHead>
                       <TableRow>
-                        <TableCell><strong>ID</strong></TableCell>
-                        <TableCell><strong>Seating Config ID</strong></TableCell>
+                        <TableCell><strong>Session Name</strong></TableCell>
+                        <TableCell><strong>Session Type</strong></TableCell>
                         <TableCell><strong>Row</strong></TableCell>
                         <TableCell><strong>Column</strong></TableCell>
                         <TableCell><strong>Table</strong></TableCell>
@@ -387,11 +387,23 @@ export const QRCodeGenerator: React.FC = () => {
                     <TableBody>
                       {seatAssignments.map((assignment, index) => (
                         <TableRow key={assignment.id || index}>
-                          <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>
-                            {assignment.id}
+                          <TableCell>
+                            <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                              {assignment.session_name}
+                            </Typography>
+                            {assignment.session_time && (
+                              <Typography variant="caption" color="text.secondary">
+                                {new Date(assignment.session_time.start).toLocaleString()} - {new Date(assignment.session_time.end).toLocaleString()}
+                              </Typography>
+                            )}
                           </TableCell>
-                          <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>
-                            {assignment.seating_configuration_id}
+                          <TableCell>
+                            <Chip 
+                              label={assignment.session_type} 
+                              size="small" 
+                              color={assignment.session_type === 'Agenda Item' ? 'primary' : 'secondary'}
+                              variant="outlined"
+                            />
                           </TableCell>
                           <TableCell>
                             {assignment.row_number !== null ? (

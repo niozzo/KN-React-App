@@ -274,12 +274,31 @@ export class AdminService {
 
   async getSeatAssignmentsForAttendee(attendeeId: string): Promise<any[]> {
     try {
-      // ADMIN-ONLY: Fetch seat assignments directly from Supabase
+      // ADMIN-ONLY: Fetch seat assignments with session names via joins
       const { supabase } = await import('../lib/supabase');
       
       const { data, error } = await supabase
         .from('seat_assignments')
-        .select('*')
+        .select(`
+          *,
+          seating_configurations!inner(
+            id,
+            agenda_item_id,
+            dining_option_id,
+            agenda_items(
+              id,
+              title,
+              start_time,
+              end_time
+            ),
+            dining_options(
+              id,
+              name,
+              start_time,
+              end_time
+            )
+          )
+        `)
         .eq('attendee_id', attendeeId)
         .order('assigned_at', { ascending: true });
       
@@ -287,7 +306,40 @@ export class AdminService {
         throw error;
       }
       
-      return data || [];
+      // Transform the data to include session names
+      const transformedData = (data || []).map(assignment => {
+        const config = assignment.seating_configurations;
+        let sessionName = 'Unknown Session';
+        let sessionType = 'Unknown';
+        let sessionTime = null;
+        
+        if (config.agenda_items) {
+          sessionName = config.agenda_items.title;
+          sessionType = 'Agenda Item';
+          sessionTime = {
+            start: config.agenda_items.start_time,
+            end: config.agenda_items.end_time
+          };
+        } else if (config.dining_options) {
+          sessionName = config.dining_options.name;
+          sessionType = 'Dining Option';
+          sessionTime = {
+            start: config.dining_options.start_time,
+            end: config.dining_options.end_time
+          };
+        }
+        
+        return {
+          ...assignment,
+          session_name: sessionName,
+          session_type: sessionType,
+          session_time: sessionTime,
+          agenda_item_id: config.agenda_item_id,
+          dining_option_id: config.dining_option_id
+        };
+      });
+      
+      return transformedData;
       
     } catch (error) {
       console.error('Error in getSeatAssignmentsForAttendee:', error);
