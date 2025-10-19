@@ -34,8 +34,8 @@ const WiFiNetworkCard = () => {
       style={{
         background: 'var(--white)',
         borderRadius: 'var(--radius-2xl)',
-        padding: 'var(--space-lg)',
-        boxShadow: 'var(--shadow-lg)',
+        padding: 'var(--space-xl)',
+        boxShadow: 'var(--shadow-xl)',
         border: '2px solid var(--blue-200)',
         marginBottom: 'var(--space-lg)'
       }}
@@ -47,10 +47,11 @@ const WiFiNetworkCard = () => {
         marginBottom: 'var(--space-sm)'
       }}>
         <h3 
-          className="wifi-title"
+          className="wifi-title session-time"
           style={{
-            fontSize: 'var(--text-lg)',
-            fontWeight: 'var(--font-semibold)',
+            fontFamily: 'var(--font-heading)',
+            fontSize: 'var(--text-xl)',
+            fontWeight: 'var(--font-bold)',
             color: 'var(--ink-900)',
             margin: 0
           }}
@@ -60,7 +61,7 @@ const WiFiNetworkCard = () => {
       </div>
       
       <div className="card-content">
-        <div className="network-details" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
+        <div className="network-details" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' }}>
           <div className="network-name" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
             <span style={{ 
               fontSize: 'var(--text-base)', 
@@ -99,34 +100,22 @@ const WiFiNetworkCard = () => {
             }}>
               {password}
             </span>
-            <Button
-              variant="secondary"
-              size="sm"
+            <button
               onClick={handleCopyPassword}
               style={{
-                padding: 'var(--space-xs) var(--space-sm)',
+                background: 'none',
+                border: 'none',
+                color: 'var(--purple-700)',
                 fontSize: 'var(--text-sm)',
-                minWidth: 'auto',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 'var(--space-xs)',
-                border: '1px solid var(--blue-300)',
-                background: 'var(--white)',
-                color: 'var(--blue-700)'
+                fontWeight: 'var(--font-medium)',
+                cursor: 'pointer',
+                textDecoration: 'underline',
+                padding: 0,
+                margin: 0
               }}
             >
-              {copied ? (
-                <>
-                  <span>✓</span>
-                  <span>Copied!</span>
-                </>
-              ) : (
-                <>
-                  <span>📋</span>
-                  <span>Copy</span>
-                </>
-              )}
-            </Button>
+              {copied ? 'Copied!' : 'Copy'}
+            </button>
           </div>
         </div>
       </div>
