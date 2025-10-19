@@ -6,9 +6,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
+import { BrowserRouter } from 'react-router-dom';
 import SessionCard from '../../components/session/SessionCard';
 import useCountdown from '../../hooks/useCountdown';
 import { isMeal, isCoffeeBreak } from '../../utils/sessionUtils';
+import { AuthProvider } from '../../contexts/AuthContext';
 
 // Mock the countdown hook
 vi.mock('../../hooks/useCountdown', () => ({
@@ -32,20 +34,34 @@ vi.mock('../../utils/sessionUtils', () => ({
 }));
 
 // Mock React Router
-vi.mock('react-router-dom', () => ({
-  useNavigate: vi.fn(() => vi.fn())
-}));
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: vi.fn(() => vi.fn())
+  };
+});
+
+// Test wrapper component with AuthProvider
+const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <BrowserRouter>
+    <AuthProvider>
+      {children}
+    </AuthProvider>
+  </BrowserRouter>
+);
 
 describe('Coffee Break Countdown Integration', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
-    
-    // Set default mock return value for useCountdown
+    // Don't clear all mocks to preserve the useCountdown mock
+    // Set default mock return value for useCountdown with complete object structure
     vi.mocked(useCountdown).mockReturnValue({
-      formattedTime: '',
-      isActive: false,
-      minutesRemaining: 0,
-      secondsRemaining: 0
+      timeRemaining: 754000,
+      formattedTime: '00:12:34',
+      isActive: true,
+      isComplete: false,
+      minutesRemaining: 12,
+      hoursRemaining: 0
     });
   });
 
@@ -129,10 +145,12 @@ describe('Coffee Break Countdown Integration', () => {
 
       // Mock countdown hook to return active countdown
       vi.mocked(useCountdown).mockReturnValue({
+        timeRemaining: 754000,
         formattedTime: '00:12:34',
         isActive: true,
+        isComplete: false,
         minutesRemaining: 12,
-        secondsRemaining: 34
+        hoursRemaining: 0
       });
 
       // Mock session utils
@@ -140,7 +158,11 @@ describe('Coffee Break Countdown Integration', () => {
       vi.mocked(isCoffeeBreak).mockReturnValue(true);
 
       // Act
-      render(<SessionCard session={coffeeBreakSession} variant="now" />);
+      render(
+        <TestWrapper>
+          <SessionCard session={coffeeBreakSession} variant="now" />
+        </TestWrapper>
+      );
 
       // Assert
       expect(screen.getByText('00:12:34')).toBeInTheDocument();
@@ -163,7 +185,11 @@ describe('Coffee Break Countdown Integration', () => {
       vi.mocked(isCoffeeBreak).mockReturnValue(false);
 
       // Act
-      render(<SessionCard session={generalSession} variant="now" />);
+      render(
+        <TestWrapper>
+          <SessionCard session={generalSession} variant="now" />
+        </TestWrapper>
+      );
 
       // Assert
       expect(screen.queryByText(/\d{2}:\d{2}:\d{2}/)).not.toBeInTheDocument();
@@ -183,10 +209,12 @@ describe('Coffee Break Countdown Integration', () => {
 
       // Mock countdown hook
       vi.mocked(useCountdown).mockReturnValue({
+        timeRemaining: 300000,
         formattedTime: '00:05:00',
         isActive: true,
+        isComplete: false,
         minutesRemaining: 5,
-        secondsRemaining: 0
+        hoursRemaining: 0
       });
 
       // Mock session utils to return true for meal type
@@ -194,7 +222,11 @@ describe('Coffee Break Countdown Integration', () => {
       vi.mocked(isCoffeeBreak).mockReturnValue(true);
 
       // Act
-      render(<SessionCard session={coffeeBreakSession} variant="now" />);
+      render(
+        <TestWrapper>
+          <SessionCard session={coffeeBreakSession} variant="now" />
+        </TestWrapper>
+      );
 
       // Assert
       expect(screen.getByText('00:05:00')).toBeInTheDocument();
@@ -285,7 +317,11 @@ describe('Coffee Break Countdown Integration', () => {
       vi.mocked(isCoffeeBreak).mockReturnValue(true); // Title-based detection
 
       // Act
-      render(<SessionCard session={coffeeBreakSession} variant="now" />);
+      render(
+        <TestWrapper>
+          <SessionCard session={coffeeBreakSession} variant="now" />
+        </TestWrapper>
+      );
 
       // Assert - Should still work with title-based detection
       expect(screen.getByText('Morning Coffee Break')).toBeInTheDocument();
@@ -308,7 +344,11 @@ describe('Coffee Break Countdown Integration', () => {
       vi.mocked(isCoffeeBreak).mockReturnValue(true);
 
       // Act
-      render(<SessionCard session={coffeeBreakSession} variant="now" />);
+      render(
+        <TestWrapper>
+          <SessionCard session={coffeeBreakSession} variant="now" />
+        </TestWrapper>
+      );
 
       // Assert
       expect(screen.getByText('Morning Coffee Break')).toBeInTheDocument();
@@ -331,7 +371,11 @@ describe('Coffee Break Countdown Integration', () => {
       vi.mocked(isCoffeeBreak).mockReturnValue(true);
 
       // Act
-      render(<SessionCard session={coffeeBreakSession} variant="now" />);
+      render(
+        <TestWrapper>
+          <SessionCard session={coffeeBreakSession} variant="now" />
+        </TestWrapper>
+      );
 
       // Assert
       expect(screen.getByText('Morning Coffee Break')).toBeInTheDocument();

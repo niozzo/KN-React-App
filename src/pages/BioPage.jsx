@@ -384,7 +384,7 @@ const BioPage = () => {
       )}
       
       {/* Company Card - Reordered layout */}
-      {standardizedCompany && standardizedCompany.name !== 'Apax Partners' && (
+      {standardizedCompany && standardizedCompany.name !== 'Apax Partners' && standardizedCompany.name !== 'Speakers & Guests' && (
         <Card className="sponsor-card sponsor-card-vertical">
           {/* First row: Name and Geography */}
           <div className="sponsor-info-row">

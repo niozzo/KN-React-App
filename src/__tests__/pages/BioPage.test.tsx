@@ -174,6 +174,49 @@ describe('BioPage Core Functionality', () => {
       expect(screen.queryByRole('link', { name: /Apax Partners/i })).not.toBeInTheDocument();
     });
 
+    it('should not display company card for Speakers & Guests', async () => {
+      // Setup: Mock attendee data with Speakers & Guests
+      const mockAttendee = {
+        id: 'test-attendee-id',
+        first_name: 'John',
+        last_name: 'Speaker',
+        title: 'Keynote Speaker',
+        company: 'Speakers & Guests',
+        company_name_standardized: 'Speakers & Guests',
+        bio: 'Test bio content',
+        registration_status: 'confirmed'
+      };
+
+      // Store in localStorage
+      localStorage.setItem('kn_cache_attendees', JSON.stringify({
+        data: [mockAttendee]
+      }));
+
+      // Mock CompanyNormalizationService to return Speakers & Guests
+      const mockCompanyService = {
+        initialize: vi.fn(),
+        normalizeCompanyName: vi.fn(() => ({
+          name: 'Speakers & Guests',
+          website: 'https://example.com',
+          sector: 'Conference',
+          logo: '/speakers-logo.png'
+        }))
+      };
+      vi.mocked(CompanyNormalizationService.getInstance).mockReturnValue(mockCompanyService);
+
+      render(
+        <BrowserRouter>
+          <AuthProvider>
+            <BioPage />
+          </AuthProvider>
+        </BrowserRouter>
+      );
+
+      // Verify company card is NOT displayed for Speakers & Guests
+      expect(screen.queryByText('Attendees')).not.toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: /Speakers & Guests/i })).not.toBeInTheDocument();
+    });
+
     it('should display company card for non-Apax companies', async () => {
       // Setup: Mock attendee with different company
       const mockAttendee = {

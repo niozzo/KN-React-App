@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import Card, { CardHeader, CardContent } from '../common/Card';
 import StatusTag from '../common/StatusTag';
 import SessionErrorBoundary from '../common/SessionErrorBoundary';
+import { TableCompanionsWidget } from '../tableCompanions';
+import { useAuth } from '../../contexts/AuthContext';
 import useCountdown from '../../hooks/useCountdown';
 import { 
   isCoffeeBreak, 
@@ -33,6 +35,7 @@ const SessionCard = React.memo(({
   className = ''
 }) => {
   const navigate = useNavigate();
+  const { attendee } = useAuth();
   
   // Handle null or undefined session
   if (!session) {
@@ -475,6 +478,17 @@ const SessionCard = React.memo(({
                 )}
               </span>
             </div>
+          </div>
+        )}
+
+        {/* Table Companions Widget for Dining Events with Assigned Seating */}
+        {isDiningEventSession && session.seating_type === 'assigned' && seatInfo && seatInfo.table && attendee?.id && (
+          <div style={{ marginTop: 'var(--space-sm)' }}>
+            <TableCompanionsWidget 
+              diningEventId={session.originalDiningId || session.id}
+              tableName={seatInfo.table}
+              attendeeId={attendee.id}
+            />
           </div>
         )}
         
