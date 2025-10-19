@@ -567,7 +567,7 @@ const HomePage = () => {
 
   return (
     <PageLayout data-testid="home-page">
-      <PullToRefresh onRefresh={handleRefreshData}>
+      {/* <PullToRefresh onRefresh={handleRefreshData}> */}
         {/* Time Override (Dev/Staging Only) */}
         <TimeOverride />
         
@@ -677,7 +677,7 @@ const HomePage = () => {
       {/* <section className="install-prompt-section">
         <InstallPrompt placement="home" />
       </section> */}
-      </PullToRefresh>
+      {/* </PullToRefresh> */}
     </PageLayout>
   );
 };

@@ -233,7 +233,7 @@ const SponsorsPage = () => {
   return (
     <PageLayout>
       <h1 className="page-title">Sponsor Directory</h1>
-      <PullToRefresh onRefresh={handleRefresh}>
+      {/* <PullToRefresh onRefresh={handleRefresh}> */}
         {/* Search Section */}
       <div
         className="search-container"
@@ -495,7 +495,7 @@ const SponsorsPage = () => {
           <div style={{ fontSize: '10px', fontWeight: 'normal' }}>Top</div>
         </button>
       )}
-      </PullToRefresh>
+      {/* </PullToRefresh> */}
     </PageLayout>
   );
 };

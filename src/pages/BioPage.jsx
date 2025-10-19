@@ -258,7 +258,7 @@ const BioPage = () => {
 
   return (
     <PageLayout>
-      <PullToRefresh onRefresh={handleRefresh}>
+      {/* <PullToRefresh onRefresh={handleRefresh}> */}
         {/* Back Button */}
       <div className="back-link-container" style={{ marginBottom: 'var(--space-sm)' }}>
         <button 
@@ -574,7 +574,7 @@ const BioPage = () => {
           )}
         </Card>
       )}
-      </PullToRefresh>
+      {/* </PullToRefresh> */}
     </PageLayout>
   );
 };

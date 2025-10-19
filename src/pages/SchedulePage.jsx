@@ -64,12 +64,12 @@ const SchedulePage = () => {
   return (
     <PageLayout>
       <h1 className="page-title">My Schedule</h1>
-      <PullToRefresh onRefresh={handleRefreshData}>
+      {/* <PullToRefresh onRefresh={handleRefreshData}> */}
         <ScheduleView 
           onSessionClick={handleSessionClick}
           className="schedule-page-content"
         />
-      </PullToRefresh>
+      {/* </PullToRefresh> */}
     </PageLayout>
   );
 };
