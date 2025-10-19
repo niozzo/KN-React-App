@@ -98,10 +98,28 @@ const filterSessionsForAttendee = (sessions, attendee) => {
         const sessionTitle = session.title?.toLowerCase() || '';
         const selectedBreakouts = attendee.selected_breakouts || [];
         
-        return selectedBreakouts.some(breakout => 
-          breakout.toLowerCase().includes(sessionTitle) || 
-          sessionTitle.includes(breakout.toLowerCase())
-        );
+        return selectedBreakouts.some(breakout => {
+          const breakoutLower = breakout.toLowerCase();
+          const normalizedBreakout = breakoutLower.replace(/-/g, ' ').replace(/\s+/g, ' ');
+          const normalizedSession = sessionTitle.replace(/[^\w\s]/g, '').replace(/\s+/g, ' ');
+          
+          console.log('🔍 DEBUG: Title matching:', {
+            breakout: breakout,
+            breakoutLower: breakoutLower,
+            normalizedBreakout: normalizedBreakout,
+            sessionTitle: sessionTitle,
+            normalizedSession: normalizedSession,
+            match1: breakoutLower.includes(sessionTitle),
+            match2: sessionTitle.includes(breakoutLower),
+            match3: normalizedBreakout.includes(normalizedSession),
+            match4: normalizedSession.includes(normalizedBreakout)
+          });
+          
+          return breakoutLower.includes(sessionTitle) || 
+                 sessionTitle.includes(breakoutLower) ||
+                 normalizedBreakout.includes(normalizedSession) ||
+                 normalizedSession.includes(normalizedBreakout);
+        });
       }
       
       // If no attendee data, don't show breakout sessions
