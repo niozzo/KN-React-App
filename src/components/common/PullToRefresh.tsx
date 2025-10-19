@@ -20,13 +20,6 @@ const PullToRefresh: React.FC<PullToRefreshProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   
-  // Debug logging
-  console.log('PullToRefresh component received:', {
-    hookOptions,
-    hasOnRefresh: !!hookOptions.onRefresh,
-    onRefreshType: typeof hookOptions.onRefresh
-  });
-  
   const {
     isPulling,
     isRefreshing,
@@ -52,8 +45,9 @@ const PullToRefresh: React.FC<PullToRefreshProps> = ({
     };
   }, [handleTouchStart, handleTouchMove, handleTouchEnd]);
 
-  // Calculate rotation for refresh icon
-  const iconRotation = pullProgress * 360;
+  // Calculate stroke-dashoffset for circular progress
+  const circumference = 100.53; // 2 * PI * 16 (radius)
+  const strokeDashoffset = circumference * (1 - pullProgress);
 
   return (
     <div 
@@ -70,16 +64,17 @@ const PullToRefresh: React.FC<PullToRefreshProps> = ({
           className="pull-indicator"
           style={{
             position: 'fixed',
-            top: 0,
+            top: '-80px',
             left: 0,
             right: 0,
-            height: `${Math.min(pullDistance, 80)}px`,
+            height: '80px',
             background: 'linear-gradient(135deg, var(--purple-50) 0%, var(--purple-100) 100%)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             zIndex: 1000,
-            transition: isRefreshing ? 'height 0.3s ease' : 'none',
+            transform: `translateY(${isRefreshing ? '80px' : Math.min(pullDistance, 80)}px)`,
+            transition: isRefreshing ? 'transform 0.3s ease' : 'none',
             borderBottom: '1px solid var(--purple-200)',
             boxShadow: '0 2px 8px rgba(139, 92, 246, 0.1)'
           }}
@@ -95,23 +90,32 @@ const PullToRefresh: React.FC<PullToRefreshProps> = ({
               fontWeight: '500'
             }}
           >
-            <div
-              style={{
-                width: '24px',
-                height: '24px',
-                border: '2px solid var(--purple-300)',
-                borderTop: '2px solid var(--purple-600)',
-                borderRadius: '50%',
-                transform: `rotate(${iconRotation}deg)`,
-                transition: isRefreshing ? 'transform 0.3s ease' : 'none',
-                animation: isRefreshing ? 'spin 1s linear infinite' : 'none'
-              }}
-            />
-            <span>
-              {isRefreshing ? 'Refreshing...' : 
-               pullProgress >= 1 ? 'Release to refresh' : 
-               'Pull to refresh'}
-            </span>
+            <svg width="40" height="40" viewBox="0 0 40 40">
+              <circle
+                cx="20" cy="20" r="16"
+                fill="none"
+                stroke="var(--purple-200)"
+                strokeWidth="3"
+              />
+              <circle
+                cx="20" cy="20" r="16"
+                fill="none"
+                stroke="var(--purple-600)"
+                strokeWidth="3"
+                strokeDasharray={circumference}
+                strokeDashoffset={strokeDashoffset}
+                transform="rotate(-90 20 20)"
+                style={{ 
+                  transition: isRefreshing ? 'none' : 'stroke-dashoffset 0.1s ease',
+                  animation: isRefreshing ? 'spin 1s linear infinite' : 'none'
+                }}
+              />
+            </svg>
+            {!isRefreshing && (
+              <span>
+                {pullProgress >= 1 ? 'Release to refresh' : 'Pull to refresh'}
+              </span>
+            )}
           </div>
         </div>
       )}
@@ -119,8 +123,8 @@ const PullToRefresh: React.FC<PullToRefreshProps> = ({
       {/* Content */}
       <div
         style={{
-          transform: isPulling ? `translateY(${Math.min(pullDistance, 80)}px)` : 'none',
-          transition: isRefreshing ? 'transform 0.3s ease' : 'none'
+          transform: isPulling ? `translateY(${pullDistance}px)` : 'none',
+          transition: isRefreshing ? 'transform 0.4s cubic-bezier(0.4, 0.0, 0.2, 1)' : 'none'
         }}
       >
         {children}

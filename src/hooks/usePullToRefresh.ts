@@ -36,6 +36,9 @@ export const usePullToRefresh = (options: PullToRefreshOptions = {}): PullToRefr
     onRefresh
   } = options;
 
+  // Maximum pull distance for rubber-band effect
+  const maxPullDistance = 200;
+
   const [isPulling, setIsPulling] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [pullDistance, setPullDistance] = useState(0);
@@ -92,25 +95,22 @@ export const usePullToRefresh = (options: PullToRefreshOptions = {}): PullToRefr
       e.preventDefault();
       isDragging.current = true;
       
-      // Apply minimal resistance for better responsiveness
-      // Use most of the actual pull distance
-      const resistanceFactor = Math.max(0.7, 1 - (deltaY / (threshold * resistance * 3)));
-      const adjustedDistance = deltaY * resistanceFactor;
+      // Rubber-band resistance calculation
+      let adjustedDistance;
+      if (deltaY <= threshold) {
+        // Normal pull - minimal resistance
+        adjustedDistance = deltaY * 0.9;
+      } else {
+        // Rubber-band effect - exponential resistance
+        const overThreshold = deltaY - threshold;
+        const rubberBandFactor = 1 - Math.min(overThreshold / maxPullDistance, 0.9);
+        adjustedDistance = threshold + (overThreshold * rubberBandFactor);
+      }
       
       setPullDistance(adjustedDistance);
       setIsPulling(adjustedDistance > 10);
-      
-      // Debug logging
-      if (adjustedDistance > 50) {
-        console.log('Pull progress:', {
-          deltaY,
-          adjustedDistance,
-          threshold,
-          progress: (adjustedDistance / threshold * 100).toFixed(1) + '%'
-        });
-      }
     }
-  }, [disabled, isRefreshing, canPull, threshold, resistance]);
+  }, [disabled, isRefreshing, canPull, threshold, maxPullDistance]);
 
   // Handle touch end
   const handleTouchEnd = useCallback(async () => {
@@ -122,52 +122,35 @@ export const usePullToRefresh = (options: PullToRefreshOptions = {}): PullToRefr
     const deltaY = currentY.current - startY.current;
     const pullDuration = Date.now() - touchStartTime.current;
     
-    // Apply same resistance calculation as in touch move
-    const resistanceFactor = Math.max(0.7, 1 - (deltaY / (threshold * resistance * 3)));
-    const adjustedDistance = deltaY * resistanceFactor;
+    // Apply same rubber-band resistance calculation as in touch move
+    let adjustedDistance;
+    if (deltaY <= threshold) {
+      adjustedDistance = deltaY * 0.9;
+    } else {
+      const overThreshold = deltaY - threshold;
+      const rubberBandFactor = 1 - Math.min(overThreshold / maxPullDistance, 0.9);
+      adjustedDistance = threshold + (overThreshold * rubberBandFactor);
+    }
     
     // Trigger refresh if pulled far enough or fast enough
     const shouldRefresh = adjustedDistance > threshold || 
                         (adjustedDistance > threshold * 0.6 && pullDuration < 300);
     
-    console.log('Pull-to-refresh debug:', {
-      deltaY,
-      adjustedDistance,
-      threshold,
-      shouldRefresh,
-      pullDuration
-    });
-    
-    console.log('Pull-to-refresh check:', {
-      shouldRefresh,
-      hasOnRefresh: !!onRefresh,
-      onRefreshType: typeof onRefresh
-    });
-    
     if (shouldRefresh && onRefresh) {
       try {
-        console.log('Calling onRefresh function...');
         setIsRefreshing(true);
         logger.debug('Pull-to-refresh triggered', null, 'usePullToRefresh');
         await onRefresh();
         logger.success('Pull-to-refresh completed', null, 'usePullToRefresh');
-        console.log('onRefresh completed successfully');
       } catch (error) {
-        console.error('onRefresh failed:', error);
         logger.error('Pull-to-refresh failed', error, 'usePullToRefresh');
       } finally {
         setIsRefreshing(false);
-        console.log('Pull-to-refresh finished, isRefreshing set to false');
       }
-    } else {
-      console.log('Pull-to-refresh not triggered:', {
-        shouldRefresh,
-        hasOnRefresh: !!onRefresh
-      });
     }
     
     resetPull();
-  }, [disabled, isRefreshing, threshold, resistance, onRefresh, resetPull]);
+  }, [disabled, isRefreshing, threshold, maxPullDistance, onRefresh, resetPull]);
 
   // Set up scroll listener
   useEffect(() => {
