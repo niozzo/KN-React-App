@@ -11,7 +11,6 @@ import { getCurrentAttendeeData, getAttendeeSeatAssignments, getAllDiningOptions
 import TimeService from '../services/timeService';
 import { useAuth } from '../contexts/AuthContext';
 import { simplifiedDataService } from '../services/simplifiedDataService';
-import { breakoutMappingService } from '../services/breakoutMappingService';
 
 /**
  * Determine if a session is currently active
@@ -73,9 +72,13 @@ const filterSessionsForAttendee = (sessions, attendee) => {
   
   const filteredSessions = sessions.filter(session => {
     if (session.session_type === 'breakout-session') {
-      // Check if attendee is assigned to this breakout using mapping service
-      const isAssigned = breakoutMappingService.isAttendeeAssignedToBreakout(session, attendee);
-      return isAssigned;
+      // For breakout sessions, only show if user is assigned
+      if (attendee && attendee.selected_breakouts) {
+        return attendee.selected_breakouts.includes(session.id);
+      }
+      
+      // If no attendee data, don't show breakout sessions
+      return false;
     } else {
       // Show all other session types (keynote, meal, etc.) to everyone
       return true;
