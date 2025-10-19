@@ -9,6 +9,7 @@ export interface AttendeeExportData {
   last_name: string;
   email: string;
   access_code: string;
+  registration_status?: string;
 }
 
 /**

@@ -175,7 +175,12 @@ export const QRCodeGenerator: React.FC = () => {
 
   const handleExportCSV = () => {
     try {
-      const csvContent = generateAttendeeCSV(attendees);
+      // Filter attendees to only include confirmed ones for CSV export
+      const confirmedAttendees = attendees.filter(attendee => 
+        attendee.registration_status === 'confirmed'
+      );
+      
+      const csvContent = generateAttendeeCSV(confirmedAttendees);
       const filename = `attendee-urls-${new Date().toISOString().split('T')[0]}.csv`;
       downloadCSV(csvContent, filename);
     } catch (err) {
