@@ -101,27 +101,9 @@ const SettingsPage = () => {
     setRefreshError('');
 
     try {
-      logger.progress('User-initiated data refresh started', null, 'SettingsPage');
+      logger.progress('Manual data refresh started', null, 'SettingsPage');
       
-      // Step 1: Clear all relevant cache entries to force fresh fetch
-      logger.debug('Clearing cache entries to force fresh data fetch', null, 'SettingsPage');
-      const cacheKeys = [
-        'kn_cache_attendees',
-        'kn_cache_agenda_items', 
-        'kn_cache_dining_options',
-        'kn_cache_sponsors',
-        'kn_cache_seat_assignments',
-        'kn_cache_seating_configurations',
-        'kn_cached_sessions'
-      ];
-      
-      cacheKeys.forEach(key => {
-        localStorage.removeItem(key);
-        logger.debug(`Cleared cache: ${key}`, null, 'SettingsPage');
-      });
-      
-      // Step 1.5: Clear AttendeeCacheFilterService cache to ensure fresh profile visibility data
-      logger.debug('Clearing AttendeeCacheFilterService cache', null, 'SettingsPage');
+      // Clear AttendeeCacheFilterService cache
       try {
         const { AttendeeCacheFilterService } = await import('../services/attendeeCacheFilterService');
         AttendeeCacheFilterService.clearHiddenProfilesCache();
@@ -130,21 +112,25 @@ const SettingsPage = () => {
         logger.warn('Failed to clear AttendeeCacheFilterService cache', error, 'SettingsPage');
       }
       
-      // Step 2: Use simplified sync service
-      logger.progress('Force syncing all data from database', null, 'SettingsPage');
-      const { serverDataSyncService } = await import('../services/serverDataSyncService');
-      const result = await serverDataSyncService.syncAllData();
+      // Use timestamp service for force sync (clears timestamps and syncs all)
+      const { timestampCacheService } = await import('../services/timestampCacheService');
+      const result = await timestampCacheService.forceSyncAll();
       
       if (result.success) {
-        logger.success('Data refresh successful', null, 'SettingsPage');
+        logger.success('Manual refresh successful', null, 'SettingsPage');
         logger.debug(`Synced tables: ${result.syncedTables.join(', ')}`, null, 'SettingsPage');
         setRefreshSuccess(true);
         setLastSyncTime(new Date());
         
         // Clear success message after 3 seconds
         setTimeout(() => setRefreshSuccess(false), 3000);
+        
+        // Trigger UI refresh
+        window.dispatchEvent(new CustomEvent('cache-updated', {
+          detail: { type: 'manual-refresh', syncedTables: result.syncedTables }
+        }));
       } else {
-        logger.error('Data refresh failed', result.errors, 'SettingsPage');
+        logger.error('Manual refresh failed', result.errors, 'SettingsPage');
         const errorMessage = result.errors.length > 0 
           ? `Failed to refresh data: ${result.errors.join(', ')}`
           : 'Failed to refresh data. Please try again.';

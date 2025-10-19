@@ -1,5 +1,6 @@
 import { Routes, Route, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
+import { useAuth } from './contexts/AuthContext'
 import HomePage from './pages/HomePage.jsx'
 import MeetPage from './pages/MeetPage.jsx'
 import SchedulePage from './pages/SchedulePage.jsx'
@@ -42,10 +43,82 @@ const ProtectedBioPage = withAuth(BioPage)
 const ProtectedSeatMapPage = withAuth(SeatMapPage)
 
 function App() {
+  const { isAuthenticated } = useAuth();
+
   useEffect(() => {
     // Initialize PWA service
     pwaService.checkForUpdates();
   }, []);
+
+  // Smart sync with battery optimization
+  useEffect(() => {
+    let smartSyncInterval: NodeJS.Timeout | null = null;
+    
+    // Smart sync: Check for changes every 5 minutes
+    // ONLY when page is visible to save battery
+    const startSmartSync = () => {
+      if (smartSyncInterval) return; // Already running
+      
+      console.log('Starting smart sync (page visible)');
+      
+      smartSyncInterval = setInterval(async () => {
+        if (isAuthenticated && navigator.onLine && !document.hidden) {
+          console.log('Running smart sync check');
+          try {
+            const { timestampCacheService } = await import('./services/timestampCacheService');
+            await timestampCacheService.syncChangedTables();
+          } catch (error) {
+            console.error('Smart sync failed:', error);
+          }
+        }
+      }, 300000); // 5 minutes
+    };
+    
+    const stopSmartSync = () => {
+      if (smartSyncInterval) {
+        console.log('Stopping smart sync (page hidden)');
+        clearInterval(smartSyncInterval);
+        smartSyncInterval = null;
+      }
+    };
+    
+    // Handle page visibility changes
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // Page hidden - stop polling to save battery
+        stopSmartSync();
+      } else {
+        // Page visible - resume polling
+        startSmartSync();
+        
+        // Also do an immediate sync check when page becomes visible
+        if (isAuthenticated && navigator.onLine) {
+          console.log('Page became visible, checking for changes');
+          (async () => {
+            try {
+              const { timestampCacheService } = await import('./services/timestampCacheService');
+              await timestampCacheService.syncChangedTables();
+            } catch (error) {
+              console.error('Immediate sync check failed:', error);
+            }
+          })();
+        }
+      }
+    };
+    
+    // Listen for visibility changes
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // Start smart sync if page is currently visible
+    if (!document.hidden && isAuthenticated) {
+      startSmartSync();
+    }
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      stopSmartSync();
+    };
+  }, [isAuthenticated]);
 
   return (
     <AuthProvider>

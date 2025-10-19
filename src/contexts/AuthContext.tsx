@@ -264,6 +264,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.warn('⚠️ Failed to clear attendee sync state:', attendeeError)
       }
       
+      // ✅ NEW: Clear timestamp cache service state
+      try {
+        const { timestampCacheService } = await import('../services/timestampCacheService')
+        timestampCacheService.clearAllTimestamps()
+        console.log('🧹 Timestamp cache state cleared')
+      } catch (timestampError) {
+        console.warn('⚠️ Failed to clear timestamp cache state:', timestampError)
+      }
+      
       // Step 2: Clear authentication state
       console.log('🔐 Step 2: Clearing authentication state...')
       await authSignOut()

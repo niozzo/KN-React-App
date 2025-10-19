@@ -351,10 +351,9 @@ const applySeatAssignmentNormalization = async (seatData, attendeeData, agendaIt
 /**
  * Custom hook for managing session data
  * @param {boolean} enableOfflineMode - Whether to enable offline mode
- * @param {boolean} autoRefresh - Whether to auto-refresh data
  * @returns {Object} Session data and loading state
  */
-export default function useSessionData(enableOfflineMode = true, autoRefresh = true) {
+export default function useSessionData(enableOfflineMode = true) {
   const { isAuthenticated } = useAuth();
 
   // State
@@ -638,23 +637,14 @@ export default function useSessionData(enableOfflineMode = true, autoRefresh = t
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, [autoRefresh, isAuthenticated]); // Remove loadSessionData dependency
+  }, [isAuthenticated]); // Remove loadSessionData dependency
 
   // Load data on mount and when dependencies change
   useEffect(() => {
     loadSessionData();
   }, [isAuthenticated]); // Only depend on authentication status
 
-  // Auto-refresh when online
-  useEffect(() => {
-    if (!autoRefresh || isOffline || !isAuthenticated) return;
-
-    const interval = setInterval(() => {
-      refreshData();
-    }, 6 * 60 * 60 * 1000); // 6 hours
-
-    return () => clearInterval(interval);
-  }, [autoRefresh, isOffline, isAuthenticated, refreshData]);
+  // Auto-refresh removed - now handled by timestamp-based smart sync
 
   // Listen for time override changes and re-evaluate session states
   useEffect(() => {
