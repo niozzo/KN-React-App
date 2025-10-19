@@ -389,16 +389,6 @@ export default function useSessionData(enableOfflineMode = true, autoRefresh = t
       const attendeeData = await getCurrentAttendeeData();
       setAttendee(attendeeData);
 
-      // Load seat assignments for the current attendee
-      const seatData = await getAttendeeSeatAssignments(attendeeData.id);
-      
-      // 🔍 DEBUG: Log seat data loaded
-      console.log('🔍 DEBUG: Seat data loaded for attendee:', {
-        attendeeId: attendeeData.id,
-        seatDataCount: seatData?.length || 0,
-        seatData: seatData
-      });
-      
       // Load seating configurations
       const seatingData = await getAllSeatingConfigurations();
       setSeatingConfigurations(seatingData);
@@ -412,9 +402,6 @@ export default function useSessionData(enableOfflineMode = true, autoRefresh = t
       // Load agenda items for normalization and sessions
       const agendaResponse = await agendaService.getActiveAgendaItems();
       const agendaItems = agendaResponse.success ? agendaResponse.data : [];
-      
-      // Seat assignments are now transformed at the source (1-indexed, display-ready)
-      setSeatAssignments(seatData);
 
       // Load dining options
       let diningData = [];
@@ -426,6 +413,20 @@ export default function useSessionData(enableOfflineMode = true, autoRefresh = t
         console.error('Failed to load dining options:', diningErr);
         setDiningError(diningErr.message);
       }
+
+      // Load seat assignments AFTER agenda items and dining options are loaded
+      // This ensures the cache is populated when the transformer runs
+      const seatData = await getAttendeeSeatAssignments(attendeeData.id);
+      
+      // 🔍 DEBUG: Log seat data loaded
+      console.log('🔍 DEBUG: Seat data loaded for attendee:', {
+        attendeeId: attendeeData.id,
+        seatDataCount: seatData?.length || 0,
+        seatData: seatData
+      });
+      
+      // Seat assignments are now transformed at the source (1-indexed, display-ready)
+      setSeatAssignments(seatData);
 
       // Use agenda items for session data (already loaded above)
       let allSessionsData = agendaItems;
