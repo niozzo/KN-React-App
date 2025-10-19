@@ -432,7 +432,13 @@ const SessionCard = React.memo(({
               }}>
                 {/* Support both table/seat format (dining) and row/column format (theater seating) */}
                 {seatInfo.row && seatInfo.column ? (
-                  `Row ${seatInfo.row} • Seat ${seatInfo.column}` // Data is already 1-indexed
+                  // For agenda items (non-dining, non-meal), show only row
+                  // For dining events and meals, show both row and seat
+                  isDiningEventSession || isMealSession ? (
+                    `Row ${seatInfo.row} • Seat ${seatInfo.column}` // Dining/Meal: Show both
+                  ) : (
+                    `Row ${seatInfo.row}` // Agenda: Show only row
+                  )
                 ) : seatInfo.table ? (
                   isDiningEventSession 
                     ? seatInfo.table  // Dining: Just "Table 1" (no seat number)
