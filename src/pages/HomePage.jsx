@@ -558,11 +558,6 @@ const HomePage = () => {
         />
       </section>
 
-      {/* WiFi Network Card */}
-      <section className="wifi-network-section">
-        <WiFiNetworkCard />
-      </section>
-
       {/* Schedule CTA */}
       <section className="schedule-cta">
         <Card 
@@ -634,6 +629,11 @@ const HomePage = () => {
             →
           </div>
         </Card>
+      </section>
+
+      {/* WiFi Network Card */}
+      <section className="wifi-network-section">
+        <WiFiNetworkCard />
       </section>
 
       {/* PWA Install Button - Hidden for now */}
