@@ -32,11 +32,13 @@ import {
   ArrowBack as ArrowBackIcon,
   ContentCopy as CopyIcon,
   Download as DownloadIcon,
-  Refresh as RefreshIcon
+  Refresh as RefreshIcon,
+  TableChart as TableChartIcon
 } from '@mui/icons-material';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import { adminService } from '../../services/adminService';
+import { generateAttendeeCSV, downloadCSV } from '../../utils/csvExport';
 
 interface OutletContext {
   onLogout: () => void;
@@ -171,6 +173,17 @@ export const QRCodeGenerator: React.FC = () => {
     navigate('/admin');
   };
 
+  const handleExportCSV = () => {
+    try {
+      const csvContent = generateAttendeeCSV(attendees);
+      const filename = `attendee-urls-${new Date().toISOString().split('T')[0]}.csv`;
+      downloadCSV(csvContent, filename);
+    } catch (err) {
+      console.error('Error exporting CSV:', err);
+      setError('Failed to export CSV file');
+    }
+  };
+
   return (
     <Box sx={{ flexGrow: 1, minHeight: '100vh', bgcolor: '#f5f5f5' }}>
       <AppBar position="static">
@@ -186,6 +199,15 @@ export const QRCodeGenerator: React.FC = () => {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             QR Code Generator
           </Typography>
+          <Button
+            color="inherit"
+            startIcon={<TableChartIcon />}
+            onClick={handleExportCSV}
+            disabled={loading || attendees.length === 0}
+            sx={{ mr: 2 }}
+          >
+            Export CSV
+          </Button>
           <Button color="inherit" onClick={onLogout}>
             Logout
           </Button>
@@ -209,9 +231,20 @@ export const QRCodeGenerator: React.FC = () => {
           {/* Attendee Selector */}
           <Card sx={{ flex: 1, maxWidth: { md: 400 } }}>
             <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Select Attendee
-              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Typography variant="h6">
+                  Select Attendee
+                </Typography>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={<TableChartIcon />}
+                  onClick={handleExportCSV}
+                  disabled={loading || attendees.length === 0}
+                >
+                  Export All URLs
+                </Button>
+              </Box>
 
               {loading ? (
                 <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
