@@ -33,10 +33,11 @@ describe('TimestampCacheService', () => {
     // Clear localStorage
     localStorage.clear();
     
-    // Reset mocks
+    // Reset all mocks completely
     vi.clearAllMocks();
+    vi.resetAllMocks();
     
-    // Setup mock Supabase client
+    // Setup fresh mock Supabase client
     mockSupabaseClient = {
       from: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
@@ -80,15 +81,21 @@ describe('TimestampCacheService', () => {
       // Set a timestamp
       localStorage.setItem('kn_last_sync_attendees', '2025-01-01T00:00:00.000Z');
       
-      // Reset and mock the entire chain to return no changes
-      mockSupabaseClient.from.mockReturnValue(mockSupabaseClient);
-      mockSupabaseClient.select.mockReturnValue(mockSupabaseClient);
-      mockSupabaseClient.gte.mockReturnValue(mockSupabaseClient);
-      mockSupabaseClient.neq.mockReturnValue(mockSupabaseClient);
-      mockSupabaseClient.limit.mockResolvedValue({
-        data: [],
-        error: null
-      });
+      // Create a completely fresh mock chain for this test
+      const mockChain = {
+        from: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        gte: vi.fn().mockReturnThis(),
+        neq: vi.fn().mockReturnThis(),
+        limit: vi.fn().mockResolvedValue({
+          data: [],
+          error: null
+        })
+      };
+      
+      // Mock supabaseClientService.getClient to return our fresh mock
+      const { supabaseClientService } = await import('../../services/supabaseClientService');
+      vi.mocked(supabaseClientService.getClient).mockReturnValue(mockChain);
       
       const result = await timestampCacheService.hasTableChanged('attendees');
       expect(result).toBe(false);
