@@ -14,10 +14,16 @@ import { ValidationRules } from '../../utils/validationUtils';
  */
 const TimeOverride = () => {
   // Hide only in true production (main branch), show in development and staging
-  // Check if we're on the main production domain (not develop branch)
+  // Show time override for:
+  // - localhost (development)
+  // - develop-* URLs (staging branch)
+  // - build-specific URLs (like nick-iozzos-projects)
+  // - any URL with vercel.app that's not the main production domain
   const isProduction = process.env.NODE_ENV === 'production' && 
                       !window.location.hostname.includes('develop-') &&
-                      !window.location.hostname.includes('localhost');
+                      !window.location.hostname.includes('localhost') &&
+                      !window.location.hostname.includes('nick-iozzos-projects') &&
+                      !window.location.hostname.includes('vercel.app'); // Hide only on custom domain
   
   if (isProduction) {
     return null;
