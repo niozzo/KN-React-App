@@ -22,7 +22,7 @@ export function generateAttendeeCSV(
   baseUrl: string = window.location.origin
 ): string {
   // CSV header
-  const headers = ['First Name', 'Last Name', 'Email', 'User Specific URL'];
+  const headers = ['First Name', 'Last Name', 'Email', 'Access Code', 'User Specific URL'];
   
   // Generate CSV rows
   const rows = attendees.map(attendee => {
@@ -41,6 +41,7 @@ export function generateAttendeeCSV(
       escapeCSV(attendee.first_name),
       escapeCSV(attendee.last_name),
       escapeCSV(attendee.email),
+      escapeCSV(attendee.access_code),
       escapeCSV(userUrl)
     ].join(',');
   });
