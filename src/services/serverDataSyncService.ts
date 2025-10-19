@@ -569,11 +569,8 @@ export class ServerDataSyncService extends BaseService {
       
       const records = data || [];
       
-      // Apply transformations using shared method
-      const transformedRecords = await this.applyTransformations('seat_assignments', records);
-      
-      // 🔍 DEBUG: Log transformed data to see if it changed
-      console.log('🔍 TRANSFORMED SEAT ASSIGNMENT DATA:', transformedRecords.map(record => ({
+      // 🔍 DEBUG: Log raw data before caching
+      console.log('🔍 RAW SEAT ASSIGNMENT DATA (before caching):', records.map(record => ({
         id: record.id,
         seating_configuration_id: record.seating_configuration_id,
         row_number: record.row_number,
@@ -583,10 +580,10 @@ export class ServerDataSyncService extends BaseService {
         assigned_at: record.assigned_at
       })));
       
-      // Cache the user-specific data
-      await this.cacheTableData('seat_assignments', transformedRecords);
+      // Cache the raw data (transformations will be applied by dataService)
+      await this.cacheTableData('seat_assignments', records);
       
-      return transformedRecords;
+      return records;
       
     } catch (error) {
       console.error(`❌ Failed to sync user seat assignments:`, error);
