@@ -620,7 +620,7 @@ export default function useSessionData(enableOfflineMode = true) {
   useEffect(() => {
     const handleOnline = () => {
       setIsOffline(false);
-      if (autoRefresh && isAuthenticated) {
+      if (isAuthenticated) {
         loadSessionData();
       }
     };
