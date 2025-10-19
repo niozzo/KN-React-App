@@ -302,10 +302,17 @@ export class AdminService {
       
       // Get seating configurations for these assignments
       const configIds = seatAssignments.map(sa => sa.seating_configuration_id);
+      console.log('🔍 DEBUG: Configuration IDs to fetch:', configIds);
+      
       const { data: configurations, error: configError } = await supabase
         .from('seating_configurations')
         .select('id, agenda_item_id, dining_option_id')
         .in('id', configIds);
+      
+      console.log('🔍 DEBUG: Configurations fetched:', {
+        configurations,
+        error: configError
+      });
       
       if (configError) {
         console.warn('Error fetching seating configurations:', configError);
@@ -324,10 +331,17 @@ export class AdminService {
       
       // Get dining options
       const diningOptionIds = configurations?.map(c => c.dining_option_id).filter(Boolean) || [];
+      console.log('🔍 DEBUG: Dining option IDs to fetch:', diningOptionIds);
+      
       const { data: diningOptions, error: diningError } = await supabase
         .from('dining_options')
         .select('id, name, start_time, end_time')
         .in('id', diningOptionIds);
+      
+      console.log('🔍 DEBUG: Dining options fetched:', {
+        diningOptions,
+        error: diningError
+      });
       
       if (diningError) {
         console.warn('Error fetching dining options:', diningError);
@@ -340,6 +354,14 @@ export class AdminService {
         let sessionType = 'Unknown';
         let sessionTime = null;
         
+        console.log('🔍 DEBUG: Processing assignment:', {
+          assignmentId: assignment.id,
+          configId: assignment.seating_configuration_id,
+          config,
+          agendaItemId: config?.agenda_item_id,
+          diningOptionId: config?.dining_option_id
+        });
+        
         if (config?.agenda_item_id) {
           const agendaItem = agendaItems?.find(ai => ai.id === config.agenda_item_id);
           if (agendaItem) {
@@ -349,6 +371,8 @@ export class AdminService {
               start: agendaItem.start_time,
               end: agendaItem.end_time
             };
+          } else {
+            console.log('🔍 DEBUG: Agenda item not found:', config.agenda_item_id);
           }
         } else if (config?.dining_option_id) {
           const diningOption = diningOptions?.find(dining => dining.id === config.dining_option_id);
@@ -359,7 +383,11 @@ export class AdminService {
               start: diningOption.start_time,
               end: diningOption.end_time
             };
+          } else {
+            console.log('🔍 DEBUG: Dining option not found:', config.dining_option_id);
           }
+        } else {
+          console.log('🔍 DEBUG: No agenda_item_id or dining_option_id in config:', config);
         }
         
         return {
