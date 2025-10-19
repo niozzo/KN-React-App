@@ -86,7 +86,7 @@ export const TableCompanionsWidget: React.FC<TableCompanionsWidgetProps> = ({
           backgroundColor: 'var(--white)',
           color: 'var(--ink-900)',
           fontSize: 'var(--text-lg)',
-          fontWeight: '600',
+          fontWeight: 'normal',
           cursor: 'pointer',
           transition: 'all var(--transition-normal)',
           display: 'flex',
@@ -154,17 +154,6 @@ export const TableCompanionsWidget: React.FC<TableCompanionsWidgetProps> = ({
             </div>
           ) : (
             <div>
-              <h4 
-                style={{
-                  fontSize: '16px',
-                  fontWeight: '600',
-                  color: 'var(--ink-900)',
-                  margin: '0 0 var(--space-md) 0',
-                  textAlign: 'left'
-                }}
-              >
-                Table Companions ({companions.length})
-              </h4>
               <ul 
                 style={{
                   listStyle: 'none',
