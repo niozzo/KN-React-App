@@ -339,9 +339,19 @@ export const getAllSponsorsWithStandardizedData = async (): Promise<EnhancedSpon
 const getAgendaItemsFromCache = async (): Promise<AgendaItem[]> => {
   try {
     const cached = localStorage.getItem('kn_cache_agenda_items')
+    console.log('🔍 DEBUG: Agenda items cache check:', {
+      hasCache: !!cached,
+      cacheLength: cached?.length || 0,
+      cachePreview: cached?.substring(0, 100) + '...'
+    })
     if (cached) {
       const parsed = JSON.parse(cached)
-      return parsed.data || parsed || []
+      const result = parsed.data || parsed || []
+      console.log('🔍 DEBUG: Agenda items from cache:', {
+        resultCount: result.length,
+        result: result
+      })
+      return result
     }
   } catch (error) {
     console.warn('Failed to read agenda items from cache:', error)
@@ -355,9 +365,19 @@ const getAgendaItemsFromCache = async (): Promise<AgendaItem[]> => {
 const getDiningOptionsFromCache = async (): Promise<DiningOption[]> => {
   try {
     const cached = localStorage.getItem('kn_cache_dining_options')
+    console.log('🔍 DEBUG: Dining options cache check:', {
+      hasCache: !!cached,
+      cacheLength: cached?.length || 0,
+      cachePreview: cached?.substring(0, 100) + '...'
+    })
     if (cached) {
       const parsed = JSON.parse(cached)
-      return parsed.data || parsed || []
+      const result = parsed.data || parsed || []
+      console.log('🔍 DEBUG: Dining options from cache:', {
+        resultCount: result.length,
+        result: result
+      })
+      return result
     }
   } catch (error) {
     console.warn('Failed to read dining options from cache:', error)
