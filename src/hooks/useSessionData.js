@@ -192,8 +192,13 @@ const enhanceSessionData = (sessions, attendee, seatAssignments, seatingConfigur
         sa.sessionId === event.id
       );
       
-      // 🔍 DEBUG: Log seat assignment found
-      console.log('🔍 DEBUG: Seat assignment found:', seatAssignment);
+      // 🔍 DEBUG: Log seat assignment lookup details
+      console.log('🔍 DEBUG: Seat assignment lookup:', {
+        eventId: event.id,
+        eventTitle: event.title,
+        availableSessionIds: seatAssignments.map(sa => sa.sessionId),
+        seatAssignment: seatAssignment
+      });
       
       // Data is already display-ready (1-indexed)
       const result = {
