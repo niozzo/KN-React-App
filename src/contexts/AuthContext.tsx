@@ -51,6 +51,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   
   // Track active login process to abort if logout is called during login
   const loginAbortControllerRef = useRef<AbortController | null>(null)
+  
+  // Smart sync state
+  const smartSyncIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
   // Function to clear all cached data on authentication failure
   const clearCachedData = useCallback(() => {
@@ -111,6 +114,76 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       checkAuthStatus()
     }
   }, [isAuthenticated, checkAuthStatus])
+
+  // Smart sync logic - integrated directly into AuthProvider
+  useEffect(() => {
+    let smartSyncInterval: NodeJS.Timeout | null = null;
+    
+    // Smart sync: Check for changes every 5 minutes
+    // ONLY when page is visible to save battery
+    const startSmartSync = () => {
+      if (smartSyncInterval) return; // Already running
+      
+      console.log('Starting smart sync (page visible)');
+      
+      smartSyncInterval = setInterval(async () => {
+        if (isAuthenticated && navigator.onLine && !document.hidden) {
+          console.log('Running smart sync check');
+          try {
+            const { timestampCacheService } = await import('../services/timestampCacheService');
+            await timestampCacheService.syncChangedTables();
+          } catch (error) {
+            console.error('Smart sync failed:', error);
+          }
+        }
+      }, 300000); // 5 minutes
+    };
+    
+    const stopSmartSync = () => {
+      if (smartSyncInterval) {
+        console.log('Stopping smart sync (page hidden)');
+        clearInterval(smartSyncInterval);
+        smartSyncInterval = null;
+      }
+    };
+    
+    // Handle page visibility changes
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // Page hidden - stop polling to save battery
+        stopSmartSync();
+      } else {
+        // Page visible - resume polling
+        startSmartSync();
+        
+        // Also do an immediate sync check when page becomes visible
+        if (isAuthenticated && navigator.onLine) {
+          console.log('Page became visible, checking for changes');
+          (async () => {
+            try {
+              const { timestampCacheService } = await import('../services/timestampCacheService');
+              await timestampCacheService.syncChangedTables();
+            } catch (error) {
+              console.error('Immediate sync check failed:', error);
+            }
+          })();
+        }
+      }
+    };
+    
+    // Listen for visibility changes
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // Start smart sync if page is currently visible
+    if (!document.hidden && isAuthenticated) {
+      startSmartSync();
+    }
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      stopSmartSync();
+    };
+  }, [isAuthenticated]);
 
   const login = async (accessCode: string): Promise<{ success: boolean; error?: string }> => {
     // Create abort controller for this login attempt
