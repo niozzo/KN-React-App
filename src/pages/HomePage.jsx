@@ -10,6 +10,7 @@ import PullToRefresh from '../components/common/PullToRefresh';
 import useSessionData from '../hooks/useSessionData';
 import TimeOverride from '../components/dev/TimeOverride';
 import TimeService from '../services/timeService';
+import WiFiNetworkCard from '../components/WiFiNetworkCard';
 
 /**
  * Home Page Component
@@ -555,6 +556,11 @@ const HomePage = () => {
           hasConferenceStarted={hasConferenceStarted}
           hasConferenceEnded={hasConferenceEnded}
         />
+      </section>
+
+      {/* WiFi Network Card */}
+      <section className="wifi-network-section">
+        <WiFiNetworkCard />
       </section>
 
       {/* Schedule CTA */}

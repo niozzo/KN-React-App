@@ -1,18 +1,10 @@
-Who is sitin by you
-analytics
-
 see if supabase and vercel will handle the load
+analytics
 content crawl, qa as much as you can
-broadcast message
-
 
 CONTENT
-fix the inconsistent seat assignments
-remove apax from keynote speaker
-clean up first agenda title, remoe duplicate room name
-Directions to dining event on Tuesday?
-Breakfast information for Tuesday / Wednesday?
-display apac wifi for the conference 
+display apax wifi for the conference 
+remove end of conference survey 
 
 
 COMPLETE
@@ -21,3 +13,12 @@ why does nick have different tables?
 utiltiy to look for seating errors
 only check for new data va timestamp
 remove dynamic override. in just production?
+Breakfast information for Tuesday / Wednesday?
+fix the inconsistent seat assignments
+remove apax from keynote speaker
+Who is sitin by you
+
+
+Extra credit
+broadcast message
+
