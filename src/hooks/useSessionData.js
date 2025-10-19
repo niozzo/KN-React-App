@@ -423,13 +423,17 @@ export default function useSessionData(enableOfflineMode = true, autoRefresh = t
       const agendaItems = agendaResponse.success ? agendaResponse.data : [];
       
       // Apply seat assignment normalization for October 21st
-      const normalizedSeatData = await applySeatAssignmentNormalization(
-        seatData,
-        attendeeData,
-        agendaItems,
-        seatingData
-      );
-      setSeatAssignments(normalizedSeatData);
+      // DISABLED: Commented out to disable October 21st seat assignment normalization
+      // const normalizedSeatData = await applySeatAssignmentNormalization(
+      //   seatData,
+      //   attendeeData,
+      //   agendaItems,
+      //   seatingData
+      // );
+      // setSeatAssignments(normalizedSeatData);
+      
+      // Use original seat data without normalization
+      setSeatAssignments(seatData);
 
       // Load dining options
       let diningData = [];
@@ -449,7 +453,7 @@ export default function useSessionData(enableOfflineMode = true, autoRefresh = t
       const enhancedSessions = enhanceSessionData(
         allSessionsData,
         attendeeData,
-        normalizedSeatData,
+        seatData,
         seatingData
       );
 
@@ -496,7 +500,7 @@ export default function useSessionData(enableOfflineMode = true, autoRefresh = t
       });
 
       // Merge sessions and dining options for unified display
-      const allEventsCombined = mergeAndSortEvents(attendeeFilteredSessions, diningData || [], normalizedSeatData, seatingData);
+      const allEventsCombined = mergeAndSortEvents(attendeeFilteredSessions, diningData || [], seatData, seatingData);
       
       // Set state
       setSessions(filteredSessions);
@@ -589,23 +593,25 @@ export default function useSessionData(enableOfflineMode = true, autoRefresh = t
       ]);
       
       // Apply seat assignment normalization for October 21st
+      // DISABLED: Commented out to disable October 21st seat assignment normalization
       const agendaItems = agendaResponse.success ? agendaResponse.data : [];
-      const normalizedSeatData = await applySeatAssignmentNormalization(
-        freshSeatData,
-        attendee,
-        agendaItems,
-        freshSeatingData
-      );
+      // const normalizedSeatData = await applySeatAssignmentNormalization(
+      //   freshSeatData,
+      //   attendee,
+      //   agendaItems,
+      //   freshSeatingData
+      // );
       
       // Update seat assignments and seating configurations state
-      setSeatAssignments(normalizedSeatData);
+      // Use original seat data without normalization
+      setSeatAssignments(freshSeatData);
       setSeatingConfigurations(freshSeatingData);
       
       if (agendaResponse.success && agendaResponse.data && agendaResponse.data.length > 0) {
         const enhancedSessions = enhanceSessionData(
           agendaResponse.data,
           attendee,
-          normalizedSeatData,
+          freshSeatData,
           freshSeatingData
         );
         
