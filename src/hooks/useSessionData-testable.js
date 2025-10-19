@@ -121,7 +121,7 @@ const filterSessionsForAttendee = (sessions, attendee) => {
 
   return sessions.filter(session => {
     // Always include non-breakout sessions
-    if (session.type !== 'breakout') {
+    if (session.session_type !== 'breakout-session') {
       return true;
     }
     
