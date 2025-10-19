@@ -42,15 +42,10 @@ const ProtectedSettingsPage = withAuth(SettingsPage)
 const ProtectedBioPage = withAuth(BioPage)
 const ProtectedSeatMapPage = withAuth(SeatMapPage)
 
-function App() {
+// Smart sync component that uses AuthProvider context
+function SmartSyncManager() {
   const { isAuthenticated } = useAuth();
 
-  useEffect(() => {
-    // Initialize PWA service
-    pwaService.checkForUpdates();
-  }, []);
-
-  // Smart sync with battery optimization
   useEffect(() => {
     let smartSyncInterval: NodeJS.Timeout | null = null;
     
@@ -120,11 +115,21 @@ function App() {
     };
   }, [isAuthenticated]);
 
+  return null; // This component doesn't render anything
+}
+
+function App() {
+  useEffect(() => {
+    // Initialize PWA service
+    pwaService.checkForUpdates();
+  }, []);
+
   return (
     <AuthProvider>
       <div data-testid="app">
         <ScrollToTop />
         <OfflineIndicator />
+        <SmartSyncManager />
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/" element={<ProtectedHomePage />} />
