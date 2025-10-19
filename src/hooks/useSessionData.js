@@ -83,7 +83,14 @@ const filterSessionsForAttendee = (sessions, attendee) => {
         session_id: session.id,
         session_title: session.title,
         attendee_breakouts: attendee.selected_breakouts,
-        is_assigned: attendee.selected_breakouts?.includes(session.id)
+        attendee_breakouts_stringified: JSON.stringify(attendee.selected_breakouts),
+        session_id_type: typeof session.id,
+        is_assigned: attendee.selected_breakouts?.includes(session.id),
+        comparison_details: {
+          session_id: session.id,
+          attendee_breakouts: attendee.selected_breakouts,
+          includes_check: attendee.selected_breakouts?.includes(session.id)
+        }
       });
       
       // For breakout sessions, only show if user is assigned
@@ -422,7 +429,8 @@ export default function useSessionData(enableOfflineMode = true, autoRefresh = t
         id: attendeeData?.id,
         selected_breakouts: attendeeData?.selected_breakouts,
         selected_breakouts_type: typeof attendeeData?.selected_breakouts,
-        selected_breakouts_length: attendeeData?.selected_breakouts?.length
+        selected_breakouts_length: attendeeData?.selected_breakouts?.length,
+        selected_breakouts_content: attendeeData?.selected_breakouts
       });
       
       console.log('🔍 DEBUG: All sessions before filtering:', enhancedSessions.map(s => ({
