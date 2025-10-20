@@ -433,6 +433,49 @@ const SessionCard = React.memo(({
           </div>
         ) : null}
         
+        {/* Session Materials - Special case for AI session */}
+        {title === "AI In Practice Across The Apax Portfolio | Practical Use Cases & Success Storie" && (
+          <div 
+            className="session-materials"
+            style={{ 
+              cursor: 'default',
+              background: 'white',
+              borderRadius: 'var(--radius-md)',
+              padding: 'var(--space-sm)',
+              marginTop: 'var(--space-sm)',
+              border: '1px solid var(--purple-500)'
+            }}
+          >
+            <div style={{ 
+              fontSize: 'var(--text-sm)', 
+              fontWeight: '700',
+              color: 'var(--text-primary)',
+              marginBottom: 'var(--space-xs)'
+            }}>
+              Session materials
+            </div>
+            <div>
+              <a 
+                href="https://apaxvendors.apax.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                }}
+                style={{ 
+                  fontSize: 'var(--text-base)', 
+                  fontWeight: '500',
+                  color: 'var(--purple-700)',
+                  textDecoration: 'underline',
+                  cursor: 'pointer'
+                }}
+              >
+                Apax AI Vendors
+              </a>
+            </div>
+          </div>
+        )}
+        
         {seatInfo && (
           <div 
             className="seat-assignment"
