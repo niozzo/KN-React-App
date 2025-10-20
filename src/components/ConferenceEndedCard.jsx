@@ -1,8 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import Card from './common/Card';
-import Button from './common/Button';
-import { useNavigate } from 'react-router-dom';
 
 /**
  * Conference Ended Card Component
@@ -10,31 +8,8 @@ import { useNavigate } from 'react-router-dom';
  */
 const ConferenceEndedCard = React.memo(({ 
   className = '',
-  style = {},
-  onFeedbackClick,
-  onViewSessionsClick 
+  style = {}
 }) => {
-  const navigate = useNavigate();
-
-  const handleFeedbackClick = () => {
-    if (onFeedbackClick) {
-      onFeedbackClick();
-    } else {
-      // Default behavior - open survey link
-      const surveyUrl = import.meta.env.VITE_SURVEY_FEEDBACK_URL || 
-        'https://forms.gle/survey-feedback-link';
-      window.open(surveyUrl, '_blank');
-    }
-  };
-
-  const handleViewSessionsClick = () => {
-    if (onViewSessionsClick) {
-      onViewSessionsClick();
-    } else {
-      // Default behavior - navigate to schedule
-      navigate('/schedule');
-    }
-  };
 
   return (
     <Card 
@@ -65,14 +40,6 @@ const ConferenceEndedCard = React.memo(({
         }}>
           Thank you for participating in Apax KnowledgeNow 2025. We hope you had a great experience!
         </p>
-        <div style={{ display: 'flex', gap: 'var(--space-sm)', justifyContent: 'center' }}>
-          <Button 
-            variant="primary"
-            onClick={handleFeedbackClick}
-          >
-            📝 Share Feedback
-          </Button>
-        </div>
       </div>
     </Card>
   );
@@ -80,24 +47,18 @@ const ConferenceEndedCard = React.memo(({
   // Custom comparison function for React.memo
   return (
     prevProps.className === nextProps.className &&
-    prevProps.style === nextProps.style &&
-    prevProps.onFeedbackClick === nextProps.onFeedbackClick &&
-    prevProps.onViewSessionsClick === nextProps.onViewSessionsClick
+    prevProps.style === nextProps.style
   );
 });
 
 ConferenceEndedCard.propTypes = {
   className: PropTypes.string,
-  style: PropTypes.object,
-  onFeedbackClick: PropTypes.func,
-  onViewSessionsClick: PropTypes.func
+  style: PropTypes.object
 };
 
 ConferenceEndedCard.defaultProps = {
   className: '',
-  style: {},
-  onFeedbackClick: null,
-  onViewSessionsClick: null
+  style: {}
 };
 
 export default ConferenceEndedCard;

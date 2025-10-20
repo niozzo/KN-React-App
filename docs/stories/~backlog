@@ -1,8 +1,5 @@
-analytics
 content crawl, qa as much as you can
 
-CONTENT
-remove end of conference survey 
 
 
 COMPLETE
@@ -16,9 +13,11 @@ fix the inconsistent seat assignments
 remove apax from keynote speaker
 Who is sitin by you
 display apax wifi for the conference 
+analytics
+see if supabase and vercel will handle the load
+remove end of conference survey 
 
 
 Extra credit
 broadcast message
-see if supabase and vercel will handle the load
 
