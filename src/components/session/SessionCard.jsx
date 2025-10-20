@@ -439,11 +439,7 @@ const SessionCard = React.memo(({
             className="session-materials"
             style={{ 
               cursor: 'default',
-              background: 'white',
-              borderRadius: 'var(--radius-md)',
-              padding: 'var(--space-sm)',
-              marginTop: 'var(--space-sm)',
-              border: '1px solid var(--purple-500)'
+              marginTop: 'var(--space-sm)'
             }}
           >
             <div style={{ 
