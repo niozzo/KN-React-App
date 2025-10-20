@@ -1,5 +1,6 @@
 import { Routes, Route, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
+import { Analytics } from '@vercel/analytics/react'
 import HomePage from './pages/HomePage.jsx'
 import MeetPage from './pages/MeetPage.jsx'
 import SchedulePage from './pages/SchedulePage.jsx'
@@ -69,6 +70,7 @@ function App() {
           </Route>
           <Route path="/offline" element={<OfflinePage />} />
         </Routes>
+        <Analytics mode={import.meta.env.MODE === 'production' ? 'production' : 'development'} />
       </div>
     </AuthProvider>
   )

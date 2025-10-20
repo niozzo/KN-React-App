@@ -46,6 +46,7 @@
     "@mui/material": "^7.3.2",
     "@supabase/supabase-js": "^2.57.2",
     "@types/react-router-dom": "^5.3.3",
+    "@vercel/analytics": "^1.5.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
