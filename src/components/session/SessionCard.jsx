@@ -172,17 +172,18 @@ const SessionCard = React.memo(({
           )}
           {location && (
             <div className="session-location">
-              {isDiningEventSession && session.address ? (
+              {isDiningEventSession && (session.address || location) ? (
                 <>
                   <a 
-                    href={`https://maps.google.com/maps/dir/?api=1&destination=${encodeURIComponent(session.address)}`}
+                    href={`https://maps.google.com/maps/dir/?api=1&destination=${encodeURIComponent(session.address || location)}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={(e) => {
                       // Try to open Google Maps app first on mobile
                       if (/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-                        const appUrl = `comgooglemaps://?daddr=${encodeURIComponent(session.address)}&directionsmode=driving`;
-                        const webUrl = `https://maps.google.com/maps/dir/?api=1&destination=${encodeURIComponent(session.address)}`;
+                        const destination = session.address || location;
+                        const appUrl = `comgooglemaps://?daddr=${encodeURIComponent(destination)}&directionsmode=driving`;
+                        const webUrl = `https://maps.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`;
                         
                         // Try to open the app, fallback to web if it fails
                         const iframe = document.createElement('iframe');
