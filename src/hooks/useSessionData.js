@@ -260,6 +260,7 @@ const convertDiningToSessions = (diningOptions) => {
       date: dining.date,
       start_time: dining.time,
       end_time: null, // Dining events have no explicit end time
+      address: dining.address || '',
       location: dining.location || '',
       session_type: 'meal',
       type: 'dining',
