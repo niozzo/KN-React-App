@@ -10,6 +10,8 @@ import PullToRefresh from '../components/common/PullToRefresh';
 import useSessionData from '../hooks/useSessionData';
 import TimeOverride from '../components/dev/TimeOverride';
 import TimeService from '../services/timeService';
+import WiFiNetworkCard from '../components/WiFiNetworkCard';
+import { analyticsService } from '../services/analyticsService';
 
 /**
  * Home Page Component
@@ -42,6 +44,12 @@ const HomePage = () => {
   });
 
   const handleScheduleClick = () => {
+    // Track user action
+    analyticsService.trackUserAction('schedule_cta_click', {
+      sessionType: 'home_to_schedule',
+      timestamp: Date.now()
+    });
+    
     // Navigate to schedule page
     navigate('/schedule#current');
   };
@@ -97,6 +105,17 @@ const HomePage = () => {
       return false;
     }
   }, [allSessions, timeOverrideTrigger, currentSession]);
+
+  // Track page view on mount
+  useEffect(() => {
+    analyticsService.trackPageView('home', {
+      hasCurrentSession: !!currentSession,
+      hasNextSession: !!nextSession,
+      hasConferenceStarted,
+      hasConferenceEnded,
+      isOffline
+    });
+  }, []);
 
   // Listen for time override changes to re-evaluate hasConferenceEnded
   useEffect(() => {
@@ -577,22 +596,6 @@ const HomePage = () => {
             cursor: 'pointer'
           }}
         >
-          <div 
-            className="cta-icon"
-            style={{
-              width: '48px',
-              height: '48px',
-              background: 'var(--purple-050)',
-              borderRadius: 'var(--radius-xl)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 'var(--text-3xl)',
-              flexShrink: 0
-            }}
-          >
-            📅
-          </div>
           <div className="cta-content" style={{ flex: 1, minWidth: 0 }}>
             <h3 
               className="cta-title"
@@ -628,6 +631,11 @@ const HomePage = () => {
             →
           </div>
         </Card>
+      </section>
+
+      {/* WiFi Network Card */}
+      <section className="wifi-network-section">
+        <WiFiNetworkCard />
       </section>
 
       {/* PWA Install Button - Hidden for now */}

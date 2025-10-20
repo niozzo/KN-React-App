@@ -5,6 +5,7 @@ import PullToRefresh from '../components/common/PullToRefresh';
 import { getSponsorsFromStandardizedCompanies } from '../services/dataService';
 import { offlineAttendeeService } from '../services/offlineAttendeeService';
 import { offlineAwareImageService } from '../services/offlineAwareImageService';
+import { analyticsService } from '../services/analyticsService';
 
 /**
  * Sponsors Page Component
@@ -30,12 +31,24 @@ const SponsorsPage = () => {
       setSponsors(sponsorsData);
       setError(null);
       
+      // Track page view
+      analyticsService.trackPageView('sponsors', {
+        totalSponsors: sponsorsData.length,
+        hasSearchTerm: !!searchTerm
+      });
+      
       console.log(`✅ Loaded ${sponsorsData.length} sponsors from standardized companies`);
       
     } catch (err) {
       console.error('Error loading sponsors:', err);
       setError('Failed to load sponsors. Please try again.');
       setSponsors([]);
+      
+      // Track error
+      analyticsService.trackError(err, {
+        component: 'SponsorsPage',
+        action: 'load_sponsors'
+      });
     } finally {
       setLoading(false);
     }
@@ -158,6 +171,13 @@ const SponsorsPage = () => {
     const isCurrentlyExpanded = expandedDescriptions[sponsorId];
     const willBeExpanded = !isCurrentlyExpanded;
     
+    // Track sponsor interaction
+    analyticsService.trackSponsorInteraction('sponsor_profile_view', {
+      sponsorId: sponsorId,
+      sponsorName: companyName,
+      action: willBeExpanded ? 'expand' : 'collapse'
+    });
+    
     setExpandedDescriptions(prev => ({
       ...prev,
       [sponsorId]: willBeExpanded
@@ -277,6 +297,13 @@ const SponsorsPage = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="sponsor-name-link"
+                  onClick={() => {
+                    analyticsService.trackSponsorInteraction('sponsor_link_click', {
+                      sponsorId: sponsor.id,
+                      sponsorName: sponsor.name,
+                      linkType: 'website'
+                    });
+                  }}
                 >
                   {sponsor.name}&nbsp;<span className="external-link-icon">⧉</span>
                 </a>

@@ -4,6 +4,7 @@ import PageLayout from '../components/layout/PageLayout';
 import AttendeeCard from '../components/attendee/AttendeeCard';
 import { useSort } from '../hooks/useSort';
 import { attendeeSearchService } from '../services/attendeeSearchService';
+import { analyticsService } from '../services/analyticsService';
 
 /**
  * Meet Page Component
@@ -29,9 +30,21 @@ const MeetPage = () => {
         const result = await attendeeSearchService.searchAttendees({});
         setAllAttendees(result.attendees);
         
+        // Track page view
+        analyticsService.trackPageView('meet', {
+          totalAttendees: result.attendees.length,
+          hasSearchTerm: !!searchTerm
+        });
+        
       } catch (err) {
         console.error('Failed to load attendees:', err);
         setError(err.message || 'Failed to load attendees');
+        
+        // Track error
+        analyticsService.trackError(err, {
+          component: 'MeetPage',
+          action: 'load_attendees'
+        });
       } finally {
         setIsLoading(false);
       }
@@ -60,6 +73,15 @@ const MeetPage = () => {
   
   // Create search handler that updates URL (single source of truth)
   const handleSearchChange = (value) => {
+    // Track search action
+    if (value.trim()) {
+      analyticsService.trackUserAction('attendee_search', {
+        searchTerm: value,
+        resultsCount: filteredItems.length,
+        timestamp: Date.now()
+      });
+    }
+    
     // Update URL parameters directly
     const newSearchParams = new URLSearchParams(searchParams);
     if (value.trim()) {

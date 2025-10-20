@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { analyticsService } from '../services/analyticsService'
 
 interface InstallPromptProps {
   onInstall?: () => void
@@ -58,6 +59,13 @@ const InstallPrompt: React.FC<InstallPromptProps> = ({ onInstall, onDismiss, pla
   }, [])
 
   const handleInstallClick = async () => {
+    // Track A2HS prompt shown
+    analyticsService.trackPWAEvent('a2hs_prompt_shown', {
+      placement,
+      isIOS,
+      timestamp: Date.now()
+    });
+
     if (isIOS) {
       // Show iOS instructions modal
       setShowIOSModal(true)
@@ -69,10 +77,31 @@ const InstallPrompt: React.FC<InstallPromptProps> = ({ onInstall, onDismiss, pla
       const { outcome } = await deferredPrompt.userChoice
       
       if (outcome === 'accepted') {
+        // Track A2HS accepted
+        analyticsService.trackPWAEvent('a2hs_accepted', {
+          placement,
+          isIOS,
+          timestamp: Date.now()
+        });
+        
+        // Track conversion
+        analyticsService.trackConversion('a2hs_installed', {
+          placement,
+          isIOS,
+          timestamp: Date.now()
+        });
+        
         onInstall?.()
         setShowPrompt(false)
         setDeferredPrompt(null)
       } else {
+        // Track A2HS declined
+        analyticsService.trackPWAEvent('a2hs_declined', {
+          placement,
+          isIOS,
+          timestamp: Date.now()
+        });
+        
         // User declined, keep prompt available
         setDeferredPrompt(null)
       }
@@ -80,6 +109,13 @@ const InstallPrompt: React.FC<InstallPromptProps> = ({ onInstall, onDismiss, pla
   }
 
   const handleDismiss = () => {
+    // Track A2HS dismissed
+    analyticsService.trackPWAEvent('a2hs_dismissed', {
+      placement,
+      isIOS,
+      timestamp: Date.now()
+    });
+    
     setShowPrompt(false)
     onDismiss?.()
   }
