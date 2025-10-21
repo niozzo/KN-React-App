@@ -434,7 +434,7 @@ const SessionCard = React.memo(({
         ) : null}
         
         {/* Session Materials - Special case for AI session */}
-        {title === "AI In Practice Across The Apax Portfolio | Practical Use Cases & Success Storie" && (
+        {session.id === "aefb049e-ad06-43f7-94a7-569156a4d499" && (
           <div 
             className="session-materials"
             style={{ 
