@@ -433,6 +433,36 @@ const SessionCard = React.memo(({
           </div>
         ) : null}
         
+        {/* Session Materials - Special case for AI session */}
+        {session.id === "aefb049e-ad06-43f7-94a7-569156a4d499" && (
+          <div 
+            className="session-materials"
+            style={{ 
+              cursor: 'default',
+              marginTop: 'var(--space-xs)',
+              marginBottom: 'var(--space-lg)'
+            }}
+          >
+            <a 
+              href="https://apaxvendors.apax.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+              style={{ 
+                fontSize: 'var(--text-lg)', 
+                fontWeight: '500',
+                color: 'var(--purple-700)',
+                textDecoration: 'underline',
+                cursor: 'pointer'
+              }}
+            >
+              View Apax AI Vendor List
+            </a> <span style={{ textDecoration: 'none !important', color: 'var(--purple-700)' }}>⧉</span>
+          </div>
+        )}
+        
         {seatInfo && (
           <div 
             className="seat-assignment"
