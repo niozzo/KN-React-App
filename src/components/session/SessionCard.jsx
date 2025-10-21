@@ -439,7 +439,7 @@ const SessionCard = React.memo(({
             className="session-materials"
             style={{ 
               cursor: 'default',
-              marginTop: 'var(--space-lg)',
+              marginTop: 'var(--space-sm)',
               marginBottom: 'var(--space-lg)'
             }}
           >
@@ -458,7 +458,7 @@ const SessionCard = React.memo(({
                 cursor: 'pointer'
               }}
             >
-              Apax AI Vendors
+              View Apax AI Vendor List
             </a> <span style={{ textDecoration: 'none !important', color: 'var(--purple-700)' }}>⧉</span>
           </div>
         )}
