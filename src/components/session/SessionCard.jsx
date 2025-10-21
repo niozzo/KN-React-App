@@ -439,8 +439,8 @@ const SessionCard = React.memo(({
             className="session-materials"
             style={{ 
               cursor: 'default',
-              marginTop: 'var(--space-sm)',
-              marginBottom: 'var(--space-lg)'
+              marginTop: 'var(--space-xs)',
+              marginBottom: 'var(--space-sm)'
             }}
           >
             <a 
