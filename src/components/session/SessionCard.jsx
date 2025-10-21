@@ -439,14 +439,15 @@ const SessionCard = React.memo(({
             className="session-materials"
             style={{ 
               cursor: 'default',
-              marginTop: 'var(--space-sm)'
+              marginTop: 'var(--space-md)',
+              marginBottom: 'var(--space-md)'
             }}
           >
             <div style={{ 
-              fontSize: 'var(--text-sm)', 
+              fontSize: 'var(--text-base)', 
               fontWeight: '700',
               color: 'var(--text-primary)',
-              marginBottom: 'var(--space-xs)'
+              marginBottom: 'var(--space-sm)'
             }}>
               Session materials
             </div>
@@ -459,7 +460,7 @@ const SessionCard = React.memo(({
                   e.stopPropagation();
                 }}
                 style={{ 
-                  fontSize: 'var(--text-base)', 
+                  fontSize: 'var(--text-lg)', 
                   fontWeight: '500',
                   color: 'var(--purple-700)',
                   textDecoration: 'underline',
