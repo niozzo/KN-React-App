@@ -440,7 +440,7 @@ const SessionCard = React.memo(({
             style={{ 
               cursor: 'default',
               marginTop: 'var(--space-xs)',
-              marginBottom: 'var(--space-sm)'
+              marginBottom: 'var(--space-lg)'
             }}
           >
             <a 
