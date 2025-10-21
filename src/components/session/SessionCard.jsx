@@ -439,37 +439,27 @@ const SessionCard = React.memo(({
             className="session-materials"
             style={{ 
               cursor: 'default',
-              marginTop: 'var(--space-md)',
-              marginBottom: 'var(--space-md)'
+              marginTop: 'var(--space-lg)',
+              marginBottom: 'var(--space-lg)'
             }}
           >
-            <div style={{ 
-              fontSize: 'var(--text-base)', 
-              fontWeight: '700',
-              color: 'var(--text-primary)',
-              marginBottom: 'var(--space-sm)'
-            }}>
-              Session materials
-            </div>
-            <div>
-              <a 
-                href="https://apaxvendors.apax.com/"
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => {
-                  e.stopPropagation();
-                }}
-                style={{ 
-                  fontSize: 'var(--text-lg)', 
-                  fontWeight: '500',
-                  color: 'var(--purple-700)',
-                  textDecoration: 'underline',
-                  cursor: 'pointer'
-                }}
-              >
-                Apax AI Vendors
-              </a>
-            </div>
+            <a 
+              href="https://apaxvendors.apax.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+              style={{ 
+                fontSize: 'var(--text-lg)', 
+                fontWeight: '500',
+                color: 'var(--purple-700)',
+                textDecoration: 'underline',
+                cursor: 'pointer'
+              }}
+            >
+              Apax AI Vendors
+            </a> <span style={{ textDecoration: 'none !important', color: 'var(--purple-700)' }}>⧉</span>
           </div>
         )}
         
